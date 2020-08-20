@@ -1,15 +1,7 @@
-// single file C11 'header' library, written in a .c file because some compilers treats h/c files differently.
-
 // defines that enables different parts of the library:
 // #define ATS_PLATFORM_GLFW
-// #define ATS_OPENGL_LEGACY
 // #define ATS_MODERN_OPENGL 
-// #define ATS_CUTE_SOUND
-
-#ifndef __ATS_H__ 
-#define __ATS_H__
-
-#include <windef.h>
+// #define ATS_CUBE_ENGINE
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -18,78 +10,36 @@
 #include <stdarg.h>
 #include <math.h>
 #include <stdint.h>
+#include <assert.h>
 
 #ifdef ATS_MODERN_OPENGL
-#include "glad/glad.h"
+#include "dep/glad/glad.h"
 #endif
 
-#define MEMORY_KB   ((1024))
-#define MEMORY_MB   ((1024) * (MEMORY_KB))
-#define MEMORY_GB   ((1024) * (MEMORY_MB))
+#define KB (1024)
+#define MB (1024 * KB)
+#define GB (1024 * MB)
 
 #ifndef PI
-#define PI  (3.14159265359f)
+#define PI (3.14159265359f)
 #endif
 
-#ifndef false
-#define false 0
-#endif
-
-#ifndef true
-#define true 1
-#endif
-
-#define TO_RAD_MUL  (0.01745329251f)
-#define TO_DEG_MUL  (57.2957795131f)
+#define TO_RAD_MUL (0.01745329251f)
+#define TO_DEG_MUL (57.2957795131f)
 
 #define TO_RAD(deg) ((deg) * TO_RAD_MUL)
 #define TO_DEG(rad) ((rad) * TO_DEG_MUL)
 
-#define SETBIT(n, b)     ((n)  |=  (1ull << (b)))
-#define CLRBIT(n, b)     ((n)  &= ~(1ull << (b)))
-#define CHKBIT(n, b)     (((n) & (1ull << (b))) == (1ull << (b)))
-
-#define SWAP(T, a, b) do { T t = (a); (a) = (b); (b) = t; } while(0)
-//
-#ifndef MIN
-#define MIN(a, b) (((a) < (b))? (a) : (b))
-#endif
-
-#ifndef MAX
-#define MAX(a, b) (((a) > (b))? (a) : (b))
-#endif
-
-#define CLAMP_MAX(x, hi) MIN((x), (hi))
-#define CLAMP_MIN(x, lo) MAX((x), (lo))
-//
-#define CLAMP(x, lo, hi) (((x) < (lo))? (lo) : (((x) > (hi))? (hi) : (x)))
-//
-#define CLAMP_0(x)  ((x) < 0.0f? 0.0f : (x))
-#define CLAMP_1(x)  ((x) > 1.0f? 1.0f : (x))
-#define CLAMP_01(x) (((x) < 0.0f)? 0.0f : ((x) > 1.0f? 1.0f : (x)))
-//
-#define SIGN(x)             ((x) < 0? -1 : 1)
-#define SQUARE(x)           ((x) * (x))
 #define IS_POWER_OF_TWO(x)  (((x) != 0) && ((x) & ((x)-1)) == 0)
-//
+
 #define ALIGN_DOWN(n, a)      ((n) & ~((a) - 1))
 #define ALIGN_UP(n, a)        ALIGN_DOWN((n) + (a) - 1, (a))
 #define ALIGN_DOWN_PTR(p, a)  ((void*)ALIGN_DOWN((uintptr_t)(p), (a)))
 #define ALIGN_UP_PTR(p, a)    ((void*)ALIGN_DOWN((uintptr_t)(p), (a)))
 
-#define U2(arg)     (arg)[0], (arg)[1]
-#define U3(arg)     (arg)[0], (arg)[1], (arg)[2]
-#define U4(arg)     (arg)[0], (arg)[1], (arg)[2], (arg)[3]
-
-#define UV2(arg)     (arg).x, (arg).y
-#define UV3(arg)     (arg).x, (arg).y, (arg).z
-#define UV4(arg)     (arg).x, (arg).y, (arg).z, (arg).w
-
-#define UM2(arg)     (arg).x.x, (arg).x.y, (arg).y.x, (arg).y.y
-
 #define ARRAY_COUNT(array) (sizeof (array) / sizeof ((array)[0]))
 
-#define Sign(x) ((x) < 0? -1 : 1)
+#define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
 // ================================================== TYPES ================================================= //
 
@@ -245,431 +195,6 @@ union v4i {
     i32 array[4];
 };
 
-// ===================================================== KEYS =================================================== //
-
-#ifdef ATS_PLATFORM_GLFW
-
-#define KEY_UNKNOWN            -1
-
-#define KEY_SPACE              32
-#define KEY_APOSTROPHE         39  /* ' */
-#define KEY_COMMA              44  /* , */
-#define KEY_MINUS              45  /* - */
-#define KEY_PERIOD             46  /* . */
-#define KEY_SLASH              47  /* / */
-#define KEY_0                  48
-#define KEY_1                  49
-#define KEY_2                  50
-#define KEY_3                  51
-#define KEY_4                  52
-#define KEY_5                  53
-#define KEY_6                  54
-#define KEY_7                  55
-#define KEY_8                  56
-#define KEY_9                  57
-#define KEY_SEMICOLON          59  /* ; */
-#define KEY_EQUAL              61  /* = */
-#define KEY_A                  65
-#define KEY_B                  66
-#define KEY_C                  67
-#define KEY_D                  68
-#define KEY_E                  69
-#define KEY_F                  70
-#define KEY_G                  71
-#define KEY_H                  72
-#define KEY_I                  73
-#define KEY_J                  74
-#define KEY_K                  75
-#define KEY_L                  76
-#define KEY_M                  77
-#define KEY_N                  78
-#define KEY_O                  79
-#define KEY_P                  80
-#define KEY_Q                  81
-#define KEY_R                  82
-#define KEY_S                  83
-#define KEY_T                  84
-#define KEY_U                  85
-#define KEY_V                  86
-#define KEY_W                  87
-#define KEY_X                  88
-#define KEY_Y                  89
-#define KEY_Z                  90
-#define KEY_LEFT_BRACKET       91  /* [ */
-#define KEY_BACKSLASH          92  /* \ */
-#define KEY_RIGHT_BRACKET      93  /* ] */
-#define KEY_GRAVE_ACCENT       96  /* ` */
-#define KEY_WORLD_1            161 /* non-US #1 */
-#define KEY_WORLD_2            162 /* non-US #2 */
-
-/* Function keys */
-#define KEY_ESCAPE             256
-#define KEY_ENTER              257
-#define KEY_TAB                258
-#define KEY_BACKSPACE          259
-#define KEY_INSERT             260
-#define KEY_DELETE             261
-#define KEY_RIGHT              262
-#define KEY_LEFT               263
-#define KEY_DOWN               264
-#define KEY_UP                 265
-#define KEY_PAGE_UP            266
-#define KEY_PAGE_DOWN          267
-#define KEY_HOME               268
-#define KEY_END                269
-#define KEY_CAPS_LOCK          280
-#define KEY_SCROLL_LOCK        281
-#define KEY_NUM_LOCK           282
-#define KEY_PRINT_SCREEN       283
-#define KEY_PAUSE              284
-#define KEY_F1                 290
-#define KEY_F2                 291
-#define KEY_F3                 292
-#define KEY_F4                 293
-#define KEY_F5                 294
-#define KEY_F6                 295
-#define KEY_F7                 296
-#define KEY_F8                 297
-#define KEY_F9                 298
-#define KEY_F10                299
-#define KEY_F11                300
-#define KEY_F12                301
-#define KEY_F13                302
-#define KEY_F14                303
-#define KEY_F15                304
-#define KEY_F16                305
-#define KEY_F17                306
-#define KEY_F18                307
-#define KEY_F19                308
-#define KEY_F20                309
-#define KEY_F21                310
-#define KEY_F22                311
-#define KEY_F23                312
-#define KEY_F24                313
-#define KEY_F25                314
-#define KEY_KP_0               320
-#define KEY_KP_1               321
-#define KEY_KP_2               322
-#define KEY_KP_3               323
-#define KEY_KP_4               324
-#define KEY_KP_5               325
-#define KEY_KP_6               326
-#define KEY_KP_7               327
-#define KEY_KP_8               328
-#define KEY_KP_9               329
-#define KEY_KP_DECIMAL         330
-#define KEY_KP_DIVIDE          331
-#define KEY_KP_MULTIPLY        332
-#define KEY_KP_SUBTRACT        333
-#define KEY_KP_ADD             334
-#define KEY_KP_ENTER           335
-#define KEY_KP_EQUAL           336
-#define KEY_LEFT_SHIFT         340
-#define KEY_LEFT_CONTROL       341
-#define KEY_LEFT_ALT           342
-#define KEY_LEFT_SUPER         343
-#define KEY_RIGHT_SHIFT        344
-#define KEY_RIGHT_CONTROL      345
-#define KEY_RIGHT_ALT          346
-#define KEY_RIGHT_SUPER        347
-#define KEY_MENU               348
-#define KEY_LAST               KEY_MENU
-
-#define MOUSE_BUTTON_1         0
-#define MOUSE_BUTTON_2         1
-#define MOUSE_BUTTON_3         2
-#define MOUSE_BUTTON_4         3
-#define MOUSE_BUTTON_5         4
-#define MOUSE_BUTTON_6         5
-#define MOUSE_BUTTON_7         6
-#define MOUSE_BUTTON_8         7
-#define MOUSE_BUTTON_LAST      MOUSE_BUTTON_8
-#define MOUSE_BUTTON_LEFT      MOUSE_BUTTON_1
-#define MOUSE_BUTTON_RIGHT     MOUSE_BUTTON_2
-#define MOUSE_BUTTON_MIDDLE    MOUSE_BUTTON_3
-
-#define JOYSTICK_1             0
-#define JOYSTICK_2             1
-#define JOYSTICK_3             2
-#define JOYSTICK_4             3
-#define JOYSTICK_5             4
-#define JOYSTICK_6             5
-#define JOYSTICK_7             6
-#define JOYSTICK_8             7
-#define JOYSTICK_9             8
-#define JOYSTICK_10            9
-#define JOYSTICK_11            10
-#define JOYSTICK_12            11
-#define JOYSTICK_13            12
-#define JOYSTICK_14            13
-#define JOYSTICK_15            14
-#define JOYSTICK_16            15
-#define JOYSTICK_LAST          JOYSTICK_16
-
-#define GAMEPAD_BUTTON_A               0
-#define GAMEPAD_BUTTON_B               1
-#define GAMEPAD_BUTTON_X               2
-#define GAMEPAD_BUTTON_Y               3
-#define GAMEPAD_BUTTON_LEFT_BUMPER     4
-#define GAMEPAD_BUTTON_RIGHT_BUMPER    5
-#define GAMEPAD_BUTTON_BACK            6
-#define GAMEPAD_BUTTON_START           7
-#define GAMEPAD_BUTTON_GUIDE           8
-#define GAMEPAD_BUTTON_LEFT_THUMB      9
-#define GAMEPAD_BUTTON_RIGHT_THUMB     10
-#define GAMEPAD_BUTTON_DPAD_UP         11
-#define GAMEPAD_BUTTON_DPAD_RIGHT      12
-#define GAMEPAD_BUTTON_DPAD_DOWN       13
-#define GAMEPAD_BUTTON_DPAD_LEFT       14
-#define GAMEPAD_BUTTON_LAST            GAMEPAD_BUTTON_DPAD_LEFT
-
-#define GAMEPAD_BUTTON_CROSS       GAMEPAD_BUTTON_A
-#define GAMEPAD_BUTTON_CIRCLE      GAMEPAD_BUTTON_B
-#define GAMEPAD_BUTTON_SQUARE      GAMEPAD_BUTTON_X
-#define GAMEPAD_BUTTON_TRIANGLE    GAMEPAD_BUTTON_Y
-
-#define GAMEPAD_AXIS_LEFT_X        0
-#define GAMEPAD_AXIS_LEFT_Y        1
-#define GAMEPAD_AXIS_RIGHT_X       2
-#define GAMEPAD_AXIS_RIGHT_Y       3
-#define GAMEPAD_AXIS_LEFT_TRIGGER  4
-#define GAMEPAD_AXIS_RIGHT_TRIGGER 5
-#define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
-
-// ==================================================================== FUNCTIONS ===================================================== //
-
-extern void PlatformInit    (const char* title, int width, int height, int samples);
-extern void PlatformUpdate  (void);
-extern f32  TimerGetCurrent (void);
-
-// ==================================================================== GAMEPAD ===================================================== //
-
-union GamepadButtons {
-    struct {
-        u32 X       : 1;
-        u32 A       : 1;
-        u32 B       : 1;
-        u32 Y       : 1;
-        //
-        u32 LB      : 1;
-        u32 RB      : 1;
-        u32 LT      : 1;
-        u32 RT      : 1;
-        //
-        u32 select  : 1;
-        u32 start   : 1;
-        u32 LS      : 1;
-        u32 RS      : 1;
-        //
-        u32 UP      : 1;
-        u32 RIGHT   : 1;
-        u32 DOWN    : 1;
-        u32 LEFT    : 1;
-    } button;
-
-    u32 data;
-};
-
-struct Gamepad {
-    b32     active;
-    // axes:
-    v2      LS;
-    v2      RS;
-    //
-    f32     LT;
-    f32     RT;
-    // buttons
-    GamepadButtons  state;
-    GamepadButtons  pressed;
-    GamepadButtons  released;
-};
-
-// =========================================================== MOUSE MODES ================================================= //
-
-enum MouseMode {
-    MOUSE_NORMAL,
-    MOUSE_HIDDEN,
-    MOUSE_DISABLED
-};
-
-// ===========================================================  PLATFORM =================================================== //
-
-struct Platform {
-    b32         close;
-    //
-    i32         width;
-    i32         height;
-    f32         aspect_ratio;
-
-    HWND        native;
-
-    b32         fullscreen;
-    b32         _fullscreen_state_last_update;
-
-    b32         vsync;
-    b32         _vsync_state_last_update;
-
-    struct Time {
-        f32     total;
-        f32     delta;
-    } time;
-
-    struct Mouse {
-        u32     mode;
-
-        b32     is_down        : 1;
-        b32     is_pressed     : 1;
-        b32     is_released    : 1;
-
-        v2      pos;
-        v2      delta;
-        v2      scroll;
-
-        b8      state     [MOUSE_BUTTON_LAST];
-        b8      pressed   [MOUSE_BUTTON_LAST];
-        b8      released  [MOUSE_BUTTON_LAST];
-    } mouse;
-
-    struct Keyboard {
-        i32     key;
-        i32     ascii;
-
-        b32     is_down         : 1;
-        b32     is_pressed      : 1;
-        b32     is_repeat       : 1;
-        b32     is_released     : 1;
-        b32     is_ascii        : 1;
-    
-        b8      state     [KEY_LAST];
-        b8      pressed   [KEY_LAST];
-        b8      repeat    [KEY_LAST];
-        b8      released  [KEY_LAST];
-    } keyboard;
-
-    Gamepad gamepad[JOYSTICK_LAST];
-};
-
-extern Platform platform;
-
-#endif // ATS_PLATFORM_GLFW
-
-// ============================================= SHADERS =================================================== //
-
-#define GLSL_SHADER(shader) "#version 330 core\n" #shader
-
-extern u32  ShaderLoadFromMemory    (const char *vs, const char *fs, const char *gs);
-
-extern void ShaderUse               (u32 shader);
-extern u32  ShaderGetLocation       (u32 shader, const char *var_name);
-extern void ShaderSeti              (u32 shader, const char *loc, int n);
-extern void ShaderSetf              (u32 shader, const char *loc, f32 n);
-extern void ShaderSet2f             (u32 shader, const char *loc, f32 a, f32 b);
-extern void ShaderSet3f             (u32 shader, const char *loc, f32 a, f32 b, f32 c);
-extern void ShaderSet4f             (u32 shader, const char *loc, f32 a, f32 b, f32 c, f32 d);
-extern void ShaderSet2v             (u32 shader, const char *loc, const f32 *u);
-extern void ShaderSet3v             (u32 shader, const char *loc, const f32 *u);
-extern void ShaderSet4v             (u32 shader, const char *loc, const f32 *u);
-extern void ShaderSetMat4           (u32 shader, const char *loc, const f32 *m);
-
-// ================================================ CUBE ENGINE =================================================== //
-
-#ifdef ATS_CUBE_ENGINE
-
-extern void ce_Init(void);
-
-extern void ce_Clear(void);
-extern void ce_EnableDepthTest (void);
-extern void ce_DisableDepthTest(void);
-
-extern void ce_SetLight     (f32 x, f32 y, f32 z, f32 r, f32 g, f32 b);
-extern void ce_SetView      (f32 pos_x, f32 pos_y, f32 pos_z, f32 look_x, f32 look_y, f32 look_z, f32 up_x, f32 up_y, f32 up_z, f32 fov, f32 near_plane, f32 far_plane);
-extern void ce_SetLightView (f32 pos_x, f32 pos_y, f32 pos_z, f32 look_x, f32 look_y, f32 look_z, f32 up_x, f32 up_y, f32 up_z, f32 fov, f32 near_plane, f32 far_plane);
-extern void ce_SetView2D    (f32 pos_x, f32 pos_y, f32 pos_z, f32 look_x, f32 look_y, f32 look_z, f32 up_x, f32 up_y, f32 up_z, f32 rad_x,  f32 rad_y, f32 near_plane, f32 far_plane);
-
-extern void ce_SetProjectionView(const f32* projection_view);
-
-extern void ce_RenderCubes  (void);
-extern void ce_RenderSquares(void);
-
-extern void ce_PushCube         (f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushCubeQuat     (f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 qx, f32 qy, f32 qz, f32 qw, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushBox          (f32 pos_x, f32 pos_y, f32 pos_z, f32 rad_x, f32 rad_y, f32 rad_z, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushCubeRot      (f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 rot, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushCubeRotMat   (f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 Rxx, f32 Rxy, f32 Ryx, f32 Ryy, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushCubeEuler    (f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 yaw, f32 pitch, f32 roll, f32 red, f32 green, f32 blue, f32 alpha);
-extern void ce_PushBoxRot       (f32 pos_x, f32 pos_y, f32 pos_z, f32 rad_x, f32 rad_y, f32 rad_z, f32 rot, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushBoxRotMat    (f32 pos_x, f32 pos_y, f32 pos_z, f32 rad_x, f32 rad_y, f32 rad_z, f32 Rxx, f32 Rxy, f32 Ryx, f32 Ryy, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushLine         (const f32 p0[2], const f32 p1[2], f32 z, f32 rad, const f32 color[4]);
-extern void ce_PushLineLoop     (const f32 pos[2], f32 z, f32 rad, const f32 color[4], const f32 (*point_array)[2], int point_count);
-
-extern void ce_PushString       (const char* str, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushStringFormat (f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...);
-extern void ce_PushInt          (int n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushF32          (f32 n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushStringBox    (const char* str, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a);
-extern void ce_PushNumberBox    (int n, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a);
-
-extern int ce_GetCubeCount(void);
-
-static void ce_PushLinef(f32 ax, f32 ay, f32 bx, f32 by, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a) {
-    const f32 p0[2] = { ax, ay };
-    const f32 p1[2] = { bx, by };
-    const f32 color[4] = { r, g, b, a };
-
-    ce_PushLine(p0, p1, z, rad, color);
-}
-
-#endif // ATS_CUBE_ENGINE
-
-// ============================================ RENDER (LEGACY OPENGL) ============================================ //
-
-#ifndef ATS_MODERN_OPENGL
-
-extern void RenderInit(void);
-extern void RenderClear(void);
-extern void RenderSetMatrix(const f32 *matrix);
-extern void RenderSetProjectionView(const f32 *projection_view);
-extern void RenderSetModel(f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz);
-extern void RenderSetRotatedModel(f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz, f32 rot);
-extern void RenderSetTranslateScaleRotateZ(f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz, f32 rot);
-
-// camera:
-extern void RenderSetCamera(f32 px,  f32 py, f32 pz, f32 tx,  f32 ty, f32 tz, f32 ux,  f32 uy, f32 uz, f32 fov, f32 aspect, f32 n,  f32 f);
-extern void RenderSetCamera2D(f32 px,  f32 py, f32 pz, f32 tx,  f32 ty, f32 tz, f32 ux,  f32 uy, f32 uz, f32 sx,  f32 sy, f32 n,  f32 f);
-extern void RenderSetCameraOrtho(f32 width, f32 height, f32 n, f32 f);
-extern void RenderSetCameraTranslateOrtho(f32 x, f32 y, f32 rad_x, f32 rad_y, f32 n, f32 f);
-
-extern void RenderSetColor(f32 r, f32 g, f32 b, f32 a);
-extern void RenderSquare(f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a);
-extern void RenderRect(f32 x, f32 y, f32 z, f32 width, f32 height, f32 r, f32 g, f32 b, f32 a);
-extern void RenderCenterRect(f32 x, f32 y, f32 z, f32 half_width, f32 half_height, f32 r, f32 g, f32 b, f32 a);
-extern void RenderRotatedSquare(f32 x, f32 y, f32 z, f32 rad, f32 rot, f32 r, f32 g, f32 b, f32 a);
-extern void RenderCube(f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a);
-extern void RenderLine(f32 x0, f32 y0, f32 z0, f32 x1, f32 y1, f32 z1, f32 r, f32 g, f32 b, f32 a);
-extern void RenderLineLoop2D(f32 pos_x, f32 pos_y, f32 pos_z, f32 rad, f32 rot, f32 red, f32 green, f32 blue, f32 alpha, const f32 (*point_array)[2], int point_count);
-
-// Lighting:
-extern void RenderSetLightEmitter(int index, f32 bright, f32 x, f32 y, f32 z);
-extern void RenderSetLightDirected(int index, f32 bright, f32 x, f32 y, f32 z);
-extern void RenderSetLightGlobalAmbient(f32 r, f32 g, f32 b);
-
-// Texture:
-extern struct Texture  TextureCreate(unsigned char *pixels, int width, int height, int is_smooth);
-extern struct Texture  TextureLoadFromFile(const char *texture_path, int is_smooth);
-extern void            TextureBind(const struct Texture *texture);
-extern void            TextureDelete(struct Texture *texture);
-
-// Text
-extern void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a);
-extern void RenderString(const char *str, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a);
-extern void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...);
-extern void RenderInt(int n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a);
-extern void RenderF32(f32 n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a);
-extern void RenderStringBox(const char* str, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a);
-extern void RenderNumberBox(int n, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a);
-
-#endif // ATS_MODERN_OPENGL
-
 // --------------------------------------------- STATIC FUNCTIONS ---------------------------------------- //
 
 inline f32 Sqrt(f32 n) {
@@ -694,6 +219,10 @@ inline f32 RSqrt(f32 n) {
 	y = y * (1.5f - (x2 * y * y));     // 1st iteration
 
 	return y;
+}
+
+inline f32 Square(f32 n) {
+    return n * n;
 }
 
 inline f32 Lerp(f32 a, f32 b, f32 t) {
@@ -731,20 +260,20 @@ inline f32 Spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
 	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline int Overlap(int a0, int a1, int b0, int b1) {
-    return MAX(a0, b0) - MAX(a1, b1);
-}
-
-inline int Overlap(f32 a0, f32 a1, f32 b0, f32 b1) {
-    return MAX(a0, b0) - MAX(a1, b1);
-}
-
 inline f32 Min(f32 a, f32 b) {
     return a < b? a : b;
 }
 
 inline f32 Max(f32 a, f32 b) {
     return a < b? b : a;
+}
+
+inline int Overlap(int a0, int a1, int b0, int b1) {
+    return Max(a0, b0) - Max(a1, b1);
+}
+
+inline int Overlap(f32 a0, f32 a1, f32 b0, f32 b1) {
+    return Max(a0, b0) - Max(a1, b1);
 }
 
 inline int Min(int a, int b) {
@@ -1954,6 +1483,257 @@ inline void f4x4_Mulv(f32 *out, const f32 *M, const f32 *v) {
     out[3] = r[3];
 }
 
+// stolen from linmath.h
+inline void f4x4_Invert(f32* T, const f32* M) {
+	f32 s[6], c[6];
+
+	s[0] = M[0] * M[5] - M[4] * M[1];
+	s[1] = M[0] * M[6] - M[4] * M[2];
+	s[2] = M[0] * M[7] - M[4] * M[3];
+	s[3] = M[1] * M[6] - M[5] * M[2];
+	s[4] = M[1] * M[7] - M[5] * M[3];
+	s[5] = M[2] * M[7] - M[6] * M[3];
+
+	c[0] = M[8]  * M[13] - M[12] * M[9];
+	c[1] = M[8]  * M[14] - M[12] * M[10];
+	c[2] = M[8]  * M[15] - M[12] * M[11];
+	c[3] = M[9]  * M[14] - M[13] * M[10];
+	c[4] = M[9]  * M[15] - M[13] * M[11];
+	c[5] = M[10] * M[15] - M[14] * M[11];
+	
+	// assumes it is invertible
+	f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
+	
+	T[0]  = ( M[5]  * c[5] - M[6]  * c[4] + M[7]  * c[3]) * idet;
+	T[1]  = (-M[1]  * c[5] + M[2]  * c[4] - M[3]  * c[3]) * idet;
+	T[2]  = ( M[13] * s[5] - M[14] * s[4] + M[15] * s[3]) * idet;
+	T[3]  = (-M[9]  * s[5] + M[10] * s[4] - M[11] * s[3]) * idet;
+
+	T[4]  = (-M[4]  * c[5] + M[6]  * c[2] - M[7]  * c[1]) * idet;
+	T[5]  = ( M[0]  * c[5] - M[2]  * c[2] + M[3]  * c[1]) * idet;
+	T[6]  = (-M[12] * s[5] + M[14] * s[2] - M[15] * s[1]) * idet;
+	T[7]  = ( M[8]  * s[5] - M[10] * s[2] + M[11] * s[1]) * idet;
+
+	T[8]  = ( M[4]  * c[4] - M[5]  * c[2] + M[7]  * c[0]) * idet;
+	T[9]  = (-M[0]  * c[4] + M[1]  * c[2] - M[3]  * c[0]) * idet;
+	T[10] = ( M[12] * s[4] - M[13] * s[2] + M[15] * s[0]) * idet;
+	T[11] = (-M[8]  * s[4] + M[9]  * s[2] - M[11] * s[0]) * idet;
+
+	T[12] = (-M[4]  * c[3] + M[5]  * c[1] - M[6]  * c[0]) * idet;
+	T[13] = ( M[0]  * c[3] - M[1]  * c[1] + M[2]  * c[0]) * idet;
+	T[14] = (-M[12] * s[3] + M[13] * s[1] - M[14] * s[0]) * idet;
+	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
+}
+
+inline int f4x4_Project(f32* result, f32 objx, f32 objy, f32 objz, f32* modelview, f32* projection, int* viewport) {
+    f32 fTempo[8];
+
+    fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
+    fTempo[1] = modelview[1] * objx + modelview[5] * objy + modelview[9]  * objz + modelview[13];
+    fTempo[2] = modelview[2] * objx + modelview[6] * objy + modelview[10] * objz + modelview[14];
+    fTempo[3] = modelview[3] * objx + modelview[7] * objy + modelview[11] * objz + modelview[15];
+
+    fTempo[4] =  projection[0] * fTempo[0] + projection[4] * fTempo[1] + projection[8]  * fTempo[2] + projection[12] * fTempo[3];
+    fTempo[5] =  projection[1] * fTempo[0] + projection[5] * fTempo[1] + projection[9]  * fTempo[2] + projection[13] * fTempo[3];
+    fTempo[6] =  projection[2] * fTempo[0] + projection[6] * fTempo[1] + projection[10] * fTempo[2] + projection[14] * fTempo[3];
+    fTempo[7] = -fTempo[2];
+
+    if (fTempo[7] == 0.0f)
+        return false;
+
+    fTempo[7]= 1.0f / fTempo[7];
+
+    fTempo[4] *= fTempo[7];
+    fTempo[5] *= fTempo[7];
+    fTempo[6] *= fTempo[7];
+
+    result[0] =(fTempo[4] * 0.5f + 0.5f) * viewport[2] + viewport[0];
+    result[1] =(fTempo[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
+    result[2] =(1.0f + fTempo[6]) * 0.5f;
+
+    return true;
+}
+
+inline bool f4x4_UnProject(f32* result, f32 winx, f32 winy, f32 winz, f32* modelview, f32* projection, int* viewport) {
+    f32 m[16], A[16];
+    f32 in[4], out[4];
+
+    f4x4_Mul(A, projection, modelview);
+    f4x4_Invert(m, A);
+
+    in[0] = (winx - (f32)viewport[0]) / (f32)viewport[2] * 2.0f - 1.0f;
+    in[1] = (winy - (f32)viewport[1]) / (f32)viewport[3] * 2.0f - 1.0f;
+    in[2] = 2.0f * winz - 1.0f;
+    in[3] = 1.0;
+
+    f4x4_Mulv(out, m, in);
+    
+    if (out[3] == 0.0f)
+        return false;
+
+    out[3] = 1.0f / out[3];
+
+    result[0] = out[0] * out[3];
+    result[1] = out[1] * out[3];
+    result[2] = out[2] * out[3];
+
+    return true;
+}
+
+inline void f4x4_Mul64(f64 *R, const f64 *a, const f64 *b) {
+    f64 M[16];
+
+    M[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
+    M[1]  = a[1] * b[0]  + a[5] * b[1]  + a[9]  * b[2]  + a[13] * b[3];
+    M[2]  = a[2] * b[0]  + a[6] * b[1]  + a[10] * b[2]  + a[14] * b[3];
+    M[3]  = a[3] * b[0]  + a[7] * b[1]  + a[11] * b[2]  + a[15] * b[3];
+
+    M[4]  = a[0] * b[4]  + a[4] * b[5]  + a[8]  * b[6]  + a[12] * b[7];
+    M[5]  = a[1] * b[4]  + a[5] * b[5]  + a[9]  * b[6]  + a[13] * b[7];
+    M[6]  = a[2] * b[4]  + a[6] * b[5]  + a[10] * b[6]  + a[14] * b[7];
+    M[7]  = a[3] * b[4]  + a[7] * b[5]  + a[11] * b[6]  + a[15] * b[7];
+
+    M[8]  = a[0] * b[8]  + a[4] * b[9]  + a[8]  * b[10] + a[12] * b[11];
+    M[9]  = a[1] * b[8]  + a[5] * b[9]  + a[9]  * b[10] + a[13] * b[11];
+    M[10] = a[2] * b[8]  + a[6] * b[9]  + a[10] * b[10] + a[14] * b[11];
+    M[11] = a[3] * b[8]  + a[7] * b[9]  + a[11] * b[10] + a[15] * b[11];
+
+    M[12] = a[0] * b[12] + a[4] * b[13] + a[8]  * b[14] + a[12] * b[15];
+    M[13] = a[1] * b[12] + a[5] * b[13] + a[9]  * b[14] + a[13] * b[15];
+    M[14] = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15];
+    M[15] = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15];
+
+    R[0] = M[0];
+    R[1] = M[1];
+    R[2] = M[2];
+    R[3] = M[3];
+
+    R[4] = M[4];
+    R[5] = M[5];
+    R[6] = M[6];
+    R[7] = M[7];
+
+    R[8] = M[8];
+    R[9] = M[9];
+    R[10] = M[10];
+    R[11] = M[11];
+
+    R[12] = M[12];
+    R[13] = M[13];
+    R[14] = M[14];
+    R[15] = M[15];
+}
+
+inline void f4x4_Mulv64(f64 *out, const f64 *M, const f64 *v) {
+    f64 r[4];
+
+	r[0] = M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3];
+	r[1] = M[1] * v[0] + M[5] * v[1] + M[9]  * v[2] + M[13] * v[3];
+	r[2] = M[2] * v[0] + M[6] * v[1] + M[10] * v[2] + M[14] * v[3];
+	r[3] = M[3] * v[0] + M[7] * v[1] + M[11] * v[2] + M[15] * v[3];
+
+    out[0] = r[0];
+    out[1] = r[1];
+    out[2] = r[2];
+    out[3] = r[3];
+}
+
+inline void f4x4_Invert64(f64* T, const f64* M) {
+	f64 s[6], c[6];
+
+	s[0] = M[0] * M[5] - M[4] * M[1];
+	s[1] = M[0] * M[6] - M[4] * M[2];
+	s[2] = M[0] * M[7] - M[4] * M[3];
+	s[3] = M[1] * M[6] - M[5] * M[2];
+	s[4] = M[1] * M[7] - M[5] * M[3];
+	s[5] = M[2] * M[7] - M[6] * M[3];
+
+	c[0] = M[8]  * M[13] - M[12] * M[9];
+	c[1] = M[8]  * M[14] - M[12] * M[10];
+	c[2] = M[8]  * M[15] - M[12] * M[11];
+	c[3] = M[9]  * M[14] - M[13] * M[10];
+	c[4] = M[9]  * M[15] - M[13] * M[11];
+	c[5] = M[10] * M[15] - M[14] * M[11];
+	
+	// assumes it is invertible
+	f64 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
+	
+	T[0]  = ( M[5]  * c[5] - M[6]  * c[4] + M[7]  * c[3]) * idet;
+	T[1]  = (-M[1]  * c[5] + M[2]  * c[4] - M[3]  * c[3]) * idet;
+	T[2]  = ( M[13] * s[5] - M[14] * s[4] + M[15] * s[3]) * idet;
+	T[3]  = (-M[9]  * s[5] + M[10] * s[4] - M[11] * s[3]) * idet;
+
+	T[4]  = (-M[4]  * c[5] + M[6]  * c[2] - M[7]  * c[1]) * idet;
+	T[5]  = ( M[0]  * c[5] - M[2]  * c[2] + M[3]  * c[1]) * idet;
+	T[6]  = (-M[12] * s[5] + M[14] * s[2] - M[15] * s[1]) * idet;
+	T[7]  = ( M[8]  * s[5] - M[10] * s[2] + M[11] * s[1]) * idet;
+
+	T[8]  = ( M[4]  * c[4] - M[5]  * c[2] + M[7]  * c[0]) * idet;
+	T[9]  = (-M[0]  * c[4] + M[1]  * c[2] - M[3]  * c[0]) * idet;
+	T[10] = ( M[12] * s[4] - M[13] * s[2] + M[15] * s[0]) * idet;
+	T[11] = (-M[8]  * s[4] + M[9]  * s[2] - M[11] * s[0]) * idet;
+
+	T[12] = (-M[4]  * c[3] + M[5]  * c[1] - M[6]  * c[0]) * idet;
+	T[13] = ( M[0]  * c[3] - M[1]  * c[1] + M[2]  * c[0]) * idet;
+	T[14] = (-M[12] * s[3] + M[13] * s[1] - M[14] * s[0]) * idet;
+	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
+}
+
+inline int f4x4_Project64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
+    f64 fTempo[8];
+
+    fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
+    fTempo[1] = modelview[1] * objx + modelview[5] * objy + modelview[9]  * objz + modelview[13];
+    fTempo[2] = modelview[2] * objx + modelview[6] * objy + modelview[10] * objz + modelview[14];
+    fTempo[3] = modelview[3] * objx + modelview[7] * objy + modelview[11] * objz + modelview[15];
+
+    fTempo[4] =  projection[0] * fTempo[0] + projection[4] * fTempo[1] + projection[8]  * fTempo[2] + projection[12] * fTempo[3];
+    fTempo[5] =  projection[1] * fTempo[0] + projection[5] * fTempo[1] + projection[9]  * fTempo[2] + projection[13] * fTempo[3];
+    fTempo[6] =  projection[2] * fTempo[0] + projection[6] * fTempo[1] + projection[10] * fTempo[2] + projection[14] * fTempo[3];
+    fTempo[7] = -fTempo[2];
+
+    if (fTempo[7] == 0.0f)
+        return false;
+
+    fTempo[7]= 1.0f / fTempo[7];
+
+    fTempo[4] *= fTempo[7];
+    fTempo[5] *= fTempo[7];
+    fTempo[6] *= fTempo[7];
+
+    result[0] =(fTempo[4] * 0.5f + 0.5f) * viewport[2] + viewport[0];
+    result[1] =(fTempo[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
+    result[2] =(1.0f + fTempo[6]) * 0.5f;
+
+    return true;
+}
+
+inline bool f4x4_UnProject64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
+    f64 m[16], A[16];
+    f64 in[4], out[4];
+
+    f4x4_Mul64(A, projection, modelview);
+    f4x4_Invert64(m, A);
+
+    in[0] = (winx - (f64)viewport[0]) / (f64)viewport[2] * 2.0f - 1.0f;
+    in[1] = (winy - (f64)viewport[1]) / (f64)viewport[3] * 2.0f - 1.0f;
+    in[2] = 2.0f * winz - 1.0f;
+    in[3] = 1.0;
+
+    f4x4_Mulv64(out, m, in);
+    
+    if (out[3] == 0.0f)
+        return false;
+
+    out[3] = 1.0f / out[3];
+
+    result[0] = out[0] * out[3];
+    result[1] = out[1] * out[3];
+    result[2] = out[2] * out[3];
+
+    return true;
+}
+
 inline void f4x4_Translate(f32 *T, f32 x, f32 y, f32 z) {
     T[0]  = 1;
 	T[1]  = 0;
@@ -2410,232 +2190,81 @@ inline void fq_Rotate(f32 *r, const f32 *axis, f32 angle) {
     r[3] = Cos(0.5f * angle);
 }
 
-// ============================================== RANDOM GENERATOR =========================================== //
-// random number generator: xorshf96
+// ==================================================  MATHS ================================================== //
 
-struct RndGen {
-    u32    x;
-    u32    y;
-    u32    z;
-};
+// ---------------------- v2 ---------------------- //
 
-thread_local RndGen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
-
-inline u32 NextRandom(RndGen* g) {
-    g->x  ^= g->x << 16;
-    g->x  ^= g->x >> 5;
-    g->x  ^= g->x << 1;
-
-    u32 t = g->x;
-
-    g->x  = g->y;
-    g->y  = g->z;
-    g->z  = t ^ g->x ^ g->y;
-
-    return g->z;
-}
-
-inline int iRand(int min, int max) {
-    return min + NextRandom(&default_rnd_gen) % (max - min);
-}
-
-inline f32 fRand(f32 min, f32 max) {
-    return min + ((f32)NextRandom(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
-}
-
-inline void f2_Rand(f32 *out, f32 min, f32 max) {
-    out[0] = fRand(-1.0f, 1.0f);
-    out[1] = fRand(-1.0f, 1.0f);
-
-    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1]) * fRand(min, max);
-
-    out[0] *= k;
-    out[1] *= k;
-}
-
-inline void f2_RandUnit(f32 *out) {
-    out[0] = fRand(-1.0f, 1.0f);
-    out[1] = fRand(-1.0f, 1.0f);
-
-    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1]);
-
-    out[0] *= k;
-    out[1] *= k;
-}
-
-inline void f3_Rand(f32 *out, f32 min, f32 max) {
-    out[0] = fRand(-1.0f, 1.0f);
-    out[1] = fRand(-1.0f, 1.0f);
-    out[2] = fRand(-1.0f, 1.0f);
-
-    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]) * fRand(min, max);
-
-    out[0] *= k;
-    out[1] *= k;
-    out[2] *= k;
-}
-
-inline void f3_RandUnit(f32 *out) {
-    out[0] = fRand(-1.0f, 1.0f);
-    out[1] = fRand(-1.0f, 1.0f);
-    out[2] = fRand(-1.0f, 1.0f);
-
-    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]);
-
-    out[0] *= k;
-    out[1] *= k;
-    out[2] *= k;
-}
-
-inline void f2_AddRand(f32 *out, f32* u, f32 min, f32 max) {
-    f32 r[2];
-    f2_Rand(r, min, max);
-
-    out[0] = u[0] + r[0];
-    out[1] = u[1] + r[1];
-}
-
-inline void f3_AddRand(f32 *out, f32* u, f32 min, f32 max) {
-    f32 r[3];
-    f3_Rand(r, min, max);
-
-    out[0] = u[0] + r[0];
-    out[1] = u[1] + r[1];
-    out[2] = u[2] + r[2];
-}
-
-inline void fq_Rand(f32 *quat) {
-    fq_Make(quat, fRand(-1.0f, 1.0f), fRand(-1.0f, 1.0f), fRand(-1.0f, 1.0f), fRand(-PI, PI));
-}
-
-inline v2 v2_Rand(f32 min, f32 max) {
-    v2 out;
-    f2_Rand(out.array, min, max);
-    return out;
-}
-
-inline v2 v2_RandUnit(void) {
-    v2 out;
-    f2_RandUnit(out.array);
-    return out;
-}
-
-inline v3 v3_Rand(f32 min, f32 max) {
-    v3 out;
-    f3_Rand(out.array, min, max);
-    return out;
-}
-
-inline v3 v3_RandUnit(void) {
-    v3 out;
-    f3_RandUnit(out.array);
-    return out;
-}
-
-inline Quat QuatRand(void) {
-    Quat out;
-    fq_Rand(out.array);
-    return out;
-}
-
-// ===================================== CSTR ==================================== //
-
-inline void cStringCopy(char* dst, const char* src) {
-    while ((*(dst++) = *(src++)) != '\0');
-}
-
-inline int cStringIsDel(char c, const char* del) {
-    while (*del != '\0')
-        if (c == *(del++)) return 1;
-    return 0;
-}
-
-// TODO: make the function return NULL if there were no splits:
-inline char** cStringSplitInPlace(char* str, const char* del, size_t* count) {
-    size_t  split_capacity  = 8;
-    size_t  split_count     = 0;
-    char**  split_array     = (char**)malloc(split_capacity * sizeof *split_array);
-
-    while (*str != '\0') {
-        while (*str && cStringIsDel(*str, del)) { *(str++) = '\0'; }
-
-        if (!*str) break;
-
-        if (split_count + 1 >= split_capacity) {
-            split_capacity  <<= 1;
-            split_array     = (char**)realloc(split_array, split_capacity * sizeof *split_array);
-        }
-
-        split_array[split_count++] = str;
-
-        while (*str && !cStringIsDel(*(++str), del));
-
-        if (!*str) break;
-
-        *(str++) = '\0';
-    }
-
-    *count = split_count;
-
-    return split_array;
-}
-
-inline int cStringFind(const char* str, const char *item) {
-    int item_len = 0;
-    while (item[item_len] != '\0')
-        item_len++;
-
-    int end = item_len - 1;
-
-    for (int i = 0; str[i] != '\0'; ++i) {
-        if (str[i + end] != item[end]) {
-            i += end;
-            continue;
-        }
-
-        int j = 0;
-
-        while (item[j] != '\0' && str[j + i] == item[j])
-            ++j;
-
-        if (item[j] == '\0')
-            return i;
-    }
-
-    return -1;
-}
-
-// ================================================== STRUCT MATH ================================================== //
-
-// v2:
 inline v2 V2(f32 x, f32 y) {
     v2 out = { x, y };
     return out;
 }
 
-inline v2 Neg(v2 a) {
+inline v2 V2(v3 a) {
+    return { a.x, a.y };
+}
+
+inline v2 V2(v2i a) {
+    return { f32(a.x), f32(a.y) };
+}
+
+inline v2 operator-(v2 a) {
     v2 out = { -a.x, -a.y };
     return out;
 }
 
-inline v2 Add(v2 a, v2 b) {
+inline v2 operator+(v2 a, v2 b) {
     v2 out = { a.x + b.x, a.y + b.y };
     return out;
 }
 
-inline v2 Sub(v2 a, v2 b) {
+inline v2 operator-(v2 a, v2 b) {
     v2 out = { a.x - b.x, a.y - b.y };
     return out;
 }
 
-inline v2 Mul(v2 a, v2 b) {
+inline v2 operator*(v2 a, v2 b) {
     v2 out = { a.x * b.x, a.y * b.y };
     return out;
 }
 
-inline v2 Scale(v2 a, f32 s) {
+inline v2 operator*(v2 a, f32 s) {
     v2 out = { a.x * s, a.y * s };
     return out;
+}
+
+inline v2 operator*(f32 s, v2 a) {
+    v2 out = { a.x * s, a.y * s };
+    return out;
+}
+
+inline v2 operator/(v2 a, f32 s) {
+    v2 out = { a.x / s, a.y / s };
+    return out;
+}
+
+inline v2 operator+=(v2& a, v2 b) {
+    a = a + b;
+    return a;
+}
+
+inline v2 operator-=(v2& a, v2 b) {
+    a = a - b;
+    return a;
+}
+
+inline v2 operator*=(v2& a, v2 b) {
+    a = a * b;
+    return a;
+}
+
+inline v2 operator*=(v2& a, f32 s) {
+    a = a * s;
+    return a;
+}
+
+inline v2 operator/=(v2& a, f32 s) {
+    a = a / s;
+    return a;
 }
 
 inline f32 Dot(v2 a, v2 b) {
@@ -2651,7 +2280,7 @@ inline f32 Len(v2 v) {
 }
 
 inline f32 DistSq(v2 a, v2 b) {
-    return LenSq(Sub(b, a));
+    return LenSq(b - a);
 }
 
 inline f32 Dist(v2 a, v2 b) {
@@ -2659,7 +2288,7 @@ inline f32 Dist(v2 a, v2 b) {
 }
 
 inline v2 Norm(v2 v) {
-    return Scale(v, RSqrt(Dot(v, v)));
+    return v * RSqrt(Dot(v, v));
 }
 
 inline v2 Min(v2 a, v2 b) {
@@ -2679,11 +2308,7 @@ inline v2 Max(v2 a, v2 b) {
 }
 
 inline v2 Lerp(v2 a, v2 b, f32 t) {
-    v2 out = {
-        a.x + t * (b.x - a.x),
-        a.y + t * (b.y - a.y)
-    };
-    return out;
+    return a + t * (b - a);
 }
 
 inline f32 GetAngle(v2 a, v2 b) {
@@ -2696,12 +2321,7 @@ inline f32 GetAngle(v2 a, v2 b) {
 inline v2 Spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
 	f32 i = 1.0f - f;
 
-    v2 out = {
-	    ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
-	    ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
-    };
-
-    return out;
+	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
 inline int CircleIntersect(v2 p0, f32 r0, v2 p1, f32 r1) {
@@ -2739,29 +2359,86 @@ inline int SegmentIsIntersectingCircle(v2 start, v2 end, v2 pos, f32 rad) {
     return (seg.x * seg.x + seg.y * seg.y) < (rad * rad);
 }
 
-inline v3 Neg(v3 a) {
+// ----------------------------- v3 ----------------------------- //
+
+inline v3 V3(f32 x, f32 y, f32 z) {
+    return { x, y, z };
+}
+
+inline v3 V3(v2 a) {
+    return { a.x, a.y, 0.0f };
+}
+
+inline v3 V3(v2 a, f32 z) {
+    return { a.x, a.y, z };
+}
+
+inline v3 V3(f32 x, v2 a) {
+    return { x, a.x, a.y };
+}
+
+inline v3 V3(v3i a) {
+    return { f32(a.x), f32(a.y), f32(a.z) };
+}
+
+inline v3 operator-(v3 a) {
     v3 out = { -a.x, -a.y, -a.z };
     return out;
 }
 
-inline v3 Add(v3 a, v3 b) {
+inline v3 operator+(v3 a, v3 b) {
     v3 out = { a.x + b.x, a.y + b.y, a.z + b.z };
     return out;
 }
 
-inline v3 Sub(v3 a, v3 b) {
+inline v3 operator-(v3 a, v3 b) {
     v3 out = { a.x - b.x, a.y - b.y, a.z - b.z };
     return out;
 }
 
-inline v3 Mul(v3 a, v3 b) {
+inline v3 operator*(v3 a, v3 b) {
     v3 out = { a.x * b.x, a.y * b.y, a.z * b.z };
     return out;
 }
 
-inline v3 Scale(v3 a, f32 s) {
+inline v3 operator*(v3 a, f32 s) {
     v3 out = { a.x * s, a.y * s, a.z * s };
     return out;
+}
+
+inline v3 operator*(f32 s, v3 a) {
+    v3 out = { a.x * s, a.y * s, a.z * s };
+    return out;
+}
+
+inline v3 operator/(v3 a, f32 s) {
+    v3 out = { a.x / s, a.y / s, a.z / s };
+    return out;
+}
+
+inline v3 operator+=(v3& a, v3 b) {
+    a = a + b;
+    return a;
+}
+
+inline v3 operator-=(v3& a, v3 b) {
+    a = a - b;
+    return a;
+}
+
+inline v3 operator*=(v3& a, v3 b) {
+    a = a * b;
+    return a;
+}
+
+inline v3 operator*=(v3& a, f32 s) {
+    a = a * s;
+    return a;
+}
+
+inline v3 operator/=(v3& a, f32 s) {
+    a = a / s;
+    return a;
 }
 
 inline f32 Dot(v3 a, v3 b) {
@@ -2777,7 +2454,7 @@ inline f32 Len(v3 v) {
 }
 
 inline f32 DistSq(v3 a, v3 b) {
-    return LenSq(Sub(b, a));
+    return LenSq(b - a);
 }
 
 inline f32 Dist(v3 a, v3 b) {
@@ -2785,7 +2462,7 @@ inline f32 Dist(v3 a, v3 b) {
 }
 
 inline v3 Norm(v3 v) {
-    return Scale(v, RSqrt(Dot(v, v)));
+    return v * RSqrt(Dot(v, v));
 }
 
 inline v3 Min(v3 a, v3 b) {
@@ -2807,66 +2484,104 @@ inline v3 Max(v3 a, v3 b) {
 }
 
 inline v3 Lerp(v3 a, v3 b, f32 t) {
-    v3 out = {
-        a.x + t * (b.x - a.x),
-        a.y + t * (b.y - a.y),
-        a.z + t * (b.z - a.z)
-    };
-
-    return out;
+    return a + t * (b - a);
 }
 
 inline v3 Cross(v3 a, v3 b) {
-    v3 r;
-
-	r.x = a.y * b.z - a.z * b.y;
-	r.y = a.z * b.x - a.x * b.z;
-	r.z = a.x * b.y - a.y * b.x;
-
-    return r;
+    return {
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x,
+    };
 }
 
 inline v3 Spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
 	f32 i = 1.0f - f;
 
-    v3 out = {
-        ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
-        ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
-        ((d.z * f + c.z * i) * f + (c.z * f + b.z * i) * i) * f + ((c.z * f + b.z * i) * f + (b.z * f + a.z * i) * i) * i
-    };
-
-    return out;
+    return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-// v4:
+// ----------------------------- v4 ---------------------------- //
+
 inline v4 V4(f32 x, f32 y, f32 z, f32 w) {
     v4 out = { x, y, z, w };
     return out;
 }
 
-inline v4 Neg(v4 a) {
+inline v4 V4(v2 a, v2 b) {
+    return V4(a.x, a.y, b.x, b.y);
+}
+
+inline v4 V4(v2 a, f32 z, f32 w) {
+    return V4(a.x, a.y, z, w);
+}
+
+inline v4 V4(v3 a, f32 w) {
+    return V4(a.x, a.y, a.z, w);
+}
+
+inline v4 V4(f32 x, v3 a) {
+    return V4(x, a.x, a.y, a.z);
+}
+
+inline v4 operator-(v4 a) {
     v4 out = { -a.x, -a.y, -a.z, -a.w };
     return out;
 }
 
-inline v4 Add(v4 a, v4 b) {
+inline v4 operator+(v4 a, v4 b) {
     v4 out = { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
     return out;
 }
 
-inline v4 Sub(v4 a, v4 b) {
+inline v4 operator-(v4 a, v4 b) {
     v4 out = { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
     return out;
 }
 
-inline v4 Mul(v4 a, v4 b) {
+inline v4 operator*(v4 a, v4 b) {
     v4 out = { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
     return out;
 }
 
-inline v4 Scale(v4 a, f32 s) {
+inline v4 operator*(v4 a, f32 s) {
     v4 out = { a.x * s, a.y * s, a.z * s, a.w * s };
     return out;
+}
+
+inline v4 operator*(f32 s, v4 a) {
+    v4 out = { a.x * s, a.y * s, a.z * s, a.w * s };
+    return out;
+}
+
+inline v4 operator/(v4 a, f32 s) {
+    v4 out = { a.x / s, a.y * s, a.z / s, a.w / s };
+    return out;
+}
+
+inline v4 operator+=(v4& a, v4 b)  {
+    a = a + b;
+    return a;
+}
+
+inline v4 operator-=(v4& a, v4 b)  {
+    a = a - b;
+    return a;
+}
+
+inline v4 operator*=(v4& a, v4 b)  {
+    a = a * b;
+    return a;
+}
+
+inline v4 operator*=(v4& a, f32 s) {
+    a = a * s;
+    return a;
+}
+
+inline v4 operator/=(v4& a, f32 s) {
+    a = a / s;
+    return a;
 }
 
 inline f32 Dot(v4 a, v4 b) {
@@ -2882,7 +2597,7 @@ inline f32 Len(v4 v) {
 }
 
 inline f32 DistSq(v4 a, v4 b) {
-    return LenSq(Sub(b, a));
+    return LenSq(b - a);
 }
 
 inline f32 Dist(v4 a, v4 b) {
@@ -2890,7 +2605,7 @@ inline f32 Dist(v4 a, v4 b) {
 }
 
 inline v4 Norm(v4 v) {
-    return Scale(v, RSqrt(Dot(v, v)));
+    return v * RSqrt(Dot(v, v));
 }
 
 inline v4 Min(v4 a, v4 b) {
@@ -2914,13 +2629,7 @@ inline v4 Max(v4 a, v4 b) {
 }
 
 inline v4 Lerp(v4 a, v4 b, f32 t) {
-    v4 out = {
-        a.x + t * (b.x - a.x),
-        a.y + t * (b.y - a.y),
-        a.z + t * (b.z - a.z),
-        a.w + t * (b.w - a.w)
-    };
-    return out;
+    return a + t * (b - a);
 }
 
 inline v4 Cross(v4 a, v4 b) {
@@ -2930,24 +2639,18 @@ inline v4 Cross(v4 a, v4 b) {
         a.x * b.y - a.y * b.x,
         1.0f
     };
+
     return out;
 }
 
 inline v4 Spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
 	f32 i = 1.0f - f;
 
-    v4 out = {
-	    ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
-	    ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
-	    ((d.z * f + c.z * i) * f + (c.z * f + b.z * i) * i) * f + ((c.z * f + b.z * i) * f + (b.z * f + a.z * i) * i) * i,
-	    ((d.w * f + c.w * i) * f + (c.w * f + b.w * i) * i) * f + ((c.w * f + b.w * i) * f + (b.w * f + a.w * i) * i) * i
-    };
-
-    return out;
+    return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
 // m2:
-inline m2 Mul(m2 a, m2 b) {
+inline m2 operator*(m2 a, m2 b) {
     m2 out = {
         a.array[0] * b.array[0] + a.array[2] * b.array[1],
         a.array[1] * b.array[0] + a.array[3] * b.array[1],
@@ -2957,7 +2660,7 @@ inline m2 Mul(m2 a, m2 b) {
     return out;
 }
 
-inline v2 Mul(m2 R, v2 v) {
+inline v2 operator*(m2 R, v2 v) {
     v2 out = {
         R.array[0] * v.x + R.array[2] * v.y,
         R.array[1] * v.x + R.array[3] * v.y
@@ -2985,7 +2688,7 @@ inline m2 m2_Scale(f32 sx, f32 sy) {
 }
 
 // m3:
-inline m3 Mul(m3 a, m3 b) {
+inline m3 operator*(m3 a, m3 b) {
     m3 out = {
         a.array[0] * b.array[0] + a.array[3] * b.array[1]  + a.array[6] * b.array[2],
         a.array[1] * b.array[0] + a.array[4] * b.array[1]  + a.array[7] * b.array[2],
@@ -3002,7 +2705,7 @@ inline m3 Mul(m3 a, m3 b) {
     return out;
 }
 
-inline v3 Mul(m3 M, v3 v) {
+inline v3 operator*(m3 M, v3 v) {
     v3 out = {
         M.array[0] * v.array[0] + M.array[3] * v.array[1] + M.array[6] * v.array[2],
         M.array[1] * v.array[0] + M.array[4] * v.array[1] + M.array[7] * v.array[2],
@@ -3011,7 +2714,7 @@ inline v3 Mul(m3 M, v3 v) {
     return out;
 }
 
-inline m3 m3_Identity(void) {
+inline m3 m3_Identity() {
     m3 out = {
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
@@ -3099,7 +2802,7 @@ inline m3 m3_FromQuat(Quat quat) {
 
 // m4:
 
-inline m4 Mul(m4 a, m4 b) {
+inline m4 operator*(m4 a, m4 b) {
     m4 out = {
         a.array[0] * b.array[0]  + a.array[4] * b.array[1]  + a.array[8]  * b.array[2]  + a.array[12] * b.array[3],
         a.array[1] * b.array[0]  + a.array[5] * b.array[1]  + a.array[9]  * b.array[2]  + a.array[13] * b.array[3],
@@ -3124,7 +2827,7 @@ inline m4 Mul(m4 a, m4 b) {
     return out;
 }
 
-inline v4 Mul(m4 M, v4 v) {
+inline v4 operator*(m4 M, v4 v) {
     v4 out = {
         M.array[0] * v.array[0] + M.array[4] * v.array[1] + M.array[8]  * v.array[2] + M.array[12] * v.array[3],
         M.array[1] * v.array[0] + M.array[5] * v.array[1] + M.array[9]  * v.array[2] + M.array[13] * v.array[3],
@@ -3134,7 +2837,7 @@ inline v4 Mul(m4 M, v4 v) {
     return out;
 }
 
-inline m4 m4_Identity(void) {
+inline m4 m4_Identity() {
     m4 out = {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
@@ -3162,6 +2865,10 @@ inline m4 m4_Translate(f32 x, f32 y, f32 z) {
         x,      y,      z,      1.0f
     };
     return out;
+}
+
+inline m4 m4_Translate(v3 pos) {
+    return m4_Translate(pos.x, pos.y, pos.z);
 }
 
 inline m4 m4_Scale(f32 x, f32 y, f32 z) {
@@ -3317,7 +3024,7 @@ inline m4 m4_Perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
 }
 
 inline m4 m4_LookAt(v3 eye, v3 center, v3 up) {
-    v3 f = Norm(Sub(center, eye));
+    v3 f = Norm(center - eye);
     v3 s = Norm(Cross(f, up));
 	v3 t = Cross(s, f);
 
@@ -3382,14 +3089,14 @@ inline m4 m4_FromQuat(Quat q) {
 }
 
 // Quat:
-inline Quat QuatIdentity(void) {
+inline Quat QuatIdentity() {
     Quat out = { 0.0f, 0.0f, 0.0f, 1.0f };
     return out;
 }
 
 inline Quat QuatMake(f32 x, f32 y, f32 z, f32 angle) {
     f32 inv_len = RSqrt((x * x) + (y * y) + (z * z));
-    f32 s       = inv_len * Sin(angle / 2.0f);
+    f32 s = inv_len * Sin(angle / 2.0f);
 
     Quat out = {
         x * s,
@@ -3411,7 +3118,7 @@ inline Quat QuatConj(Quat q) {
     return out;
 }
 
-inline Quat QuatMul(Quat a, Quat b) {
+inline Quat operator*(Quat a, Quat b) {
     Quat out = {
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -3421,142 +3128,207 @@ inline Quat QuatMul(Quat a, Quat b) {
     return out;
 }
 
-// --------------------- v2 ------------------------- // 
-
-inline v2 V2(v3 a)  { return { a.x, a.y }; }
-
-inline v2 V2(v2i a) { return { f32(a.x), f32(a.y) }; }
-
-inline v2 operator-(v2 a) { return Neg(a); }
-
-inline v2 operator+(v2 a, v2 b)  { return Add(a, b); }
-inline v2 operator-(v2 a, v2 b)  { return Sub(a, b); }
-inline v2 operator*(v2 a, v2 b)  { return Mul(a, b); }
-inline v2 operator*(v2 a, f32 s) { return Scale(a, s); }
-inline v2 operator*(f32 s, v2 a) { return Scale(a, s); }
-inline v2 operator/(v2 a, f32 s) { return Scale(a, 1.0f / s); }
-
-inline v2 operator+=(v2& a, v2 b)  { a = a + b; return a; }
-inline v2 operator-=(v2& a, v2 b)  { a = a - b; return a; }
-inline v2 operator*=(v2& a, v2 b)  { a = a * b; return a; }
-inline v2 operator*=(v2& a, f32 s) { a = a * s; return a; }
-inline v2 operator/=(v2& a, f32 s) { a = a / s; return a; }
-
-// --------------------- v3 ------------------------- // 
-
-inline v3 V3(f32 x, f32 y, f32 z)   { return { x, y, z }; }
-inline v3 V3(v2 a)                  { return { a.x, a.y, 0.0f }; }
-inline v3 V3(v2 a, f32 z)           { return { a.x, a.y, z }; }
-inline v3 V3(f32 x, v2 a)           { return { x, a.x, a.y }; }
-
-inline v3 V3(v3i a)                  { return { f32(a.x), f32(a.y), f32(a.z) }; }
-
-inline v3 operator-(v3 a) { return Neg(a); }
-
-inline v3 operator+(v3 a, v3 b)  { return Add(a, b); }
-inline v3 operator-(v3 a, v3 b)  { return Sub(a, b); }
-inline v3 operator*(v3 a, v3 b)  { return Mul(a, b); }
-inline v3 operator*(v3 a, f32 s) { return Scale(a, s); }
-inline v3 operator*(f32 s, v3 a) { return Scale(a, s); }
-inline v3 operator/(v3 a, f32 s) { return Scale(a, 1.0f / s); }
-
-inline v3 operator+=(v3& a, v3 b)  { a = a + b; return a; }
-inline v3 operator-=(v3& a, v3 b)  { a = a - b; return a; }
-inline v3 operator*=(v3& a, v3 b)  { a = a * b; return a; }
-inline v3 operator*=(v3& a, f32 s) { a = a * s; return a; }
-inline v3 operator/=(v3& a, f32 s) { a = a / s; return a; }
-
-inline v3 Clamp     (v3 a, f32 min, f32 max) { return { Clamp(a.x, min, max), Clamp(a.y, min, max), Clamp(a.z, min, max) }; }
-inline v3 ClampMin  (v3 a, f32 min)          { return { ClampMin(a.x, min), ClampMin(a.y, min), ClampMin(a.z, min) }; }
-inline v3 ClampMax  (v3 a, f32 max)          { return { ClampMax(a.x, max), ClampMax(a.y, max), ClampMax(a.z, max) }; }
-
-// --------------------- v4 ------------------------- // 
-
-inline v4 operator-(v4 a) { return Neg(a); }
-
-inline v4 V4(v2 a, v2 b)            { return V4(a.x, a.y, b.x, b.y); }
-inline v4 V4(v2 a, f32 z, f32 w)    { return V4(a.x, a.y, z, w); }
-inline v4 V4(v3 a, f32 w)           { return V4(a.x, a.y, a.z, w); }
-inline v4 V4(f32 x, v3 a)           { return V4(x, a.x, a.y, a.z); }
-
-inline v4 operator+(v4 a, v4 b)  { return Add(a, b); }
-inline v4 operator-(v4 a, v4 b)  { return Sub(a, b); }
-inline v4 operator*(v4 a, v4 b)  { return Mul(a, b); }
-inline v4 operator*(v4 a, f32 s) { return Scale(a, s); }
-inline v4 operator*(f32 s, v4 a) { return Scale(a, s); }
-inline v4 operator/(v4 a, f32 s) { return Scale(a, 1.0f / s); }
-
-inline v4 operator+=(v4& a, v4 b)  { a = a + b; return a; }
-inline v4 operator-=(v4& a, v4 b)  { a = a - b; return a; }
-inline v4 operator*=(v4& a, v4 b)  { a = a * b; return a; }
-inline v4 operator*=(v4& a, f32 s) { a = a * s; return a; }
-inline v4 operator/=(v4& a, f32 s) { a = a / s; return a; }
-
 // --------------------- v2i ------------------------- // 
 
-inline v2i V2i(i32 x, i32 y)    { return { x, y }; }
-inline v2i V2i(v2 a)            { return { i32(a.x), i32(a.y) }; }
+inline v2i V2i(i32 x, i32 y) {
+    return { x, y };
+}
 
-inline v2i operator+(v2i a, v2i b)  { return { a.x + b.x, a.y + b.y }; }
-inline v2i operator-(v2i a, v2i b)  { return { a.x - b.x, a.y - b.y }; }
+inline v2i V2i(v2 a) {
+    return { i32(a.x), i32(a.y) };
+}
 
-inline bool operator==(v2i a, v2i b) { return a.x == b.x && a.y == b.y; }
-inline bool operator!=(v2i a, v2i b) { return a.x != b.x || a.y != b.y; }
+inline v2i operator+(v2i a, v2i b) {
+    return { a.x + b.x, a.y + b.y };
+}
+
+inline v2i operator-(v2i a, v2i b) {
+    return { a.x - b.x, a.y - b.y };
+}
+
+inline bool operator==(v2i a, v2i b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+inline bool operator!=(v2i a, v2i b) {
+    return a.x != b.x || a.y != b.y;
+}
 
 // --------------------- v3i ------------------------- // 
 
-inline v3i V3i(i32 x, i32 y, i32 z) { return { x, y, z }; }
-inline v3i V3i(v3 a)                { return { i32(a.x), i32(a.y), i32(a.z) }; }
+inline v3i V3i(i32 x, i32 y, i32 z) {
+    return { x, y, z };
+}
 
-inline v3i operator+(v3i a, v3i b)  { return { a.x + b.x, a.y + b.y, a.z + b.z }; }
-inline v3i operator-(v3i a, v3i b)  { return { a.x - b.x, a.y - b.y, a.z - b.z }; }
+inline v3i V3i(v3 a) {
+    return { i32(a.x), i32(a.y), i32(a.z) };
+}
+
+inline v3i operator+(v3i a, v3i b) {
+    return { a.x + b.x, a.y + b.y, a.z + b.z };
+}
+
+inline v3i operator-(v3i a, v3i b) {
+    return { a.x - b.x, a.y - b.y, a.z - b.z };
+}
 
 inline i32 DistSq(v3i a, v3i b) {
     v3i d = a - b;
-
     return d.x * d.x + d.y * d.y + d.z * d.z;
 }
 
 // --------------------- v4i ------------------------- // 
 
-inline v4i V4i(i32 x, i32 y, i32 z, i32 w) { return { x, y, z, w }; }
+inline v4i V4i(i32 x, i32 y, i32 z, i32 w) {
+    return { x, y, z, w };
+}
 
-inline v4i operator+(v4i a, v4i b)  { return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w }; }
-inline v4i operator-(v4i a, v4i b)  { return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w }; }
+inline v4i operator+(v4i a, v4i b) {
+    return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+}
 
-// --------------------- m2 ------------------------- // 
+inline v4i operator-(v4i a, v4i b) {
+    return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+}
 
-inline v2 operator*(m2 a, v2 u) { return Mul(a, u); }
-inline m2 operator*(m2 a, m2 b) { return Mul(a, b); }
+// ============================================== RANDOM GENERATOR =========================================== //
+// random number generator: xorshf96
 
-// --------------------- m3 ------------------------- // 
+struct RndGen {
+    u32    x;
+    u32    y;
+    u32    z;
+};
 
-inline v3 operator*(m3 a, v3 u) { return Mul(a, u); }
-inline m3 operator*(m3 a, m3 b) { return Mul(a, b); }
+inline u32 NextRandom(RndGen* g) {
+    g->x  ^= g->x << 16;
+    g->x  ^= g->x >> 5;
+    g->x  ^= g->x << 1;
 
-// --------------------- m4 ------------------------- // 
+    u32 t = g->x;
 
-inline v4 operator*(m4 a, v4 u) { return Mul(a, u); }
-inline m4 operator*(m4 a, m4 b) { return Mul(a, b); }
+    g->x  = g->y;
+    g->y  = g->z;
+    g->z  = t ^ g->x ^ g->y;
 
-// -------------------- Quat ------------------------- // 
+    return g->z;
+}
 
-inline Quat operator*(Quat a, Quat b) { return QuatMul(a, b); }
+thread_local RndGen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
 
-#endif // __ATS_H__
+inline int iRand(int min, int max) {
+    return min + NextRandom(&default_rnd_gen) % (max - min);
+}
 
-// ========================================================================================================== //
-// ============================================== IMPLEMENTATION ============================================ //
-// ========================================================================================================== //
+inline f32 fRand(f32 min, f32 max) {
+    return min + ((f32)NextRandom(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
+}
 
-#ifdef ATS_IMPLEMENTATION
+inline void f2_Rand(f32 *out, f32 min, f32 max) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
 
-#ifndef ATS_IMPLEMENTATION_ONCE
-#define ATS_IMPLEMENTATION_ONCE
+    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1]) * fRand(min, max);
 
-#ifdef ATS_MODERN_OPENGL
-#include "glad/glad.c"
-#endif
+    out[0] *= k;
+    out[1] *= k;
+}
+
+inline void f2_RandUnit(f32 *out) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
+
+    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1]);
+
+    out[0] *= k;
+    out[1] *= k;
+}
+
+inline void f3_Rand(f32 *out, f32 min, f32 max) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
+    out[2] = fRand(-1.0f, 1.0f);
+
+    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]) * fRand(min, max);
+
+    out[0] *= k;
+    out[1] *= k;
+    out[2] *= k;
+}
+
+inline void f3_RandUnit(f32 *out) {
+    out[0] = fRand(-1.0f, 1.0f);
+    out[1] = fRand(-1.0f, 1.0f);
+    out[2] = fRand(-1.0f, 1.0f);
+
+    f32 k = RSqrt(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]);
+
+    out[0] *= k;
+    out[1] *= k;
+    out[2] *= k;
+}
+
+inline void f2_AddRand(f32 *out, f32* u, f32 min, f32 max) {
+    f32 r[2];
+    f2_Rand(r, min, max);
+
+    out[0] = u[0] + r[0];
+    out[1] = u[1] + r[1];
+}
+
+inline void f3_AddRand(f32 *out, f32* u, f32 min, f32 max) {
+    f32 r[3];
+    f3_Rand(r, min, max);
+
+    out[0] = u[0] + r[0];
+    out[1] = u[1] + r[1];
+    out[2] = u[2] + r[2];
+}
+
+inline void fq_Rand(f32 *quat) {
+    fq_Make(quat, fRand(-1.0f, 1.0f), fRand(-1.0f, 1.0f), fRand(-1.0f, 1.0f), fRand(-PI, PI));
+}
+
+inline v2 v2_Rand(f32 min, f32 max) {
+    v2 out;
+    f2_Rand(out.array, min, max);
+    return out;
+}
+
+inline v2 v2_RandUnit() {
+    v2 out;
+    f2_RandUnit(out.array);
+    return out;
+}
+
+inline v3 v3_Rand(f32 min, f32 max) {
+    v3 out;
+    f3_Rand(out.array, min, max);
+    return out;
+}
+
+inline v3 v3_RandUnit() {
+    v3 out;
+    f3_RandUnit(out.array);
+    return out;
+}
+
+inline Quat QuatRand() {
+    Quat out;
+    fq_Rand(out.array);
+    return out;
+}
+
+// ============================ RANDOM(HASH) FUNCTION ======================= //
+
+inline u32 uRand(u32 a) {
+    a = (a ^ 61) ^ (a >> 16);
+    a = a + (a << 3);
+    a = a ^ (a >> 4);
+    a = a * 0x27d4eb2d;
+    a = a ^ (a >> 15);
+    return a;
+}
 
 // ==================================== FILES ==================================== //
 
@@ -3567,7 +3339,7 @@ static size_t FileGetSize(FILE* fp) {
     return size;
 }
 
-extern char* FileReadStr(const char* file_name) {
+static char* FileReadStr(const char* file_name) {
     FILE *fp      = NULL;
     char *buffer  = NULL;
     
@@ -3591,7 +3363,7 @@ extern char* FileReadStr(const char* file_name) {
     return buffer;
 }
 
-extern int FileWriteStr(const char* file_name, const char* buffer) {
+static int FileWriteStr(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "w") == 0) {
@@ -3604,7 +3376,7 @@ extern int FileWriteStr(const char* file_name, const char* buffer) {
     return 0;
 }
 
-extern int FileAppendStr(const char* file_name, const char* buffer) {
+static int FileAppendStr(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "a") == 0) {
@@ -3619,7 +3391,7 @@ extern int FileAppendStr(const char* file_name, const char* buffer) {
     return 0;
 }
 
-extern int FileReadBin(const char* file_name, void* buffer, size_t size) {
+static int FileReadBin(const char* file_name, void* buffer, size_t size) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "rb") == 0) {
@@ -3630,7 +3402,7 @@ extern int FileReadBin(const char* file_name, void* buffer, size_t size) {
     return 0;
 } 
 
-extern int FileWriteBin(const char* file_name, const void* buffer, size_t size) {
+static int FileWriteBin(const char* file_name, const void* buffer, size_t size) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "wb") == 0) {
@@ -3645,41 +3417,341 @@ extern int FileWriteBin(const char* file_name, const void* buffer, size_t size) 
 
 #ifdef ATS_PLATFORM_GLFW
 
+#include <windows.h>
+
+#ifdef ATS_MODERN_OPENGL
+#include "dep/glad/glad.h"
+#include "dep/glad/glad.c"
+#endif
+
 #include <GLFW/glfw3.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
-Platform platform;
+// ===================================================== KEYS =================================================== //
+
+#define KEY_UNKNOWN            -1
+
+#define KEY_SPACE              32
+#define KEY_APOSTROPHE         39  /* ' */
+#define KEY_COMMA              44  /* , */
+#define KEY_MINUS              45  /* - */
+#define KEY_PERIOD             46  /* . */
+#define KEY_SLASH              47  /* / */
+#define KEY_0                  48
+#define KEY_1                  49
+#define KEY_2                  50
+#define KEY_3                  51
+#define KEY_4                  52
+#define KEY_5                  53
+#define KEY_6                  54
+#define KEY_7                  55
+#define KEY_8                  56
+#define KEY_9                  57
+#define KEY_SEMICOLON          59  /* ; */
+#define KEY_EQUAL              61  /* = */
+#define KEY_A                  65
+#define KEY_B                  66
+#define KEY_C                  67
+#define KEY_D                  68
+#define KEY_E                  69
+#define KEY_F                  70
+#define KEY_G                  71
+#define KEY_H                  72
+#define KEY_I                  73
+#define KEY_J                  74
+#define KEY_K                  75
+#define KEY_L                  76
+#define KEY_M                  77
+#define KEY_N                  78
+#define KEY_O                  79
+#define KEY_P                  80
+#define KEY_Q                  81
+#define KEY_R                  82
+#define KEY_S                  83
+#define KEY_T                  84
+#define KEY_U                  85
+#define KEY_V                  86
+#define KEY_W                  87
+#define KEY_X                  88
+#define KEY_Y                  89
+#define KEY_Z                  90
+#define KEY_LEFT_BRACKET       91  /* [ */
+#define KEY_BACKSLASH          92  /* \ */
+#define KEY_RIGHT_BRACKET      93  /* ] */
+#define KEY_GRAVE_ACCENT       96  /* ` */
+#define KEY_WORLD_1            161 /* non-US #1 */
+#define KEY_WORLD_2            162 /* non-US #2 */
+
+/* Function keys */
+#define KEY_ESCAPE             256
+#define KEY_ENTER              257
+#define KEY_TAB                258
+#define KEY_BACKSPACE          259
+#define KEY_INSERT             260
+#define KEY_DELETE             261
+#define KEY_RIGHT              262
+#define KEY_LEFT               263
+#define KEY_DOWN               264
+#define KEY_UP                 265
+#define KEY_PAGE_UP            266
+#define KEY_PAGE_DOWN          267
+#define KEY_HOME               268
+#define KEY_END                269
+#define KEY_CAPS_LOCK          280
+#define KEY_SCROLL_LOCK        281
+#define KEY_NUM_LOCK           282
+#define KEY_PRINT_SCREEN       283
+#define KEY_PAUSE              284
+#define KEY_F1                 290
+#define KEY_F2                 291
+#define KEY_F3                 292
+#define KEY_F4                 293
+#define KEY_F5                 294
+#define KEY_F6                 295
+#define KEY_F7                 296
+#define KEY_F8                 297
+#define KEY_F9                 298
+#define KEY_F10                299
+#define KEY_F11                300
+#define KEY_F12                301
+#define KEY_F13                302
+#define KEY_F14                303
+#define KEY_F15                304
+#define KEY_F16                305
+#define KEY_F17                306
+#define KEY_F18                307
+#define KEY_F19                308
+#define KEY_F20                309
+#define KEY_F21                310
+#define KEY_F22                311
+#define KEY_F23                312
+#define KEY_F24                313
+#define KEY_F25                314
+#define KEY_KP_0               320
+#define KEY_KP_1               321
+#define KEY_KP_2               322
+#define KEY_KP_3               323
+#define KEY_KP_4               324
+#define KEY_KP_5               325
+#define KEY_KP_6               326
+#define KEY_KP_7               327
+#define KEY_KP_8               328
+#define KEY_KP_9               329
+#define KEY_KP_DECIMAL         330
+#define KEY_KP_DIVIDE          331
+#define KEY_KP_MULTIPLY        332
+#define KEY_KP_SUBTRACT        333
+#define KEY_KP_ADD             334
+#define KEY_KP_ENTER           335
+#define KEY_KP_EQUAL           336
+#define KEY_LEFT_SHIFT         340
+#define KEY_LEFT_CONTROL       341
+#define KEY_LEFT_ALT           342
+#define KEY_LEFT_SUPER         343
+#define KEY_RIGHT_SHIFT        344
+#define KEY_RIGHT_CONTROL      345
+#define KEY_RIGHT_ALT          346
+#define KEY_RIGHT_SUPER        347
+#define KEY_MENU               348
+#define KEY_LAST               KEY_MENU
+
+#define MOUSE_BUTTON_1         0
+#define MOUSE_BUTTON_2         1
+#define MOUSE_BUTTON_3         2
+#define MOUSE_BUTTON_4         3
+#define MOUSE_BUTTON_5         4
+#define MOUSE_BUTTON_6         5
+#define MOUSE_BUTTON_7         6
+#define MOUSE_BUTTON_8         7
+#define MOUSE_BUTTON_LAST      MOUSE_BUTTON_8
+#define MOUSE_BUTTON_LEFT      MOUSE_BUTTON_1
+#define MOUSE_BUTTON_RIGHT     MOUSE_BUTTON_2
+#define MOUSE_BUTTON_MIDDLE    MOUSE_BUTTON_3
+
+#define JOYSTICK_1             0
+#define JOYSTICK_2             1
+#define JOYSTICK_3             2
+#define JOYSTICK_4             3
+#define JOYSTICK_5             4
+#define JOYSTICK_6             5
+#define JOYSTICK_7             6
+#define JOYSTICK_8             7
+#define JOYSTICK_9             8
+#define JOYSTICK_10            9
+#define JOYSTICK_11            10
+#define JOYSTICK_12            11
+#define JOYSTICK_13            12
+#define JOYSTICK_14            13
+#define JOYSTICK_15            14
+#define JOYSTICK_16            15
+#define JOYSTICK_LAST          JOYSTICK_16
+
+#define GAMEPAD_BUTTON_A               0
+#define GAMEPAD_BUTTON_B               1
+#define GAMEPAD_BUTTON_X               2
+#define GAMEPAD_BUTTON_Y               3
+#define GAMEPAD_BUTTON_LEFT_BUMPER     4
+#define GAMEPAD_BUTTON_RIGHT_BUMPER    5
+#define GAMEPAD_BUTTON_BACK            6
+#define GAMEPAD_BUTTON_START           7
+#define GAMEPAD_BUTTON_GUIDE           8
+#define GAMEPAD_BUTTON_LEFT_THUMB      9
+#define GAMEPAD_BUTTON_RIGHT_THUMB     10
+#define GAMEPAD_BUTTON_DPAD_UP         11
+#define GAMEPAD_BUTTON_DPAD_RIGHT      12
+#define GAMEPAD_BUTTON_DPAD_DOWN       13
+#define GAMEPAD_BUTTON_DPAD_LEFT       14
+#define GAMEPAD_BUTTON_LAST            GAMEPAD_BUTTON_DPAD_LEFT
+
+#define GAMEPAD_BUTTON_CROSS       GAMEPAD_BUTTON_A
+#define GAMEPAD_BUTTON_CIRCLE      GAMEPAD_BUTTON_B
+#define GAMEPAD_BUTTON_SQUARE      GAMEPAD_BUTTON_X
+#define GAMEPAD_BUTTON_TRIANGLE    GAMEPAD_BUTTON_Y
+
+#define GAMEPAD_AXIS_LEFT_X        0
+#define GAMEPAD_AXIS_LEFT_Y        1
+#define GAMEPAD_AXIS_RIGHT_X       2
+#define GAMEPAD_AXIS_RIGHT_Y       3
+#define GAMEPAD_AXIS_LEFT_TRIGGER  4
+#define GAMEPAD_AXIS_RIGHT_TRIGGER 5
+#define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
+
+// ==================================================================== GAMEPAD ===================================================== //
+
+union GamepadButtons {
+    struct {
+        u32 X : 1;
+        u32 A : 1;
+        u32 B : 1;
+        u32 Y : 1;
+
+        u32 LB : 1;
+        u32 RB : 1;
+        u32 LT : 1;
+        u32 RT : 1;
+        
+        u32 select : 1;
+        u32 start : 1;
+        u32 LS : 1;
+        u32 RS : 1;
+
+        u32 UP : 1;
+        u32 RIGHT : 1;
+        u32 DOWN : 1;
+        u32 LEFT : 1;
+    } button;
+
+    u32 data;
+};
+
+struct Gamepad {
+    b32 active;
+
+    v2  LS;
+    v2  RS;
+
+    f32 LT;
+    f32 RT;
+
+    GamepadButtons  state;
+    GamepadButtons  pressed;
+    GamepadButtons  released;
+};
+
+// =========================================================== MOUSE MODES ================================================= //
+
+enum MouseMode {
+    MOUSE_NORMAL,
+    MOUSE_HIDDEN,
+    MOUSE_DISABLED
+};
+
+// ===========================================================  PLATFORM =================================================== //
+
+struct Platform {
+    b32 close;
+
+    i32 width;
+    i32 height;
+    f32 aspect_ratio;
+
+    HWND native;
+
+    b32 fullscreen;
+    b32 _fullscreen_state_last_update;
+
+    struct Time {
+        f64 total;
+        f64 delta;
+    } time;
+
+    struct Mouse {
+        u32 mode;
+
+        b32 is_down : 1;
+        b32 is_pressed : 1;
+        b32 is_released : 1;
+
+        v2 pos;
+        v2 delta;
+        v2 scroll;
+
+        b8 state[MOUSE_BUTTON_LAST + 1];
+        b8 pressed[MOUSE_BUTTON_LAST + 1];
+        b8 released[MOUSE_BUTTON_LAST + 1];
+    } mouse;
+
+    struct Keyboard {
+        i32 key;
+        i32 ascii;
+
+        b32 is_down : 1;
+        b32 is_pressed : 1;
+        b32 is_repeat : 1;
+        b32 is_released : 1;
+        b32 is_ascii : 1;
+    
+        b8 state[KEY_LAST + 1];
+        b8 pressed[KEY_LAST + 1];
+        b8 repeat[KEY_LAST + 1];
+        b8 released[KEY_LAST + 1];
+    } keyboard;
+
+    Gamepad gamepad[JOYSTICK_LAST];
+};
+
+static Platform platform;
 
 static struct {
-    GLFWwindow*     window;
-    GLFWmonitor*    monitor;
+    GLFWwindow* window;
+    GLFWmonitor* monitor;
 } platform_internal;
 
-static void WindowKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    (void)window;
-    (void)scancode;
-    (void)mods;
-
+static void WindowKeyCallback(GLFWwindow*, int key, int, int action, int) {
     switch (action) {
         case GLFW_PRESS:
-            platform.keyboard.key           = key;
-            platform.keyboard.is_down       = 1;
-            platform.keyboard.is_pressed    = 1;
-            platform.keyboard.is_repeat     = 1;
-            platform.keyboard.state[key]    = 1;
-            platform.keyboard.pressed[key]  = 1;
-            platform.keyboard.repeat[key]   = 1;
+            platform.keyboard.key = key;
+
+            platform.keyboard.is_down = 1;
+            platform.keyboard.is_pressed = 1;
+            platform.keyboard.is_repeat = 1;
+
+            platform.keyboard.state[key] = 1;
+            platform.keyboard.pressed[key] = 1;
+            platform.keyboard.repeat[key] = 1;
             break;
         case GLFW_REPEAT:
-            platform.keyboard.is_repeat     = 1;
-            platform.keyboard.repeat[key]   = 1;
+            platform.keyboard.is_repeat = 1;
+
+            platform.keyboard.repeat[key] = 1;
             break;
         case GLFW_RELEASE:
-            platform.keyboard.is_down       = 0;
-            platform.keyboard.is_released   = 1;
-            platform.keyboard.state[key]    = 0;
+            platform.keyboard.is_down = 0;
+            platform.keyboard.is_released = 1;
+            
+            platform.keyboard.state[key] = 0;
             platform.keyboard.released[key] = 1;
             break;
     }
@@ -3690,31 +3762,28 @@ static void WindowCharCallback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.ascii     = codepoint;
 }
 
-static void WindowMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-    (void)window;
-    (void)mods;
-
+static void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int) {
     switch (action) {
         case GLFW_PRESS: {
-            platform.mouse.is_down          = 1;
-            platform.mouse.is_pressed       = 1;
-            platform.mouse.state[button]    = 1;
-            platform.mouse.pressed[button]  = 1;
+            platform.mouse.is_down = 1;
+            platform.mouse.is_pressed = 1;
+
+            platform.mouse.state[button] = 1;
+            platform.mouse.pressed[button] = 1;
             break;
         }
         case GLFW_RELEASE: {
-            platform.mouse.is_down          = 0;
-            platform.mouse.is_released      = 1;
-            platform.mouse.state[button]    = 0;
+            platform.mouse.is_down = 0;
+            platform.mouse.is_released = 1;
+
+            platform.mouse.state[button] = 0;
             platform.mouse.released[button] = 1;
             break;
         }
     }
 }
 
-static void WindowScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    (void)window;
-
+static void WindowScrollCallback(GLFWwindow*, double xoffset, double yoffset) {
     platform.mouse.scroll.x = xoffset;
     platform.mouse.scroll.y = yoffset;
 }
@@ -3730,7 +3799,7 @@ static void WindowJoystickCallback(int joy, int event) {
     }
 }
 
-extern void PlatformInit(const char* title, int width, int height, int samples) {
+static void PlatformInit(const char* title, int width, int height, int samples) {
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -3750,11 +3819,11 @@ extern void PlatformInit(const char* title, int width, int height, int samples) 
 
     glfwWindowHint(GLFW_SAMPLES, samples);
 
-    platform.width  = width;
+    platform.width = width;
     platform.height = height;
-    //
-    platform_internal.window    = glfwCreateWindow(width, height, title, NULL, NULL);
-    platform.native             = glfwGetWin32Window(platform_internal.window);
+
+    platform_internal.window = glfwCreateWindow(width, height, title, NULL, NULL);
+    platform.native = glfwGetWin32Window(platform_internal.window);
 
     glfwSetWindowPos(platform_internal.window, (mode->width - width) / 2, (mode->height - height) / 2);
 
@@ -3788,25 +3857,22 @@ extern void PlatformInit(const char* title, int width, int height, int samples) 
         }
     }
 
-    platform.vsync                      = true;
-    platform._vsync_state_last_update   = true;
-
     glfwSetTime(0.0);
 }
 
-extern void PlatformUpdate(void) {
+static void PlatformUpdate() {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
     if (platform.close)
         glfwSetWindowShouldClose(platform_internal.window, 1);
 
-    platform.mouse.is_pressed       = 0;
-    platform.mouse.is_released      = 0;
-    platform.keyboard.is_pressed    = 0;
-    platform.keyboard.is_repeat     = 0;
-    platform.keyboard.is_released   = 0;
-    platform.keyboard.is_ascii      = 0;
+    platform.mouse.is_pressed = 0;
+    platform.mouse.is_released = 0;
+    platform.keyboard.is_pressed = 0;
+    platform.keyboard.is_repeat = 0;
+    platform.keyboard.is_released = 0;
+    platform.keyboard.is_ascii = 0;
 
     // update mouse:
     {
@@ -3835,12 +3901,11 @@ extern void PlatformUpdate(void) {
         }
     }
 
-    // TODO: make it possible to connect and use GLFW_JOYSTICK_LAST amount of controllers!
-    // update gamepad:
+    // update gamepads:
     {
         GLFWgamepadstate state;
 
-        for (int i = 0; i < 1; ++i) {
+        for (int i = 0; i < JOYSTICK_LAST; ++i) {
             if (platform.gamepad[i].active) {
                 GamepadButtons old = platform.gamepad[i].state;
 
@@ -3850,14 +3915,14 @@ extern void PlatformUpdate(void) {
 
                 glfwGetGamepadState(i, &state);
 
-                platform.gamepad[i].LS.x =  state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
+                platform.gamepad[i].LS.x = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
                 platform.gamepad[i].LS.y = -state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
-                platform.gamepad[i].RS.x =  state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
+                platform.gamepad[i].RS.x = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
                 platform.gamepad[i].RS.y = -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
-                platform.gamepad[i].LT   =  0.5f * (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
-                platform.gamepad[i].RT   =  0.5f * (state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
 
-                // ps4 button mapping:
+                platform.gamepad[i].LT = 0.5f * (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
+                platform.gamepad[i].RT = 0.5f * (state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
+
                 if (state.buttons[GLFW_GAMEPAD_BUTTON_X]) platform.gamepad[i].state.button.X = 1;
                 if (state.buttons[GLFW_GAMEPAD_BUTTON_A]) platform.gamepad[i].state.button.A = 1;
                 if (state.buttons[GLFW_GAMEPAD_BUTTON_B]) platform.gamepad[i].state.button.B = 1;
@@ -3865,20 +3930,21 @@ extern void PlatformUpdate(void) {
 
                 if (state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepad[i].state.button.LB = 1;
                 if (state.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepad[i].state.button.RB = 1;
-                if (platform.gamepad[i].LT > 0.0f)                   platform.gamepad[i].state.button.LT = 1;
-                if (platform.gamepad[i].RT > 0.0f)                   platform.gamepad[i].state.button.RT = 1;
-                //
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_BACK])        platform.gamepad[i].state.button.select = 1;
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_START])       platform.gamepad[i].state.button.start  = 1;
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB])  platform.gamepad[i].state.button.LS     = 1;
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB]) platform.gamepad[i].state.button.RS     = 1;
-                //
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP])     platform.gamepad[i].state.button.UP    = 1;
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_RIGHT])  platform.gamepad[i].state.button.RIGHT = 1;
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN])   platform.gamepad[i].state.button.DOWN  = 1;
-                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_LEFT])   platform.gamepad[i].state.button.LEFT  = 1;
 
-                platform.gamepad[i].pressed.data  =  platform.gamepad[i].state.data & ~old.data;
+                if (platform.gamepad[i].LT > 0.0f) platform.gamepad[i].state.button.LT = 1;
+                if (platform.gamepad[i].RT > 0.0f) platform.gamepad[i].state.button.RT = 1;
+
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_BACK]) platform.gamepad[i].state.button.select = 1;
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_START]) platform.gamepad[i].state.button.start = 1;
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_LEFT_THUMB]) platform.gamepad[i].state.button.LS = 1;
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_RIGHT_THUMB]) platform.gamepad[i].state.button.RS = 1;
+
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_UP]) platform.gamepad[i].state.button.UP = 1;
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_RIGHT]) platform.gamepad[i].state.button.RIGHT = 1;
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_DOWN]) platform.gamepad[i].state.button.DOWN = 1;
+                if (state.buttons[GLFW_GAMEPAD_BUTTON_DPAD_LEFT]) platform.gamepad[i].state.button.LEFT = 1;
+
+                platform.gamepad[i].pressed.data = platform.gamepad[i].state.data & ~old.data;
                 platform.gamepad[i].released.data = ~platform.gamepad[i].state.data & old.data;
             }
         }
@@ -3896,38 +3962,30 @@ extern void PlatformUpdate(void) {
         platform._fullscreen_state_last_update = platform.fullscreen;
     }
 
-    if (platform.vsync != platform._vsync_state_last_update) {
-        if (platform.vsync) {
-            glfwSwapInterval(1);
-        } else {
-            glfwSwapInterval(0);
-        }
-        
-        platform._vsync_state_last_update = platform.vsync;
-    }
-
     glfwGetWindowSize(platform_internal.window, &platform.width, &platform.height);
     platform.aspect_ratio = (f32)platform.width / (f32)platform.height;
 
     glViewport(0, 0, platform.width, platform.height);
 
-    platform.time.delta    = glfwGetTime() - platform.time.total;
-    platform.time.total += platform.time.delta;
-
-    memset(platform.keyboard.pressed,  0, sizeof (platform.keyboard.pressed));
-    memset(platform.keyboard.repeat,   0, sizeof (platform.keyboard.repeat));
+    memset(platform.keyboard.pressed, 0, sizeof (platform.keyboard.pressed));
+    memset(platform.keyboard.repeat, 0, sizeof (platform.keyboard.repeat));
     memset(platform.keyboard.released, 0, sizeof (platform.keyboard.released));
 
-    memset(platform.mouse.pressed,  0, sizeof (platform.mouse.pressed));
+    memset(platform.mouse.pressed, 0, sizeof (platform.mouse.pressed));
     memset(platform.mouse.released, 0, sizeof (platform.mouse.released));
 
     glfwPollEvents();
     glfwSwapBuffers(platform_internal.window);
+
+    {
+        platform.time.delta = glfwGetTime() - platform.time.total;
+        platform.time.total += platform.time.delta;
+    }
 }
 
 // =================================================== TIMER STUFF =================================================== //
 
-extern f32 TimerGetCurrent(void) {
+static f32 TimerGetCurrent() {
     return glfwGetTime();
 }
 
@@ -3982,9 +4040,9 @@ static u32 ShaderLinkProgramVF(u32 vertex_shader, u32 fragment_shader) {
     return shader_program;
 }
 
-static unsigned int ShaderLinkProgramVFG(u32 vertex_shader, u32 fragment_shader, u32 geometry_shader) {
-    int     success;
-    char    info_log[512];
+static u32 ShaderLinkProgramVFG(u32 vertex_shader, u32 fragment_shader, u32 geometry_shader) {
+    int success;
+    char info_log[512];
 
     u32 shader_program = glCreateProgram();
 
@@ -4030,7 +4088,7 @@ static u32 ShaderLinkProgramV(u32 vertex_shader) {
     return shader_program;
 }
 
-extern u32 ShaderLoadFromMemory(const char *vs, const char *fs, const char *gs) {
+static u32 ShaderLoadFromMemory(const char *vs, const char *fs, const char *gs) {
     unsigned int shader_program = 0;
 
     if (vs != NULL && fs != NULL && gs != NULL) {
@@ -4066,47 +4124,47 @@ extern u32 ShaderLoadFromMemory(const char *vs, const char *fs, const char *gs) 
     return shader_program;
 }
 
-extern void ShaderUse(u32 shader) {
+static void ShaderUse(u32 shader) {
     glUseProgram(shader);
 }
 
-extern u32 ShaderGetLocation(u32 shader, const char *var_name) {
+static u32 ShaderGetLocation(u32 shader, const char *var_name) {
     return glGetUniformLocation(shader, var_name);
 }
 
-extern void ShaderSeti(u32 shader, const char *loc, int n) {
+static void ShaderSeti(u32 shader, const char *loc, int n) {
     glUniform1i(glGetUniformLocation(shader, loc), n);
 }
 
-extern void ShaderSetf(u32 shader, const char *loc, f32 n) {
+static void ShaderSetf(u32 shader, const char *loc, f32 n) {
     glUniform1f(glGetUniformLocation(shader, loc), n);
 }
 
-extern void ShaderSet2f(u32 shader, const char *loc, f32 a, f32 b) {
+static void ShaderSet2f(u32 shader, const char *loc, f32 a, f32 b) {
     glUniform2f(glGetUniformLocation(shader, loc), a, b);
 }
 
-extern void ShaderSet3f(u32 shader, const char *loc, f32 a, f32 b, f32 c) {
+static void ShaderSet3f(u32 shader, const char *loc, f32 a, f32 b, f32 c) {
     glUniform3f(glGetUniformLocation(shader, loc), a, b, c);
 }
 
-extern void ShaderSet4f(u32 shader, const char *loc, f32 a, f32 b, f32 c, f32 d) {
+static void ShaderSet4f(u32 shader, const char *loc, f32 a, f32 b, f32 c, f32 d) {
     glUniform4f(glGetUniformLocation(shader, loc), a, b, c, d);
 }
 
-extern void ShaderSet2v(u32 shader, const char *loc, const f32 *u) {
+static void ShaderSet2v(u32 shader, const char *loc, const f32 *u) {
     glUniform2fv(glGetUniformLocation(shader, loc), 1, u);
 }
 
-extern void ShaderSet3v(u32 shader, const char *loc, const f32 *u) {
+static void ShaderSet3v(u32 shader, const char *loc, const f32 *u) {
     glUniform3fv(glGetUniformLocation(shader, loc), 1, u);
 }
 
-extern void ShaderSet4v(u32 shader, const char *loc, const f32 *u) {
+static void ShaderSet4v(u32 shader, const char *loc, const f32 *u) {
     glUniform4fv(glGetUniformLocation(shader, loc), 1, u);
 }
 
-extern void ShaderSetMat4(u32 shader, const char *loc, const f32 *m) {
+static void ShaderSetMat4(u32 shader, const char *loc, const f32 *m) {
     glUniformMatrix4fv(glGetUniformLocation(shader, loc), 1, GL_FALSE, m);
 }
 
@@ -4383,73 +4441,72 @@ static const u64 bitascii[BITMAP_COUNT] = {
 #define SHADOW_HEIGHT   (2048) 
 
 struct Vertex {
-    f32   position[4];
-    f32   normal[4];
-    f32   color[4];
-    f32   texture[2];
+    v4 position;
+    v4 normal;
+    v4 color;
+    v2 texture;
 };
 
 // Layout:  vertex : normal : color : texture
 static const Vertex vertex_array_cube[] = {
     // back face
-    { { -1.0f, -1.0f, -1.0f, 1.0f },  { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-left
-    { {  1.0f,  1.0f, -1.0f, 1.0f },  { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right
-    { {  1.0f, -1.0f, -1.0f, 1.0f },  { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // bottom-right         
-    { {  1.0f,  1.0f, -1.0f, 1.0f },  { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right
-    { { -1.0f, -1.0f, -1.0f, 1.0f },  { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-left
-    { { -1.0f,  1.0f, -1.0f, 1.0f },  { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // top-left
+    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { {  1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { {  1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right         
+    { {  1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { { -1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
     // front face
-    { { -1.0f, -1.0f,  1.0f, 1.0f },  { 0.0f,  0.0f,  1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-left
-    { {  1.0f, -1.0f,  1.0f, 1.0f },  { 0.0f,  0.0f,  1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // bottom-right
-    { {  1.0f,  1.0f,  1.0f, 1.0f },  { 0.0f,  0.0f,  1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right
-    { {  1.0f,  1.0f,  1.0f, 1.0f },  { 0.0f,  0.0f,  1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right
-    { { -1.0f,  1.0f,  1.0f, 1.0f },  { 0.0f,  0.0f,  1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // top-left
-    { { -1.0f, -1.0f,  1.0f, 1.0f },  { 0.0f,  0.0f,  1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-left
+    { { -1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { {  1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
+    { {  1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { {  1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { { -1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { { -1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
     // left face
-    { { -1.0f,  1.0f,  1.0f, 1.0f },  { -1.0f,  0.0f,  0.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // top-right
-    { { -1.0f,  1.0f, -1.0f, 1.0f },  { -1.0f,  0.0f,  0.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-left
-    { { -1.0f, -1.0f, -1.0f, 1.0f },  { -1.0f,  0.0f,  0.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // bottom-left
-    { { -1.0f, -1.0f, -1.0f, 1.0f },  { -1.0f,  0.0f,  0.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // bottom-left
-    { { -1.0f, -1.0f,  1.0f, 1.0f },  { -1.0f,  0.0f,  0.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-right
-    { { -1.0f,  1.0f,  1.0f, 1.0f },  { -1.0f,  0.0f,  0.0f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // top-right
+    { { -1.0f,  1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { { -1.0f,  1.0f, -1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { { -1.0f, -1.0f, -1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { { -1.0f, -1.0f, -1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { { -1.0f, -1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
+    { { -1.0f,  1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
     // right face
-    { { 1.0f,  1.0f,  1.0f, 1.0f },   { 1.0f,  0.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // top-left
-    { { 1.0f, -1.0f, -1.0f, 1.0f },   { 1.0f,  0.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // bottom-right
-    { { 1.0f,  1.0f, -1.0f, 1.0f },   { 1.0f,  0.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right         
-    { { 1.0f, -1.0f, -1.0f, 1.0f },   { 1.0f,  0.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // bottom-right
-    { { 1.0f,  1.0f,  1.0f, 1.0f },   { 1.0f,  0.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // top-left
-    { { 1.0f, -1.0f,  1.0f, 1.0f },   { 1.0f,  0.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-left     
+    { { 1.0f,  1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { { 1.0f, -1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
+    { { 1.0f,  1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right         
+    { { 1.0f, -1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
+    { { 1.0f,  1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { { 1.0f, -1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left     
     // bottom face
-    { { -1.0f, -1.0f, -1.0f, 1.0f },  { 0.0f, -1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // top-right
-    { {  1.0f, -1.0f, -1.0f, 1.0f },  { 0.0f, -1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-left
-    { {  1.0f, -1.0f,  1.0f, 1.0f },  { 0.0f, -1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // bottom-left
-    { {  1.0f, -1.0f,  1.0f, 1.0f },  { 0.0f, -1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // bottom-left
-    { { -1.0f, -1.0f,  1.0f, 1.0f },  { 0.0f, -1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-right
-    { { -1.0f, -1.0f, -1.0f, 1.0f },  { 0.0f, -1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // top-right
+    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { {  1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { {  1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { {  1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { { -1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
+    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
     // top face
-    { { -1.0f,  1.0f, -1.0f, 1.0f },  { 0.0f,  1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // top-left
-    { {  1.0f,  1.0f , 1.0f, 1.0f },  { 0.0f,  1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // bottom-right
-    { {  1.0f,  1.0f, -1.0f, 1.0f },  { 0.0f,  1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right     
-    { {  1.0f,  1.0f,  1.0f, 1.0f },  { 0.0f,  1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // bottom-right
-    { { -1.0f,  1.0f, -1.0f, 1.0f },  { 0.0f,  1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // top-left
-    { { -1.0f,  1.0f,  1.0f, 1.0f },  { 0.0f,  1.0f,  0.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }  // bottom-left  
+    { { -1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { {  1.0f,  1.0f , 1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
+    { {  1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right     
+    { {  1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
+    { { -1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { { -1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }  // bottom-left  
 };
 
 // Layout:  vertex : normal
 static const Vertex vertex_array_square[] = {
-    { { -1.0f, -1.0f, 0.0f, 1.0f },     { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-left
-    { {  1.0f,  1.0f, 0.0f, 1.0f },     { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right
-    { {  1.0f, -1.0f, 0.0f, 1.0f },     { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 0.0f } }, // bottom-right         
-    { {  1.0f,  1.0f, 0.0f, 1.0f },     { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 1.0f, 1.0f } }, // top-right
-    { { -1.0f, -1.0f, 0.0f, 1.0f },     { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 0.0f } }, // bottom-left
-    { { -1.0f,  1.0f, 0.0f, 1.0f },     { 0.0f,  0.0f, -1.0f, 0.0f },   { 1.0f, 1.0f, 1.0f, 1.0f },     { 0.0f, 1.0f } }, // top-left
+    { { -1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { {  1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { {  1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right         
+    { {  1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
+    { { -1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
+    { { -1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
 };
 
 static const char* ce_shader_vertex = GLSL_SHADER(
     layout (location = 0) in vec4 vp;
     layout (location = 1) in vec4 np;
     layout (location = 2) in vec4 vc;
-    layout (location = 3) in vec2 tx;
     layout (location = 4) in vec4 C;
     layout (location = 5) in mat4 M;
 
@@ -4476,13 +4533,11 @@ static const char* ce_shader_vertex_light = GLSL_SHADER(
     layout (location = 0) in vec4 vp;
     layout (location = 1) in vec4 np;
     layout (location = 2) in vec4 vc;
-    layout (location = 3) in vec2 tx;
     layout (location = 4) in vec4 C;
     layout (location = 5) in mat4 M;
 
     out vec3 frag_pos;
     out vec3 normal;
-    out vec2 tex_coords;
     out vec4 frag_pos_light_space;
     out vec4 color;
 
@@ -4494,7 +4549,6 @@ static const char* ce_shader_vertex_light = GLSL_SHADER(
         gl_Position             = PV * mpos;
         frag_pos                = mpos.xyz;
         normal                  = normalize((M * np).xyz);
-        tex_coords              = tx;
         frag_pos_light_space    = light_space_matrix * vec4(frag_pos, 1.0);
         color                   = C * vc;
     }
@@ -4523,9 +4577,9 @@ static const char* ce_shader_fragment_light = GLSL_SHADER(
 
         float current_depth = proj_coords.z;
 
-        vec3 normal     = normalize(normal);
-        vec3 light_dir  = normalize(light_pos - frag_pos);
-        float bias      = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
+        vec3 normal = normalize(normal);
+        vec3 light_dir = normalize(light_pos - frag_pos);
+        float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
 
         float shadow = current_depth - bias > texture(shadow_map, proj_coords.xy).r? 1.0 : 0.0;
 
@@ -4538,21 +4592,21 @@ static const char* ce_shader_fragment_light = GLSL_SHADER(
     }
    
     void main() {
-        float   ambient_str     = 0.2;
-        vec3    ambient         = ambient_str * light_color;
-        vec3    light_dir       = normalize(light_pos - frag_pos);
-        float   diff            = max(dot(normal, light_dir), 0.0);
-        vec3    diffuse         = diff * light_color;
-        float   specular_str    = 0.1;
-        vec3    view_dir        = normalize(view_pos - frag_pos);
-        vec3    reflect_dir     = reflect(-light_dir, normal);
-        float   spec            = pow(max(dot(view_dir, reflect_dir), 0.0), 2);
-        vec3    specular        = specular_str * spec * light_color;
+        float ambient_str = 0.2;
+        vec3 ambient = ambient_str * light_color;
+        vec3 light_dir = normalize(light_pos - frag_pos);
+        float diff = max(dot(normal, light_dir), 0.0);
+        vec3 diffuse = diff * light_color;
+        float specular_str = 0.1;
+        vec3 view_dir = normalize(view_pos - frag_pos);
+        vec3 reflect_dir  = reflect(-light_dir, normal);
+        float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 2);
+        vec3 specular = specular_str * spec * light_color;
 
         vec3 proj_coords = 0.5 * (frag_pos_light_space.xyz / frag_pos_light_space.w) + 0.5;
 
-        float   shadow          = shadowCalculation(proj_coords);
-        vec4    caster          = colorCalculation(proj_coords);
+        float shadow = shadowCalculation(proj_coords);
+        vec4 caster = colorCalculation(proj_coords);
 
         vec3 result = color.rgb * (ambient + (1.0 - 0.7 * caster.a * shadow) * (diffuse + specular));
 
@@ -4571,7 +4625,7 @@ static const char* ce_depth_vertex = GLSL_SHADER(
 
     void main() {
         gl_Position = light_space_matrix * M * vp;
-        color       = C;
+        color = C;
     }
 );
 
@@ -4580,8 +4634,8 @@ static const char* ce_depth_fragment = GLSL_SHADER(
     out vec4 frag_color;
 
     void main() {
-        gl_FragDepth    = gl_FragCoord.z;
-        frag_color      = color;
+        gl_FragDepth = gl_FragCoord.z;
+        frag_color = color;
     }
 );
 
@@ -4601,103 +4655,67 @@ static u32 ce_depth_map;
 static u32 ce_color_map;
 
 struct RenderObject {
-    f32     color[4];
-    f32     model[16];
+    v4 color;
+    m4 model;
 };
 
-static f32 ce_projection_view[16]    = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
-static f32 ce_light_space_matrix[16] = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
-static f32 ce_view_pos[3]            = { 0.0f, 0.0f, 0.0f };
-static f32 ce_light_pos[3]           = { 0.0f, 0.0f, 0.0f };
-static f32 ce_light_color[3]         = { 1.0f, 1.0f, 1.0f };
+static m4 ce_projection_view  = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
+static m4 ce_light_space_matrix = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
+static v3 ce_view_pos = { 0.0f, 0.0f, 0.0f };
+static v3 ce_light_pos = { 0.0f, 0.0f, 0.0f };
+static v3 ce_light_color = { 1.0f, 1.0f, 1.0f };
 
 #define RENDER_ARRAY_INIT_SIZE  (2048)
-//
-static int            render_capacity = 0;
-static int            render_count    = 0;
-static RenderObject   render_array[1024 * 1024];
 
-static void ce_Push(const RenderObject obj) {
-    if (render_count < ARRAY_COUNT(render_array))
+static int render_capacity = 0;
+static int render_count = 0;
+
+static RenderObject render_array[1024 * 1024];
+
+static void ce_Push(RenderObject obj) {
+    if (render_count < ARRAY_COUNT(render_array)) {
         render_array[render_count++] = obj;
+    }
 }
 
-extern int ce_GetCubeCount(void) {
+static int ce_GetCubeCount() {
     return render_count;
 }
 
-extern void ce_SetLight(f32 x, f32 y, f32 z, f32 r, f32 g, f32 b) {
-    ce_light_pos[0] = x;
-    ce_light_pos[1] = y;
-    ce_light_pos[2] = z;
-
-    ce_light_color[0] = r;
-    ce_light_color[1] = g;
-    ce_light_color[2] = b;
+static void ce_SetLight(v3 pos, v3 color) {
+    ce_light_pos = pos;
+    ce_light_color = color;
 }
 
-extern void ce_SetView(
-        f32 pos_x,  f32 pos_y,  f32 pos_z,
-        f32 look_x, f32 look_y, f32 look_z,
-        f32 up_x,   f32 up_y,   f32 up_z,
-        f32 fov,
-        f32 near_plane,
-        f32 far_plane) {
-    f32 pos[3]  = { pos_x,  pos_y,  pos_z  };
-    f32 look[3] = { look_x, look_y, look_z };
-    f32 up[3]   = { up_x,   up_y,   up_z   };
+static void ce_SetView(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
+    ce_projection_view = 
+        m4_Perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane) * 
+        m4_LookAt(pos, look, up);
 
-    f4x4_PerspectiveView(ce_projection_view, pos, look, up, fov, platform.aspect_ratio, near_plane, far_plane);
-
-    ce_view_pos[0] = pos[0];
-    ce_view_pos[1] = pos[1];
-    ce_view_pos[2] = pos[2];
+    ce_view_pos = pos;
 }
 
-extern void ce_SetView2D(
-        f32 pos_x,  f32 pos_y,  f32 pos_z,
-        f32 look_x, f32 look_y, f32 look_z,
-        f32 up_x,   f32 up_y,   f32 up_z,
-        f32 rad_x,  f32 rad_y,
-        f32 near_plane,
-        f32 far_plane) {
-    f32 pos[3]  = { pos_x,  pos_y,  pos_z  };
-    f32 look[3] = { look_x, look_y, look_z };
-    f32 up[3]   = { up_x,   up_y,   up_z   };
-    f32 rad[2]  = { rad_x, rad_y };
+static void ce_SetView2D(v3 pos, v3 look, v3 up, v2 rad, f32 near_plane, f32 far_plane) {
+    ce_projection_view =
+        m4_Ortho(-rad.x, rad.x, -rad.y, rad.y, near_plane, far_plane) *
+        m4_LookAt(pos, look, up);
 
-    f4x4_OrthoView(ce_projection_view, pos, look, up, rad, near_plane, far_plane);
-
-    ce_view_pos[0] = pos[0];
-    ce_view_pos[1] = pos[1];
-    ce_view_pos[2] = pos[2];
+    ce_view_pos = pos;
 }
 
-extern void ce_SetProjectionView(const f32* projection_view) {
-    f4x4_Copy(ce_projection_view, projection_view);
+static void ce_SetProjectionView(m4 projection_view) {
+    ce_projection_view = projection_view;
 
-    ce_view_pos[0] = projection_view[12];
-    ce_view_pos[1] = projection_view[13];
-    ce_view_pos[2] = projection_view[14];
+    ce_view_pos.x = projection_view.array[12];
+    ce_view_pos.y = projection_view.array[13];
+    ce_view_pos.z = projection_view.array[14];
 }
 
-extern void ce_SetLightView(
-        f32 pos_x,  f32 pos_y,  f32 pos_z,
-        f32 look_x, f32 look_y, f32 look_z,
-        f32 up_x,   f32 up_y,   f32 up_z,
-        f32 fov,
-        f32 near_plane,
-        f32 far_plane) {
-    f32 pos[3]  = { pos_x,  pos_y,  pos_z  };
-    f32 look[3] = { look_x, look_y, look_z };
-    f32 up[3]   = { up_x,   up_y,   up_z   };
+static void ce_SetLightView(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
+    m4 light_projection = m4_Perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane);
+    m4 light_view = m4_LookAt(pos, look, up);
 
-    f32 light_projection[16];
-    f32 light_view[16];
-
-    f4x4_Perspective(light_projection, TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane);
-    f4x4_LookAt(light_view, pos, look, up);
-    f4x4_Mul(ce_light_space_matrix, light_projection, light_view);
+    ce_light_space_matrix = light_projection * light_view;
 }
 
 static void ce_SetVertexArray(const Vertex* vertex_array, int vertex_count) {
@@ -4724,7 +4742,7 @@ static void ce_Render(int type, const Vertex* vertex_array, int vertex_count, co
         glDisable(GL_ALPHA_TEST);
 
         ShaderUse(ce_shader_depth);
-        ShaderSetMat4(ce_shader_depth, "light_space_matrix", ce_light_space_matrix);
+        ShaderSetMat4(ce_shader_depth, "light_space_matrix", ce_light_space_matrix.array);
 
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, ce_depth_fbo);
@@ -4750,11 +4768,11 @@ static void ce_Render(int type, const Vertex* vertex_array, int vertex_count, co
 
         ShaderUse(ce_shader);
 
-        ShaderSetMat4(ce_shader,  "light_space_matrix", ce_light_space_matrix);
-        ShaderSetMat4(ce_shader,  "PV",                 ce_projection_view);
-        ShaderSet3v(ce_shader,    "view_pos",           ce_view_pos);
-        ShaderSet3v(ce_shader,    "light_pos",          ce_light_pos);
-        ShaderSet3v(ce_shader,    "light_color",        ce_light_color);
+        ShaderSetMat4(ce_shader, "light_space_matrix", ce_light_space_matrix.array);
+        ShaderSetMat4(ce_shader, "PV", ce_projection_view.array);
+        ShaderSet3v(ce_shader, "view_pos", ce_view_pos.array);
+        ShaderSet3v(ce_shader, "light_pos", ce_light_pos.array);
+        ShaderSet3v(ce_shader, "light_color", ce_light_color.array);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, ce_depth_map);
@@ -4768,7 +4786,9 @@ static void ce_Render(int type, const Vertex* vertex_array, int vertex_count, co
     glDisable(GL_CULL_FACE);
 }
 
-extern void ce_RenderCubes(void) {
+static void ce_RenderCubes() {
+    glBindVertexArray(ce_vao_cube);
+
     ce_Render(GL_TRIANGLES, vertex_array_cube, 36, render_array, render_count);
     render_count = 0;
 }
@@ -4780,7 +4800,7 @@ static void ce_RenderNoLight(int type, const Vertex* vertex_array, int vertex_co
 
         ShaderUse(ce_shader_no_light);
 
-        ShaderSetMat4(ce_shader, "PV", ce_projection_view);
+        ShaderSetMat4(ce_shader, "PV", ce_projection_view.array);
 
         // render:
         ce_SetVertexArray(vertex_array, vertex_count);
@@ -4790,78 +4810,77 @@ static void ce_RenderNoLight(int type, const Vertex* vertex_array, int vertex_co
     }
 }
 
-extern void ce_RenderSquares(void) {
+static void ce_RenderSquares() {
+    glBindVertexArray(ce_vao_cube);
+
     ce_RenderNoLight(GL_TRIANGLES, vertex_array_square, 6, render_array, render_count);
     render_count = 0;
 }
 
-extern void ce_PushCube(f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 r, f32 g, f32 b, f32 a) {
+static void ce_PushCube(v3 pos, f32 scale, v4 color) {
     RenderObject robj = {
-        { r, g, b, a },
+        color,
         {
             scale,  0.0f,   0.0f,   0.0f,
             0.0f,   scale,  0.0f,   0.0f,
             0.0f,   0.0f,   scale,  0.0f,
-            pos_x,  pos_y,  pos_z,  1.0f
+            pos.x,  pos.y,  pos.z,  1.0f
         }
     };
 
     ce_Push(robj);
 }
 
-extern void ce_PushCubeQuat(f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 qx, f32 qy, f32 qz, f32 qw, f32 r, f32 g, f32 b, f32 a) {
-    f32 quat[4] = { qx, qy, qz, qw }, rot[16];
-
+static void ce_PushCubeQuat(v3 pos, f32 scale, Quat quat, v4 color) {
     RenderObject robj = {
-        { r, g, b, a },
+        color,
         // model:
         {
             scale,  0.0f,   0.0f,   0.0f,
             0.0f,   scale,  0.0f,   0.0f,
             0.0f,   0.0f,   scale,  0.0f,
-            pos_x,  pos_y,  pos_z,  1.0f
+            pos.x,  pos.y,  pos.z,  1.0f
         }
     };
 
-    f4x4_Fromfq(rot, quat);
-    f4x4_Mul(robj.model, robj.model, rot);
+    robj.model = robj.model * m4_FromQuat(quat);
 
     ce_Push(robj);
 }
 
-extern void ce_PushBox(f32 pos_x, f32 pos_y, f32 pos_z, f32 rad_x, f32 rad_y, f32 rad_z, f32 r, f32 g, f32 b, f32 a) {
+static void ce_PushBox(v3 pos, v3 rad, v4 color) {
     RenderObject robj = {
-        { r, g, b, a },
+        color,
         // model:
         {
-            rad_x,  0.0f,   0.0f,   0.0f,
-            0.0f,   rad_y,  0.0f,   0.0f,
-            0.0f,   0.0f,   rad_z,  0.0f,
-            pos_x,  pos_y,  pos_z,  1.0f
+            rad.x,  0.0f,   0.0f,   0.0f,
+            0.0f,   rad.y,  0.0f,   0.0f,
+            0.0f,   0.0f,   rad.z,  0.0f,
+            pos.x,  pos.y,  pos.z,  1.0f
         }
     };
 
     ce_Push(robj);
 }
 
-extern void ce_PushCubeRot(f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 rot, f32 r, f32 g, f32 b, f32 a) {
-    f32 s = sinf(rot);
-    f32 c = cosf(rot);
+static void ce_PushCubeRotZ(v3 pos, f32 scale, f32 rot, v4 color) {
+    f32 s = Sin(rot);
+    f32 c = Cos(rot);
 
     RenderObject robj = {
-        { r, g, b, a },
+        color,
         {
              c * scale, s * scale,  0.0f,   0.0f,
             -s * scale, c * scale,  0.0f,   0.0f,
              0.0f,      0.0f,       scale,  0.0f,
-             pos_x,     pos_y,      pos_z,  1.0f
+             pos.x,     pos.y,      pos.z,  1.0f
         }
     };
 
     ce_Push(robj);
 }
 
-extern void ce_PushCubeEuler(f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 yaw, f32 pitch, f32 roll, f32 red, f32 green, f32 blue, f32 alpha) {
+static void ce_PushCubeEuler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color) {
     f32 cy = Cos(yaw);
     f32 sy = Sin(yaw);
     f32 cp = Cos(pitch);
@@ -4870,105 +4889,84 @@ extern void ce_PushCubeEuler(f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 yaw
     f32 sr = Sin(roll);
 
     RenderObject robj = {
-        { red, green, blue, alpha },
+        color,
         {
             scale * (cy * cp),                  scale * (sy * cp),                  scale * (-sp),          0.0f,
             scale * (cy * sp * sr - sy * cr),   scale * (sy * sp * sr + cy * cr),   scale * (cp * sr),      0.0f,
             scale * (cy * sp * cr + sy * sr),   scale * (sy * sp * cr - cy * sr),   scale * (cp * cr),      0.0f,
-            pos_x,                              pos_y,                              pos_z,                  1.0f
+            pos.x,                              pos.y,                              pos.z,                  1.0f
         }
     };
 
     ce_Push(robj);
 }
 
-extern void ce_PushCubeRotMat(f32 pos_x, f32 pos_y, f32 pos_z, f32 scale, f32 Rxx, f32 Rxy, f32 Ryx, f32 Ryy, f32 r, f32 g, f32 b, f32 a) {
+static void ce_PushCubeRotMat(v3 pos, f32 scale, m2 R, v4 color) {
     RenderObject robj = {
-        { r, g, b, a },
+        color,
         {
-            Rxx * scale,    Rxy * scale,    0.0f,       0.0f,
-            Ryx * scale,    Ryy * scale,    0.0f,       0.0f,
+            R.x.x * scale,  R.x.y * scale,  0.0f,       0.0f,
+            R.y.x * scale,  R.y.y * scale,  0.0f,       0.0f,
             0.0f,           0,              scale,      0.0f,
-            pos_x,          pos_y,          pos_z,      1.0f
+            pos.x,          pos.y,          pos.z,      1.0f
         }
     };
 
     ce_Push(robj);
 }
 
-extern void ce_PushBoxRot(f32 pos_x, f32 pos_y, f32 pos_z, f32 rad_x, f32 rad_y, f32 rad_z, f32 rot, f32 r, f32 g, f32 b, f32 a) {
+static void ce_PushBoxRot(v3 pos, v3 rad, f32 rot, v4 color) {
     f32 s = Sin(rot);
     f32 c = Cos(rot);
 
     RenderObject robj = {
-        { r, g, b, a },
+        color,
         {
-             c * rad_x, s * rad_x,  0.0f,   0.0f,
-            -s * rad_y, c * rad_y,  0.0f,   0.0f,
-             0.0f,      0.0f,       rad_z,  0.0f,
-             pos_x,     pos_y,      pos_z,  1.0f
+             c * rad.x, s * rad.x,  0.0f,   0.0f,
+            -s * rad.y, c * rad.y,  0.0f,   0.0f,
+             0.0f,      0.0f,       rad.z,  0.0f,
+             pos.x,     pos.y,      pos.z,  1.0f
         }
     };
 
     ce_Push(robj);
 }
 
-extern void ce_PushBoxRotMat(f32 pos_x, f32 pos_y, f32 pos_z, f32 rad_x, f32 rad_y, f32 rad_z, f32 Rxx, f32 Rxy, f32 Ryx, f32 Ryy, f32 r, f32 g, f32 b, f32 a) {
+static void ce_PushBoxRotMat(v3 pos, v3 rad, m2 R, v4 color) {
     RenderObject robj = {
-        { r, g, b, a },
+        color,
         {
-            Rxx * rad_x,    Rxy * rad_x,    0.0f,   0.0f,
-            Ryx * rad_y,    Ryy * rad_y,    0.0f,   0.0f,
-            0.0f,           0.0f,           rad_z,  0.0f,
-            pos_x,          pos_y,          pos_z,  1.0f
+            R.x.x * rad.x,  R.x.y * rad.x,  0.0f,   0.0f,
+            R.y.x * rad.y,  R.y.y * rad.y,  0.0f,   0.0f,
+            0.0f,           0.0f,           rad.z,  0.0f,
+            pos.x,          pos.y,          pos.z,  1.0f
         }
     };
 
     ce_Push(robj);
 }
 
-extern void ce_PushLine(const f32 p0[2], const f32 p1[2], f32 z, f32 rad, const f32 color[4]) {
-    f32 line[2]     = { p1[0] - p0[0], p1[1] - p0[1] };
-    f32 line_length = f2_Len(line);
-    f32 line_pos[2] = { p0[0] + line[0] * 0.5f, p0[1] + line[1] * 0.5f };
-    f32 axis[2]     = { 0.0f, -1.0f };
-    f32 rot         = f2_GetAngle(axis, line);
-    f32 pos[3]      = { line_pos[0], line_pos[1], z };
-    f32 scale[3]    = { rad, 0.5f * line_length, rad };
+static void ce_PushLine(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
+    v2 line = p1 - p0;
+    f32 line_length = Len(line);
 
-    ce_PushBoxRot(pos[0], pos[1], pos[2], scale[0], scale[1], scale[2], rot, color[0], color[1], color[2], color[3]);
+    v2 line_pos = p0 + 0.5f * line;
+
+    v2 axis = { 0.0f, -1.0f };
+    f32 rot = GetAngle(axis, line);
+
+    v3 pos = V3(line_pos, z);
+    v3 scale = V3(rad, 0.5f * line_length, rad);
+
+    ce_PushBoxRot(pos, scale, rot, color);
 }
 
-extern void ce_PushLineLoop(const f32 pos[2], f32 z, f32 rad, const f32 color[4], const f32 (*point_array)[2], int point_count) {
-    f32 a[2], b[2];
-
-    for (int i = 0; i < point_count; ++i) {
-        int j = (i + 1) % point_count;
-
-        a[0] = pos[0] + point_array[i][0];
-        a[1] = pos[1] + point_array[i][1];
-
-        b[0] = pos[0] + point_array[j][0];
-        b[1] = pos[1] + point_array[j][1];
-
-        ce_PushLine(a, b, z, rad, color);
-    }
-}
-
-extern void ce_EnableDepthTest(void) {
-    glEnable(GL_DEPTH_TEST);
-}
-
-extern void ce_DisableDepthTest(void) {
-    glDisable(GL_DEPTH_TEST);
-}
-
-extern void ce_Clear(void) {
+static void ce_Clear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-extern void ce_Init(void) {
-    ce_shader          = ShaderLoadFromMemory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
+static void ce_Init() {
+    ce_shader = ShaderLoadFromMemory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
     ce_shader_no_light = ShaderLoadFromMemory(ce_shader_vertex, ce_shader_fragment, NULL);
 
     // init opengl:
@@ -4976,7 +4974,6 @@ extern void ce_Init(void) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClearDepth(1.0f);
         glDepthFunc(GL_LESS);
-        glShadeModel(GL_SMOOTH);
         glEnable(GL_DEPTH_TEST);
         glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
@@ -5004,13 +5001,11 @@ extern void ce_Init(void) {
             glEnableVertexAttribArray(0);
             glEnableVertexAttribArray(1);
             glEnableVertexAttribArray(2);
-            glEnableVertexAttribArray(3);
 
             // position : normal : color
             glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (void*)offsetof(Vertex, position));
             glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (void*)offsetof(Vertex, normal));
             glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (void*)offsetof(Vertex, color));
-            glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof (Vertex), (void*)offsetof(Vertex, texture));
         }
 
         // cube models:
@@ -5079,71 +5074,65 @@ extern void ce_Init(void) {
 
 static void ce_BitmapRenderRect(f32 x, f32 y, f32 z, f32 sx, f32 sy, f32 r, f32 g, f32 b, f32 a) {
     ce_PushBox(
-            x, y, z, 
-            0.5f * sx, 0.5f * sy, 0.01,
-            r, g, b, a);
+        { x, y, z }, 
+        { 0.5f * sx, 0.5f * sy, 0.01 },
+        { r, g, b, a });
 }
 
-// @TODO: make less shit!!
 static void ce_PushAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
     u64 n = bitascii[c];
 
     for (int j = 0; j < 8; ++j) {
         for (int i = 0; i < 8; ++i) {
-            int bit = j * 8 + i;
+            u64 bit = j * 8 + i;
 
-            if (CHKBIT(n, bit)) {
+            if (n & (1ull << bit)) {
                 ce_BitmapRenderRect(px + i * x_scale, py - j * y_scale, pz, x_scale, -y_scale, r, g, b, a);
             }
         }
     }
 }
 
-extern void ce_PushString(const char* str, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
+static void ce_PushString(const char* str, v3 pos, v2 scale, v4 color) {
     for (int i = 0; str[i] != '\0'; i++)
-        ce_PushAscii(str[i], x + i * 8 * scale_x, y, z, scale_x, scale_y, r, g, b, a);
+        ce_PushAscii(str[i], pos.x + i * 8 * scale.x, pos.y, pos.z, scale.x, scale.y, color.r, color.g, color.b, color.a);
 }
 
-extern void ce_PushStringFormat(f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...) {
+static void ce_PushStringFormat(v3 pos, f32 rad, v4 color, const char* fmt, ...) {
     va_list list;
-    char    buffer[64];
+    char buffer[64];
 
     va_start(list, fmt);
     vsnprintf(buffer, 64, fmt, list);
-    ce_PushString(buffer, x, y, z, rad, rad, r, g, b, a);
+    ce_PushString(buffer, pos, { rad, rad }, color);
     va_end(list);
 }
 
-extern void ce_PushInt(int n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
-    char buffer[64];
+inline v3 ce_GetWorldPosition(int x, int y) {
+    static f32 identity[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
 
-    sprintf(buffer, "%d", n);
-    ce_PushString(buffer, x, y, z, scale_x, scale_y, r, g, b, a);
+    GLint viewport[4];
+    GLfloat winX, winY, winZ;
+    GLdouble posX, posY, posZ;
+ 
+    glGetIntegerv(GL_VIEWPORT, viewport);
+ 
+    winX = (f32)x;
+    winY = (f32)viewport[3] - (f32)y;
+
+    glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+ 
+    f32 result[3];
+    f4x4_UnProject(result, winX, winY, winZ, identity, ce_projection_view.array, viewport);
+ 
+    return { result[0], result[1], result[2] };
 }
 
-extern void ce_PushF32(f32 n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
-    char buffer[64];
-
-    sprintf(buffer, "%.1f", n);
-    ce_PushString(buffer, x, y, z, scale_x, scale_y, r, g, b, a);
-}
-
-extern void ce_PushStringBox(const char* str, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
-    int slen    = strlen(str);
-    f32 x_scale = w / ((f32)slen * 8.0f);
-    f32 y_scale = h / 8.0f;
-
-    for (int i = 0; i < slen; i++) {
-        ce_PushAscii(str[i], x + i * 8 * x_scale, y, z, x_scale, y_scale, r, g, b, a);
-    }
-}
-
-extern void ce_PushNumberBox(int n, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
-    char buffer[32];
-
-    sprintf(buffer, "%d", n);
-    ce_PushStringBox(buffer, x, y, z, w, h, r, g, b, a);
-}
 
 #endif // ATS_CUBE_ENGINE
 
@@ -5154,7 +5143,7 @@ extern void ce_PushNumberBox(int n, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f3
 static int cube_list;
 static int square_list;
 
-static void RenderBeginShapes(void) {
+static void RenderBeginShapes() {
     square_list = glGenLists(1);
     cube_list   = glGenLists(1);
 
@@ -5228,9 +5217,9 @@ static void RenderBeginShapes(void) {
     }
 }
 
-static void BitmapInit(void);
+static void BitmapInit();
 
-extern void RenderInit(void) {
+static void RenderInit() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glClearDepth(1.0f);
     glDepthFunc(GL_LESS);
@@ -5251,43 +5240,40 @@ extern void RenderInit(void) {
     BitmapInit();
 }
 
-extern void RenderClear(void) {
+static void RenderClear() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-extern void RenderSetMatrix(const f32* matrix) {
+static void RenderSetMatrix(const f32* matrix) {
     glLoadMatrixf(matrix);
 }
 
-extern void RenderSetProjectionView(const f32 *projection_view) {
+static void RenderSetProjectionView(const f32 *projection_view) {
     glMatrixMode(GL_PROJECTION);
     RenderSetMatrix(projection_view);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
-extern void RenderSetModel(f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz) {
+static void RenderSetModel(f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz) {
     f32 T[16];
     f4x4_TranslateScale(T, px, py, pz, sx, sy, sz);
     RenderSetMatrix(T);
 }
 
-extern void RenderSetRotatedModel(f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz, f32 rot) {
+static void RenderSetRotatedModel(f32 px, f32 py, f32 pz, f32 sx, f32 sy, f32 sz, f32 rot) {
     f32 T[16];
     f4x4_TranslateScaleRotateZ(T, px, py, pz, sx, sy, sz, rot);
     RenderSetMatrix(T);
 }
 
-extern void RenderSetTranslateScaleRotateZ(
-        f32 px, f32 py, f32 pz,
-        f32 sx, f32 sy, f32 sz,
-        f32 rot) {
+static void RenderSetTranslateScaleRotateZ(v3 pos, v3 scale, f32 rot) {
     f32 T[16];
-    f4x4_TranslateScaleRotateZ(T, px, py, pz, sx, sy, sz, rot);
+    f4x4_TranslateScaleRotateZ(T, pos.x, pos.y, pos.z, scale.x, scale.y, scale.z, rot);
     RenderSetMatrix(T);
 }
 
-extern void RenderSetCamera(
+static void RenderSetCamera(
         f32 px,  f32 py, f32 pz,
         f32 tx,  f32 ty, f32 tz,
         f32 ux,  f32 uy, f32 uz,
@@ -5307,7 +5293,7 @@ extern void RenderSetCamera(
     RenderSetProjectionView(PV);
 }
 
-extern void RenderSetCamera2D(
+static void RenderSetCamera2D(
         f32 px,  f32 py, f32 pz,
         f32 tx,  f32 ty, f32 tz,
         f32 ux,  f32 uy, f32 uz,
@@ -5325,39 +5311,39 @@ extern void RenderSetCamera2D(
     RenderSetProjectionView(PV);
 }
 
-extern void RenderSetCameraOrtho(f32 width, f32 height, f32 n, f32 f) {
+static void RenderSetCameraOrtho(f32 width, f32 height, f32 n, f32 f) {
     f32 PV[16];
 
     f4x4_Ortho(PV, 0, width, height, 0, n, f);
     RenderSetProjectionView(PV);
 }
 
-extern void RenderSetCameraTranslateOrtho(f32 x, f32 y, f32 rad_x, f32 rad_y, f32 n, f32 f) {
+static void RenderSetCameraTranslateOrtho(f32 x, f32 y, f32 rad_x, f32 rad_y, f32 n, f32 f) {
     f32 PV[16];
 
     f4x4_Ortho(PV, x - rad_x, x + rad_x, y + rad_y, y - rad_y, n, f);
     RenderSetProjectionView(PV);
 }
 
-extern void RenderSetColor(f32 r, f32 g, f32 b, f32 a) {
+static void RenderSetColor(f32 r, f32 g, f32 b, f32 a) {
     glColor4f(r, g, b, a);
 }
 
-extern void RenderSquare(f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a) {
+static void RenderSquare(f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a) {
     RenderSetColor(r, g, b, a);
     RenderSetModel(x, y, z, rad, rad, rad);
 
     glCallList(square_list);
 }
 
-extern void RenderRotatedSquare(f32 x, f32 y, f32 z, f32 rad, f32 rot, f32 r, f32 g, f32 b, f32 a) {
+static void RenderRotatedSquare(f32 x, f32 y, f32 z, f32 rad, f32 rot, f32 r, f32 g, f32 b, f32 a) {
     RenderSetColor(r, g, b, a);
     RenderSetRotatedModel(x, y, z, rad, rad, rad, rot);
 
     glCallList(square_list);
 }
 
-extern void RenderRect(f32 x, f32 y, f32 z, f32 width, f32 height, f32 r, f32 g, f32 b, f32 a) {
+static void RenderRect(f32 x, f32 y, f32 z, f32 width, f32 height, f32 r, f32 g, f32 b, f32 a) {
     f32 half_width  = 0.5f * width;
     f32 half_height = 0.5f * height;
 
@@ -5367,21 +5353,21 @@ extern void RenderRect(f32 x, f32 y, f32 z, f32 width, f32 height, f32 r, f32 g,
     glCallList(square_list);
 }
 
-extern void RenderCenterRect(f32 x, f32 y, f32 z, f32 half_width, f32 half_height, f32 r, f32 g, f32 b, f32 a) {
+static void RenderCenterRect(f32 x, f32 y, f32 z, f32 half_width, f32 half_height, f32 r, f32 g, f32 b, f32 a) {
     RenderSetColor(r, g, b, a);
     RenderSetModel(x, y, z, half_width, half_height, 1.0f);
 
     glCallList(square_list);
 }
 
-extern void RenderCube(f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a) {
+static void RenderCube(f32 x, f32 y, f32 z, f32 rad, f32 r, f32 g, f32 b, f32 a) {
     RenderSetColor(r, g, b, a);
     RenderSetModel(x, y, z, rad, rad, rad);
 
     glCallList(cube_list);
 }
 
-extern void RenderLine(f32 x0, f32 y0, f32 z0, f32 x1, f32 y1, f32 z1, f32 r, f32 g, f32 b, f32 a) {
+static void RenderLine(f32 x0, f32 y0, f32 z0, f32 x1, f32 y1, f32 z1, f32 r, f32 g, f32 b, f32 a) {
     RenderSetColor(r, g, b, a);
 
     glLoadIdentity();
@@ -5394,7 +5380,7 @@ extern void RenderLine(f32 x0, f32 y0, f32 z0, f32 x1, f32 y1, f32 z1, f32 r, f3
     glEnd();
 }
 
-extern void RenderLineLoop2D(
+static void RenderLineLoop2D(
         f32 pos_x, f32 pos_y, f32 pos_z,
         f32 rad, f32 rot,
         f32 red, f32 green, f32 blue, f32 alpha,
@@ -5421,7 +5407,7 @@ extern void RenderLineLoop2D(
     glEnd();
 }
 
-extern void RenderSetLightEmitter(int index, f32 bright, f32 x, f32 y, f32 z) {
+static void RenderSetLightEmitter(int index, f32 bright, f32 x, f32 y, f32 z) {
     f32 pos[4]  = { x, y, z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { bright, bright, bright, 0.0f };
@@ -5437,8 +5423,8 @@ extern void RenderSetLightEmitter(int index, f32 bright, f32 x, f32 y, f32 z) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-extern void RenderSetLightDirected(int index, f32 bright, f32 x, f32 y, f32 z) {
-    f32 d       = (f32)(1.0f / __builtin_sqrtf(x * x + y * y + z * z));
+static void RenderSetLightDirected(int index, f32 bright, f32 x, f32 y, f32 z) {
+    f32 d       = (f32)(1.0f / Sqrt(x * x + y * y + z * z));
     f32 dir[4]  = { x * d, y * d, z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { bright, bright, bright, 0.0f };
@@ -5454,18 +5440,42 @@ extern void RenderSetLightDirected(int index, f32 bright, f32 x, f32 y, f32 z) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-extern void RenderSetLightGlobalAmbient(f32 r, f32 g, f32 b) {
+static void RenderSetLightGlobalAmbient(f32 r, f32 g, f32 b) {
     f32 v[4] = { r, g, b, 0 };
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
+inline v3 RenderGetWorldPosition(int x, int y) {
+    GLint viewport[4];
+
+    f64 modelview[16];
+    f64 projection[16];
+
+    GLfloat winX, winY, winZ;
+    GLdouble posX, posY, posZ;
+ 
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    glGetIntegerv(GL_VIEWPORT, viewport);
+ 
+    winX = (f64)x;
+    winY = (f64)viewport[3] - (f64)y;
+
+    glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
+ 
+    f64 result[3];
+    f4x4_UnProject64(result, winX, winY, winZ, modelview, projection, viewport);
+ 
+    return V3(result[0], result[1], result[2]);
+}
+
 // ======================================= TEXTURES ======================================== //
 
-#define STB_IMAGE_IMPLEMENTATION
+#ifdef STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
-
-#include "stb/stb_image.h" 
+#include "dep/stb_image.h" 
+#endif
 
 struct Texture {
     u32     id;
@@ -5473,13 +5483,13 @@ struct Texture {
     int     height;
 };
 
-extern Texture TextureCreate(unsigned char *pixels, int width, int height, int is_smooth) {
+static Texture TextureCreate(unsigned char *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
-    Texture texture  = {0};
+    Texture texture = {0};
 
-    texture.width   = width;
-    texture.height  = height;
+    texture.width = width;
+    texture.height = height;
 
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
@@ -5491,7 +5501,8 @@ extern Texture TextureCreate(unsigned char *pixels, int width, int height, int i
     return texture;
 }
 
-extern Texture TextureLoadFromFile(const char *texture_path, int is_smooth) {
+#ifdef STB_IMAGE_IMPLEMENTATION
+static Texture TextureLoadFromFile(const char *texture_path, int is_smooth) {
     Texture         texture     = {0};
     i32             channels    = 0;
     unsigned char*  pixels      = NULL;
@@ -5511,8 +5522,9 @@ extern Texture TextureLoadFromFile(const char *texture_path, int is_smooth) {
 
     return texture;
 }
+#endif
 
-extern void TextureBind(const Texture *texture) {
+static void TextureBind(const Texture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
     glMatrixMode(GL_TEXTURE);
@@ -5523,7 +5535,7 @@ extern void TextureBind(const Texture *texture) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-extern void TextureDelete(Texture* texture) {
+static void TextureDelete(Texture* texture) {
     glDeleteTextures(1, &texture->id);
     
     memset(texture, 0, sizeof *texture);
@@ -5531,9 +5543,9 @@ extern void TextureDelete(Texture* texture) {
 
 static int bitmap_display_list[BITMAP_COUNT];
 
-#define BITMAP_GETBIT(N, X, Y) (((u64)(N)) & (1ull << (((u64)(Y)) * 8ull + ((u64)(X)))))
+#define BITMAP_GETBIT(N, X, Y) ((u64(N)) & (1ull << ((u64(Y)) * 8ull + (u64(X)))))
 
-static void BitmapInit(void) {
+static void BitmapInit() {
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
 
@@ -5565,7 +5577,7 @@ static void BitmapInit(void) {
     }
 }
 
-extern void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
+static void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
     glColor4f(r, g, b, a);
 
     f32 T[16];
@@ -5575,13 +5587,13 @@ extern void RenderAscii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f3
     glCallList(bitmap_display_list[c]);
 }
 
-extern void RenderString(const char *str, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
+static void RenderString(const char *str, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
     for (int i = 0; str[i] != '\0'; i++) {
         RenderAscii(str[i], x + i * scale_x, y, z, scale_x, scale_y, r, g, b, a);
     }
 }
 
-extern void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...) {
+static void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r, f32 g, f32 b, f32 a, const char* fmt, ...) {
     va_list list;
     char    buffer[256];
 
@@ -5593,36 +5605,5 @@ extern void RenderStringFormat(f32 x, f32 y, f32 z, f32 rad_x, f32 rad_y, f32 r,
     va_end(list);
 }
 
-extern void RenderInt(int n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
-    char buffer[32];
-    sprintf(buffer, "%d", n);
-    RenderString(buffer, x, y, z, scale_x, scale_y, r, g, b, a);
-}
-
-extern void RenderF32(f32 n, f32 x, f32 y, f32 z, f32 scale_x, f32 scale_y, f32 r, f32 g, f32 b, f32 a) {
-    char buffer[32];
-    sprintf(buffer, "%.1f", n);
-    RenderString(buffer, x, y, z, scale_x, scale_y, r, g, b, a);
-}
-
-extern void RenderStringBox(const char* str, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
-    int   slen = strlen(str);
-    f32 x_scale = w / ((f32)slen * 8.0f);
-    f32 y_scale = h / 8.0f;
-    
-    for (int i = 0; i < slen; i++) {
-        RenderAscii(str[i], x + i * 8 * x_scale, y, z, x_scale, y_scale, r, g, b, a);
-    }
-}
-
-extern void RenderNumberBox(int n, f32 x, f32 y, f32 z, f32 w, f32 h, f32 r, f32 g, f32 b, f32 a) {
-    char buffer[32];
-    sprintf(buffer, "%d", n);
-    RenderStringBox(buffer, x, y, z, w, h, r, g, b, a);
-}
-
 #endif // ATS_MODERN_OPENGL
-
-#endif // ATS_IMPLEMENTATION_ONCE
-#endif // ATS_IMPLEMENTATION
 
