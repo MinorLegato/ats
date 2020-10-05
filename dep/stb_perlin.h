@@ -62,10 +62,10 @@
 //                                    float lacunarity, float gain, int octaves)
 //
 // Typical values to start playing with:
-//     octaves    =   6     -- number of "octaves" of noise3() to sum
 //     lacunarity = ~ 2.0   -- spacing between successive octaves (use exactly 2.0 for wrapping output)
 //     gain       =   0.5   -- relative weighting applied to each successive octave
 //     offset     =   1.0?  -- used to invert the ridges, may need to be larger, not sure
+//     octaves    =   6     -- number of "octaves" of noise3() to sum
 //
 //
 // Contributors:
