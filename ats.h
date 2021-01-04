@@ -133,8 +133,7 @@ union v4i {
 
 // --------------------------------------------- STATIC FUNCTIONS ---------------------------------------- //
 
-inline f32
-f32_sqrt(f32 n) {
+inline f32 f32_sqrt(f32 n) {
     f32 x = n * 0.5f;
     f32 y = n;
     int i = *(int*)&y;
@@ -146,8 +145,7 @@ f32_sqrt(f32 n) {
     return n * y;
 }
 
-inline f32
-f32_rsqrt(f32 n) {
+inline f32 f32_rsqrt(f32 n) {
 	f32 x2 = n * 0.5F;
 	f32 y  = n;
 	int i  = *(long*)&y;           // evil f32ing point bit level hacking
@@ -159,101 +157,83 @@ f32_rsqrt(f32 n) {
 	return y;
 }
 
-inline f32
-f32_square(f32 n) {
+inline f32 f32_square(f32 n) {
     return n * n;
 }
 
-inline f32
-f32_lerp(f32 a, f32 b, f32 t) {
+inline f32 f32_lerp(f32 a, f32 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline f32
-f32_unlerp(f32 a, f32 b, f32 t) {
+inline f32 f32_unlerp(f32 a, f32 b, f32 t) {
     return (t - a) / (b - a);
 }
 
-inline f32
-f32_shortest_angle_distance(f32 a, f32 b) {
+inline f32 f32_shortest_angle_distance(f32 a, f32 b) {
     f32 max = 2.0f * PI;
     f32 da  = fmodf(b - a, max);
     return fmodf(2.0f * da, max) - da;
 }
 
-inline f32
-f32_lerp_angle(f32 a, f32 b, f32 t) {
+inline f32 f32_lerp_angle(f32 a, f32 b, f32 t) {
     return a + f32_shortest_angle_distance(a, b) * t;
 }
 
-inline f32
-f32_spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
+inline f32 f32_spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
 	f32 i = 1.0f - f;
 	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline f32
-f32_min(f32 a, f32 b) {
+inline f32 f32_min(f32 a, f32 b) {
     return a < b? a : b;
 }
 
-inline f32
-f32_max(f32 a, f32 b) {
+inline f32 f32_max(f32 a, f32 b) {
     return a < b? b : a;
 }
 
-inline i32
-i32_min(i32 a, i32 b) {
+inline i32 i32_min(i32 a, i32 b) {
     return a < b? a : b;
 }
 
-inline i32
-i32_max(i32 a, i32 b) {
+inline i32 i32_max(i32 a, i32 b) {
     return a < b? b : a;
 }
 
-inline f32
-f32_clamp(f32 n, f32 min, f32 max) {
+inline f32 f32_clamp(f32 n, f32 min, f32 max) {
     if (n < min) return min;
     if (n > max) return max;
     return n;
 }
 
-inline f32
-f32_clamp_min(f32 n, f32 min) {
+inline f32 f32_clamp_min(f32 n, f32 min) {
     return n < min? min : n;
 }
 
-inline f32
-f32_clamp_max(f32 n, f32 max) {
+inline f32 f32_clamp_max(f32 n, f32 max) {
     return n > max? max : n;
 }
 
-inline i32
-i32_clamp(i32 n, i32 min, i32 max) {
+inline i32 i32_clamp(i32 n, i32 min, i32 max) {
     if (n < min) return min;
     if (n > max) return max;
 
     return n;
 }
 
-inline i32
-i32_clamp_min(i32 n, i32 min) {
+inline i32 i32_clamp_min(i32 n, i32 min) {
     return n < min? min : n;
 }
 
-inline i32
-i32_clamp_max(i32 n, i32 max) {
+inline i32 i32_clamp_max(i32 n, i32 max) {
     return n > max? max : n;
 }
 
-inline f32
-f32_sign(f32 n) {
+inline f32 f32_sign(f32 n) {
     return n < 0? -1 : 1;
 }
 
-inline f32
-f32_sign_or_zero(f32 n) {
+inline f32 f32_sign_or_zero(f32 n) {
     if (n < 0) return -1;
     if (n > 0) return +1;
     return 0;
@@ -263,154 +243,135 @@ f32_sign_or_zero(f32 n) {
 
 // ---------------------- v2 ---------------------- //
 
-inline v2
-V2(f32 x, f32 y) {
+inline v2 V2(f32 x, f32 y) {
     return { x, y };
 }
 
-inline v2
-V2(v3 a) {
+inline v2 V2(v3 a) {
     return { a.x, a.y };
 }
 
-inline v2
-V2(v2i a) {
+inline v2 V2(v2i a) {
     return { (f32)a.x, (f32)a.y };
 }
 
-inline v2
-operator-(v2 a) {
+inline v2 operator-(v2 a) {
     return { -a.x, -a.y };
 }
 
-inline v2
-operator+(v2 a, v2 b) {
+inline v2 operator+(v2 a, v2 b) {
     return { a.x + b.x, a.y + b.y };
 }
 
-inline v2
-operator-(v2 a, v2 b) {
+inline v2 operator-(v2 a, v2 b) {
     return { a.x - b.x, a.y - b.y };
 }
 
-inline v2
-operator*(v2 a, v2 b) {
+inline v2 operator*(v2 a, v2 b) {
     return { a.x * b.x, a.y * b.y };
 }
 
-inline v2
-operator*(v2 a, f32 s) {
+inline v2 operator*(v2 a, f32 s) {
     return { a.x * s, a.y * s };
 }
 
-inline v2
-operator*(f32 s, v2 a) {
+inline v2 operator*(f32 s, v2 a) {
     return { a.x * s, a.y * s };
 }
 
-inline v2
-operator/(v2 a, f32 s) {
+inline v2 operator/(v2 a, f32 s) {
     return { a.x / s, a.y / s };
 }
 
-inline v2
-operator+=(v2& a, v2 b) {
+inline v2 operator+=(v2& a, v2 b) {
     a = a + b;
     return a;
 }
 
-inline v2
-operator-=(v2& a, v2 b) {
+inline v2 operator-=(v2& a, v2 b) {
     a = a - b;
     return a;
 }
 
-inline v2
-operator*=(v2& a, v2 b) {
+inline v2 operator*=(v2& a, v2 b) {
     a = a * b;
     return a;
 }
 
-inline v2
-operator*=(v2& a, f32 s) {
+inline v2 operator*=(v2& a, f32 s) {
     a = a * s;
     return a;
 }
 
-inline v2
-operator/=(v2& a, f32 s) {
+inline v2 operator/=(v2& a, f32 s) {
     a = a / s;
     return a;
 }
 
-inline f32
-v2_dot(v2 a, v2 b) {
+inline f32 v2_det(v2 a, v2 b) {
+    return a.x * b.y - a.y * b.x;
+}
+
+inline f32 v2_dot(v2 a, v2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-inline f32
-v2_len_sq(v2 v) {
+inline f32 v2_len_sq(v2 v) {
     return v2_dot(v, v);
 }
 
-inline f32
-v2_len(v2 v) {
+inline f32 v2_len(v2 v) {
     return f32_sqrt(v2_dot(v, v));
 }
 
-inline f32
-v2_dist_sq(v2 a, v2 b) {
+inline f32 v2_dist_sq(v2 a, v2 b) {
     return v2_len_sq(b - a);
 }
 
-inline f32
-v2_dist(v2 a, v2 b) {
+inline f32 v2_dist(v2 a, v2 b) {
     return f32_sqrt(v2_dist_sq(a, b));
 }
 
-inline v2
-v2_norm(v2 v) {
+inline v2 v2_proj(v2 a, v2 b) {
+    return (v2_dot(a, b) / v2_dot(b, b)) * b;
+}
+
+inline v2 v2_norm(v2 v) {
     return v * f32_rsqrt(v2_dot(v, v));
 }
 
-inline v2
-v2_min(v2 a, v2 b) {
+inline v2 v2_min(v2 a, v2 b) {
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y)
     };
 }
 
-inline v2
-v2_max(v2 a, v2 b) {
+inline v2 v2_max(v2 a, v2 b) {
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y)
     };
 }
 
-inline v2
-v2_lerp(v2 a, v2 b, f32 t) {
+inline v2 v2_lerp(v2 a, v2 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline f32
-v2_get_angle(v2 a, v2 b) {
+inline f32 v2_get_angle(v2 a, v2 b) {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
     
     return atan2f(det, dot);
 }
 
-inline v2
-v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
+inline v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
 	f32 i = 1.0f - f;
 
 	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32
-v2_circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
+inline b32 v2_circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
     f32 dx = p1.x - p0.x;
     f32 dy = p1.y - p0.y;
 
@@ -419,8 +380,7 @@ v2_circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
     return (dx * dx + dy * dy) < (r * r);
 }
 
-inline b32
-v2_segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
+inline b32 v2_segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
     v2 a = { start.x - pos.x, start.y - pos.y };
     v2 b = { end.x - start.x, end.y - start.y };
 
@@ -446,130 +406,121 @@ v2_segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
     return (seg.x * seg.x + seg.y * seg.y) < (rad * rad);
 }
 
+inline m2 v2_outer_product(v2 a, v2 b) {
+    return m2 {
+        a.x * b.x, a.y * b.x,
+        a.x * b.y, a.y * b.y,
+    };
+}
+
+inline v2 v2_square(v2 a) {
+    return { a.x * a.x, a.y * a.y };
+}
+
 // ----------------------------- v3 ----------------------------- //
 
-inline v3
-V3(f32 x, f32 y, f32 z) {
+inline v3 V3(f32 x, f32 y, f32 z) {
     return { x, y, z };
 }
 
-inline v3
-V3(v2 a) {
+inline v3 V3(v2 a) {
     return { a.x, a.y, 0.0f };
 }
 
-inline v3
-V3(v2 a, f32 z) {
+inline v3 V3(v2 a, f32 z) {
     return { a.x, a.y, z };
 }
 
-inline v3
-V3(f32 x, v2 a) {
+inline v3 V3(f32 x, v2 a) {
     return { x, a.x, a.y };
 }
 
-inline v3
-V3(v3i a) {
+inline v3 V3(v3i a) {
     return { f32(a.x), f32(a.y), f32(a.z) };
 }
 
-inline v3
-operator-(v3 a) {
+inline v3 operator-(v3 a) {
     return { -a.x, -a.y, -a.z };
 }
 
-inline v3
-operator+(v3 a, v3 b) {
+inline v3 operator+(v3 a, v3 b) {
     return { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
-inline v3
-operator-(v3 a, v3 b) {
+inline v3 operator-(v3 a, v3 b) {
     return { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
-inline v3
-operator*(v3 a, v3 b) {
+inline v3 operator*(v3 a, v3 b) {
     return { a.x * b.x, a.y * b.y, a.z * b.z };
 }
 
-inline v3
-operator*(v3 a, f32 s) {
+inline v3 operator*(v3 a, f32 s) {
     return { a.x * s, a.y * s, a.z * s };
 }
 
-inline v3
-operator*(f32 s, v3 a) {
+inline v3 operator*(f32 s, v3 a) {
     return { a.x * s, a.y * s, a.z * s };
 }
 
-inline v3
-operator/(v3 a, f32 s) {
+inline v3 operator/(v3 a, f32 s) {
     return { a.x / s, a.y / s, a.z / s };
 }
 
-inline v3
-operator+=(v3& a, v3 b) {
+inline v3 operator+=(v3& a, v3 b) {
     a = a + b;
     return a;
 }
 
-inline v3
-operator-=(v3& a, v3 b) {
+inline v3 operator-=(v3& a, v3 b) {
     a = a - b;
     return a;
 }
 
-inline v3
-operator*=(v3& a, v3 b) {
+inline v3 operator*=(v3& a, v3 b) {
     a = a * b;
     return a;
 }
 
-inline v3
-operator*=(v3& a, f32 s) {
+inline v3 operator*=(v3& a, f32 s) {
     a = a * s;
     return a;
 }
 
-inline v3
-operator/=(v3& a, f32 s) {
+inline v3 operator/=(v3& a, f32 s) {
     a = a / s;
     return a;
 }
 
-inline f32
-v3_dot(v3 a, v3 b) {
+inline f32 v3_dot(v3 a, v3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-inline f32
-v3_len_sq(v3 v) {
+inline f32 v3_len_sq(v3 v) {
     return v3_dot(v, v);
 }
 
-inline f32
-v3_len(v3 v) {
+inline f32 v3_len(v3 v) {
     return f32_sqrt(v3_dot(v, v));
 }
 
-inline f32
-v3_dist_sq(v3 a, v3 b) {
+inline f32 v3_dist_sq(v3 a, v3 b) {
     return v3_len_sq(b - a);
 }
 
-inline f32
-v3_dist(v3 a, v3 b) {
+inline f32 v3_dist(v3 a, v3 b) {
     return f32_sqrt(v3_dist_sq(a, b));
 }
 
-inline v3
-v3_norm(v3 v) {
+inline v3 v3_proj(v3 a, v3 b) {
+    return (v3_dot(a, b) / v3_dot(b, b)) * b;
+}
+
+inline v3 v3_norm(v3 v) {
     return v * f32_rsqrt(v3_dot(v, v));
 }
 
-inline v3
-v3_min(v3 a, v3 b) {
+inline v3 v3_min(v3 a, v3 b) {
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y),
@@ -577,8 +528,7 @@ v3_min(v3 a, v3 b) {
     };
 }
 
-inline v3
-v3_max(v3 a, v3 b) {
+inline v3 v3_max(v3 a, v3 b) {
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y),
@@ -586,13 +536,11 @@ v3_max(v3 a, v3 b) {
     };
 }
 
-inline v3
-v3_lerp(v3 a, v3 b, f32 t) {
+inline v3 v3_lerp(v3 a, v3 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline v3
-v3_cross(v3 a, v3 b) {
+inline v3 v3_cross(v3 a, v3 b) {
     return {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -600,8 +548,7 @@ v3_cross(v3 a, v3 b) {
     };
 }
 
-inline v3
-v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
+inline v3 v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
 	f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
@@ -609,128 +556,115 @@ v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
 
 // ----------------------------- v4 ---------------------------- //
 
-inline v4
-V4(f32 x, f32 y, f32 z, f32 w) {
+inline v4 V4(f32 x, f32 y, f32 z, f32 w) {
     return { x, y, z, w };
 }
 
-inline v4
-V4(v2 a, v2 b) {
+inline v4 V4(v2 a, v2 b) {
     return V4(a.x, a.y, b.x, b.y);
 }
 
-inline v4
-V4(v2 a, f32 z, f32 w) {
+inline v4 V4(v2 a, f32 z, f32 w) {
     return V4(a.x, a.y, z, w);
 }
 
-inline v4
-V4(v3 a, f32 w) {
+inline v4 V4(v3 a, f32 w) {
     return V4(a.x, a.y, a.z, w);
 }
 
-inline v4
-V4(f32 x, v3 a) {
+inline v4 V4(f32 x, v3 a) {
     return V4(x, a.x, a.y, a.z);
 }
 
-inline v4
-operator-(v4 a) {
+inline v4 V4(u32 color) {
+    v4 result = {};
+
+    result.r = ((color & 0x000000FF) >> 0)  / 256.0f;
+    result.g = ((color & 0x0000FF00) >> 8)  / 256.0f;
+    result.b = ((color & 0x00FF0000) >> 16) / 256.0f;
+    result.a = ((color & 0xFF000000) >> 24) / 256.0f;
+
+    return result;
+}
+
+inline v4 operator-(v4 a) {
     return { -a.x, -a.y, -a.z, -a.w };
 }
 
-inline v4
-operator+(v4 a, v4 b) {
+inline v4 operator+(v4 a, v4 b) {
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline v4
-operator-(v4 a, v4 b) {
+inline v4 operator-(v4 a, v4 b) {
     return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 
-inline v4
-operator*(v4 a, v4 b) {
+inline v4 operator*(v4 a, v4 b) {
     return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
 }
 
-inline v4
-operator*(v4 a, f32 s) {
+inline v4 operator*(v4 a, f32 s) {
     return { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
-inline v4
-operator*(f32 s, v4 a) {
+inline v4 operator*(f32 s, v4 a) {
     return { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
-inline v4
-operator/(v4 a, f32 s) {
+inline v4 operator/(v4 a, f32 s) {
     return { a.x / s, a.y * s, a.z / s, a.w / s };
 }
 
-inline v4
-operator+=(v4& a, v4 b)  {
+inline v4 operator+=(v4& a, v4 b)  {
     a = a + b;
     return a;
 }
 
-inline v4
-operator-=(v4& a, v4 b)  {
+inline v4 operator-=(v4& a, v4 b)  {
     a = a - b;
     return a;
 }
 
-inline v4
-operator*=(v4& a, v4 b)  {
+inline v4 operator*=(v4& a, v4 b)  {
     a = a * b;
     return a;
 }
 
-inline v4
-operator*=(v4& a, f32 s) {
+inline v4 operator*=(v4& a, f32 s) {
     a = a * s;
     return a;
 }
 
-inline v4
-operator/=(v4& a, f32 s) {
+inline v4 operator/=(v4& a, f32 s) {
     a = a / s;
     return a;
 }
 
-inline f32
-v4_dot(v4 a, v4 b) {
+inline f32 v4_dot(v4 a, v4 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline f32
-v4_len_sq(v4 v) {
+inline f32 v4_len_sq(v4 v) {
     return v4_dot(v, v);
 }
 
-inline f32
-v4_len(v4 v) {
+inline f32 v4_len(v4 v) {
     return f32_sqrt(v4_dot(v, v));
 }
 
-inline f32
-v4_dist_sq(v4 a, v4 b) {
+inline f32 v4_dist_sq(v4 a, v4 b) {
     return v4_len_sq(b - a);
 }
 
-inline f32
-v4_dist(v4 a, v4 b) {
+inline f32 v4_dist(v4 a, v4 b) {
     return f32_sqrt(v4_dist_sq(a, b));
 }
 
-inline v4
-v4_norm(v4 v) {
+inline v4 v4_norm(v4 v) {
     return v * f32_rsqrt(v4_dot(v, v));
 }
 
-inline v4
-v4_min(v4 a, v4 b) {
+inline v4 v4_min(v4 a, v4 b) {
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y),
@@ -739,8 +673,7 @@ v4_min(v4 a, v4 b) {
     };
 }
 
-inline v4
-v4_max(v4 a, v4 b) {
+inline v4 v4_max(v4 a, v4 b) {
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y),
@@ -749,13 +682,11 @@ v4_max(v4 a, v4 b) {
     };
 }
 
-inline v4
-v4_lerp(v4 a, v4 b, f32 t) {
+inline v4 v4_lerp(v4 a, v4 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline v4
-v4_cross(v4 a, v4 b) {
+inline v4 v4_cross(v4 a, v4 b) {
     return {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -764,16 +695,30 @@ v4_cross(v4 a, v4 b) {
     };
 }
 
-inline v4
-v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
+inline v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
 	f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
 // m2:
-inline m2
-operator*(m2 a, m2 b) {
+inline m2 operator+(m2 a, m2 b) {
+    return { a.x + b.x, a.y + b.y };
+}
+
+inline m2 operator-(m2 a, m2 b) {
+    return { a.x - b.x, a.y - b.y };
+}
+
+inline m2 operator*(m2 a, f32 s) {
+    return { a.x * s, a.y * s };
+}
+
+inline m2 operator*(f32 s, m2 a) {
+    return { a.x * s, a.y * s };
+}
+
+inline m2 operator*(m2 a, m2 b) {
     return {
         a.array[0] * b.array[0] + a.array[2] * b.array[1],
         a.array[1] * b.array[0] + a.array[3] * b.array[1],
@@ -782,35 +727,68 @@ operator*(m2 a, m2 b) {
     };
 }
 
-inline v2
-operator*(m2 R, v2 v) {
+inline v2 operator*(m2 R, v2 v) {
     return {
         R.array[0] * v.x + R.array[2] * v.y,
         R.array[1] * v.x + R.array[3] * v.y
     };
 }
 
-inline m2
-m2_identity(void) {
+inline m2 m2_identity(void) {
     return { 1.0f, 0.0f, 0.0f, 1.0f };
 }
 
-inline m2
-m2_rotate(f32 angle) {
+inline m2 m2_rotate(f32 co, f32 si) {
+    return { co, si, -si, co };
+}
+
+inline m2 m2_rotate(f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
     return { c, s, -s, c };
 }
 
-inline m2
-m2_scale(f32 sx, f32 sy) {
+inline m2 m2_scale(f32 sx, f32 sy) {
     return { sx, 0.0f, 0.0f, sy };
 }
 
+inline f32 m2_det(m2 m) {
+    return m.x.x * m.y.y - m.x.y * m.y.x;
+}
+
+inline m2 m2_transpose(m2 m) {
+    return {
+        m.x.x, m.y.x,
+        m.x.y, m.y.y
+    };
+}
+
+inline m2 m2_inverse(m2 m) {
+    f32 det = m2_det(m);
+
+    return (1.0 / det) * m2 {
+         m.y.y, -m.y.x,
+        -m.x.y,  m.x.x
+    };
+}
+
+inline void m2_polar_decomp(m2 m, m2* R, m2* S) {
+    f32 x = m.x.x + m.y.y;
+    f32 y = m.y.x - m.x.y;
+    f32 scale = 1.0f / f32_sqrt(x * x + y * y);
+    f32 c = x * scale, s = y * scale;
+
+    R->x.x = c;
+    R->x.y = -s;
+    R->y.x = s;
+    R->y.y = c;
+
+    *S = m2_transpose(*R) * m;
+}
+
 // m3:
-inline m3
-operator*(m3 a, m3 b) {
+inline m3 operator*(m3 a, m3 b) {
     return {
         a.array[0] * b.array[0] + a.array[3] * b.array[1]  + a.array[6] * b.array[2],
         a.array[1] * b.array[0] + a.array[4] * b.array[1]  + a.array[7] * b.array[2],
@@ -826,8 +804,7 @@ operator*(m3 a, m3 b) {
     };
 }
 
-inline v3
-operator*(m3 M, v3 v) {
+inline v3 operator*(m3 M, v3 v) {
     return {
         M.array[0] * v.array[0] + M.array[3] * v.array[1] + M.array[6] * v.array[2],
         M.array[1] * v.array[0] + M.array[4] * v.array[1] + M.array[7] * v.array[2],
@@ -835,8 +812,7 @@ operator*(m3 M, v3 v) {
     };
 }
 
-inline m3
-m3_identity(void) {
+inline m3 m3_identity(void) {
     return {
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
@@ -844,8 +820,7 @@ m3_identity(void) {
     };
 }
 
-inline m3
-m3_rotate(v3 axis, f32 angle) {
+inline m3 m3_rotate(v3 axis, f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
@@ -869,8 +844,7 @@ m3_rotate(v3 axis, f32 angle) {
     };
 }
 
-inline m3
-m3_euler(f32 yaw, f32 pitch, f32 roll) {
+inline m3 m3_euler(f32 yaw, f32 pitch, f32 roll) {
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
     f32 cp = cosf(pitch);
@@ -893,8 +867,7 @@ m3_euler(f32 yaw, f32 pitch, f32 roll) {
     };
 }
 
-inline m3
-m3_from_quat(Quat quat) {
+inline m3 m3_from_quat(Quat quat) {
     f32 a = quat.w;
 	f32 b = quat.x;
 	f32 c = quat.y;
@@ -922,8 +895,7 @@ m3_from_quat(Quat quat) {
 
 // m4:
 
-inline m4
-operator*(m4 a, m4 b) {
+inline m4 operator*(m4 a, m4 b) {
     return {
         a.array[0] * b.array[0]  + a.array[4] * b.array[1]  + a.array[8]  * b.array[2]  + a.array[12] * b.array[3],
         a.array[1] * b.array[0]  + a.array[5] * b.array[1]  + a.array[9]  * b.array[2]  + a.array[13] * b.array[3],
@@ -947,8 +919,7 @@ operator*(m4 a, m4 b) {
     };
 }
 
-inline v4
-operator*(m4 M, v4 v) {
+inline v4 operator*(m4 M, v4 v) {
     return {
         M.array[0] * v.array[0] + M.array[4] * v.array[1] + M.array[8]  * v.array[2] + M.array[12] * v.array[3],
         M.array[1] * v.array[0] + M.array[5] * v.array[1] + M.array[9]  * v.array[2] + M.array[13] * v.array[3],
@@ -957,8 +928,7 @@ operator*(m4 M, v4 v) {
     };
 }
 
-inline m4
-m4_identity(void) {
+inline m4 m4_identity(void) {
     return {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
@@ -967,8 +937,7 @@ m4_identity(void) {
     };
 }
 
-inline m4
-m4_transpose(m4 N) {
+inline m4 m4_transpose(m4 N) {
     return {
         N.array[0], N.array[4], N.array[8],  N.array[12],
 	    N.array[1], N.array[5], N.array[9],  N.array[13],
@@ -977,8 +946,7 @@ m4_transpose(m4 N) {
     };
 }
 
-inline m4
-m4_translate(f32 x, f32 y, f32 z) {
+inline m4 m4_translate(f32 x, f32 y, f32 z) {
     return {
         1.0f,   0.0f,   0.0f,   0.0f,
         0.0f,   1.0f,   0.0f,   0.0f,
@@ -987,13 +955,11 @@ m4_translate(f32 x, f32 y, f32 z) {
     };
 }
 
-inline m4
-m4_translate(v3 pos) {
+inline m4 m4_translate(v3 pos) {
     return m4_translate(pos.x, pos.y, pos.z);
 }
 
-inline m4
-m4_scale(f32 x, f32 y, f32 z) {
+inline m4 m4_scale(f32 x, f32 y, f32 z) {
     return {
         x,      0.0f,   0.0f,   0.0f,
         0.0f,   y,      0.0f,   0.0f,
@@ -1002,13 +968,15 @@ m4_scale(f32 x, f32 y, f32 z) {
     };
 }
 
-inline m4
-m4_scale(v3 scale) {
+inline m4 m4_scale(v3 scale) {
     return m4_scale(scale.x, scale.y, scale.z);
 }
 
-inline m4
-m4_rotate_x(f32 angle) {
+inline m4 m4_scale(f32 scale) {
+    return m4_scale(scale, scale, scale);
+}
+
+inline m4 m4_rotate_x(f32 angle) {
     f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
@@ -1020,8 +988,7 @@ m4_rotate_x(f32 angle) {
     };
 }
 
-inline m4
-m4_rotate_y(f32 angle) {
+inline m4 m4_rotate_y(f32 angle) {
     f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
@@ -1033,8 +1000,7 @@ m4_rotate_y(f32 angle) {
     };
 }
 
-inline m4
-m4_rotate_z(f32 angle) {
+inline m4 m4_rotate_z(f32 angle) {
 	f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
@@ -1046,8 +1012,7 @@ m4_rotate_z(f32 angle) {
     };
 }
 
-inline m4
-m4_rotate(v3 axis, f32 angle) {
+inline m4 m4_rotate(v3 axis, f32 angle) {
     f32 sa[3];
     f32 omca[3];
 
@@ -1071,8 +1036,7 @@ m4_rotate(v3 axis, f32 angle) {
     };
 }
 
-inline m4
-m4_frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+inline m4 m4_frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     return {
         2.0f * n / (r - l),
         0.0f,
@@ -1096,8 +1060,7 @@ m4_frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     };
 }
 
-inline m4
-m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+inline m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     return {
         2.0f / (r - l),
         0.0f,
@@ -1121,8 +1084,7 @@ m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     };
 }
 
-inline m4
-m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
+inline m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     const f32 a = 1.0f / tanf(y_fov / 2.0f);
 
     return {
@@ -1148,8 +1110,7 @@ m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     };
 }
 
-inline m4
-m4_look_at(v3 eye, v3 center, v3 up) {
+inline m4 m4_look_at(v3 eye, v3 center, v3 up) {
     v3 f = v3_norm(center - eye);
     v3 s = v3_norm(v3_cross(f, up));
 	v3 t = v3_cross(s, f);
@@ -1179,8 +1140,7 @@ m4_look_at(v3 eye, v3 center, v3 up) {
     return M;
 }
 
-inline m4
-m4_from_quat(Quat q) {
+inline m4 m4_from_quat(Quat q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1215,8 +1175,7 @@ m4_from_quat(Quat q) {
 }
 
 
-inline m4
-m4_dir(v3 dir, v3 up) {
+inline m4 m4_dir(v3 dir, v3 up) {
     v3 left = v3_norm(v3_cross(up, dir));
     v3 cup = v3_norm(v3_cross(dir, left));
 
@@ -1228,8 +1187,7 @@ m4_dir(v3 dir, v3 up) {
     };
 }
 
-inline m4
-m4_invert(m4 M) {
+inline m4 m4_invert(m4 M) {
 	f32 s[6], c[6];
 
 	s[0] = M.array[0] * M.array[5] - M.array[4] * M.array[1];
@@ -1273,13 +1231,11 @@ m4_invert(m4 M) {
 }
 
 // Quat:
-inline Quat
-quat_identity(void) {
+inline Quat quat_identity(void) {
     return { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
-inline Quat
-quat_make(f32 x, f32 y, f32 z, f32 angle) {
+inline Quat quat_make(f32 x, f32 y, f32 z, f32 angle) {
     f32 inv_len = f32_rsqrt((x * x) + (y * y) + (z * z));
     f32 s = inv_len * sin(angle / 2.0f);
 
@@ -1291,18 +1247,15 @@ quat_make(f32 x, f32 y, f32 z, f32 angle) {
     };
 }
 
-inline Quat
-quat_add(Quat a, Quat b) {
+inline Quat quat_add(Quat a, Quat b) {
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline Quat
-quat_conj(Quat q) {
+inline Quat quat_conj(Quat q) {
     return { -q.x, -q.y, -q.z, q.w };
 }
 
-inline Quat
-operator*(Quat a, Quat b) {
+inline Quat operator*(Quat a, Quat b) {
     return {
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -1311,8 +1264,7 @@ operator*(Quat a, Quat b) {
     };
 }
 
-inline Quat
-quat_rotate(v3 axis, f32 angle) {
+inline Quat quat_rotate(v3 axis, f32 angle) {
     f32 s = sin(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
 
@@ -1321,90 +1273,285 @@ quat_rotate(v3 axis, f32 angle) {
 
 // --------------------- v2i ------------------------- // 
 
-inline v2i
-V2i(i32 x, i32 y) {
+inline v2i V2i(i32 x, i32 y) {
     return { x, y };
 }
 
-inline v2i
-V2i(v2 a) {
+inline v2i V2i(v2 a) {
     return { i32(a.x), i32(a.y) };
 }
 
-inline v2i
-operator-(v2i a) {
+inline v2i operator-(v2i a) {
     return { -a.x, -a.y };
 }
 
-inline v2i
-operator+(v2i a, v2i b) {
+inline v2i operator+(v2i a, v2i b) {
     return { a.x + b.x, a.y + b.y };
 }
 
-inline v2i
-operator-(v2i a, v2i b) {
+inline v2i operator-(v2i a, v2i b) {
     return { a.x - b.x, a.y - b.y };
 }
 
-inline bool
-operator==(v2i a, v2i b) {
+inline v2i operator*(v2i a, v2i b) {
+    return { a.x * b.x, a.y * b.y };
+}
+
+inline v2i operator/(v2i a, v2i b) {
+    return { a.x / b.x, a.y / b.y };
+}
+
+inline v2i operator*(v2i a, i32 s) {
+    return { a.x * s, a.y * s };
+}
+
+inline v2i operator/(v2i a, i32 s) {
+    return { a.x / s, a.y / s };
+}
+
+inline bool operator==(v2i a, v2i b) {
     return a.x == b.x && a.y == b.y;
 }
 
-inline bool
-operator!=(v2i a, v2i b) {
+inline bool operator!=(v2i a, v2i b) {
     return a.x != b.x || a.y != b.y;
 }
 
-inline i32
-v2i_dist_sq(v2i a, v2i b) {
+inline i32 v2i_dist_sq(v2i a, v2i b) {
     v2i d = a - b;
     return d.x * d.x + d.y * d.y;
 }
 
+inline v2i v2i_clamp(v2i a, i32 min, i32 max) {
+    return {
+        i32_clamp(a.x, min, max),
+        i32_clamp(a.y, min, max),
+    };
+}
+
 // --------------------- v3i ------------------------- // 
 
-inline v3i
-V3i(i32 x, i32 y, i32 z) {
+inline v3i V3i(i32 x, i32 y, i32 z) {
     return { x, y, z };
 }
 
-inline v3i
-V3i(v3 a) {
+inline v3i V3i(v3 a) {
     return { i32(a.x), i32(a.y), i32(a.z) };
 }
 
-inline v3i
-operator+(v3i a, v3i b) {
+inline v3i operator+(v3i a, v3i b) {
     return { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
-inline v3i
-operator-(v3i a, v3i b) {
+inline v3i operator-(v3i a, v3i b) {
     return { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
-inline i32
-v3i_dist_sq(v3i a, v3i b) {
+inline v3i operator*(v3i a, v3i b) {
+    return { a.x * b.x, a.y * b.y, a.z * b.z };
+}
+
+inline v3i operator/(v3i a, v3i b) {
+    return { a.x / b.x, a.y / b.y, a.z / b.z };
+}
+
+inline v3i operator*(v3i a, i32 s) {
+    return { a.x * s, a.y * s, a.z * s };
+}
+
+inline v3i operator/(v3i a, i32 s) {
+    return { a.x / s, a.y / s, a.z / s };
+}
+
+inline i32 v3i_dist_sq(v3i a, v3i b) {
     v3i d = a - b;
     return d.x * d.x + d.y * d.y + d.z * d.z;
 }
 
 // --------------------- v4i ------------------------- // 
 
-inline v4i
-V4i(i32 x, i32 y, i32 z, i32 w) {
+inline v4i V4i(i32 x, i32 y, i32 z, i32 w) {
     return { x, y, z, w };
 }
 
-inline v4i
-operator+(v4i a, v4i b) {
+inline v4i operator+(v4i a, v4i b) {
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline v4i
-operator-(v4i a, v4i b) {
+inline v4i operator-(v4i a, v4i b) {
     return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+}
+
+inline v4i operator*(v4i a, v4i b) {
+    return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
+}
+
+inline v4i operator/(v4i a, v4i b) {
+    return { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w };
+}
+
+inline v4i operator*(v4i a, i32 s) {
+    return { a.x * s, a.y * s, a.z * s, a.w * s };
+}
+
+inline v4i operator/(v4i a, i32 s) {
+    return { a.x / s, a.y / s, a.z / s, a.w / s };
+}
+
+// =================================================== SHAPES =============================================== //
+
+// ---------------------------------------- CIRCLE -------------------------------------- //
+
+struct Circle {
+    v2 pos;
+    f32 rad;
+};
+
+inline b32 circle_intersect(Circle a, Circle b) {
+    v2 d = b.pos - a.pos;
+    f32 rt = a.rad + b.rad;
+
+    return d.x * d.x + d.y * d.y < rt * rt;
+};
+
+inline v2 circle_get_intersect_vector(Circle a, Circle b) {
+    v2 delta = b.pos - a.pos;
+
+    f32 depth = v2_len(delta) - (a.rad + b.rad);
+    
+    return depth * delta;
+}
+
+// --------------------------------------- SHPERE ------------------------------------ //
+
+struct Shpere {
+    v3 pos;
+    f32 rad;
+};
+
+inline b32 sphere_intersect(Shpere a, Shpere b) {
+    v3 d = b.pos - a.pos;
+    f32 rt = a.rad + b.rad;
+
+    return d.x * d.x + d.y * d.y < rt * rt;
+};
+
+inline v3 sphere_get_intersect_vector(Shpere a, Shpere b) {
+    v3 delta = b.pos - a.pos;
+
+    f32 depth = v3_len(delta) - (a.rad + b.rad);
+    
+    return depth * delta;
+}
+
+// ---------------------------------------- RECTANGLE ------------------------------------- //
+
+struct Rect {
+    v2 min;
+    v2 max;
+};
+
+inline b32 rect_contains(Rect rect, v2 pos) {
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+
+    return true;
+}
+
+inline b32 rect_intersect(Rect a, Rect b) {
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+
+    return true;
+}
+
+inline Rect rect_get_overlap(Rect a, Rect b) {
+    return {
+        v2_max(a.min, b.min),
+        v2_min(a.max, b.max)
+    };
+}
+
+inline v2 rect_get_intersect_vector(Rect a, Rect b) {
+    Rect o = rect_get_overlap(a, b);
+
+    v2 delta = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+
+    return V2(f32_sign(delta.x), f32_sign(delta.y)) * (o.max - o.min);
+}
+
+static Rect rect_move(Rect r, v2 offset) {
+    return {
+        .min = r.min + offset,
+        .max = r.max + offset,
+    };
+}
+
+// ----------------------------------------- BOX --------------------------------------- //
+
+struct Box {
+    v3 min;
+    v3 max;
+};
+
+inline b32 box_contains(Box rect, v3 pos) {
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+    if (pos.z < rect.min.z || pos.y > rect.max.z) return false;
+
+    return true;
+}
+
+inline b32 box_intersect(Box a, Box b) {
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+    if (a.min.z > b.max.y || a.max.z < b.min.z) return false;
+
+    return true;
+}
+
+inline Box box_get_overlap(Box a, Box b) {
+    return {
+        v3_max(a.min, b.min),
+        v3_min(a.max, b.max)
+    };
+}
+
+inline v3 box_get_intersect_vector(Box a, Box b) {
+    Box o = box_get_overlap(a, b);
+
+    v3 delta = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+
+    return V3(f32_sign(delta.x), f32_sign(delta.y), f32_sign(delta.z)) * (o.max - o.min);
+}
+
+// ================================================= COLOR PACKING =========================================== //
+
+inline u32 pack_color(u8 r, u8 g, u8 b, u8 a) {
+    u32 color = 0;
+
+    color |= u32(r) << 0;
+    color |= u32(g) << 8;
+    color |= u32(b) << 16;
+    color |= u32(a) << 24;
+
+    return color;
+}
+
+inline u32 pack_color(f32 r, f32 g, f32 b, f32 a) {
+    return pack_color(u8(255 * r), u8(255 * g), u8(255 * b), u8(255 * a));
+}
+
+inline u32 pack_color(f64 r, f64 g, f64 b, f64 a) {
+    return pack_color(u8(255 * r), u8(255 * g), u8(255 * b), u8(255 * a));
+}
+
+inline u32 pack_color(v4 color) {
+    return pack_color(color.r, color.g, color.b, color.a);
+}
+
+inline u32 pack_color(v3 color, f32 a = 1.0) {
+    return pack_color(color.r, color.g, color.b, a);
 }
 
 // ============================================== RANDOM GENERATOR =========================================== //
@@ -1416,8 +1563,7 @@ struct Rnd_Gen {
     u32 z;
 };
 
-inline u32
-next_random(Rnd_Gen* g) {
+inline u32 next_random(Rnd_Gen* g) {
     g->x ^= g->x << 16;
     g->x ^= g->x >> 5;
     g->x ^= g->x << 1;
@@ -1433,45 +1579,45 @@ next_random(Rnd_Gen* g) {
 
 thread_local Rnd_Gen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
 
-inline i32
-rand_i32(i32 min, i32 max) {
+inline void rand_seed(u32 x, u32 y, u32 z) {
+    assert(x && y && z);
+
+    default_rnd_gen.x = x;
+    default_rnd_gen.y = y;
+    default_rnd_gen.z = z;
+}
+
+inline i32 rand_i32(i32 min, i32 max) {
     return min + next_random(&default_rnd_gen) % (max - min);
 }
 
-inline f32
-rand_f32(f32 min, f32 max) {
+inline f32 rand_f32(f32 min, f32 max) {
     return min + ((f32)next_random(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2
-rand_v2(void) {
+inline v2 rand_v2(void) {
     return v2_norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
 }
 
-inline v3
-rand_v3(void) {
+inline v3 rand_v3(void) {
     return v3_norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
 }
 
-inline v2
-rand_v2(f32 min, f32 max) {
+inline v2 rand_v2(f32 min, f32 max) {
     return rand_f32(min, max) * rand_v2();
 }
 
-inline v3
-rand_v3(f32 min, f32 max) {
+inline v3 rand_v3(f32 min, f32 max) {
     return rand_f32(min, max) * rand_v3();
 }
 
-inline Quat
-rand_quat(void) {
+inline Quat rand_quat(void) {
     return quat_make(rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-PI, PI));
 }
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
 
-inline u32
-hash_u32(u32 a) {
+inline u32 hash_u32(u32 a) {
     a = (a ^ 61) ^ (a >> 16);
     a = a + (a << 3);
     a = a ^ (a >> 4);
@@ -1480,10 +1626,306 @@ hash_u32(u32 a) {
     return a;
 }
 
+inline u32 hash_cstr(const char *str) {
+    u32 hash = 0;
+
+    while (*str) {
+        hash = (hash << 7) + (hash >> 25) + *str++;
+    }
+
+    return hash + (hash >> 16);
+}
+
+// ================================================= MEMORY ============================================== //
+
+struct Memory_Arena {
+    u32 cap;
+    u32 idx;
+    u8* buf;
+
+    u32 count;
+    u32 stack[8];
+};
+
+inline void init_arena(Memory_Arena* arena, u8* memory, u32 cap) {
+    memset(arena, 0, sizeof (Memory_Arena));
+
+    arena->cap = cap;
+    arena->buf = memory;
+}
+
+inline void push_arena(Memory_Arena* arena) {
+    assert(arena->count < ARRAY_COUNT(arena->stack));
+
+    arena->stack[arena->count++] = arena->idx;
+}
+
+inline void pop_arena(Memory_Arena* arena) {
+    assert(arena->count > 0);
+
+    arena->idx = arena->stack[--arena->count];
+}
+
+inline void* alloc(Memory_Arena* arena, u32 size) {
+    assert(arena->idx + size <= arena->cap);
+
+    u32 idx = arena->idx;
+    arena->idx += size;
+
+    return (void*)(arena->buf + idx);
+}
+
+#define alloc_type(arena, T)     ((T*)alloc(arena, sizeof (T)))
+#define alloc_array(arena, T, N) ((T*)alloc(arena, (N) * sizeof (T)))
+
+// =================================== STRING ARENA THING ==================================== //
+
+static struct {
+    u32     cap;
+    u32     idx;
+    char*   buf;
+
+    u32     save_count;
+    u32     save_array[8];
+} str_arena;
+
+inline void reset_str_arena(void) {
+    str_arena.idx = 0;
+}
+
+inline void push_str_arena(void) {
+    str_arena.save_array[str_arena.save_count++] = str_arena.idx;
+}
+
+inline void pop_str_arena(void) {
+    str_arena.idx = str_arena.save_array[--str_arena.save_count];
+}
+
+inline void free_str_arena(void) {
+    free(str_arena.buf);
+
+    str_arena.cap = 0;
+    str_arena.idx = 0;
+    str_arena.buf = NULL;
+}
+
+inline u32 allocate_str(u32 size) {
+    auto arena = &str_arena;
+
+    u32 idx     = arena->idx;
+    u32 new_idx = idx + size + 1;
+
+    if (new_idx >= arena->cap) {
+        arena->cap = arena->cap? i32_max(arena->cap << 1, new_idx) : i32_max(2048, new_idx);
+        arena->buf = (char*)realloc(arena->buf, arena->cap);
+    }
+
+    memset(arena->buf + idx, 0, size + 1);
+    arena->idx = new_idx;
+
+    return idx;
+}
+
+inline u32 allocate_str(const char* str, u32 len) {
+    u32 idx = allocate_str(len);
+    memcpy(str_arena.buf + idx, str, len);
+
+    return idx;
+}
+
+struct Str {
+    u32 begin;
+    u32 end;
+
+    inline char operator[](u32 i) const {
+        return str_arena.buf[begin + i];
+    }
+
+    inline char& operator[](u32 i) {
+        return str_arena.buf[begin + i];
+    }
+
+    inline const char* data(void) const {
+        return &str_arena.buf[begin];
+    }
+
+    inline char* data(void) {
+        return &str_arena.buf[begin];
+    }
+
+    inline u32 len(void) const {
+        return end - begin;
+    }
+};
+
+inline b32 str_equal(const char* a, const char* b, u32 len) {
+    for (u32 i = 0; i < len; ++i) {
+        if (a[i] != b[i]) { return false; }
+    }
+
+    return true;
+}
+
+inline bool operator==(Str a, Str b) {
+    if (a.len() != b.len()) { return false; }
+
+    return str_equal(a.data(), b.data(), a.len());
+}
+
+inline bool operator==(Str a, const char* b) {
+    u32 len = strlen(b);
+    if (a.len() != len) { return false; }
+
+    return str_equal(a.data(), b, len);
+}
+
+inline bool operator==(const char* b, Str a) {
+    return a == b;
+}
+
+inline Str make_str(u32 len) {
+    u32 idx = allocate_str(len);
+    return { .begin = idx, .end = idx + len };
+}
+
+inline Str make_str(const char* str, u32 len) {
+    u32 idx = allocate_str(str, len);
+
+    return { .begin = idx, .end = idx + len };
+}
+
+inline Str make_str(const char* str) {
+    u32 len = strlen(str);
+    
+    return make_str(str, len);
+}
+
+inline Str append(Str a, Str b) {
+    u32 len = a.len() + b.len();
+
+    Str c = make_str(len);
+
+    u32 j = 0;
+    for (u32 i = 0; i < a.len(); ++i) c[j++] = a[i];
+    for (u32 i = 0; i < b.len(); ++i) c[j++] = b[i];
+
+    return c;
+}
+
+inline Str append(Str a, const char* b) {
+    u32 b_len = strlen(b);
+    u32 n_len = a.len() + b_len;
+
+    Str c = make_str(n_len);
+
+    u32 j = 0;
+    for (u32 i = 0; i < a.len(); ++i) c[j++] = a[i];
+    for (u32 i = 0; i < b_len; ++i)   c[j++] = b[i];
+
+    return c;
+}
+
+inline Str append(const char* b, Str a) {
+    u32 b_len = strlen(b);
+    u32 n_len = a.len() + b_len;
+
+    Str c = make_str(n_len);
+
+    u32 j = 0;
+    for (u32 i = 0; i < b_len; ++i)   c[j++] = b[i];
+    for (u32 i = 0; i < a.len(); ++i) c[j++] = a[i];
+
+    return c;
+}
+
+inline u32 index(Str str, char c) {
+    for (u32 i = 0; i < str.len(); ++i) {
+        if (str[i] == c) { return i; }
+    }
+
+    return 0;
+}
+
+inline Str substr(Str str, u32 begin, u32 end) {
+    assert(end >= begin);
+
+    return make_str(str.data() + begin, end - begin);
+}
+
+inline b32 empty(Str str) {
+    return str.begin >= str.end;
+}
+
+inline Str split_in_place(Str* str, char c) {
+    u32 ln = 0;
+
+    while (ln < str->len() && (*str)[ln] != c) ln++;
+    (*str)[ln++] = '\0';
+
+    Str result = { .begin = str->begin, .end = str->begin + ln - 1 };
+
+    while ((*str)[ln] == c) {
+        ln++;
+    }
+
+    str->begin += ln;
+
+    return result;
+}
+
+inline Str split_in_place(Str* str, const char* tokens) {
+    b32 token_buffer[256] = {};
+
+    while ((*tokens) != '\0') {
+        token_buffer[*(tokens++)] = true;
+    }
+
+    token_buffer['\0'] = true;
+
+    u32 ln = 0;
+    while (!token_buffer[(*str)[ln]]) ln++;
+    (*str)[ln++] = '\0';
+
+    Str result = { .begin = str->begin, .end = str->begin + ln - 1 };
+
+    while (token_buffer[(*str)[ln]]) {
+        ln++;
+    }
+
+    str->begin += ln;
+
+    return result;
+}
+
+inline Str copy(Str str) {
+    Str c = make_str(str.len());
+    memcpy(c.data(), str.data(), str.len());
+    return c;
+}
+
+inline Str to_lower(Str str) {
+    Str c = copy(str);
+
+    for (u32 i = 0; i < c.len(); ++i) {
+        if (c[i] >= 'A' && c[i] <= 'Z') { c[i] += ('a' - 'A'); }
+    }
+
+    return c;
+}
+
+inline Str to_upper(Str str) {
+    Str c = copy(str);
+
+    for (u32 i = 0; i < c.len(); ++i) {
+        if (c[i] >= 'a' && c[i] <= 'z') { c[i] -= ('a' - 'A'); }
+    }
+
+    return c;
+}
+
 // ==================================== FILES ==================================== //
 
-inline size_t
-file_get_size(FILE* fp) {
+inline size_t file_get_size(FILE* fp) {
     fseek(fp, 0L, SEEK_END);
     size_t size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -1491,8 +1933,7 @@ file_get_size(FILE* fp) {
     return size;
 }
 
-inline char*
-file_read_str(const char* file_name) {
+inline char* file_read_cstr(const char* file_name) {
     FILE *fp      = NULL;
     char *buffer  = NULL;
     
@@ -1516,8 +1957,7 @@ file_read_str(const char* file_name) {
     return buffer;
 }
 
-inline b32
-file_write_str(const char* file_name, const char* buffer) {
+inline b32 file_write_cstr(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "w") == 0) {
@@ -1530,8 +1970,7 @@ file_write_str(const char* file_name, const char* buffer) {
     return false;
 }
 
-inline b32
-file_append_str(const char* file_name, const char* buffer) {
+inline b32 file_append_cstr(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "a") == 0) {
@@ -1546,8 +1985,22 @@ file_append_str(const char* file_name, const char* buffer) {
     return false;
 }
 
-inline b32
-file_read_bin(const char* file_name, void* buffer, size_t size) {
+inline Str file_read_str(const char* file_name) {
+    FILE *fp = NULL;
+
+    assert(fopen_s(&fp, file_name, "rb") == 0);
+
+    size_t size = file_get_size(fp);
+
+    Str str = make_str(size);
+    assert(fread(str.data(), 1, size, fp) == size);
+
+    fclose(fp);
+
+    return str;
+}
+
+inline b32 file_read_bin(const char* file_name, void* buffer, size_t size) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "rb") == 0) {
@@ -1560,8 +2013,7 @@ file_read_bin(const char* file_name, void* buffer, size_t size) {
     return false;
 } 
 
-inline b32
-file_write_bin(const char* file_name, const void* buffer, size_t size) {
+inline b32 file_write_bin(const char* file_name, const void* buffer, size_t size) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "wb") == 0) {
@@ -1574,8 +2026,7 @@ file_write_bin(const char* file_name, const void* buffer, size_t size) {
 
 // ====================================================================================================== //
 
-inline void
-f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
+inline void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
     f64 M[16];
 
     M[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
@@ -1619,8 +2070,7 @@ f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
     R[15] = M[15];
 }
 
-inline void
-f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
+inline void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
     f64 r[4];
 
 	r[0] = M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3];
@@ -1634,8 +2084,7 @@ f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
     out[3] = r[3];
 }
 
-inline void
-f4x4_invert_64(f64* T, const f64* M) {
+inline void f4x4_invert_64(f64* T, const f64* M) {
 	f64 s[6], c[6];
 
 	s[0] = M[0] * M[5] - M[4] * M[1];
@@ -1676,8 +2125,7 @@ f4x4_invert_64(f64* T, const f64* M) {
 	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-inline b32
-f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
+inline b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
     f64 fTempo[8];
 
     fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
@@ -1706,8 +2154,7 @@ f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* 
     return true;
 }
 
-inline b32
-f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
+inline b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
     f64 m[16], A[16];
     f64 in[4], out[4];
 
@@ -2058,8 +2505,7 @@ static struct {
     GLFWmonitor* monitor;
 } platform_internal;
 
-void
-window_key_callback(GLFWwindow*, int key, int, int action, int) {
+void window_key_callback(GLFWwindow*, int key, int, int action, int) {
     switch (action) {
         case GLFW_PRESS:
             platform.keyboard.key = key;
@@ -2087,14 +2533,12 @@ window_key_callback(GLFWwindow*, int key, int, int action, int) {
     }
 }
 
-void
-window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-void
-window_mouse_button_callback(GLFWwindow*, int button, int action, int) {
+void window_mouse_button_callback(GLFWwindow*, int button, int action, int) {
     switch (action) {
         case GLFW_PRESS: {
             platform.mouse.is_down = 1;
@@ -2115,14 +2559,12 @@ window_mouse_button_callback(GLFWwindow*, int button, int action, int) {
     }
 }
 
-void
-window_scroll_callback(GLFWwindow*, double xoffset, double yoffset) {
+void window_scroll_callback(GLFWwindow*, double xoffset, double yoffset) {
     platform.mouse.scroll.x = xoffset;
     platform.mouse.scroll.y = yoffset;
 }
 
-void
-window_joystick_callback(int joy, int event) {
+void window_joystick_callback(int joy, int event) {
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
 
@@ -2134,8 +2576,7 @@ window_joystick_callback(int joy, int event) {
     }
 }
 
-void
-platform_init(const char* title, int width, int height, int samples) {
+void platform_init(const char* title, int width, int height, int samples) {
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -2196,8 +2637,7 @@ platform_init(const char* title, int width, int height, int samples) {
     glfwSetTime(0.0);
 }
 
-void
-platform_update(void) {
+void platform_update(void) {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
@@ -2254,8 +2694,8 @@ platform_update(void) {
 
                 platform.gamepad[i].LS.x = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
                 platform.gamepad[i].LS.y = -state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
-                platform.gamepad[i].RS.x = -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
-                platform.gamepad[i].RS.y = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
+                platform.gamepad[i].RS.x = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
+                platform.gamepad[i].RS.y = -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
 
                 platform.gamepad[i].LT = 0.5f * (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
                 platform.gamepad[i].RT = 0.5f * (state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
@@ -2322,8 +2762,7 @@ platform_update(void) {
 
 // =================================================== TIMER STUFF =================================================== //
 
-inline f64
-timer_get_current(void) {
+inline f64 timer_get_current(void) {
     return glfwGetTime();
 }
 
@@ -2337,8 +2776,7 @@ struct Shader {
     u32 program;
 };
 
-inline u32
-shader_compile(const char* source, unsigned int type) {
+inline u32 shader_compile(const char* source, unsigned int type) {
     int success;
 
     char info_log[512];
@@ -2360,8 +2798,7 @@ shader_compile(const char* source, unsigned int type) {
     return shader;
 }
 
-inline u32
-shader_link_program_vf(u32 vertex_shader, u32 fragment_shader) {
+inline u32 shader_link_program_vf(u32 vertex_shader, u32 fragment_shader) {
     int     success;
     char    info_log[512];
 
@@ -2384,8 +2821,7 @@ shader_link_program_vf(u32 vertex_shader, u32 fragment_shader) {
     return shader_program;
 }
 
-inline u32
-shader_link_program_vfg(u32 vertex_shader, u32 fragment_shader, u32 geometry_shader) {
+inline u32 shader_link_program_vfg(u32 vertex_shader, u32 fragment_shader, u32 geometry_shader) {
     int success;
     char info_log[512];
 
@@ -2409,8 +2845,7 @@ shader_link_program_vfg(u32 vertex_shader, u32 fragment_shader, u32 geometry_sha
     return shader_program;
 }
 
-inline u32
-shader_link_program_v(u32 vertex_shader) {
+inline u32 shader_link_program_v(u32 vertex_shader) {
     int success;
     char info_log[512];
 
@@ -2434,8 +2869,7 @@ shader_link_program_v(u32 vertex_shader) {
     return shader_program;
 }
 
-inline Shader
-shader_load_from_memory(const char *vs, const char *fs, const char *gs) {
+inline Shader shader_load_from_memory(const char *vs, const char *fs, const char *gs) {
     Shader shader = {};
 
     if (vs != NULL && fs != NULL && gs != NULL) {
@@ -2471,58 +2905,47 @@ shader_load_from_memory(const char *vs, const char *fs, const char *gs) {
     return shader;
 }
 
-inline void
-shader_use(Shader shader) {
+inline void shader_use(Shader shader) {
     glUseProgram(shader.program);
 }
 
-inline u32
-shader_get_location(Shader shader, const char *var_name) {
+inline u32 shader_get_location(Shader shader, const char *var_name) {
     return glGetUniformLocation(shader.program, var_name);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, int n) {
+inline void shader_set(Shader shader, const char *loc, int n) {
     glUniform1i(glGetUniformLocation(shader.program, loc), n);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, f32 n) {
+inline void shader_set(Shader shader, const char *loc, f32 n) {
     glUniform1f(glGetUniformLocation(shader.program, loc), n);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, f32 a, f32 b) {
+inline void shader_set(Shader shader, const char *loc, f32 a, f32 b) {
     glUniform2f(glGetUniformLocation(shader.program, loc), a, b);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c) {
+inline void shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c) {
     glUniform3f(glGetUniformLocation(shader.program, loc), a, b, c);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c, f32 d) {
+inline void shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c, f32 d) {
     glUniform4f(glGetUniformLocation(shader.program, loc), a, b, c, d);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, v2 u) {
+inline void shader_set(Shader shader, const char *loc, v2 u) {
     glUniform2fv(glGetUniformLocation(shader.program, loc), 1, u.array);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, v3 u) {
+inline void shader_set(Shader shader, const char *loc, v3 u) {
     glUniform3fv(glGetUniformLocation(shader.program, loc), 1, u.array);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, v4 u) {
+inline void shader_set(Shader shader, const char *loc, v4 u) {
     glUniform4fv(glGetUniformLocation(shader.program, loc), 1, u.array);
 }
 
-inline void
-shader_set(Shader shader, const char *loc, m4 m) {
+inline void shader_set(Shader shader, const char *loc, m4 m) {
     glUniformMatrix4fv(glGetUniformLocation(shader.program, loc), 1, GL_FALSE, m.array);
 }
 
@@ -3012,7 +3435,7 @@ static u32 ce_depth_map;
 
 static u32 ce_color_map;
 
-struct Render_Object {
+struct CE_Object {
     v4 color;
     m4 model;
 };
@@ -3028,28 +3451,24 @@ static v3 ce_light_color = { 1.0f, 1.0f, 1.0f };
 static int render_capacity = 0;
 static int render_count = 0;
 
-static Render_Object render_array[1024 * 1024];
+static CE_Object render_array[1024 * 1024];
 
-inline void
-ce_push(Render_Object obj) {
+inline void ce_push(const CE_Object& obj) {
     if (render_count < ARRAY_COUNT(render_array)) {
         render_array[render_count++] = obj;
     }
 }
 
-inline int
-ce_get_cube_count(void) {
+inline int ce_get_cube_count(void) {
     return render_count;
 }
 
-inline void
-ce_set_light(v3 pos, v3 color) {
+inline void ce_set_light(v3 pos, v3 color) {
     ce_light_pos = pos;
     ce_light_color = color;
 }
 
-inline void
-ce_set_view(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
+inline void ce_set_view(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
     ce_projection_view = 
         m4_perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane) * 
         m4_look_at(pos, look, up);
@@ -3057,8 +3476,7 @@ ce_set_view(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
     ce_view_pos = pos;
 }
 
-inline void
-ce_set_view_2D(v3 pos, v3 look, v3 up, v2 rad, f32 near_plane, f32 far_plane) {
+inline void ce_set_view_2D(v3 pos, v3 look, v3 up, v2 rad, f32 near_plane, f32 far_plane) {
     ce_projection_view =
         m4_ortho(-rad.x, rad.x, -rad.y, rad.y, near_plane, far_plane) *
         m4_look_at(pos, look, up);
@@ -3066,8 +3484,7 @@ ce_set_view_2D(v3 pos, v3 look, v3 up, v2 rad, f32 near_plane, f32 far_plane) {
     ce_view_pos = pos;
 }
 
-inline void
-ce_set_projection_view(m4 projection_view) {
+inline void ce_set_projection_view(m4 projection_view) {
     ce_projection_view = projection_view;
 
     ce_view_pos.x = projection_view.array[12];
@@ -3075,28 +3492,24 @@ ce_set_projection_view(m4 projection_view) {
     ce_view_pos.z = projection_view.array[14];
 }
 
-inline void
-ce_set_light_view(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
+inline void ce_set_light_view(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
     m4 light_projection = m4_perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane);
     m4 light_view = m4_look_at(pos, look, up);
 
     ce_light_space_matrix = light_projection * light_view;
 }
 
-inline void
-ce_set_vertex_array(const Vertex* vertex_array, int vertex_count) {
+inline void ce_set_vertex_array(const Vertex* vertex_array, int vertex_count) {
     glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube);
     glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof *vertex_array, vertex_array, GL_STATIC_DRAW);
 }
 
-inline void
-ce_set_render_object_array(const Render_Object* robj_array, int robj_count) {
+inline void ce_set_render_object_array(const CE_Object* robj_array, int robj_count) {
     glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube_data);
     glBufferData(GL_ARRAY_BUFFER, robj_count * sizeof *robj_array, robj_array, GL_STATIC_DRAW);
 }
 
-inline void
-ce_render(int type, const Vertex* vertex_array, int vertex_count, const Render_Object* robj_array, int robj_count) {
+inline void ce_render(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count) {
     ce_set_vertex_array(vertex_array, vertex_count);
     ce_set_render_object_array(robj_array, robj_count);
 
@@ -3154,16 +3567,14 @@ ce_render(int type, const Vertex* vertex_array, int vertex_count, const Render_O
     glDisable(GL_CULL_FACE);
 }
 
-inline void
-ce_render_cubes(void) {
+inline void ce_render_cubes(void) {
     glBindVertexArray(ce_vao_cube);
 
     ce_render(GL_TRIANGLES, vertex_array_cube, 36, render_array, render_count);
     render_count = 0;
 }
 
-inline void
-ce_render_no_light(int type, const Vertex* vertex_array, int vertex_count, const Render_Object* robj_array, int robj_count) {
+inline void ce_render_no_light(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count) {
     // normal render:
     {
         glViewport(0, 0, platform.width, platform.height);
@@ -3180,17 +3591,15 @@ ce_render_no_light(int type, const Vertex* vertex_array, int vertex_count, const
     }
 }
 
-inline void
-ce_render_squares(void) {
+inline void ce_render_squares(void) {
     glBindVertexArray(ce_vao_cube);
 
     ce_render_no_light(GL_TRIANGLES, vertex_array_square, 6, render_array, render_count);
     render_count = 0;
 }
 
-inline void
-ce_push_cube(v3 pos, f32 scale, v4 color) {
-    Render_Object robj = {
+inline void ce_push_cube(v3 pos, f32 scale, v4 color) {
+    CE_Object robj = {
         color,
         {
             scale,  0.0f,   0.0f,   0.0f,
@@ -3203,9 +3612,8 @@ ce_push_cube(v3 pos, f32 scale, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_cube_quat(v3 pos, f32 scale, Quat quat, v4 color) {
-    Render_Object robj = {
+inline void ce_push_cube_quat(v3 pos, f32 scale, Quat quat, v4 color) {
+    CE_Object robj = {
         color,
         // model:
         {
@@ -3221,9 +3629,8 @@ ce_push_cube_quat(v3 pos, f32 scale, Quat quat, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_box(v3 pos, v3 rad, v4 color) {
-    Render_Object robj = {
+inline void ce_push_box(v3 pos, v3 rad, v4 color) {
+    CE_Object robj = {
         color,
         // model:
         {
@@ -3237,12 +3644,11 @@ ce_push_box(v3 pos, v3 rad, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_cube_rot_z(v3 pos, f32 scale, f32 rot, v4 color) {
+inline void ce_push_cube_rot_z(v3 pos, f32 scale, f32 rot, v4 color) {
     f32 s = sinf(rot);
     f32 c = cosf(rot);
 
-    Render_Object robj = {
+    CE_Object robj = {
         color,
         {
              c * scale, s * scale,  0.0f,   0.0f,
@@ -3255,8 +3661,7 @@ ce_push_cube_rot_z(v3 pos, f32 scale, f32 rot, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_cube_euler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color) {
+inline void ce_push_cube_euler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color) {
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
     f32 cp = cosf(pitch);
@@ -3264,7 +3669,7 @@ ce_push_cube_euler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color) {
     f32 cr = cosf(roll);
     f32 sr = sinf(roll);
 
-    Render_Object robj = {
+    CE_Object robj = {
         color,
         {
             scale * (cy * cp),                  scale * (sy * cp),                  scale * (-sp),          0.0f,
@@ -3277,9 +3682,8 @@ ce_push_cube_euler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_cube_rot_mat(v3 pos, f32 scale, m2 R, v4 color) {
-    Render_Object robj = {
+inline void ce_push_cube_rot_mat(v3 pos, f32 scale, m2 R, v4 color) {
+    CE_Object robj = {
         color,
         {
             R.x.x * scale,  R.x.y * scale,  0.0f,       0.0f,
@@ -3292,12 +3696,11 @@ ce_push_cube_rot_mat(v3 pos, f32 scale, m2 R, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_box_rot(v3 pos, v3 rad, f32 rot, v4 color) {
+inline void ce_push_box_rot(v3 pos, v3 rad, f32 rot, v4 color) {
     f32 s = sinf(rot);
     f32 c = cosf(rot);
 
-    Render_Object robj = {
+    CE_Object robj = {
         color,
         {
              c * rad.x, s * rad.x,  0.0f,   0.0f,
@@ -3310,9 +3713,8 @@ ce_push_box_rot(v3 pos, v3 rad, f32 rot, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_box_rot_mat(v3 pos, v3 rad, m2 R, v4 color) {
-    Render_Object robj = {
+inline void ce_push_box_rot_mat(v3 pos, v3 rad, m2 R, v4 color) {
+    CE_Object robj = {
         color,
         {
             R.x.x * rad.x,  R.x.y * rad.x,  0.0f,   0.0f,
@@ -3325,8 +3727,7 @@ ce_push_box_rot_mat(v3 pos, v3 rad, m2 R, v4 color) {
     ce_push(robj);
 }
 
-inline void
-ce_push_line(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
+inline void ce_push_line(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
     v2 line = p1 - p0;
     f32 line_length = v2_len(line);
 
@@ -3341,13 +3742,11 @@ ce_push_line(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
     ce_push_box_rot(pos, scale, rot, color);
 }
 
-inline void
-ce_clear(void) {
+inline void ce_clear(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-inline void
-ce_init(void) {
+inline void ce_init(void) {
     ce_shader = shader_load_from_memory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
     ce_shader_no_light = shader_load_from_memory(ce_shader_vertex, ce_shader_fragment, NULL);
 
@@ -3397,7 +3796,7 @@ ce_init(void) {
             // color:
             glEnableVertexAttribArray(4);
 
-            glVertexAttribPointer(4, 4, GL_FLOAT, GL_TRUE, sizeof (Render_Object), (void*)(offsetof(Render_Object, color)));
+            glVertexAttribPointer(4, 4, GL_FLOAT, GL_TRUE, sizeof (CE_Object), (void*)(offsetof(CE_Object, color)));
             glVertexAttribDivisor(4, 1);
 
             // model:
@@ -3406,10 +3805,10 @@ ce_init(void) {
             glEnableVertexAttribArray(7);
             glEnableVertexAttribArray(8);
 
-            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof (Render_Object), (void*)(offsetof(Render_Object, model) + 0 * sizeof (f32[4])));
-            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof (Render_Object), (void*)(offsetof(Render_Object, model) + 1 * sizeof (f32[4])));
-            glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof (Render_Object), (void*)(offsetof(Render_Object, model) + 2 * sizeof (f32[4])));
-            glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof (Render_Object), (void*)(offsetof(Render_Object, model) + 3 * sizeof (f32[4])));
+            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 0 * sizeof (f32[4])));
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 1 * sizeof (f32[4])));
+            glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 2 * sizeof (f32[4])));
+            glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 3 * sizeof (f32[4])));
 
             glVertexAttribDivisor(5, 1);
             glVertexAttribDivisor(6, 1);
@@ -3454,16 +3853,14 @@ ce_init(void) {
     }
 }
 
-inline void
-ce_bitmap_render_rect(f32 x, f32 y, f32 z, f32 sx, f32 sy, f32 r, f32 g, f32 b, f32 a) {
+inline void ce_bitmap_render_rect(f32 x, f32 y, f32 z, f32 sx, f32 sy, f32 r, f32 g, f32 b, f32 a) {
     ce_push_box(
         { x, y, z }, 
         { 0.5f * sx, 0.5f * sy, 0.01 },
         { r, g, b, a });
 }
 
-inline void
-ce_push_ascii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
+inline void ce_push_ascii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
     u64 n = bitascii[c];
 
     for (int j = 0; j < 8; ++j) {
@@ -3477,14 +3874,12 @@ ce_push_ascii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale,
     }
 }
 
-inline void
-ce_push_string(const char* str, v3 pos, v2 scale, v4 color) {
+inline void ce_push_string(const char* str, v3 pos, v2 scale, v4 color) {
     for (int i = 0; str[i] != '\0'; i++)
         ce_push_ascii(str[i], pos.x + i * 8 * scale.x, pos.y, pos.z, scale.x, scale.y, color.r, color.g, color.b, color.a);
 }
 
-inline void
-ce_push_string_format(v3 pos, f32 rad, v4 color, const char* fmt, ...) {
+inline void ce_push_string_format(v3 pos, f32 rad, v4 color, const char* fmt, ...) {
     va_list list;
     char buffer[64];
 
@@ -3494,8 +3889,7 @@ ce_push_string_format(v3 pos, f32 rad, v4 color, const char* fmt, ...) {
     va_end(list);
 }
 
-inline v3
-ce_get_world_position(int x, int y) {
+inline v3 ce_get_world_position(int x, int y) {
     f64 identity[16] = {
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -3535,8 +3929,7 @@ ce_get_world_position(int x, int y) {
 int cube_list;
 int square_list;
 
-inline void
-gl_init_shapes(void) {
+inline void gl_init_shapes(void) {
     square_list = glGenLists(1);
     cube_list   = glGenLists(1);
 
@@ -3610,11 +4003,9 @@ gl_init_shapes(void) {
     }
 }
 
-inline void
-gl_init_bitmap(void);
+inline void gl_init_bitmap(void);
 
-inline void
-gl_init(void) {
+inline void gl_init(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glClearDepth(1.0f);
 
@@ -3636,33 +4027,32 @@ gl_init(void) {
     gl_init_bitmap();
 }
 
-inline void
-gl_clear(void) {
+inline void gl_clear_color(v4 color) {
+    glClearColor(color.r, color.g, color.b, color.a);
+}
+
+inline void gl_clear(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-inline void
-gl_set_matrix(m4 matrix) {
+inline void gl_set_matrix(m4 matrix) {
     glLoadMatrixf(matrix.array);
 }
 
-inline void
-gl_set_projection_view(m4 projection_view) {
+inline void gl_set_projection_view(m4 projection_view) {
     glMatrixMode(GL_PROJECTION);
     gl_set_matrix(projection_view);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
-inline void
-gl_set_model(v3 pos, v3 scale) {
+inline void gl_set_model(v3 pos, v3 scale) {
     m4 T = m4_translate(pos) * m4_scale(scale);
 
     gl_set_matrix(T);
 }
 
-inline void
-gl_set_camera(v3 pos, v3 look, v3 up, f32 fov, f32 aspect, f32 n,  f32 f) {
+inline void gl_set_camera(v3 pos, v3 look, v3 up, f32 fov, f32 aspect, f32 n,  f32 f) {
     m4 P = m4_perspective(TO_RAD(fov), aspect, n, f);
     m4 V = m4_look_at(pos, look, up);
     m4 PV = P * V;
@@ -3670,42 +4060,36 @@ gl_set_camera(v3 pos, v3 look, v3 up, f32 fov, f32 aspect, f32 n,  f32 f) {
     gl_set_projection_view(PV);
 }
 
-inline void
-gl_set_camera_2D(v3 pos, v3 look, v3 up, v2 rad, f32 n,  f32 f) {
+inline void gl_set_camera_2D(v3 pos, v3 look, v3 up, v2 rad, f32 n,  f32 f) {
     m4 PV = m4_ortho(-rad.x, rad.x, -rad.y, rad.y, n, f) * m4_look_at(pos, look, up);
 
     gl_set_projection_view(PV);
 }
 
-inline void
-gl_set_camera_ortho(f32 width, f32 height, f32 n, f32 f) {
+inline void gl_set_camera_ortho(f32 width, f32 height, f32 n, f32 f) {
     m4 PV = m4_ortho(0, width, height, 0, n, f);
 
     gl_set_projection_view(PV);
 }
 
-inline void
-gl_set_camera_translate_ortho(f32 x, f32 y, f32 rad_x, f32 rad_y, f32 n, f32 f) {
+inline void gl_set_camera_translate_ortho(f32 x, f32 y, f32 rad_x, f32 rad_y, f32 n, f32 f) {
     m4 PV = m4_ortho(x - rad_x, x + rad_x, y + rad_y, y - rad_y, n, f);
 
     gl_set_projection_view(PV);
 }
 
-inline void
-gl_set_color(v4 color) {
+inline void gl_set_color(v4 color) {
     glColor4f(color.r, color.g, color.b, color.a);
 }
 
-inline void
-gl_render_square(v3 pos, f32 rad, v4 color) {
+inline void gl_render_square(v3 pos, f32 rad, v4 color) {
     gl_set_color(color);
     gl_set_model(pos, V3(rad, rad, rad));
 
     glCallList(square_list);
 }
 
-inline void
-gl_render_rotated_square(v3 pos, f32 rad, f32 rot, v4 color) {
+inline void gl_render_rotated_square(v3 pos, f32 rad, f32 rot, v4 color) {
     gl_set_color(color);
     
     m4 T = m4_translate(pos) * m4_scale(rad, rad, 1) * m4_rotate_z(rot);
@@ -3714,8 +4098,7 @@ gl_render_rotated_square(v3 pos, f32 rad, f32 rot, v4 color) {
     glCallList(square_list);
 }
 
-inline void
-gl_render_rect(v3 pos, f32 width, f32 height, v4 color) {
+inline void gl_render_rect(v3 pos, f32 width, f32 height, v4 color) {
     f32 half_width  = 0.5f * width;
     f32 half_height = 0.5f * height;
 
@@ -3725,24 +4108,28 @@ gl_render_rect(v3 pos, f32 width, f32 height, v4 color) {
     glCallList(square_list);
 }
 
-inline void
-gl_render_center_rect(v3 pos, v2 rad, v4 color) {
+inline void gl_render_center_rect(v3 pos, v2 rad, v4 color) {
     gl_set_color(color);
     gl_set_model(pos, V3(rad, 1.0f));
 
     glCallList(square_list);
 }
 
-inline void
-gl_render_cube(v3 pos, f32 rad, v4 color) {
+inline void gl_render_cube(v3 pos, f32 rad, v4 color) {
     gl_set_color(color);
     gl_set_model(pos, V3(rad, rad, rad));
 
     glCallList(cube_list);
 }
 
-inline void
-gl_render_line(v3 a, v3 b, v4 color) {
+inline void gl_render_cube(v3 pos, v3 rad, v4 color) {
+    gl_set_color(color);
+    gl_set_model(pos, rad);
+
+    glCallList(cube_list);
+}
+
+inline void gl_render_line(v3 a, v3 b, v4 color) {
     gl_set_color(color);
 
     glLoadIdentity();
@@ -3755,8 +4142,7 @@ gl_render_line(v3 a, v3 b, v4 color) {
     glEnd();
 }
 
-inline void
-gl_render_line_loop_2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count) {
+inline void gl_render_line_loop_2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count) {
     glLoadIdentity();
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad, rad, 1.0f);
@@ -3779,8 +4165,7 @@ gl_render_line_loop_2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array
     glEnd();
 }
 
-inline void
-gl_set_light_emitter(int index, f32 bright, v3 p) {
+inline void gl_set_light_emitter(int index, f32 bright, v3 p) {
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { bright, bright, bright, 0.0f };
@@ -3796,8 +4181,7 @@ gl_set_light_emitter(int index, f32 bright, v3 p) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void
-gl_set_light_directed(int index, f32 bright, v3 pos) {
+inline void gl_set_light_directed(int index, f32 bright, v3 pos) {
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -3814,15 +4198,25 @@ gl_set_light_directed(int index, f32 bright, v3 pos) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void
-gl_set_light_global_ambient(v3 color) {
+inline void gl_set_light_global_ambient(v3 color) {
     f32 v[4] = { color.r, color.g, color.b, 0 };
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-inline v3
-gl_get_world_position(int x, int y) {
+inline m4 gl_get_projection_matrix(void) {
+    m4 projection;
+    glGetFloatv(GL_PROJECTION_MATRIX, projection.array);
+    return projection;
+}
+
+inline m4 gl_get_modelview_matrix(void) {
+    m4 modelview;
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelview.array);
+    return modelview;
+}
+
+inline v3 gl_get_world_position(int x, int y) {
     GLint viewport[4];
 
     f64 modelview[16];
@@ -3851,6 +4245,24 @@ gl_get_world_position(int x, int y) {
 #ifdef STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
 #include "dep/stb_image.h" 
+
+struct Image {
+    int width;
+    int height;
+
+    u32* pixels;
+};
+
+inline Image image_load_from_file(const char* path) {
+    Image image     = {};
+    i32   channels  = 0;
+    image.pixels    = (u32*)stbi_load(path, &image.width, &image.height, &channels, 0);
+
+    assert(image.pixels);
+
+    return image;
+}
+
 #endif
 
 struct Texture {
@@ -3859,8 +4271,7 @@ struct Texture {
     int height;
 };
 
-inline Texture
-texture_create(void *pixels, int width, int height, int is_smooth) {
+inline Texture texture_create(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
     Texture texture = {0};
@@ -3878,8 +4289,7 @@ texture_create(void *pixels, int width, int height, int is_smooth) {
     return texture;
 }
 
-inline void
-texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth) {
+inline void texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width = width;
     texture->height = height;
 
@@ -3891,9 +4301,8 @@ texture_update(Texture* texture, void *pixels, int width, int height, int is_smo
 }
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-inline Texture
-texture_load_from_file(const char *texture_path, int is_smooth) {
-    Texture         texture     = {0};
+inline Texture texture_load_from_file(const char *texture_path, int is_smooth) {
+    Texture         texture     = {};
     i32             channels    = 0;
     unsigned char*  pixels      = NULL;
 
@@ -3914,8 +4323,7 @@ texture_load_from_file(const char *texture_path, int is_smooth) {
 }
 #endif
 
-inline void
-texture_bind(const Texture *texture) {
+inline void texture_bind(const Texture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
     glMatrixMode(GL_TEXTURE);
@@ -3926,8 +4334,7 @@ texture_bind(const Texture *texture) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-inline void
-texture_delete(Texture* texture) {
+inline void texture_delete(Texture* texture) {
     glDeleteTextures(1, &texture->id);
     
     memset(texture, 0, sizeof *texture);
@@ -3937,8 +4344,7 @@ int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) ((u64(N)) & (1ull << ((u64(Y)) * 8ull + (u64(X)))))
 
-inline void
-gl_init_bitmap(void) {
+inline void gl_init_bitmap(void) {
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
 
@@ -3970,10 +4376,7 @@ gl_init_bitmap(void) {
     }
 }
 
-inline void
-gl_render_ascii(u8 c, v3 pos, v2 scale, v4 color) {
-    glColor4f(color.r, color.g, color.b, color.a);
-
+inline void gl_render_ascii(u8 c, v3 pos, v2 scale) {
     m4 T = m4_translate(pos) * m4_scale(V3(scale, 1.0f));
 
     gl_set_matrix(T);
@@ -3981,15 +4384,15 @@ gl_render_ascii(u8 c, v3 pos, v2 scale, v4 color) {
     glCallList(bitmap_display_list[c]);
 }
 
-inline void
-gl_render_string(const char *str, v3 pos, v2 scale, v4 color) {
+inline void gl_render_string(const char *str, v3 pos, v2 scale, v4 color) {
+    glColor4f(color.r, color.g, color.b, color.a);
+
     for (int i = 0; str[i] != '\0'; i++) {
-        gl_render_ascii(str[i], pos + V3(i * scale.x, 0, 0), scale, color);
+        gl_render_ascii(str[i], pos + V3(i * scale.x, 0, 0), scale);
     }
 }
 
-inline void
-gl_render_string_format(v3 pos, v2 scale, v4 color, const char* fmt, ...) {
+inline void gl_render_string_format(v3 pos, v2 scale, v4 color, const char* fmt, ...) {
     va_list list;
     char    buffer[256];
 
