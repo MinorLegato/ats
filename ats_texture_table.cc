@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ats_str.cc"
-
 #include <algorithm>
 
 // ============================================= TEXTURE ======================================== //
@@ -79,7 +77,7 @@ struct Tex_Rect {
 };
 
 static u32 load_texture_directory(const char* dir_path) {
-    save_str_arena();
+    push_str_arena();
 
     u32 file_count = 0;
     Str file_name[1024];
@@ -117,7 +115,7 @@ static u32 load_texture_directory(const char* dir_path) {
         }
 
         std::sort(image_array, image_array + image_count, [] (auto a, auto b) {
-            return (a.image.width * a.image.height) > (b.image.width * b.image.height);
+            return (a.image.width > b.image.width) || (a.image.height > b.image.height);
         });
 
         i32 rect_count  = 0;
@@ -134,8 +132,8 @@ static u32 load_texture_directory(const char* dir_path) {
             auto [image, name] = image_array[i];
 
             v2i size = { image.width, image.height };
-
             i32 rect_index = 0;
+
             for (i32 j = 0; j < rect_count; ++j) {
                 Tex_Rect rect = rect_array[j];
 
@@ -150,8 +148,8 @@ static u32 load_texture_directory(const char* dir_path) {
             v2i offset = rect.min;
 
             push_texture_rect(name.data(), Rect {
-                .min = { f32(offset.x) / 1024.0f, f32(offset.y) / 1024.0f },
-                .max = { f32(offset.x + size.x) / 1024.0f, f32(offset.y + size.y) / 1024.0f },
+                .min = { f32(offset.x + 0.1) / 1024.0f, f32(offset.y + 0.1) / 1024.0f },
+                .max = { f32(offset.x + size.x - 0.1) / 1024.0f, f32(offset.y + size.y - 0.1) / 1024.0f },
             });
 
             for (i32 y = 0; y < image.height; ++y) for (i32 x = 0; x < image.width; ++x) {
@@ -182,7 +180,7 @@ static u32 load_texture_directory(const char* dir_path) {
 
     texture_table_packed_texture = texture_create(pixels, 1024, 1024, false).id;
 
-    restore_str_arena();
+    pop_str_arena();
 
     return texture_table_packed_texture;
 };
