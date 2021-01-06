@@ -171,7 +171,7 @@ static u32 load_texture_directory(const char* dir_path) {
                 if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { rect_array[rect_count++] = a; }
                 if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { rect_array[rect_count++] = b; }
 
-                split_vertical = !split_vertical;
+                //split_vertical = !split_vertical;
             }
 
             free(image.pixels);
