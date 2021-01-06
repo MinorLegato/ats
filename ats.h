@@ -1416,19 +1416,19 @@ inline v2 circle_get_intersect_vector(Circle a, Circle b) {
 
 // --------------------------------------- SHPERE ------------------------------------ //
 
-struct Shpere {
+struct Sphere {
     v3 pos;
     f32 rad;
 };
 
-inline b32 sphere_intersect(Shpere a, Shpere b) {
+inline b32 sphere_intersect(Sphere a, Sphere b) {
     v3 d = b.pos - a.pos;
     f32 rt = a.rad + b.rad;
 
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v3 sphere_get_intersect_vector(Shpere a, Shpere b) {
+inline v3 sphere_get_intersect_vector(Sphere a, Sphere b) {
     v3 delta = b.pos - a.pos;
 
     f32 depth = v3_len(delta) - (a.rad + b.rad);
