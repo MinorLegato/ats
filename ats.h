@@ -381,29 +381,21 @@ inline b32 v2_circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
 }
 
 inline b32 v2_segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
-    v2 a = { start.x - pos.x, start.y - pos.y };
-    v2 b = { end.x - start.x, end.y - start.y };
+    v2 a = start - pos;
+    v2 b = end - pos;
 
-    if ((a.x * a.x + a.y * a.y) > (b.x * b.x + b.y * b.y))
-        return false;
+    if (v2_dot(a, a) > v2_dot(b, b)) return false;
 
-    v2 seg = { end.x - start.x, end.y - start.y };
-    v2 cir = { pos.x - start.x, pos.y - start.y };
+    v2 seg = end - start;
+    v2 cir = pos - start;
 
-    f32 dot_sc = seg.x * cir.x + seg.y * cir.y;
+    f32 dot_sc = v2_dot(seg, cir);
 
-    if (dot_sc < 0.0f)
-        return false;
+    if (dot_sc < 0.0f) return false;
 
-    f32 proj = dot_sc / (seg.x * seg.x + seg.y * seg.y);
+    seg = (dot_sc / v2_dot(seg, seg)) * seg - cir;
 
-    seg.x *= proj;
-    seg.y *= proj;
-
-    seg.x = seg.x - cir.x;
-    seg.y = seg.y - cir.y;
-
-    return (seg.x * seg.x + seg.y * seg.y) < (rad * rad);
+    return v2_dot(seg, seg) < (rad * rad);
 }
 
 inline m2 v2_outer_product(v2 a, v2 b) {
