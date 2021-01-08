@@ -133,7 +133,10 @@ union v4i {
 
 // --------------------------------------------- STATIC FUNCTIONS ---------------------------------------- //
 
-inline f32 f32_sqrt(f32 n) {
+#define sqrt    __sqrt
+#define rsqrt   __rsqrt
+
+inline f32 __sqrt(f32 n) {
     f32 x = n * 0.5f;
     f32 y = n;
     int i = *(int*)&y;
@@ -145,7 +148,7 @@ inline f32 f32_sqrt(f32 n) {
     return n * y;
 }
 
-inline f32 f32_rsqrt(f32 n) {
+inline f32 __rsqrt(f32 n) {
 	f32 x2 = n * 0.5F;
 	f32 y  = n;
 	int i  = *(long*)&y;           // evil f32ing point bit level hacking
@@ -157,85 +160,71 @@ inline f32 f32_rsqrt(f32 n) {
 	return y;
 }
 
-inline f32 f32_square(f32 n) {
+template <typename T>
+inline T square(T n) {
     return n * n;
 }
 
-inline f32 f32_lerp(f32 a, f32 b, f32 t) {
+inline f32 lerp(f32 a, f32 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline f32 f32_unlerp(f32 a, f32 b, f32 t) {
+inline f32 unlerp(f32 a, f32 b, f32 t) {
     return (t - a) / (b - a);
 }
 
-inline f32 f32_shortest_angle_distance(f32 a, f32 b) {
+inline f32 shortest_angle_distance(f32 a, f32 b) {
     f32 max = 2.0f * PI;
     f32 da  = fmodf(b - a, max);
     return fmodf(2.0f * da, max) - da;
 }
 
-inline f32 f32_lerp_angle(f32 a, f32 b, f32 t) {
-    return a + f32_shortest_angle_distance(a, b) * t;
+inline f32 lerp_angle(f32 a, f32 b, f32 t) {
+    return a + shortest_angle_distance(a, b) * t;
 }
 
-inline f32 f32_spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
+inline f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
 	f32 i = 1.0f - f;
 	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline f32 f32_min(f32 a, f32 b) {
+template <typename T, typename U>
+inline T min(T a, U b) {
     return a < b? a : b;
 }
 
-inline f32 f32_max(f32 a, f32 b) {
-    return a < b? b : a;
+template <typename T, typename U>
+inline T max(T a, U b) {
+    return a > b? a : b;
 }
 
-inline i32 i32_min(i32 a, i32 b) {
-    return a < b? a : b;
-}
-
-inline i32 i32_max(i32 a, i32 b) {
-    return a < b? b : a;
-}
-
-inline f32 f32_clamp(f32 n, f32 min, f32 max) {
+template <typename T, typename U, typename V>
+inline T clamp(T n, U min, V max) {
     if (n < min) return min;
     if (n > max) return max;
     return n;
 }
 
-inline f32 f32_clamp_min(f32 n, f32 min) {
+template <typename T, typename U>
+inline T clamp_min(T n, U min) {
     return n < min? min : n;
 }
 
-inline f32 f32_clamp_max(f32 n, f32 max) {
+template <typename T, typename U>
+inline T clamp_max(T n, U max) {
     return n > max? max : n;
 }
 
-inline i32 i32_clamp(i32 n, i32 min, i32 max) {
-    if (n < min) return min;
-    if (n > max) return max;
-
-    return n;
-}
-
-inline i32 i32_clamp_min(i32 n, i32 min) {
-    return n < min? min : n;
-}
-
-inline i32 i32_clamp_max(i32 n, i32 max) {
-    return n > max? max : n;
-}
-
-inline f32 f32_sign(f32 n) {
+template <typename T>
+inline T sign(T n) {
     return n < 0? -1 : 1;
 }
 
-inline f32 f32_sign_or_zero(f32 n) {
+template <typename T>
+inline T sign_or_zero(T n) {
     if (n < 0) return -1;
     if (n > 0) return +1;
+
     return 0;
 }
 
@@ -308,70 +297,70 @@ inline v2 operator/=(v2& a, f32 s) {
     return a;
 }
 
-inline f32 v2_det(v2 a, v2 b) {
+inline f32 det(v2 a, v2 b) {
     return a.x * b.y - a.y * b.x;
 }
 
-inline f32 v2_dot(v2 a, v2 b) {
+inline f32 dot(v2 a, v2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-inline f32 v2_len_sq(v2 v) {
-    return v2_dot(v, v);
+inline f32 len_sq(v2 v) {
+    return dot(v, v);
 }
 
-inline f32 v2_len(v2 v) {
-    return f32_sqrt(v2_dot(v, v));
+inline f32 len(v2 v) {
+    return sqrt(dot(v, v));
 }
 
-inline f32 v2_dist_sq(v2 a, v2 b) {
-    return v2_len_sq(b - a);
+inline f32 dist_sq(v2 a, v2 b) {
+    return len_sq(b - a);
 }
 
-inline f32 v2_dist(v2 a, v2 b) {
-    return f32_sqrt(v2_dist_sq(a, b));
+inline f32 dist(v2 a, v2 b) {
+    return sqrt(dist_sq(a, b));
 }
 
-inline v2 v2_proj(v2 a, v2 b) {
-    return (v2_dot(a, b) / v2_dot(b, b)) * b;
+inline v2 proj(v2 a, v2 b) {
+    return (dot(a, b) / dot(b, b)) * b;
 }
 
-inline v2 v2_norm(v2 v) {
-    return v * f32_rsqrt(v2_dot(v, v));
+inline v2 norm(v2 v) {
+    return v * rsqrt(dot(v, v));
 }
 
-inline v2 v2_min(v2 a, v2 b) {
+inline v2 min(v2 a, v2 b) {
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y)
     };
 }
 
-inline v2 v2_max(v2 a, v2 b) {
+inline v2 max(v2 a, v2 b) {
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y)
     };
 }
 
-inline v2 v2_lerp(v2 a, v2 b, f32 t) {
+inline v2 lerp(v2 a, v2 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline f32 v2_get_angle(v2 a, v2 b) {
+inline f32 get_angle(v2 a, v2 b) {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
     
     return atan2f(det, dot);
 }
 
-inline v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
+inline v2 spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
 	f32 i = 1.0f - f;
 
 	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 v2_circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
+inline b32 circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
     f32 dx = p1.x - p0.x;
     f32 dy = p1.y - p0.y;
 
@@ -380,32 +369,32 @@ inline b32 v2_circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
     return (dx * dx + dy * dy) < (r * r);
 }
 
-inline b32 v2_segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
+inline b32 segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
     v2 a = start - pos;
     v2 b = end - pos;
 
-    if (v2_dot(a, a) > v2_dot(b, b)) return false;
+    if (dot(a, a) > dot(b, b)) return false;
 
     v2 seg = end - start;
     v2 cir = pos - start;
 
-    f32 dot_sc = v2_dot(seg, cir);
+    f32 dot_sc = dot(seg, cir);
 
     if (dot_sc < 0.0f) return false;
 
-    seg = (dot_sc / v2_dot(seg, seg)) * seg - cir;
+    seg = (dot_sc / dot(seg, seg)) * seg - cir;
 
-    return v2_dot(seg, seg) < (rad * rad);
+    return dot(seg, seg) < (rad * rad);
 }
 
-inline m2 v2_outer_product(v2 a, v2 b) {
+inline m2 outer_product(v2 a, v2 b) {
     return m2 {
         a.x * b.x, a.y * b.x,
         a.x * b.y, a.y * b.y,
     };
 }
 
-inline v2 v2_square(v2 a) {
+inline v2 square(v2 a) {
     return { a.x * a.x, a.y * a.y };
 }
 
@@ -484,35 +473,35 @@ inline v3 operator/=(v3& a, f32 s) {
     return a;
 }
 
-inline f32 v3_dot(v3 a, v3 b) {
+inline f32 dot(v3 a, v3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-inline f32 v3_len_sq(v3 v) {
-    return v3_dot(v, v);
+inline f32 len_sq(v3 v) {
+    return dot(v, v);
 }
 
-inline f32 v3_len(v3 v) {
-    return f32_sqrt(v3_dot(v, v));
+inline f32 len(v3 v) {
+    return sqrt(dot(v, v));
 }
 
-inline f32 v3_dist_sq(v3 a, v3 b) {
-    return v3_len_sq(b - a);
+inline f32 dist_sq(v3 a, v3 b) {
+    return len_sq(b - a);
 }
 
-inline f32 v3_dist(v3 a, v3 b) {
-    return f32_sqrt(v3_dist_sq(a, b));
+inline f32 dist(v3 a, v3 b) {
+    return sqrt(dist_sq(a, b));
 }
 
-inline v3 v3_proj(v3 a, v3 b) {
-    return (v3_dot(a, b) / v3_dot(b, b)) * b;
+inline v3 proj(v3 a, v3 b) {
+    return (dot(a, b) / dot(b, b)) * b;
 }
 
-inline v3 v3_norm(v3 v) {
-    return v * f32_rsqrt(v3_dot(v, v));
+inline v3 norm(v3 v) {
+    return v * rsqrt(dot(v, v));
 }
 
-inline v3 v3_min(v3 a, v3 b) {
+inline v3 min(v3 a, v3 b) {
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y),
@@ -520,7 +509,7 @@ inline v3 v3_min(v3 a, v3 b) {
     };
 }
 
-inline v3 v3_max(v3 a, v3 b) {
+inline v3 max(v3 a, v3 b) {
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y),
@@ -528,11 +517,11 @@ inline v3 v3_max(v3 a, v3 b) {
     };
 }
 
-inline v3 v3_lerp(v3 a, v3 b, f32 t) {
+inline v3 lerp(v3 a, v3 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline v3 v3_cross(v3 a, v3 b) {
+inline v3 cross(v3 a, v3 b) {
     return {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -540,7 +529,7 @@ inline v3 v3_cross(v3 a, v3 b) {
     };
 }
 
-inline v3 v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
+inline v3 spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
 	f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
@@ -632,31 +621,31 @@ inline v4 operator/=(v4& a, f32 s) {
     return a;
 }
 
-inline f32 v4_dot(v4 a, v4 b) {
+inline f32 dot(v4 a, v4 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline f32 v4_len_sq(v4 v) {
-    return v4_dot(v, v);
+inline f32 len_sq(v4 v) {
+    return dot(v, v);
 }
 
-inline f32 v4_len(v4 v) {
-    return f32_sqrt(v4_dot(v, v));
+inline f32 len(v4 v) {
+    return sqrt(dot(v, v));
 }
 
-inline f32 v4_dist_sq(v4 a, v4 b) {
-    return v4_len_sq(b - a);
+inline f32 dist_sq(v4 a, v4 b) {
+    return len_sq(b - a);
 }
 
-inline f32 v4_dist(v4 a, v4 b) {
-    return f32_sqrt(v4_dist_sq(a, b));
+inline f32 dist(v4 a, v4 b) {
+    return sqrt(dist_sq(a, b));
 }
 
-inline v4 v4_norm(v4 v) {
-    return v * f32_rsqrt(v4_dot(v, v));
+inline v4 norm(v4 v) {
+    return v * rsqrt(dot(v, v));
 }
 
-inline v4 v4_min(v4 a, v4 b) {
+inline v4 min(v4 a, v4 b) {
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y),
@@ -665,7 +654,7 @@ inline v4 v4_min(v4 a, v4 b) {
     };
 }
 
-inline v4 v4_max(v4 a, v4 b) {
+inline v4 max(v4 a, v4 b) {
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y),
@@ -674,11 +663,11 @@ inline v4 v4_max(v4 a, v4 b) {
     };
 }
 
-inline v4 v4_lerp(v4 a, v4 b, f32 t) {
+inline v4 lerp(v4 a, v4 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline v4 v4_cross(v4 a, v4 b) {
+inline v4 cross(v4 a, v4 b) {
     return {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -687,7 +676,7 @@ inline v4 v4_cross(v4 a, v4 b) {
     };
 }
 
-inline v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
+inline v4 spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
 	f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
@@ -768,7 +757,7 @@ inline m2 m2_inverse(m2 m) {
 inline void m2_polar_decomp(m2 m, m2* R, m2* S) {
     f32 x = m.x.x + m.y.y;
     f32 y = m.y.x - m.x.y;
-    f32 scale = 1.0f / f32_sqrt(x * x + y * y);
+    f32 scale = 1.0f / sqrt(x * x + y * y);
     f32 c = x * scale, s = y * scale;
 
     R->x.x = c;
@@ -929,7 +918,7 @@ inline m4 m4_identity(void) {
     };
 }
 
-inline m4 m4_transpose(m4 N) {
+inline m4 transpose(m4 N) {
     return {
         N.array[0], N.array[4], N.array[8],  N.array[12],
 	    N.array[1], N.array[5], N.array[9],  N.array[13],
@@ -1103,9 +1092,9 @@ inline m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
 }
 
 inline m4 m4_look_at(v3 eye, v3 center, v3 up) {
-    v3 f = v3_norm(center - eye);
-    v3 s = v3_norm(v3_cross(f, up));
-	v3 t = v3_cross(s, f);
+    v3 f = norm(center - eye);
+    v3 s = norm(cross(f, up));
+	v3 t = cross(s, f);
 
     m4 M;
 
@@ -1168,8 +1157,8 @@ inline m4 m4_from_quat(Quat q) {
 
 
 inline m4 m4_dir(v3 dir, v3 up) {
-    v3 left = v3_norm(v3_cross(up, dir));
-    v3 cup = v3_norm(v3_cross(dir, left));
+    v3 left = norm(cross(up, dir));
+    v3 cup = norm(cross(dir, left));
 
     return {
         cup.x, left.x, dir.x, 0,
@@ -1179,7 +1168,7 @@ inline m4 m4_dir(v3 dir, v3 up) {
     };
 }
 
-inline m4 m4_invert(m4 M) {
+inline m4 invert(m4 M) {
 	f32 s[6], c[6];
 
 	s[0] = M.array[0] * M.array[5] - M.array[4] * M.array[1];
@@ -1228,7 +1217,7 @@ inline Quat quat_identity(void) {
 }
 
 inline Quat quat_make(f32 x, f32 y, f32 z, f32 angle) {
-    f32 inv_len = f32_rsqrt((x * x) + (y * y) + (z * z));
+    f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
     f32 s = inv_len * sin(angle / 2.0f);
 
     return {
@@ -1309,15 +1298,15 @@ inline bool operator!=(v2i a, v2i b) {
     return a.x != b.x || a.y != b.y;
 }
 
-inline i32 v2i_dist_sq(v2i a, v2i b) {
+inline i32 dist_sq(v2i a, v2i b) {
     v2i d = a - b;
     return d.x * d.x + d.y * d.y;
 }
 
-inline v2i v2i_clamp(v2i a, i32 min, i32 max) {
+inline v2i clamp(v2i a, i32 min, i32 max) {
     return {
-        i32_clamp(a.x, min, max),
-        i32_clamp(a.y, min, max),
+        clamp(a.x, min, max),
+        clamp(a.y, min, max),
     };
 }
 
@@ -1355,7 +1344,7 @@ inline v3i operator/(v3i a, i32 s) {
     return { a.x / s, a.y / s, a.z / s };
 }
 
-inline i32 v3i_dist_sq(v3i a, v3i b) {
+inline i32 dist_sq(v3i a, v3i b) {
     v3i d = a - b;
     return d.x * d.x + d.y * d.y + d.z * d.z;
 }
@@ -1399,17 +1388,17 @@ struct Circle {
     f32 rad;
 };
 
-inline b32 circle_intersect(Circle a, Circle b) {
+inline b32 intersect(Circle a, Circle b) {
     v2 d = b.pos - a.pos;
     f32 rt = a.rad + b.rad;
 
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v2 circle_get_intersect_vector(Circle a, Circle b) {
+inline v2 get_intersect_vector(Circle a, Circle b) {
     v2 delta = b.pos - a.pos;
 
-    f32 depth = v2_len(delta) - (a.rad + b.rad);
+    f32 depth = len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -1421,17 +1410,17 @@ struct Sphere {
     f32 rad;
 };
 
-inline b32 sphere_intersect(Sphere a, Sphere b) {
+inline b32 intersect(Sphere a, Sphere b) {
     v3 d = b.pos - a.pos;
     f32 rt = a.rad + b.rad;
 
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v3 sphere_get_intersect_vector(Sphere a, Sphere b) {
+inline v3 get_intersect_vector(Sphere a, Sphere b) {
     v3 delta = b.pos - a.pos;
 
-    f32 depth = v3_len(delta) - (a.rad + b.rad);
+    f32 depth = len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -1443,36 +1432,36 @@ struct Rect {
     v2 max;
 };
 
-inline b32 rect_contains(Rect rect, v2 pos) {
+inline b32 contains(Rect rect, v2 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
 
     return true;
 }
 
-inline b32 rect_intersect(Rect a, Rect b) {
+inline b32 intersect(Rect a, Rect b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
     return true;
 }
 
-inline Rect rect_get_overlap(Rect a, Rect b) {
+inline Rect get_overlap(Rect a, Rect b) {
     return {
-        v2_max(a.min, b.min),
-        v2_min(a.max, b.max)
+        max(a.min, b.min),
+        min(a.max, b.max)
     };
 }
 
-inline v2 rect_get_intersect_vector(Rect a, Rect b) {
-    Rect o = rect_get_overlap(a, b);
+inline v2 get_intersect_vector(Rect a, Rect b) {
+    Rect o = get_overlap(a, b);
 
     v2 delta = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    return V2(f32_sign(delta.x), f32_sign(delta.y)) * (o.max - o.min);
+    return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
 }
 
-static Rect rect_move(Rect r, v2 offset) {
+static Rect move(Rect r, v2 offset) {
     return {
         .min = r.min + offset,
         .max = r.max + offset,
@@ -1486,7 +1475,7 @@ struct Box {
     v3 max;
 };
 
-inline b32 box_contains(Box rect, v3 pos) {
+inline b32 contains(Box rect, v3 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     if (pos.z < rect.min.z || pos.y > rect.max.z) return false;
@@ -1494,7 +1483,7 @@ inline b32 box_contains(Box rect, v3 pos) {
     return true;
 }
 
-inline b32 box_intersect(Box a, Box b) {
+inline b32 intersect(Box a, Box b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     if (a.min.z > b.max.y || a.max.z < b.min.z) return false;
@@ -1502,19 +1491,19 @@ inline b32 box_intersect(Box a, Box b) {
     return true;
 }
 
-inline Box box_get_overlap(Box a, Box b) {
+inline Box get_overlap(Box a, Box b) {
     return {
-        v3_max(a.min, b.min),
-        v3_min(a.max, b.max)
+        max(a.min, b.min),
+        min(a.max, b.max)
     };
 }
 
-inline v3 box_get_intersect_vector(Box a, Box b) {
-    Box o = box_get_overlap(a, b);
+inline v3 get_intersect_vector(Box a, Box b) {
+    Box o = get_overlap(a, b);
 
     v3 delta = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    return V3(f32_sign(delta.x), f32_sign(delta.y), f32_sign(delta.z)) * (o.max - o.min);
+    return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
 }
 
 // ================================================= COLOR PACKING =========================================== //
@@ -1588,11 +1577,11 @@ inline f32 rand_f32(f32 min, f32 max) {
 }
 
 inline v2 rand_v2(void) {
-    return v2_norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
+    return norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
 }
 
 inline v3 rand_v3(void) {
-    return v3_norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
+    return norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
 }
 
 inline v2 rand_v2(f32 min, f32 max) {
@@ -1708,7 +1697,7 @@ inline u32 allocate_str(u32 size) {
     u32 new_idx = idx + size + 1;
 
     if (new_idx >= arena->cap) {
-        arena->cap = arena->cap? i32_max(arena->cap << 1, new_idx) : i32_max(2048, new_idx);
+        arena->cap = arena->cap? max(arena->cap << 1, new_idx) : max(2048, new_idx);
         arena->buf = (char*)realloc(arena->buf, arena->cap);
     }
 
@@ -3721,12 +3710,12 @@ inline void ce_push_box_rot_mat(v3 pos, v3 rad, m2 R, v4 color) {
 
 inline void ce_push_line(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
     v2 line = p1 - p0;
-    f32 line_length = v2_len(line);
+    f32 line_length = len(line);
 
     v2 line_pos = p0 + 0.5f * line;
 
     v2 axis = { 0.0f, -1.0f };
-    f32 rot = v2_get_angle(axis, line);
+    f32 rot = get_angle(axis, line);
 
     v3 pos = V3(line_pos, z);
     v3 scale = V3(rad, 0.5f * line_length, rad);

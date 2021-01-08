@@ -37,8 +37,8 @@ static void audio_init(void) {
     cs_spawn_mix_thread(audio.context);
     cs_thread_sleep_delay(audio.context, 16);
     
-    audio.pitch_plugin = csp_get_pitch_plugin();
-    audio.pitch_id = cs_add_plugin(audio.context, &audio.pitch_plugin);
+    audio.pitch_plugin  = csp_get_pitch_plugin();
+    audio.pitch_id      = cs_add_plugin(audio.context, &audio.pitch_plugin);
 }
 
 #define get_audio(name) get_audio_internal(name, AUDIO_PATH name ".wav")
@@ -48,8 +48,8 @@ struct Audio_ID {
 };
 
 static Audio_ID get_audio_internal(const char* name, const char* path) {
-    u32 hash = hash_cstr(name);
-    u16 index = hash & (AUDIO_TABLE_SIZE - 1);
+    u32 hash    = hash_cstr(name);
+    u16 index   = hash & (AUDIO_TABLE_SIZE - 1);
     
     if (index == 0) index++;
     
@@ -145,13 +145,13 @@ static void play_music(Audio_ID id, f32 volume = 1.0) {
 }
 
 static void play_audio_from_source(Audio_ID id, v3 pos, v3 dir, v3 source, f32 volume = 1.0, f32 max_distance = 16.0) {
-    f32 sound_distance = v3_dist(pos, source);
-    f32 final_volume = volume * f32_max(1 - sound_distance / max_distance, 0);
+    f32 sound_distance  = dist(pos, source);
+    f32 final_volume    = volume * max(1 - sound_distance / max_distance, 0);
 
     if (final_volume <= 0) return;
 
     if (Audio_Entry* entry = audio_get_entry(id)) {
-        f32 pan = v2_get_angle(dir.xy, v2_norm(source.xy - pos.xy)) / PI;
+        f32 pan = get_angle(dir.xy, norm(source.xy - pos.xy)) / PI;
 
         if(pan > 0.5f) pan = 1.0f - pan;
         if(pan <-0.5f) pan =-1.0f - pan;
