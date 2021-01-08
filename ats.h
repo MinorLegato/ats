@@ -2850,7 +2850,7 @@ inline u32 shader_link_program_v(u32 vertex_shader) {
     return shader_program;
 }
 
-inline Shader shader_load_from_memory(const char *vs, const char *fs, const char *gs) {
+inline Shader shader_load_from_memory(const char *vs, const char *fs, const char *gs = NULL) {
     Shader shader = {};
 
     if (vs != NULL && fs != NULL && gs != NULL) {
@@ -3903,6 +3903,122 @@ inline v3 ce_get_world_position(int x, int y) {
 
 #endif // ATS_CUBE_ENGINE
 
+// ======================================= TEXTURES ======================================== //
+
+#if defined(ATS_PLATFORM_GLFW)
+
+#ifdef STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#include "dep/stb_image.h" 
+
+struct Image {
+    int width;
+    int height;
+
+    u32* pixels;
+};
+
+inline Image image_load_from_file(const char* path) {
+    Image image     = {};
+    i32   channels  = 0;
+    image.pixels    = (u32*)stbi_load(path, &image.width, &image.height, &channels, 0);
+
+    assert(image.pixels);
+
+    return image;
+}
+
+#endif
+
+struct Texture {
+    u32 id;
+    int width;
+    int height;
+};
+
+inline Texture texture_create(void *pixels, int width, int height, int is_smooth) {
+    assert(pixels);
+
+    Texture texture = {0};
+
+    texture.width = width;
+    texture.height = height;
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+#ifdef ATS_MODERN_OPENGL 
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+
+    return texture;
+}
+
+inline void texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth) {
+    texture->width = width;
+    texture->height = height;
+
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+#ifdef ATS_MODERN_OPENGL 
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+}
+
+#ifdef STB_IMAGE_IMPLEMENTATION
+inline Texture texture_load_from_file(const char *texture_path, int is_smooth) {
+    Texture         texture     = {};
+    i32             channels    = 0;
+    unsigned char*  pixels      = NULL;
+
+    pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 0);
+
+    assert(pixels);
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+
+#ifdef ATS_MODERN_OPENGL 
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+
+    stbi_image_free(pixels);
+
+    return texture;
+}
+#endif
+
+inline void texture_bind(const Texture *texture) {
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+
+    glMatrixMode(GL_TEXTURE);
+
+    glLoadIdentity();
+    glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
+
+    glMatrixMode(GL_MODELVIEW);
+}
+
+inline void texture_delete(Texture* texture) {
+    glDeleteTextures(1, &texture->id);
+    
+    memset(texture, 0, sizeof *texture);
+}
+
+#endif
+
 // ============================================ RENDER (LEGACY OPENGL) ============================================ //
 
 #if defined(ATS_PLATFORM_GLFW) && !defined(ATS_MODERN_OPENGL)
@@ -4219,106 +4335,6 @@ inline v3 gl_get_world_position(int x, int y) {
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
     return V3(result[0], result[1], result[2]);
-}
-
-// ======================================= TEXTURES ======================================== //
-
-#ifdef STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
-#include "dep/stb_image.h" 
-
-struct Image {
-    int width;
-    int height;
-
-    u32* pixels;
-};
-
-inline Image image_load_from_file(const char* path) {
-    Image image     = {};
-    i32   channels  = 0;
-    image.pixels    = (u32*)stbi_load(path, &image.width, &image.height, &channels, 0);
-
-    assert(image.pixels);
-
-    return image;
-}
-
-#endif
-
-struct Texture {
-    u32 id;
-    int width;
-    int height;
-};
-
-inline Texture texture_create(void *pixels, int width, int height, int is_smooth) {
-    assert(pixels);
-
-    Texture texture = {0};
-
-    texture.width = width;
-    texture.height = height;
-
-    glGenTextures(1, &texture.id);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-
-    return texture;
-}
-
-inline void texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth) {
-    texture->width = width;
-    texture->height = height;
-
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-}
-
-#ifdef STB_IMAGE_IMPLEMENTATION
-inline Texture texture_load_from_file(const char *texture_path, int is_smooth) {
-    Texture         texture     = {};
-    i32             channels    = 0;
-    unsigned char*  pixels      = NULL;
-
-    pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 0);
-
-    assert(pixels);
-
-    glGenTextures(1, &texture.id);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
-
-    stbi_image_free(pixels);
-
-    return texture;
-}
-#endif
-
-inline void texture_bind(const Texture *texture) {
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-
-    glMatrixMode(GL_TEXTURE);
-
-    glLoadIdentity();
-    glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
-
-    glMatrixMode(GL_MODELVIEW);
-}
-
-inline void texture_delete(Texture* texture) {
-    glDeleteTextures(1, &texture->id);
-    
-    memset(texture, 0, sizeof *texture);
 }
 
 int bitmap_display_list[BITMAP_COUNT];
