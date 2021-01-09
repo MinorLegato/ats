@@ -27,6 +27,8 @@ struct Scoped_Timer {
     }
 };
 
+#if 0
+
 void render_timer_log(v2 text_pos, v2 text_scale, b32 show = true) {
     if (show) {
         for (u32 i = 0; i < timer_log_count; ++i) {
@@ -36,6 +38,8 @@ void render_timer_log(v2 text_pos, v2 text_scale, b32 show = true) {
 
     timer_log_count = 0;
 }
+
+#endif
 
 #define SCOPED_TIMER(str, function, ...) { Scoped_Timer timer(str); function(__VA_ARGS__); }
 

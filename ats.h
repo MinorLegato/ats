@@ -2891,42 +2891,52 @@ inline void shader_use(Shader shader) {
 }
 
 inline u32 shader_get_location(Shader shader, const char *var_name) {
+    glUseProgram(shader.program);
     return glGetUniformLocation(shader.program, var_name);
 }
 
 inline void shader_set(Shader shader, const char *loc, int n) {
+    glUseProgram(shader.program);
     glUniform1i(glGetUniformLocation(shader.program, loc), n);
 }
 
 inline void shader_set(Shader shader, const char *loc, f32 n) {
+    glUseProgram(shader.program);
     glUniform1f(glGetUniformLocation(shader.program, loc), n);
 }
 
 inline void shader_set(Shader shader, const char *loc, f32 a, f32 b) {
+    glUseProgram(shader.program);
     glUniform2f(glGetUniformLocation(shader.program, loc), a, b);
 }
 
 inline void shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c) {
+    glUseProgram(shader.program);
     glUniform3f(glGetUniformLocation(shader.program, loc), a, b, c);
 }
 
 inline void shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c, f32 d) {
+    glUseProgram(shader.program);
     glUniform4f(glGetUniformLocation(shader.program, loc), a, b, c, d);
 }
 
 inline void shader_set(Shader shader, const char *loc, v2 u) {
+    glUseProgram(shader.program);
     glUniform2fv(glGetUniformLocation(shader.program, loc), 1, u.array);
 }
 
 inline void shader_set(Shader shader, const char *loc, v3 u) {
+    glUseProgram(shader.program);
     glUniform3fv(glGetUniformLocation(shader.program, loc), 1, u.array);
 }
 
 inline void shader_set(Shader shader, const char *loc, v4 u) {
+    glUseProgram(shader.program);
     glUniform4fv(glGetUniformLocation(shader.program, loc), 1, u.array);
 }
 
 inline void shader_set(Shader shader, const char *loc, m4 m) {
+    glUseProgram(shader.program);
     glUniformMatrix4fv(glGetUniformLocation(shader.program, loc), 1, GL_FALSE, m.array);
 }
 
