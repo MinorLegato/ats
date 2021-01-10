@@ -1461,10 +1461,10 @@ inline v2 get_intersect_vector(Rect a, Rect b) {
     return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
 }
 
-static Rect move(Rect r, v2 offset) {
+inline Rect move(Rect rect, v2 offset) {
     return {
-        .min = r.min + offset,
-        .max = r.max + offset,
+        .min = rect.min + offset,
+        .max = rect.max + offset,
     };
 }
 
@@ -1504,6 +1504,13 @@ inline v3 get_intersect_vector(Box a, Box b) {
     v3 delta = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
+}
+
+inline Box move(Box box, v3 offset) {
+    return {
+        .min = box.min + offset,
+        .max = box.max + offset,
+    };
 }
 
 // ================================================= COLOR PACKING =========================================== //
