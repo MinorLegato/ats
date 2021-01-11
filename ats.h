@@ -1478,7 +1478,7 @@ struct Box {
 inline b32 contains(Box rect, v3 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-    if (pos.z < rect.min.z || pos.y > rect.max.z) return false;
+    if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
 
     return true;
 }
@@ -1486,7 +1486,7 @@ inline b32 contains(Box rect, v3 pos) {
 inline b32 intersect(Box a, Box b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-    if (a.min.z > b.max.y || a.max.z < b.min.z) return false;
+    if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
 
     return true;
 }
