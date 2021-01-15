@@ -126,7 +126,7 @@ static u32 load_texture_directory(const char* dir_path) {
             .max = { 1024, 1024 },
         };
 
-        b32 split_vertical = false;
+        b32 split_vertical = true;
 
         for (i32 i = 0; i < image_count; ++i) {
             auto [image, name] = image_array[i];
