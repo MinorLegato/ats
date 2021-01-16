@@ -1286,6 +1286,10 @@ inline v2i operator*(v2i a, i32 s) {
     return { a.x * s, a.y * s };
 }
 
+inline v2i operator*(i32 s, v2i a) {
+    return { a.x * s, a.y * s };
+}
+
 inline v2i operator/(v2i a, i32 s) {
     return { a.x / s, a.y / s };
 }
@@ -1296,6 +1300,14 @@ inline bool operator==(v2i a, v2i b) {
 
 inline bool operator!=(v2i a, v2i b) {
     return a.x != b.x || a.y != b.y;
+}
+
+inline v2i operator+=(v2i& a, v2i b) {
+    return a = a + b;
+}
+
+inline v2i operator-=(v2i& a, v2i b) {
+    return a = a - b;
 }
 
 inline i32 dist_sq(v2i a, v2i b) {
