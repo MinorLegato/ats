@@ -1615,6 +1615,46 @@ inline Quat rand_quat(void) {
     return quat_make(rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-PI, PI));
 }
 
+// =================================== XORSHIFT32 ============================================= //
+
+inline u32 rand_u32(u32* state) {
+	u32 x = *state;
+
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 5;
+
+	return *state = x;
+}
+
+inline i32 rand_i32(u32* state, i32 min, i32 max) {
+    return min + rand_u32(state) % (max - min);
+}
+
+inline f32 rand_f32(u32* state, f32 min, f32 max) {
+    return min + ((f32)rand_u32(state) / (f32)0xFFFFFFFF) * (max - min); 
+}
+
+inline v2 rand_v2(u32* state) {
+    return norm(V2(rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
+}
+
+inline v3 rand_v3(u32* state) {
+    return norm(V3(rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
+}
+
+inline v2 rand_v2(u32* state, f32 min, f32 max) {
+    return rand_f32(state, min, max) * rand_v2(state);
+}
+
+inline v3 rand_v3(u32* state, f32 min, f32 max) {
+    return rand_f32(state, min, max) * rand_v3(state);
+}
+
+inline Quat rand_quat(u32* state) {
+    return quat_make(rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -PI, PI));
+}
+
 // ============================ RANDOM(HASH) FUNCTION ======================= //
 
 inline u32 hash_u32(u32 a) {
