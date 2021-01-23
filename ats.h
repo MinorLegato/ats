@@ -2487,52 +2487,52 @@ enum MouseMode {
 // ===========================================================  PLATFORM =================================================== //
 
 struct Platform {
-    b32 close;
+    b32     close;
 
-    i32 width;
-    i32 height;
-    f32 aspect_ratio;
+    i32     width;
+    i32     height;
+    f32     aspect_ratio;
 
-    HWND native;
+    HWND    native;
 
-    b32 fullscreen;
-    b32 _fullscreen_state_last_update;
+    b32     fullscreen;
+    b32     _fullscreen_state_last_update;
 
     struct Time {
-        f64 total;
-        f64 delta;
+        f64     total;
+        f64     delta;
     } time;
 
     struct Mouse {
-        u32 mode;
+        u32     mode;
 
-        b32 is_down : 1;
-        b32 is_pressed : 1;
-        b32 is_released : 1;
+        b32     is_down : 1;
+        b32     is_pressed : 1;
+        b32     is_released : 1;
 
-        v2 pos;
-        v2 delta;
-        v2 scroll;
+        v2      pos;
+        v2      delta;
+        v2      scroll;
 
-        b8 state[MOUSE_BUTTON_LAST + 1];
-        b8 pressed[MOUSE_BUTTON_LAST + 1];
-        b8 released[MOUSE_BUTTON_LAST + 1];
+        b8      state[MOUSE_BUTTON_LAST + 1];
+        b8      pressed[MOUSE_BUTTON_LAST + 1];
+        b8      released[MOUSE_BUTTON_LAST + 1];
     } mouse;
 
     struct Keyboard {
-        i32 key;
-        i32 ascii;
+        i32     key;
+        i32     ascii;
 
-        b32 is_down : 1;
-        b32 is_pressed : 1;
-        b32 is_repeat : 1;
-        b32 is_released : 1;
-        b32 is_ascii : 1;
+        b32     is_down : 1;
+        b32     is_pressed : 1;
+        b32     is_repeat : 1;
+        b32     is_released : 1;
+        b32     is_ascii : 1;
     
-        b8 state[KEY_LAST + 1];
-        b8 pressed[KEY_LAST + 1];
-        b8 repeat[KEY_LAST + 1];
-        b8 released[KEY_LAST + 1];
+        b8      state[KEY_LAST + 1];
+        b8      pressed[KEY_LAST + 1];
+        b8      repeat[KEY_LAST + 1];
+        b8      released[KEY_LAST + 1];
     } keyboard;
 
     Gamepad gamepad[JOYSTICK_LAST];
