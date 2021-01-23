@@ -1155,10 +1155,9 @@ inline m4 m4_from_quat(Quat q) {
     };
 }
 
-
 inline m4 m4_dir(v3 dir, v3 up) {
     v3 left = norm(cross(up, dir));
-    v3 cup = norm(cross(dir, left));
+    v3 cup  = norm(cross(dir, left));
 
     return {
         cup.x, left.x, dir.x, 0,
@@ -1396,21 +1395,20 @@ inline v4i operator/(v4i a, i32 s) {
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
 struct Circle {
-    v2 pos;
-    f32 rad;
+    v2      pos;
+    f32     rad;
 };
 
 inline b32 intersect(Circle a, Circle b) {
-    v2 d = b.pos - a.pos;
-    f32 rt = a.rad + b.rad;
+    v2  d   = b.pos - a.pos;
+    f32 rt  = a.rad + b.rad;
 
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
 inline v2 get_intersect_vector(Circle a, Circle b) {
-    v2 delta = b.pos - a.pos;
-
-    f32 depth = len(delta) - (a.rad + b.rad);
+    v2  delta   = b.pos - a.pos;
+    f32 depth   = len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -1418,21 +1416,20 @@ inline v2 get_intersect_vector(Circle a, Circle b) {
 // --------------------------------------- SHPERE ------------------------------------ //
 
 struct Sphere {
-    v3 pos;
-    f32 rad;
+    v3      pos;
+    f32     rad;
 };
 
 inline b32 intersect(Sphere a, Sphere b) {
-    v3 d = b.pos - a.pos;
-    f32 rt = a.rad + b.rad;
+    v3  d   = b.pos - a.pos;
+    f32 rt  = a.rad + b.rad;
 
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
 inline v3 get_intersect_vector(Sphere a, Sphere b) {
-    v3 delta = b.pos - a.pos;
-
-    f32 depth = len(delta) - (a.rad + b.rad);
+    v3  delta   = b.pos - a.pos;
+    f32 depth   = len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -1440,8 +1437,8 @@ inline v3 get_intersect_vector(Sphere a, Sphere b) {
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
 struct Rect {
-    v2 min;
-    v2 max;
+    v2  min;
+    v2  max;
 };
 
 inline b32 contains(Rect rect, v2 pos) {
@@ -1466,9 +1463,8 @@ inline Rect get_overlap(Rect a, Rect b) {
 }
 
 inline v2 get_intersect_vector(Rect a, Rect b) {
-    Rect o = get_overlap(a, b);
-
-    v2 delta = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+    Rect o      = get_overlap(a, b);
+    v2   delta  = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
 }
@@ -1483,8 +1479,8 @@ inline Rect move(Rect rect, v2 offset) {
 // ----------------------------------------- BOX --------------------------------------- //
 
 struct Box {
-    v3 min;
-    v3 max;
+    v3  min;
+    v3  max;
 };
 
 inline b32 contains(Box rect, v3 pos) {
@@ -1511,9 +1507,8 @@ inline Box get_overlap(Box a, Box b) {
 }
 
 inline v3 get_intersect_vector(Box a, Box b) {
-    Box o = get_overlap(a, b);
-
-    v3 delta = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+    Box o       = get_overlap(a, b);
+    v3  delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
 }
@@ -1558,9 +1553,9 @@ inline u32 pack_color(v3 color, f32 a = 1.0) {
 // random number generator: xorshf96
 
 struct Rnd_Gen {
-    u32 x;
-    u32 y;
-    u32 z;
+    u32     x;
+    u32     y;
+    u32     z;
 };
 
 inline u32 next_random(Rnd_Gen* g) {
@@ -1679,12 +1674,12 @@ inline u32 hash_cstr(const char *str) {
 // ================================================= MEMORY ============================================== //
 
 struct Memory_Arena {
-    u32 cap;
-    u32 idx;
-    u8* buf;
+    u32     cap;
+    u32     idx;
+    u8*     buf;
 
-    u32 count;
-    u32 stack[8];
+    u32     count;
+    u32     stack[8];
 };
 
 inline void init_arena(Memory_Arena* arena, u8* memory, u32 cap) {
@@ -1853,10 +1848,9 @@ inline Str append(Str a, Str b) {
 }
 
 inline Str append(Str a, const char* b) {
-    u32 b_len = strlen(b);
-    u32 n_len = a.len() + b_len;
-
-    Str c = make_str(n_len);
+    u32 b_len   = strlen(b);
+    u32 n_len   = a.len() + b_len;
+    Str c       = make_str(n_len);
 
     u32 j = 0;
     for (u32 i = 0; i < a.len(); ++i) c[j++] = a[i];
@@ -1866,10 +1860,9 @@ inline Str append(Str a, const char* b) {
 }
 
 inline Str append(const char* b, Str a) {
-    u32 b_len = strlen(b);
-    u32 n_len = a.len() + b_len;
-
-    Str c = make_str(n_len);
+    u32 b_len   = strlen(b);
+    u32 n_len   = a.len() + b_len;
+    Str c       = make_str(n_len);
 
     u32 j = 0;
     for (u32 i = 0; i < b_len; ++i)   c[j++] = b[i];
@@ -2015,7 +2008,7 @@ inline b32 file_append_cstr(const char* file_name, const char* buffer) {
 
     if (fopen_s(&fp, file_name, "a") == 0) {
         size_t size = strlen(buffer);
-        size_t n = fwrite(buffer, 1, size, fp);
+        size_t n    = fwrite(buffer, 1, size, fp);
 
         fclose(fp);
 
@@ -2187,9 +2180,9 @@ inline b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* model
     fTempo[5] *= fTempo[7];
     fTempo[6] *= fTempo[7];
 
-    result[0] =(fTempo[4] * 0.5f + 0.5f) * viewport[2] + viewport[0];
-    result[1] =(fTempo[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
-    result[2] =(1.0f + fTempo[6]) * 0.5f;
+    result[0] = (fTempo[4] * 0.5f + 0.5f) * viewport[2] + viewport[0];
+    result[1] = (fTempo[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
+    result[2] = (1.0f + fTempo[6]) * 0.5f;
 
     return true;
 }
@@ -3630,8 +3623,7 @@ inline void ce_render_no_light(int type, const Vertex* vertex_array, int vertex_
         glViewport(0, 0, platform.width, platform.height);
 
         shader_use(ce_shader_no_light);
-
-        shader_set(ce_shader, "PV", ce_projection_view);
+        shader_set(ce_shader_no_light, "PV", ce_projection_view);
 
         // render:
         ce_set_vertex_array(vertex_array, vertex_count);
@@ -3778,16 +3770,15 @@ inline void ce_push_box_rot_mat(v3 pos, v3 rad, m2 R, v4 color) {
 }
 
 inline void ce_push_line(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
-    v2 line = p1 - p0;
+    v2 line         = p1 - p0;
     f32 line_length = len(line);
 
     v2 line_pos = p0 + 0.5f * line;
 
-    v2 axis = { 0.0f, -1.0f };
-    f32 rot = get_angle(axis, line);
-
-    v3 pos = V3(line_pos, z);
-    v3 scale = V3(rad, 0.5f * line_length, rad);
+    v2  axis    = { 0.0f, -1.0f };
+    f32 rot     = get_angle(axis, line);
+    v3  pos     = V3(line_pos, z);
+    v3  scale   = V3(rad, 0.5f * line_length, rad);
 
     ce_push_box_rot(pos, scale, rot, color);
 }
@@ -3797,8 +3788,8 @@ inline void ce_clear(void) {
 }
 
 inline void ce_init(void) {
-    ce_shader = shader_load_from_memory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
-    ce_shader_no_light = shader_load_from_memory(ce_shader_vertex, ce_shader_fragment, NULL);
+    ce_shader           = shader_load_from_memory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
+    ce_shader_no_light  = shader_load_from_memory(ce_shader_vertex, ce_shader_fragment, NULL);
 
     // init opengl:
     {
