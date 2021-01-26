@@ -250,7 +250,11 @@ struct Array {
 
     inline T*   add     ()              { ensure_next(); return new (&buf[len++]) T(); }
     inline void add     (const T& e)    { ensure_next(); buf[len++] = e; }
+    inline void remove  (u32 i)         { assert(i < len); buf[i] = buf[--len]; }
+
     inline void ensure  (u32 size)      { if (size > cap) { cap = size; buf = (T*)realloc(buf, cap * sizeof (T)); assert(buf); } }
+    inline void clear   ()              { len = 0; }
+    inline void free    ()              { if (buf) ::free(buf); }
 
     inline T*       get(u32 i)       { assert(i < len); return &buf[i]; };
     inline const T* get(u32 i) const { assert(i < len); return &buf[i]; };
@@ -273,6 +277,58 @@ private:
     inline void ensure_next() { if (len + 1 > cap) ensure(max(INIT_SIZE, cap << 1)); }
 };
 
+template <typename T, u32 N>
+struct Fixed_Array {
+    static constexpr u32 CAPACITY = N;
+
+    u32     len     = 0;
+    T       buf[N];
+
+    inline T*   add     ()              { return len < N? new (&buf[len++]) T() : nullptr; }
+    inline void add     (const T& e)    { assert(len < N); buf[len++] = e; }
+    inline void remove  (u32 i)         { assert(i < len); buf[i] = buf[--len]; }
+    inline void clear   ()              { len = 0; }
+
+    inline T*       get(u32 i)       { assert(i < len); return &buf[i]; };
+    inline const T* get(u32 i) const { assert(i < len); return &buf[i]; };
+
+    inline T*       ptr()       { return buf; };
+    inline const T* ptr() const { return buf; };
+
+    inline T&       operator[](u32 i)       { assert(i < len); return buf[i]; }
+    inline const T& operator[](u32 i) const { assert(i < len); return buf[i]; }
+
+    inline i32      size() const { return len; }
+
+    inline T*       begin()       { return buf; }
+    inline const T* begin() const { return buf; }
+
+    inline T*       end()       { return buf + len; }
+    inline const T* end() const { return buf + len; }
+};
+
+template <u32 N>
+struct Fixed_Bit_Set {
+    u32 buf[N / 32 + 1];
+
+    inline bool get(u32 i) const { return buf[i >> 5] & (1 << (i & 31)); }
+    inline void set(u32 i)       { buf[i >> 5] |= (1 << (i & 31)); }
+};
+
+template <u32 W, u32 H>
+struct Fixed_Bit_Set_2D {
+    u32 buf[(W * H) / 32 + 1];
+
+    inline bool get(u32 x, u32 y) const {
+        u32 i = y * W + x;
+        return buf[i >> 5] & (1 << (i & 31));
+    }
+
+    inline void set(u32 x, u32 y) {
+        u32 i = y * W + x;
+        buf[i >> 5] |= (1 << (i & 31));
+    }
+};
 
 // ==================================================  MATHS ================================================== //
 
