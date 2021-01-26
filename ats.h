@@ -255,10 +255,13 @@ struct Array {
     inline T*       get(u32 i)       { assert(i < len); return &buf[i]; };
     inline const T* get(u32 i) const { assert(i < len); return &buf[i]; };
 
+    inline T*       ptr()       { return buf; };
+    inline const T* ptr() const { return buf; };
+
     inline T&       operator[](u32 i)       { assert(i < len); return buf[i]; }
     inline const T& operator[](u32 i) const { assert(i < len); return buf[i]; }
 
-    inline i32 size() const { return len; }
+    inline i32      size() const { return len; }
 
     inline T*       begin()       { return buf; }
     inline const T* begin() const { return buf; }
