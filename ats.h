@@ -1685,6 +1685,117 @@ inline Box move(Box box, v3 offset) {
     };
 }
 
+struct Plane {
+    f32     a;
+    f32     b;
+    f32     c;
+    f32     d;
+};
+
+inline Plane normalize_plane(Plane plane) {
+    float mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
+
+    plane.a = plane.a / mag;
+    plane.b = plane.b / mag;
+    plane.c = plane.c / mag;
+    plane.d = plane.d / mag;
+
+    return plane;
+}
+
+struct Frustum {
+    Plane   plane[6];
+};
+
+inline Frustum extract_planes(m4 combo_matrix, bool normalize = true) {
+    Frustum frustum = {};
+
+    // left clipping plane
+    frustum.plane[0].a = combo_matrix.x.w + combo_matrix.x.x;
+    frustum.plane[0].b = combo_matrix.y.w + combo_matrix.y.x;
+    frustum.plane[0].c = combo_matrix.z.w + combo_matrix.z.x;
+    frustum.plane[0].d = combo_matrix.w.w + combo_matrix.w.x;
+
+    // right clipping plane
+    frustum.plane[1].a = combo_matrix.x.w - combo_matrix.x.x;
+    frustum.plane[1].b = combo_matrix.y.w - combo_matrix.y.x;
+    frustum.plane[1].c = combo_matrix.z.w - combo_matrix.z.x;
+    frustum.plane[1].d = combo_matrix.w.w - combo_matrix.w.x;
+
+    // top clipping plane
+    frustum.plane[2].a = combo_matrix.x.w - combo_matrix.x.y;
+    frustum.plane[2].b = combo_matrix.y.w - combo_matrix.y.y;
+    frustum.plane[2].c = combo_matrix.z.w - combo_matrix.z.y;
+    frustum.plane[2].d = combo_matrix.w.w - combo_matrix.w.y;
+
+    // bottom clipping plane
+    frustum.plane[3].a = combo_matrix.x.w + combo_matrix.x.y;
+    frustum.plane[3].b = combo_matrix.y.w + combo_matrix.y.y;
+    frustum.plane[3].c = combo_matrix.z.w + combo_matrix.z.y;
+    frustum.plane[3].d = combo_matrix.w.w + combo_matrix.w.y;
+
+    // near clipping plane
+    frustum.plane[4].a = combo_matrix.x.w + combo_matrix.x.z;
+    frustum.plane[4].b = combo_matrix.y.w + combo_matrix.y.z;
+    frustum.plane[4].c = combo_matrix.z.w + combo_matrix.z.z;
+    frustum.plane[4].d = combo_matrix.w.w + combo_matrix.w.z;
+
+    // far clipping plane
+    frustum.plane[5].a = combo_matrix.x.w - combo_matrix.x.z;
+    frustum.plane[5].b = combo_matrix.y.w - combo_matrix.y.z;
+    frustum.plane[5].c = combo_matrix.z.w - combo_matrix.z.z;
+    frustum.plane[5].d = combo_matrix.w.w - combo_matrix.w.z;
+
+    // Normalize the plane equations, if requested
+    if (normalize == true) {
+        frustum.plane[0] = normalize_plane(frustum.plane[0]);
+        frustum.plane[1] = normalize_plane(frustum.plane[1]);
+        frustum.plane[2] = normalize_plane(frustum.plane[2]);
+        frustum.plane[3] = normalize_plane(frustum.plane[3]);
+        frustum.plane[4] = normalize_plane(frustum.plane[4]);
+        frustum.plane[5] = normalize_plane(frustum.plane[5]);
+    }
+    
+    return frustum;
+}
+
+inline bool contains(Frustum frustum, v3 pos) {
+    for(i32 i = 0; i < 6; i++ )	 {
+		if(frustum.plane[i].a * pos.x + frustum.plane[i].b * pos.y + frustum.plane[i].c * pos.z + frustum.plane[i].d <= 0) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+inline bool intersect(Frustum frustum, Sphere sphere) {
+    for(i32 i = 0; i < 6; i++ )	 {
+		if(frustum.plane[i].a * sphere.pos.x + frustum.plane[i].b * sphere.pos.y + frustum.plane[i].c * sphere.pos.z + frustum.plane[i].d <= -sphere.rad) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+inline bool intersect(Frustum frustum, Box box) {
+    for(int i = 0; i < 6; i++ ) {
+		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+
+		return false;
+	}
+
+	return true;
+}
+
 // ================================================= COLOR PACKING =========================================== //
 
 inline u32 pack_color(u8 r, u8 g, u8 b, u8 a) {
