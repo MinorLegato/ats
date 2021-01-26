@@ -42,6 +42,20 @@
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
+template <typename Func>
+struct Scope_Exit {
+public:
+    Scope_Exit(const Func& func) : func(func) {}
+    ~Scope_Exit() { func(); }
+private:
+    Func func;
+};
+
+#define JOIN_TOKEN_HELPER(A, B) A ## B
+#define JOIN_TOKEN(A, B) JOIN_TOKEN_HELPER(A, B)
+
+#define defer Scope_Exit [[maybe_unused]] JOIN_TOKEN(__defer__, __LINE__) = [&] ()
+
 // ================================================== TYPES ================================================= //
 
 typedef float f32;
@@ -131,7 +145,7 @@ union v4i {
     i32 array[4];
 };
 
-// --------------------------------------------- STATIC FUNCTIONS ---------------------------------------- //
+// --------------------------------------------- FUNCTIONS ---------------------------------------- //
 
 #define sqrt    __sqrt
 #define rsqrt   __rsqrt
@@ -227,6 +241,35 @@ inline T sign_or_zero(T n) {
 
     return 0;
 }
+
+template <typename T, u32 INIT_SIZE = 256>
+struct Array {
+    u32     len     = 0;
+    u32     cap     = 0;
+    T*      buf     = nullptr;
+
+    inline T*   add     ()              { ensure_next(); return new (&buf[len++]) T(); }
+    inline void add     (const T& e)    { ensure_next(); buf[len++] = e; }
+    inline void ensure  (u32 size)      { if (size > cap) { cap = size; buf = (T*)realloc(buf, cap * sizeof (T)); assert(buf); } }
+
+    inline T*       get(u32 i)       { assert(i < len); return &buf[i]; };
+    inline const T* get(u32 i) const { assert(i < len); return &buf[i]; };
+
+    inline T&       operator[](u32 i)       { assert(i < len); return buf[i]; }
+    inline const T& operator[](u32 i) const { assert(i < len); return buf[i]; }
+
+    inline i32 size() const { return len; }
+
+    inline T*       begin()       { return buf; }
+    inline const T* begin() const { return buf; }
+
+    inline T*       end()       { return buf + len; }
+    inline const T* end() const { return buf + len; }
+
+private:
+    inline void ensure_next() { if (len + 1 > cap) ensure(max(INIT_SIZE, cap << 1)); }
+};
+
 
 // ==================================================  MATHS ================================================== //
 
