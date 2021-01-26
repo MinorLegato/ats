@@ -308,7 +308,7 @@ struct Fixed_Array {
 };
 
 template <u32 N>
-struct Fixed_Bit_Set {
+struct Bit_Set {
     u32 buf[N / 32 + 1];
 
     inline bool get(u32 i) const { return buf[i >> 5] & (1 << (i & 31)); }
@@ -316,17 +316,73 @@ struct Fixed_Bit_Set {
 };
 
 template <u32 W, u32 H>
-struct Fixed_Bit_Set_2D {
-    u32 buf[(W * H) / 32 + 1];
+struct Bit_Map {
+    Bit_Set<W * H> buf;
 
-    inline bool get(u32 x, u32 y) const {
-        u32 i = y * W + x;
-        return buf[i >> 5] & (1 << (i & 31));
+    inline bool get(u32 x, u32 y) const { return buf.get(y * W + x); }
+    inline void set(u32 x, u32 y)       { buf.set(y * W + x); }
+};
+
+template <typename T, u32 N>
+struct Fifo_Queue {
+    i32     begin;
+    i32     end;
+    T       array[N];
+
+    inline bool empty   () const        { return begin == end; }
+    inline void clear   ()              { begin = end = 0; }
+    inline void push    (const T& e)    { array[end++] = e; }
+    inline T    pop     ()              { return array[begin++]; }
+};
+
+
+template <typename T, u32 N>
+struct Priority_Queue {
+    struct Node { f32 weight; T e; };
+
+    i32     len;
+    Node    array[N];
+
+    inline bool empty() const { return len == 0; }
+
+    inline void push(const T& e, f32 weight) {
+        Node node = { .weight = weight, .e = e };
+
+        int i = len + 1;
+        int j = i / 2;
+
+        while (i > 1 && array[j].weight > node.weight) {
+            array[i] = array[j];
+
+            i = j;
+            j = j / 2;
+        }
+
+        array[i] = node;
+        len++;
     }
 
-    inline void set(u32 x, u32 y) {
-        u32 i = y * W + x;
-        buf[i >> 5] |= (1 << (i & 31));
+    inline Node pop() {
+        Node data = array[1];
+
+        array[1] = array[len];
+        len--;
+
+        int i = 1;
+        while (i != len + 1) {
+            int k = len + 1;
+            int j = 2 * i;
+
+            if (j <= len && array[j].weight < array[k].weight)
+                k = j;
+
+            if (j + 1 <= len && array[j + 1].weight < array[k].weight)
+                k = j + 1;
+
+            array[i] = array[k];
+            i = k;
+        }
+        return data;
     }
 };
 
@@ -1414,6 +1470,13 @@ inline v2i operator-=(v2i& a, v2i b) {
 inline i32 dist_sq(v2i a, v2i b) {
     v2i d = a - b;
     return d.x * d.x + d.y * d.y;
+}
+
+inline i32 manhattan(v2i a, v2i b) {
+    i32 dx = abs(a.x - b.x);
+    i32 dy = abs(a.y - b.y);
+
+    return dx + dy;
 }
 
 inline v2i clamp(v2i a, i32 min, i32 max) {
