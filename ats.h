@@ -3083,6 +3083,75 @@ inline f64 timer_get_current(void) {
 
 struct Shader {
     u32 program;
+
+    inline void use() {
+        static u32 active_program = 0xffffffff;
+
+        if (active_program != program) {
+            active_program = program;
+
+            glUseProgram(program);
+        }
+    }
+
+    inline u32 get_location(const char *var_name) {
+        use();
+        return glGetUniformLocation(program, var_name);
+    }
+
+    inline void set(const char *loc, int n) {
+        use();
+
+        glUniform1i(glGetUniformLocation(program, loc), n);
+    }
+
+    inline void set(const char *loc, f32 n) {
+        use();
+
+        glUniform1f(glGetUniformLocation(program, loc), n);
+    }
+
+    inline void set(const char *loc, f32 a, f32 b) {
+        use();
+
+        glUniform2f(glGetUniformLocation(program, loc), a, b);
+    }
+
+    inline void set(const char *loc, f32 a, f32 b, f32 c) {
+        use();
+
+        glUniform3f(glGetUniformLocation(program, loc), a, b, c);
+    }
+
+    inline void set(const char *loc, f32 a, f32 b, f32 c, f32 d) {
+        use();
+
+        glUniform4f(glGetUniformLocation(program, loc), a, b, c, d);
+    }
+
+    inline void set(const char *loc, v2 u) {
+        use();
+
+        glUniform2fv(glGetUniformLocation(program, loc), 1, u.array);
+    }
+
+    inline void set(const char *loc, v3 u) {
+        use();
+
+        glUniform3fv(glGetUniformLocation(program, loc), 1, u.array);
+    }
+
+    inline void set(const char *loc, v4 u) {
+        use();
+
+        glUniform4fv(glGetUniformLocation(program, loc), 1, u.array);
+    }
+
+    inline void set(const char *loc, m4 m) {
+        use();
+
+        glUniformMatrix4fv(glGetUniformLocation(program, loc), 1, GL_FALSE, m.array);
+    }
 };
 
 inline u32 shader_compile(const char* source, unsigned int type) {
@@ -3096,7 +3165,7 @@ inline u32 shader_compile(const char* source, unsigned int type) {
     glCompileShader(shader);
 
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    
+
     if (!success) {
         glGetShaderInfoLog(shader, 512, NULL, info_log);
         puts(info_log);
@@ -3212,60 +3281,6 @@ inline Shader shader_load_from_memory(const char *vs, const char *fs, const char
     }
 
     return shader;
-}
-
-inline void shader_use(Shader shader) {
-    glUseProgram(shader.program);
-}
-
-inline u32 shader_get_location(Shader shader, const char *var_name) {
-    glUseProgram(shader.program);
-    return glGetUniformLocation(shader.program, var_name);
-}
-
-inline void shader_set(Shader shader, const char *loc, int n) {
-    glUseProgram(shader.program);
-    glUniform1i(glGetUniformLocation(shader.program, loc), n);
-}
-
-inline void shader_set(Shader shader, const char *loc, f32 n) {
-    glUseProgram(shader.program);
-    glUniform1f(glGetUniformLocation(shader.program, loc), n);
-}
-
-inline void shader_set(Shader shader, const char *loc, f32 a, f32 b) {
-    glUseProgram(shader.program);
-    glUniform2f(glGetUniformLocation(shader.program, loc), a, b);
-}
-
-inline void shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c) {
-    glUseProgram(shader.program);
-    glUniform3f(glGetUniformLocation(shader.program, loc), a, b, c);
-}
-
-inline void shader_set(Shader shader, const char *loc, f32 a, f32 b, f32 c, f32 d) {
-    glUseProgram(shader.program);
-    glUniform4f(glGetUniformLocation(shader.program, loc), a, b, c, d);
-}
-
-inline void shader_set(Shader shader, const char *loc, v2 u) {
-    glUseProgram(shader.program);
-    glUniform2fv(glGetUniformLocation(shader.program, loc), 1, u.array);
-}
-
-inline void shader_set(Shader shader, const char *loc, v3 u) {
-    glUseProgram(shader.program);
-    glUniform3fv(glGetUniformLocation(shader.program, loc), 1, u.array);
-}
-
-inline void shader_set(Shader shader, const char *loc, v4 u) {
-    glUseProgram(shader.program);
-    glUniform4fv(glGetUniformLocation(shader.program, loc), 1, u.array);
-}
-
-inline void shader_set(Shader shader, const char *loc, m4 m) {
-    glUseProgram(shader.program);
-    glUniformMatrix4fv(glGetUniformLocation(shader.program, loc), 1, GL_FALSE, m.array);
 }
 
 #endif // ATS_MODERN_OPENGL
@@ -3841,8 +3856,8 @@ inline void ce_render(int type, const Vertex* vertex_array, int vertex_count, co
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
 
-        shader_use(ce_shader_depth);
-        shader_set(ce_shader_depth, "light_space_matrix", ce_light_space_matrix);
+        ce_shader_depth.use();
+        ce_shader_depth.set("light_space_matrix", ce_light_space_matrix);
 
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, ce_depth_fbo);
@@ -3866,13 +3881,13 @@ inline void ce_render(int type, const Vertex* vertex_array, int vertex_count, co
 
         glViewport(0, 0, platform.width, platform.height);
 
-        shader_use(ce_shader);
+        ce_shader.use();
 
-        shader_set(ce_shader, "light_space_matrix", ce_light_space_matrix);
-        shader_set(ce_shader, "PV", ce_projection_view);
-        shader_set(ce_shader, "view_pos", ce_view_pos);
-        shader_set(ce_shader, "light_pos", ce_light_pos);
-        shader_set(ce_shader, "light_color", ce_light_color);
+        ce_shader.set("light_space_matrix", ce_light_space_matrix);
+        ce_shader.set("PV", ce_projection_view);
+        ce_shader.set("view_pos", ce_view_pos);
+        ce_shader.set("light_pos", ce_light_pos);
+        ce_shader.set("light_color", ce_light_color);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, ce_depth_map);
@@ -3898,8 +3913,8 @@ inline void ce_render_no_light(int type, const Vertex* vertex_array, int vertex_
     {
         glViewport(0, 0, platform.width, platform.height);
 
-        shader_use(ce_shader_no_light);
-        shader_set(ce_shader_no_light, "PV", ce_projection_view);
+        ce_shader_no_light.use();
+        ce_shader_no_light.set("PV", ce_projection_view);
 
         // render:
         ce_set_vertex_array(vertex_array, vertex_count);
@@ -4082,7 +4097,7 @@ inline void ce_init(void) {
         glEnable(GL_ALPHA_TEST);
     }
 
-    shader_use(ce_shader);
+    ce_shader.use();
 
     // setup vbo/vao:
     {
@@ -4164,9 +4179,9 @@ inline void ce_init(void) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ce_color_map, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        shader_use(ce_shader);
-        shader_set(ce_shader, "shadow_map", 0);
-        shader_set(ce_shader, "color_map",  1);
+        ce_shader.use();
+        ce_shader.set("shadow_map", 0);
+        ce_shader.set("color_map",  1);
     }
 }
 
