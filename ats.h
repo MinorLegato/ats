@@ -3089,6 +3089,7 @@ struct Shader {
 
         if (active_program != program) {
             active_program = program;
+
             glUseProgram(program);
         }
     }
