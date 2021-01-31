@@ -3085,13 +3085,7 @@ struct Shader {
     u32 program;
 
     inline void use() const {
-        static u32 active_program = 0xffffffff;
-
-        if (active_program != program) {
-            active_program = program;
-
-            glUseProgram(program);
-        }
+        glUseProgram(program);
     }
 
     inline u32 get_location(const char *var_name) const {
@@ -3848,12 +3842,11 @@ inline void ce_render(int type, const Vertex* vertex_array, int vertex_count, co
         glViewport(0, 0, platform.width, platform.height);
 
         ce_shader.use();
-
         ce_shader.set("light_space_matrix", ce_light_space_matrix);
-        ce_shader.set("PV", ce_projection_view);
-        ce_shader.set("view_pos", ce_view_pos);
-        ce_shader.set("light_pos", ce_light_pos);
-        ce_shader.set("light_color", ce_light_color);
+        ce_shader.set("PV",                 ce_projection_view);
+        ce_shader.set("view_pos",           ce_view_pos);
+        ce_shader.set("light_pos",          ce_light_pos);
+        ce_shader.set("light_color",        ce_light_color);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, ce_depth_map);
