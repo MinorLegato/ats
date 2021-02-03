@@ -1486,6 +1486,20 @@ inline v2i clamp(v2i a, i32 min, i32 max) {
     };
 }
 
+inline v2i min(v2i a, v2i b) {
+    return {
+        (a.x < b.x? a.x : b.x),
+        (a.y < b.y? a.y : b.y)
+    };
+}
+
+inline v2i max(v2i a, v2i b) {
+    return {
+        (a.x > b.x? a.x : b.x),
+        (a.y > b.y? a.y : b.y)
+    };
+}
+
 // --------------------- v3i ------------------------- // 
 
 inline v3i V3i(i32 x, i32 y, i32 z) {
@@ -3084,34 +3098,29 @@ inline f64 timer_get_current(void) {
 struct Shader {
     u32 program;
 
-    inline void use() const {
-        glUseProgram(program);
-    }
+    inline void use() const { glUseProgram(program); }
 
-    inline u32 get_location(const char *var_name) const {
-        use();
-        return glGetUniformLocation(program, var_name);
-    }
+    inline u32 get_location(const char *var_name) const { return glGetUniformLocation(program, var_name); }
 
-    inline void set(u32 loc, int n) const                      { glUniform1i(loc, n); }
-    inline void set(u32 loc, f32 n) const                      { glUniform1f(loc, n); }
-    inline void set(u32 loc, f32 a, f32 b) const               { glUniform2f(loc, a, b); }
-    inline void set(u32 loc, f32 a, f32 b, f32 c) const        { glUniform3f(loc, a, b, c); }
-    inline void set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { glUniform4f(loc, a, b, c, d); }
-    inline void set(u32 loc, v2 u) const                       { glUniform2fv(loc, 1, u.array); }
-    inline void set(u32 loc, v3 u) const                       { glUniform3fv(loc, 1, u.array); }
-    inline void set(u32 loc, v4 u) const                       { glUniform4fv(loc, 1, u.array); }
-    inline void set(u32 loc, m4 m) const                       { glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
+    inline void set(u32 loc, int n) const                      { use(); glUniform1i(loc, n); }
+    inline void set(u32 loc, f32 n) const                      { use(); glUniform1f(loc, n); }
+    inline void set(u32 loc, f32 a, f32 b) const               { use(); glUniform2f(loc, a, b); }
+    inline void set(u32 loc, f32 a, f32 b, f32 c) const        { use(); glUniform3f(loc, a, b, c); }
+    inline void set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { use(); glUniform4f(loc, a, b, c, d); }
+    inline void set(u32 loc, v2 u) const                       { use(); glUniform2fv(loc, 1, u.array); }
+    inline void set(u32 loc, v3 u) const                       { use(); glUniform3fv(loc, 1, u.array); }
+    inline void set(u32 loc, v4 u) const                       { use(); glUniform4fv(loc, 1, u.array); }
+    inline void set(u32 loc, m4 m) const                       { use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
 
-    inline void set(const char *loc, int n) const                      { set(get_location(loc), n); }
-    inline void set(const char *loc, f32 n) const                      { set(get_location(loc), n); }
-    inline void set(const char *loc, f32 a, f32 b) const               { set(get_location(loc), a, b); }
-    inline void set(const char *loc, f32 a, f32 b, f32 c) const        { set(get_location(loc), a, b, c); }
-    inline void set(const char *loc, f32 a, f32 b, f32 c, f32 d) const { set(get_location(loc), a, b, c, d); }
-    inline void set(const char *loc, v2 u) const                       { set(get_location(loc), u); }
-    inline void set(const char *loc, v3 u) const                       { set(get_location(loc), u); }
-    inline void set(const char *loc, v4 u) const                       { set(get_location(loc), u); }
-    inline void set(const char *loc, m4 m) const                       { set(get_location(loc), m); }
+    inline void set(const char* loc, int n) const                      { set(get_location(loc), n); }
+    inline void set(const char* loc, f32 n) const                      { set(get_location(loc), n); }
+    inline void set(const char* loc, f32 a, f32 b) const               { set(get_location(loc), a, b); }
+    inline void set(const char* loc, f32 a, f32 b, f32 c) const        { set(get_location(loc), a, b, c); }
+    inline void set(const char* loc, f32 a, f32 b, f32 c, f32 d) const { set(get_location(loc), a, b, c, d); }
+    inline void set(const char* loc, v2 u) const                       { set(get_location(loc), u); }
+    inline void set(const char* loc, v3 u) const                       { set(get_location(loc), u); }
+    inline void set(const char* loc, v4 u) const                       { set(get_location(loc), u); }
+    inline void set(const char* loc, m4 m) const                       { set(get_location(loc), m); }
 };
 
 inline u32 shader_compile(const char* source, unsigned int type) {
