@@ -1707,7 +1707,7 @@ struct Plane {
 };
 
 inline Plane normalize_plane(Plane plane) {
-    float mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
+    f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
     plane.a = plane.a / mag;
     plane.b = plane.b / mag;
@@ -2819,6 +2819,10 @@ struct Platform {
     } keyboard;
 
     Gamepad gamepad[JOYSTICK_LAST];
+
+    Gamepad* get_gamepad(int index) {
+        return gamepad[index].active? &gamepad[index] : NULL;
+    }
 };
 
 static Platform platform;
@@ -3555,7 +3559,7 @@ static const Vertex vertex_array_cube[] = {
     { { -1.0f, -1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
     { { -1.0f,  1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
     // right face
-    { { 1.0f,  1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
+    { { 1.0f, -1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
     { { 1.0f, -1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
     { { 1.0f,  1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right         
     { { 1.0f, -1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
