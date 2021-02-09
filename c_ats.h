@@ -276,278 +276,236 @@ inline void v3_spline(f32 out[3], f32 f, const f32 a[3], const f32 b[3], const f
     out[2] = ((d[2] * f + c[2] * i) * f + (c[2] * f + b[2] * i) * i) * f + ((c[2] * f + b[2] * i) * f + (b[2] * f + a[2] * i) * i) * i;
 }
 
-#if 0
 // ----------------------------- v4 ---------------------------- //
 
-inline v4 v4_from_packed_color(u32 color) {
-    v4 result = {};
-
-    result.r = ((color & 0x000000FF) >> 0)  / 256.0f;
-    result.g = ((color & 0x0000FF00) >> 8)  / 256.0f;
-    result.b = ((color & 0x00FF0000) >> 16) / 256.0f;
-    result.a = ((color & 0xFF000000) >> 24) / 256.0f;
-
-    return result;
+inline void v4_from_packed_color(f32 out[4], u32 color) {
+    out[0] = ((color & 0x000000ff) >> 0)  / 256.0f;
+    out[1] = ((color & 0x0000ff00) >> 8)  / 256.0f;
+    out[2] = ((color & 0x00ff0000) >> 16) / 256.0f;
+    out[3] = ((color & 0xff000000) >> 24) / 256.0f;
 }
 
-inline v4 operator-(v4 a) {
-    return { -a.x, -a.y, -a.z, -a.w };
+inline f32 v4_dot(const f32 a[4], const f32 b[4]) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
 }
 
-inline v4 operator+(v4 a, v4 b) {
-    return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+inline f32 v4_len_sq(const f32 v[4]) {
+    return v4_dot(v, v);
 }
 
-inline v4 operator-(v4 a, v4 b) {
-    return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+inline f32 v4_len(const f32 v[4]) {
+    return sqrt(v4_dot(v, v));
 }
 
-inline v4 operator*(v4 a, v4 b) {
-    return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
-}
-
-inline v4 operator*(v4 a, f32 s) {
-    return { a.x * s, a.y * s, a.z * s, a.w * s };
-}
-
-inline v4 operator*(f32 s, v4 a) {
-    return { a.x * s, a.y * s, a.z * s, a.w * s };
-}
-
-inline v4 operator/(v4 a, f32 s) {
-    return { a.x / s, a.y * s, a.z / s, a.w / s };
-}
-
-inline v4 operator+=(v4& a, v4 b)  {
-    a = a + b;
-    return a;
-}
-
-inline v4 operator-=(v4& a, v4 b)  {
-    a = a - b;
-    return a;
-}
-
-inline v4 operator*=(v4& a, v4 b)  {
-    a = a * b;
-    return a;
-}
-
-inline v4 operator*=(v4& a, f32 s) {
-    a = a * s;
-    return a;
-}
-
-inline v4 operator/=(v4& a, f32 s) {
-    a = a / s;
-    return a;
-}
-
-inline f32 dot(v4 a, v4 b) {
-    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
-}
-
-inline f32 len_sq(v4 v) {
-    return dot(v, v);
-}
-
-inline f32 len(v4 v) {
-    return sqrt(dot(v, v));
-}
-
-inline f32 dist_sq(v4 a, v4 b) {
-    return len_sq(b - a);
-}
-
-inline f32 dist(v4 a, v4 b) {
-    return sqrt(dist_sq(a, b));
-}
-
-inline v4 norm(v4 v) {
-    return v * rsqrt(dot(v, v));
-}
-
-inline v4 min(v4 a, v4 b) {
-    return {
-        (a.x < b.x? a.x : b.x),
-        (a.y < b.y? a.y : b.y),
-        (a.z < b.z? a.z : b.z),
-        (a.w < b.w? a.w : b.w)
+inline f32 v4_dist_sq(const f32 a[4], const f32 b[4]) {
+    f32 delta[4] = {
+        b[0] - a[0],
+        b[1] - a[1],
+        b[2] - a[2],
+        b[3] - a[3],
     };
+
+    return v4_len_sq(delta);
 }
 
-inline v4 max(v4 a, v4 b) {
-    return {
-        (a.x > b.x? a.x : b.x),
-        (a.y > b.y? a.y : b.y),
-        (a.z > b.z? a.z : b.z),
-        (a.w > b.w? a.w : b.w)
-    };
+inline f32 v4_dist(const f32 a[4], const f32 b[4]) {
+    return sqrt(v4_dist_sq(a, b));
 }
 
-inline v4 lerp(v4 a, v4 b, f32 t) {
-    return a + t * (b - a);
+inline void v4_norm(f32 out[4], const f32 v[4]) {
+    f32 k = rsqrt(v4_dot(v, v));
+
+    out[0] = k * v[0];
+    out[1] = k * v[1];
+    out[2] = k * v[2];
+    out[3] = k * v[3];
 }
 
-inline v4 cross(v4 a, v4 b) {
-    return {
-        a.y * b.z - a.z * b.y,
-        a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x,
-        1.0f
-    };
+inline void v4_min(f32 out[4], const f32 a[4], const f32 b[4]) {
+    out[0] = a[0] < b[0]? a[0] : b[0];
+    out[1] = a[1] < b[1]? a[1] : b[1];
+    out[2] = a[2] < b[2]? a[2] : b[2];
+    out[3] = a[3] < b[3]? a[3] : b[3];
 }
 
-inline v4 spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
+inline void v4_max(f32 out[4], const f32 a[4], const f32 b[4]) {
+    out[0] = a[0] > b[0]? a[0] : b[0];
+    out[1] = a[1] > b[1]? a[1] : b[1];
+    out[2] = a[2] > b[2]? a[2] : b[2];
+    out[3] = a[3] > b[3]? a[3] : b[3];
+}
+
+inline void v4_lerp(f32 out[4], const f32 a[4], const f32 b[4], f32 t) {
+    out[0] = a[0] + t * (b[0] - a[0]);
+    out[1] = a[1] + t * (b[1] - a[1]);
+    out[2] = a[2] + t * (b[2] - a[2]);
+    out[3] = a[3] + t * (b[3] - a[3]);
+}
+
+inline void v4_cross(f32 out[4], const f32 a[4], const f32 b[4]) {
+    out[0] = a[1] * b[2] - a[2] * b[1];
+    out[1] = a[2] * b[0] - a[0] * b[2];
+    out[2] = a[0] * b[1] - a[1] * b[0];
+    out[3] = 1.0;
+}
+
+inline void v4_spline(f32 out[4], f32 f, const f32 a[4], const f32 b[4], const f32 c[4], const f32 d[4]) {
 	f32 i = 1.0f - f;
 
-    return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
+    out[0] = ((d[0] * f + c[0] * i) * f + (c[0] * f + b[0] * i) * i) * f + ((c[0] * f + b[0] * i) * f + (b[0] * f + a[0] * i) * i) * i;
+    out[1] = ((d[1] * f + c[1] * i) * f + (c[1] * f + b[1] * i) * i) * f + ((c[1] * f + b[1] * i) * f + (b[1] * f + a[1] * i) * i) * i;
+    out[2] = ((d[2] * f + c[2] * i) * f + (c[2] * f + b[2] * i) * i) * f + ((c[2] * f + b[2] * i) * f + (b[2] * f + a[2] * i) * i) * i;
+    out[3] = ((d[3] * f + c[3] * i) * f + (c[3] * f + b[3] * i) * i) * f + ((c[3] * f + b[3] * i) * f + (b[3] * f + a[3] * i) * i) * i;
 }
 
 // m2:
-inline m2 operator+(m2 a, m2 b) {
-    return { a.x + b.x, a.y + b.y };
+inline void m2_mul(f32 out[4], const f32 A[4], const f32 B[4]) {
+    f32 tmp[4];
+
+    tmp[0] = A[0] * B[0] + A[2] * B[1];
+    tmp[1] = A[1] * B[0] + A[3] * B[1];
+    tmp[2] = A[0] * B[2] + A[2] * B[3];
+    tmp[3] = A[1] * B[2] + A[3] * B[3];
+
+    out[0] = tmp[0];
+    out[1] = tmp[1];
+    out[2] = tmp[2];
+    out[3] = tmp[3];
 }
 
-inline m2 operator-(m2 a, m2 b) {
-    return { a.x - b.x, a.y - b.y };
+inline void m2_mulv(f32 out[4], const f32 R[4], const f32 v[2]) {
+    f32 tmp[4];
+
+    tmp[0] = R[0] * v[0] + R[2] * v[1];
+    tmp[1] = R[1] * v[0] + R[3] * v[1];
+
+    out[0] = tmp[0];
+    out[1] = tmp[1];
 }
 
-inline m2 operator*(m2 a, f32 s) {
-    return { a.x * s, a.y * s };
+inline void m2_identity(f32 out[2]) {
+    out[0] = 1.0f;
+    out[1] = 0.0f;
+    out[2] = 0.0f;
+    out[3] = 1.0f;
 }
 
-inline m2 operator*(f32 s, m2 a) {
-    return { a.x * s, a.y * s };
+inline void m2_rotate_cs(f32 out[4], f32 co, f32 si) {
+    out[0] =  co;
+    out[1] =  si;
+    out[2] = -si;
+    out[3] =  co;
 }
 
-inline m2 operator*(m2 a, m2 b) {
-    return {
-        a.array[0] * b.array[0] + a.array[2] * b.array[1],
-        a.array[1] * b.array[0] + a.array[3] * b.array[1],
-        a.array[0] * b.array[2] + a.array[2] * b.array[3],
-        a.array[1] * b.array[2] + a.array[3] * b.array[3]
-    };
-}
-
-inline v2 operator*(m2 R, v2 v) {
-    return {
-        R.array[0] * v.x + R.array[2] * v.y,
-        R.array[1] * v.x + R.array[3] * v.y
-    };
-}
-
-inline m2 m2_identity(void) {
-    return { 1.0f, 0.0f, 0.0f, 1.0f };
-}
-
-inline m2 m2_rotate(f32 co, f32 si) {
-    return { co, si, -si, co };
-}
-
-inline m2 m2_rotate(f32 angle) {
+inline void m2_rotate(f32 out[4], f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
-    return { c, s, -s, c };
+    out[0] =  c;
+    out[1] =  s;
+    out[2] = -s;
+    out[3] =  c;
 }
 
-inline m2 m2_scale(f32 sx, f32 sy) {
-    return { sx, 0.0f, 0.0f, sy };
+inline void m2_scale(f32 out[4], f32 sx, f32 sy) {
+    out[0] = sx;
+    out[1] = 0.0f;
+    out[2] = 0.0f;
+    out[3] = sy;
 }
 
-inline f32 m2_det(m2 m) {
-    return m.x.x * m.y.y - m.x.y * m.y.x;
+inline f32 m2_det(const f32 m[4]) {
+    return m[0] * m[2] - m[1] * m[3];
 }
 
-inline m2 m2_transpose(m2 m) {
-    return {
-        m.x.x, m.y.x,
-        m.x.y, m.y.y
-    };
+inline void m2_transpose(f32 out[4], const f32 m[4]) {
+    out[0] = m[0];
+    out[1] = m[2];
+    out[2] = m[1];
+    out[3] = m[3];
 }
 
-inline m2 m2_inverse(m2 m) {
-    f32 det = m2_det(m);
+inline void m2_inverse(f32 out[4], const f32 m[4]) {
+    f32 k = 1.0 / m2_det(m);
 
-    return (1.0 / det) * m2 {
-         m.y.y, -m.y.x,
-        -m.x.y,  m.x.x
-    };
-}
-
-inline void m2_polar_decomp(m2 m, m2* R, m2* S) {
-    f32 x = m.x.x + m.y.y;
-    f32 y = m.y.x - m.x.y;
-    f32 scale = 1.0f / sqrt(x * x + y * y);
-    f32 c = x * scale, s = y * scale;
-
-    R->x.x = c;
-    R->x.y = -s;
-    R->y.x = s;
-    R->y.y = c;
-
-    *S = m2_transpose(*R) * m;
+    out[0] =  k * m[3];
+    out[1] = -k * m[2];
+    out[2] = -k * m[1];
+    out[3] =  k * m[0];
 }
 
 // m3:
-inline m3 operator*(m3 a, m3 b) {
-    return {
-        a.array[0] * b.array[0] + a.array[3] * b.array[1]  + a.array[6] * b.array[2],
-        a.array[1] * b.array[0] + a.array[4] * b.array[1]  + a.array[7] * b.array[2],
-        a.array[2] * b.array[0] + a.array[5] * b.array[1]  + a.array[8] * b.array[2],
+inline void m3_mul(f32 out[9], const f32 A[9], const f32 B[9]) {
+    f32 tmp[9];
 
-        a.array[0] * b.array[3] + a.array[3] * b.array[4]  + a.array[6] * b.array[5],
-        a.array[1] * b.array[3] + a.array[4] * b.array[4]  + a.array[7] * b.array[5],
-        a.array[2] * b.array[3] + a.array[5] * b.array[4]  + a.array[8] * b.array[5],
+    tmp[0] = A[0] * B[0] + A[3] * B[1]  + A[6] * B[2];
+    tmp[1] = A[1] * B[0] + A[4] * B[1]  + A[7] * B[2];
+    tmp[2] = A[2] * B[0] + A[5] * B[1]  + A[8] * B[2];
 
-        a.array[0] * b.array[6] + a.array[3] * b.array[7]  + a.array[6] * b.array[8],
-        a.array[1] * b.array[6] + a.array[4] * b.array[7]  + a.array[7] * b.array[8],
-        a.array[2] * b.array[6] + a.array[5] * b.array[7]  + a.array[8] * b.array[8]
-    };
+    tmp[3] = A[0] * B[3] + A[3] * B[4]  + A[6] * B[5];
+    tmp[4] = A[1] * B[3] + A[4] * B[4]  + A[7] * B[5];
+    tmp[5] = A[2] * B[3] + A[5] * B[4]  + A[8] * B[5];
+
+    tmp[6] = A[0] * B[6] + A[3] * B[7]  + A[6] * B[8];
+    tmp[7] = A[1] * B[6] + A[4] * B[7]  + A[7] * B[8];
+    tmp[8] = A[2] * B[6] + A[5] * B[7]  + A[8] * B[8];
+
+    out[0] = tmp[0];
+    out[1] = tmp[1];
+    out[2] = tmp[2];
+
+    out[3] = tmp[3];
+    out[4] = tmp[4];
+    out[5] = tmp[5];
+
+    out[6] = tmp[6];
+    out[7] = tmp[7];
+    out[8] = tmp[8];
 }
 
-inline v3 operator*(m3 M, v3 v) {
-    return {
-        M.array[0] * v.array[0] + M.array[3] * v.array[1] + M.array[6] * v.array[2],
-        M.array[1] * v.array[0] + M.array[4] * v.array[1] + M.array[7] * v.array[2],
-        M.array[2] * v.array[0] + M.array[5] * v.array[1] + M.array[8] * v.array[2]
-    };
+inline void m3_mulv(f32 out[3], const f32 M[9], const f32 v[3]) {
+    out[0] = M[0] * v[0] + M[3] * v[1] + M[6] * v[2];
+    out[1] = M[1] * v[0] + M[4] * v[1] + M[7] * v[2];
+    out[2] = M[2] * v[0] + M[5] * v[1] + M[8] * v[2];
 }
 
-inline m3 m3_identity(void) {
-    return {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f
-    };
+inline void m3_identity(f32 out[3]) {
+    out[0] = 1.0f;
+    out[1] = 0.0f;
+    out[2] = 0.0f;
+
+    out[3] = 0.0f;
+    out[4] = 1.0f;
+    out[5] = 0.0f;
+
+    out[6] = 0.0f;
+    out[7] = 0.0f;
+    out[8] = 1.0f;
 }
 
-inline m3 m3_rotate(v3 axis, f32 angle) {
-    f32 c = cosf(angle);
-    f32 s = sinf(angle);
+inline void m3_rotate(f32 out[9], const f32 axis[3], f32 angle) {
+    f32 c       = cosf(angle);
+    f32 s       = sinf(angle);
 
-    f32 k = 1.0f - c;
+    f32 k       = 1.0f - c;
 
-    v3 sa   = { s * axis.x, s * axis.y, s * axis.z };
-    v3 omca = { k * axis.x, k * axis.y, k * axis.z };
+    f32 sa[3]   = { s * axis[0], s * axis[1], s * axis[2] };
+    f32 omca[3] = { k * axis[0], k * axis[1], k * axis[2] };
 
-    return {
-        omca.x * axis.x + c,
-        omca.x * axis.y - sa.z,
-        omca.x * axis.z + sa.y,
+    out[0] = omca[0] * axis[0] + c;
+    out[1] = omca[0] * axis[1] - sa[2];
+    out[2] = omca[0] * axis[2] + sa[1];
 
-        omca.y * axis.x + sa.z,
-        omca.y * axis.y + c,
-        omca.y * axis.z - sa.x,
+    out[3] = omca[1] * axis[0] + sa[2];
+    out[4] = omca[1] * axis[1] + c;
+    out[5] = omca[1] * axis[2] - sa[0];
 
-        omca.z * axis.x - sa.y,
-        omca.z * axis.y + sa.x,
-        omca.z * axis.z + c
-    };
+    out[6] = omca[2] * axis[0] - sa[1];
+    out[7] = omca[2] * axis[1] + sa[0];
+    out[8] = omca[2] * axis[2] + c;
 }
 
-inline m3 m3_euler(f32 yaw, f32 pitch, f32 roll) {
+inline void m3_euler(f32 out[9], f32 yaw, f32 pitch, f32 roll) {
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
     f32 cp = cosf(pitch);
@@ -555,73 +513,89 @@ inline m3 m3_euler(f32 yaw, f32 pitch, f32 roll) {
     f32 cr = cosf(roll);
     f32 sr = sinf(roll);
 
-    return {
-        cy * cp,
-        sy * cp,
-        -sp,
+    out[0] = cy * cp;
+    out[1] = sy * cp;
+    out[2] = -sp;
 
-        cy * sp * sr - sy * cr,
-        sy * sp * sr + cy * cr,
-        cp * sr,
+    out[3] = cy * sp * sr - sy * cr;
+    out[4] = sy * sp * sr + cy * cr;
+    out[5] = cp * sr;
 
-        cy * sp * cr + sy * sr,
-        sy * sp * cr - cy * sr,
-        cp * cr,
-    };
+    out[6] = cy * sp * cr + sy * sr;
+    out[7] = sy * sp * cr - cy * sr;
+    out[8] = cp * cr;
 }
 
-inline m3 m3_from_quat(Quat quat) {
-    f32 a = quat.w;
-	f32 b = quat.x;
-	f32 c = quat.y;
-	f32 d = quat.z;
+inline void m3_from_quat(f32 out[9], const f32 quat[4]) {
+    f32 a = quat[3];
+	f32 b = quat[0];
+	f32 c = quat[1];
+	f32 d = quat[2];
 
 	f32 a2 = a * a;
 	f32 b2 = b * b;
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return {
-        a2 + b2 - c2 - d2,
-        2.0f * (b * c + a * d),
-        2.0f * (b * d - a * c),
+    out[0] = a2 + b2 - c2 - d2;
+    out[1] = 2.0f * (b * c + a * d);
+    out[2] = 2.0f * (b * d - a * c);
 
-        2.0f * (b * c - a * d),
-        a2 - b2 + c2 - d2,
-        2.0f * (c * d + a * b),
+    out[3] = 2.0f * (b * c - a * d);
+    out[4] = a2 - b2 + c2 - d2;
+    out[5] = 2.0f * (c * d + a * b);
 
-        2.0f * (b * d + a * c),
-        2.0f * (c * d - a * b),
-        a2 - b2 - c2 + d2
-    };
+    out[6] = 2.0f * (b * d + a * c);
+    out[7] = 2.0f * (c * d - a * b);
+    out[8] = a2 - b2 - c2 + d2;
 }
 
 // m4:
+inline void m4_mul(f32 out[16], const f32 A[16], const f32 B[16]) {
+    f32 tmp[16];
 
-inline m4 operator*(m4 a, m4 b) {
-    return {
-        a.array[0] * b.array[0]  + a.array[4] * b.array[1]  + a.array[8]  * b.array[2]  + a.array[12] * b.array[3],
-        a.array[1] * b.array[0]  + a.array[5] * b.array[1]  + a.array[9]  * b.array[2]  + a.array[13] * b.array[3],
-        a.array[2] * b.array[0]  + a.array[6] * b.array[1]  + a.array[10] * b.array[2]  + a.array[14] * b.array[3],
-        a.array[3] * b.array[0]  + a.array[7] * b.array[1]  + a.array[11] * b.array[2]  + a.array[15] * b.array[3],
+    tmp[0]  = A[0] * B[0]  + A[4] * B[1]  + A[8]  * B[2]  + A[12] * B[3];
+    tmp[1]  = A[1] * B[0]  + A[5] * B[1]  + A[9]  * B[2]  + A[13] * B[3];
+    tmp[2]  = A[2] * B[0]  + A[6] * B[1]  + A[10] * B[2]  + A[14] * B[3];
+    tmp[3]  = A[3] * B[0]  + A[7] * B[1]  + A[11] * B[2]  + A[15] * B[3];
 
-        a.array[0] * b.array[4]  + a.array[4] * b.array[5]  + a.array[8]  * b.array[6]  + a.array[12] * b.array[7],
-        a.array[1] * b.array[4]  + a.array[5] * b.array[5]  + a.array[9]  * b.array[6]  + a.array[13] * b.array[7],
-        a.array[2] * b.array[4]  + a.array[6] * b.array[5]  + a.array[10] * b.array[6]  + a.array[14] * b.array[7],
-        a.array[3] * b.array[4]  + a.array[7] * b.array[5]  + a.array[11] * b.array[6]  + a.array[15] * b.array[7],
+    tmp[4]  = A[0] * B[4]  + A[4] * B[5]  + A[8]  * B[6]  + A[12] * B[7];
+    tmp[5]  = A[1] * B[4]  + A[5] * B[5]  + A[9]  * B[6]  + A[13] * B[7];
+    tmp[6]  = A[2] * B[4]  + A[6] * B[5]  + A[10] * B[6]  + A[14] * B[7],
+    tmp[7]  = A[3] * B[4]  + A[7] * B[5]  + A[11] * B[6]  + A[15] * B[7];
 
-        a.array[0] * b.array[8]  + a.array[4] * b.array[9]  + a.array[8]  * b.array[10] + a.array[12] * b.array[11],
-        a.array[1] * b.array[8]  + a.array[5] * b.array[9]  + a.array[9]  * b.array[10] + a.array[13] * b.array[11],
-        a.array[2] * b.array[8]  + a.array[6] * b.array[9]  + a.array[10] * b.array[10] + a.array[14] * b.array[11],
-        a.array[3] * b.array[8]  + a.array[7] * b.array[9]  + a.array[11] * b.array[10] + a.array[15] * b.array[11],
+    tmp[8]  = A[0] * B[8]  + A[4] * B[9]  + A[8]  * B[10] + A[12] * B[11];
+    tmp[9]  = A[1] * B[8]  + A[5] * B[9]  + A[9]  * B[10] + A[13] * B[11];
+    tmp[10] = A[2] * B[8]  + A[6] * B[9]  + A[10] * B[10] + A[14] * B[11];
+    tmp[11] = A[3] * B[8]  + A[7] * B[9]  + A[11] * B[10] + A[15] * B[11];
 
-        a.array[0] * b.array[12] + a.array[4] * b.array[13] + a.array[8]  * b.array[14] + a.array[12] * b.array[15],
-        a.array[1] * b.array[12] + a.array[5] * b.array[13] + a.array[9]  * b.array[14] + a.array[13] * b.array[15],
-        a.array[2] * b.array[12] + a.array[6] * b.array[13] + a.array[10] * b.array[14] + a.array[14] * b.array[15],
-        a.array[3] * b.array[12] + a.array[7] * b.array[13] + a.array[11] * b.array[14] + a.array[15] * b.array[15]
-    };
+    tmp[12] = A[0] * B[12] + A[4] * B[13] + A[8]  * B[14] + A[12] * B[15];
+    tmp[13] = A[1] * B[12] + A[5] * B[13] + A[9]  * B[14] + A[13] * B[15];
+    tmp[14] = A[2] * B[12] + A[6] * B[13] + A[10] * B[14] + A[14] * B[15];
+    tmp[15] = A[3] * B[12] + A[7] * B[13] + A[11] * B[14] + A[15] * B[15];
+
+    out[0]  = tmp[0];
+    out[1]  = tmp[1];
+    out[2]  = tmp[2];
+    out[3]  = tmp[3];
+
+    out[4]  = tmp[4];
+    out[5]  = tmp[5];
+    out[6]  = tmp[6];
+    out[7]  = tmp[7];
+
+    out[8]  = tmp[8];
+    out[9]  = tmp[9];
+    out[10] = tmp[10];
+    out[11] = tmp[11];
+
+    out[12] = tmp[12];
+    out[13] = tmp[13];
+    out[14] = tmp[14];
+    out[15] = tmp[15];
 }
 
+#if 0
 inline v4 operator*(m4 M, v4 v) {
     return {
         M.array[0] * v.array[0] + M.array[4] * v.array[1] + M.array[8]  * v.array[2] + M.array[12] * v.array[3],
