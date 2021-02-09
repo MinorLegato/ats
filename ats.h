@@ -277,36 +277,6 @@ private:
     inline void ensure_next() { if (len + 1 > cap) ensure(max(INIT_SIZE, cap << 1)); }
 };
 
-template <typename T, u32 N>
-struct Fixed_Array {
-    static constexpr u32 CAPACITY = N;
-
-    u32     len     = 0;
-    T       buf[N];
-
-    inline T*   add     ()              { return len < N? new (&buf[len++]) T() : nullptr; }
-    inline void add     (const T& e)    { assert(len < N); buf[len++] = e; }
-    inline void remove  (u32 i)         { assert(i < len); buf[i] = buf[--len]; }
-    inline void clear   ()              { len = 0; }
-
-    inline T*       get(u32 i)       { assert(i < len); return &buf[i]; };
-    inline const T* get(u32 i) const { assert(i < len); return &buf[i]; };
-
-    inline T*       ptr()       { return buf; };
-    inline const T* ptr() const { return buf; };
-
-    inline T&       operator[](u32 i)       { assert(i < len); return buf[i]; }
-    inline const T& operator[](u32 i) const { assert(i < len); return buf[i]; }
-
-    inline i32      size() const { return len; }
-
-    inline T*       begin()       { return buf; }
-    inline const T* begin() const { return buf; }
-
-    inline T*       end()       { return buf + len; }
-    inline const T* end() const { return buf + len; }
-};
-
 template <u32 N>
 struct Bit_Set {
     u32 buf[N / 32 + 1];
@@ -343,7 +313,8 @@ struct Priority_Queue {
     i32     len;
     Node    array[N];
 
-    inline bool empty() const { return len == 0; }
+    inline bool empty   ()  const   { return len == 0; }
+    inline void clear   ()          { len = 0; }
 
     inline void push(const T& e, f32 weight) {
         Node node = { .weight = weight, .e = e };
