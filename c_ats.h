@@ -1055,7 +1055,7 @@ inline void v2i_max(i32 out[2], const i32 a[2], const i32 b[2]) {
 
 // --------------------- v3i ------------------------- // 
 
-inline i32 dist_sq(const i32 a[2], const i32 b[2]) {
+inline i32 v3i_dist_sq(const i32 a[3], const i32 b[3]) {
     i32 dx = a[0] - b[0];
     i32 dy = a[1] - b[1];
     i32 dz = a[2] - b[2];
@@ -1063,139 +1063,173 @@ inline i32 dist_sq(const i32 a[2], const i32 b[2]) {
     return dx * dx + dy * dy + dz * dz;
 }
 
-// --------------------- v4i ------------------------- // 
-
-
 // =================================================== SHAPES =============================================== //
 
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
-#if 0
-struct Circle {
-    v2      pos;
+typedef struct {
+    f32     pos[2];
     f32     rad;
-};
+} Circle;
 
-inline b32 intersect(Circle a, Circle b) {
-    v2  d   = b.pos - a.pos;
+inline b32 circle_intersect(Circle a, Circle b) {
+    f32 dx  = b.pos[0] - a.pos[0];
+    f32 dy  = b.pos[1] - a.pos[1];
     f32 rt  = a.rad + b.rad;
 
-    return d.x * d.x + d.y * d.y < rt * rt;
+    return dx * dx + dy * dy < rt * rt;
 };
 
-inline v2 get_intersect_vector(Circle a, Circle b) {
-    v2  delta   = b.pos - a.pos;
-    f32 depth   = len(delta) - (a.rad + b.rad);
+inline void circle_get_intersect_vector(f32 out[2], Circle a, Circle b) {
+    f32 delta[2]    = {
+        a.pos[0] - b.pos[0],
+        a.pos[1] - b.pos[1]
+    };
+
+    f32 depth = v2_len(delta) - (a.rad + b.rad);
     
-    return depth * delta;
+    out[0]  = depth * delta[0];
+    out[1]  = depth * delta[1];
 }
 
 // --------------------------------------- SHPERE ------------------------------------ //
 
-struct Sphere {
-    v3      pos;
+typedef struct {
+    f32     pos[3];
     f32     rad;
-};
+} Sphere;
 
-inline b32 intersect(Sphere a, Sphere b) {
-    v3  d   = b.pos - a.pos;
+inline b32 sphere_intersect(Sphere a, Sphere b) {
+    f32 dx  = b.pos[0] - a.pos[0];
+    f32 dy  = b.pos[1] - a.pos[1];
+    f32 dz  = b.pos[2] - a.pos[2];
+
     f32 rt  = a.rad + b.rad;
 
-    return d.x * d.x + d.y * d.y < rt * rt;
+    return dx * dx + dy * dy < rt * rt;
 };
 
-inline v3 get_intersect_vector(Sphere a, Sphere b) {
-    v3  delta   = b.pos - a.pos;
-    f32 depth   = len(delta) - (a.rad + b.rad);
+inline void sphere_get_intersect_vector(f32 out[3], Sphere a, Sphere b) {
+    f32 delta[3] = {
+        b.pos[0] - a.pos[0],
+        b.pos[1] - a.pos[1],
+        b.pos[2] - a.pos[2],
+    };
+
+    f32 depth = v3_len(delta) - (a.rad + b.rad);
     
-    return depth * delta;
+    out[0] = depth * delta[0];
+    out[1] = depth * delta[1];
+    out[2] = depth * delta[2];
 }
 
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
-struct Rect {
-    v2  min;
-    v2  max;
-};
+typedef struct {
+    f32     min[2];
+    f32     max[2];
+} Rect;
 
-inline b32 contains(Rect rect, v2 pos) {
-    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-
-    return true;
-}
-
-inline b32 intersect(Rect a, Rect b) {
-    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+inline b32 rect_contains(Rect rect, const f32 pos[2]) {
+    if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
+    if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
 
     return true;
 }
 
-inline Rect get_overlap(Rect a, Rect b) {
-    return {
-        max(a.min, b.min),
-        min(a.max, b.max)
-    };
+inline b32 rect_intersect(Rect a, Rect b) {
+    if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
+    if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
+
+    return true;
 }
 
-inline v2 get_intersect_vector(Rect a, Rect b) {
-    Rect o      = get_overlap(a, b);
-    v2   delta  = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+inline Rect rect_get_overlap(Rect a, Rect b) {
+    Rect rect;
 
-    return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
+    v2_max(rect.min, a.min, b.min);
+    v2_min(rect.max, a.max, b.max);
+
+    return rect;
 }
 
-inline Rect move(Rect rect, v2 offset) {
-    return {
-        rect.min + offset,
-        rect.max + offset,
-    };
+inline void rect_get_intersect_vector(f32 out[2], Rect a, Rect b) {
+    Rect    o   = rect_get_overlap(a, b);
+    f32     dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
+    f32     dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
+
+    out[0] = sign(dx) * (o.max[0] - o.min[0]);
+    out[1] = sign(dy) * (o.max[1] - o.min[1]);
+}
+
+inline Rect rect_move(Rect rect, const f32 offset[2]) {
+    rect.min[0] += offset[0];
+    rect.min[1] += offset[1];
+
+    rect.max[0] += offset[0];
+    rect.max[1] += offset[1];
+
+    return rect;
 }
 
 // ----------------------------------------- BOX --------------------------------------- //
 
-struct Box {
-    v3  min;
-    v3  max;
-};
+typedef struct {
+    f32     min[3];
+    f32     max[3];
+} Box;
 
-inline b32 contains(Box rect, v3 pos) {
-    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-    if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
-
-    return true;
-}
-
-inline b32 intersect(Box a, Box b) {
-    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-    if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
+inline b32 box_contains(Box rect, const f32 pos[3]) {
+    if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
+    if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
+    if (pos[2] < rect.min[2] || pos[2] > rect.max[2]) return false;
 
     return true;
 }
 
-inline Box get_overlap(Box a, Box b) {
-    return {
-        max(a.min, b.min),
-        min(a.max, b.max)
-    };
+inline b32 box_intersect(Box a, Box b) {
+    if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
+    if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
+    if (a.min[2] > b.max[2] || a.max[2] < b.min[2]) return false;
+
+    return true;
 }
 
-inline v3 get_intersect_vector(Box a, Box b) {
-    Box o       = get_overlap(a, b);
-    v3  delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+inline Box box_get_overlap(Box a, Box b) {
+    Box box;
 
-    return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
+    v2_max(box.min, a.min, b.min);
+    v2_min(box.max, a.max, b.max);
+
+    return box;
 }
 
-inline Box move(Box box, v3 offset) {
-    return {
-        box.min + offset,
-        box.max + offset,
-    };
+inline void box_get_intersect_vector(f32 out[3], Box a, Box b) {
+    Box o   = box_get_overlap(a, b);
+
+    f32 dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
+    f32 dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
+    f32 dz  = 0.5f * (a.min[2] + a.max[2]) - 0.5f * (b.min[2] + b.max[2]);
+
+    out[0] = sign(dx) * (o.max[0] - o.min[0]);
+    out[1] = sign(dy) * (o.max[1] - o.min[1]);
+    out[2] = sign(dz) * (o.max[2] - o.min[2]);
 }
+
+inline Box box_move(Box box, const f32 offset[3]) {
+    box.min[0] += offset[0];
+    box.min[1] += offset[1];
+    box.min[2] += offset[2];
+
+    box.max[0] += offset[0];
+    box.max[1] += offset[1];
+    box.max[2] += offset[2];
+
+    return box;
+}
+
+#if 0
+// ----------------------------------------- FRUSTUM --------------------------------------- //
 
 struct Plane {
     f32     a;
