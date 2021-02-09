@@ -903,301 +903,174 @@ inline void m4_look_at(f32 out[16], const f32 eye[3], const f32 center[3], const
     out[15] = -(out[3] * eye[0] + out[7] * eye[1] + out[11] * eye[2] - 1.0f);
 }
 
-#if 0
-inline m4 m4_from_quat(Quat q) {
-    f32 a = q.w;
-	f32 b = q.x;
-	f32 c = q.y;
-	f32 d = q.z;
+inline void m4_from_quat(f32 out[16], const f32 q[4]) {
+    f32 a = q[3];
+	f32 b = q[0];
+	f32 c = q[1];
+	f32 d = q[2];
 
 	f32 a2 = a * a;
 	f32 b2 = b * b;
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return {
-        a2 + b2 - c2 - d2,
-        2.0f * (b * c + a * d),
-        2.0f * (b * d - a * c),
-        0.f,
+    out[0]  = a2 + b2 - c2 - d2;
+    out[1]  = 2.0f * (b * c + a * d);
+    out[2]  = 2.0f * (b * d - a * c);
+    out[3]  = 0.f;
 
-        2.0f * (b * c - a * d),
-        a2 - b2 + c2 - d2,
-        2.0f * (c * d + a * b),
-        0.f,
+    out[4]  = 2.0f * (b * c - a * d);
+    out[5]  = a2 - b2 + c2 - d2;
+    out[6]  = 2.0f * (c * d + a * b);
+    out[7]  = 0.f,
 
-        2.0f * (b * d + a * c),
-        2.0f * (c * d - a * b),
-        a2 - b2 - c2 + d2,
-        0.0f,
+    out[8]  = 2.0f * (b * d + a * c);
+    out[9]  = 2.0f * (c * d - a * b);
+    out[10] = a2 - b2 - c2 + d2;
+    out[11] = 0.0f;
 
-        0.0f,
-        0.0f,
-        0.0f,
-        1.0f
-    };
+    out[12] = 0.0f;
+    out[13] = 0.0f;
+    out[14] = 0.0f;
+    out[15] = 1.0f;
 }
 
-inline m4 m4_dir(v3 dir, v3 up) {
-    v3 left = norm(cross(up, dir));
-    v3 cup  = norm(cross(dir, left));
-
-    return {
-        cup.x, left.x, dir.x, 0,
-        cup.y, left.y, dir.y, 0,
-        cup.z, left.z, dir.z, 0,
-        0, 0, 0, 1,
-    };
-}
-
-inline m4 invert(m4 M) {
+inline void m4_invert(f32 out[16], const f32 M[16]) {
 	f32 s[6], c[6];
 
-	s[0] = M.array[0] * M.array[5] - M.array[4] * M.array[1];
-	s[1] = M.array[0] * M.array[6] - M.array[4] * M.array[2];
-	s[2] = M.array[0] * M.array[7] - M.array[4] * M.array[3];
-	s[3] = M.array[1] * M.array[6] - M.array[5] * M.array[2];
-	s[4] = M.array[1] * M.array[7] - M.array[5] * M.array[3];
-	s[5] = M.array[2] * M.array[7] - M.array[6] * M.array[3];
+	s[0] = M[0] * M[5] - M[4] * M[1];
+	s[1] = M[0] * M[6] - M[4] * M[2];
+	s[2] = M[0] * M[7] - M[4] * M[3];
+	s[3] = M[1] * M[6] - M[5] * M[2];
+	s[4] = M[1] * M[7] - M[5] * M[3];
+	s[5] = M[2] * M[7] - M[6] * M[3];
 
-	c[0] = M.array[8]  * M.array[13] - M.array[12] * M.array[9];
-	c[1] = M.array[8]  * M.array[14] - M.array[12] * M.array[10];
-	c[2] = M.array[8]  * M.array[15] - M.array[12] * M.array[11];
-	c[3] = M.array[9]  * M.array[14] - M.array[13] * M.array[10];
-	c[4] = M.array[9]  * M.array[15] - M.array[13] * M.array[11];
-	c[5] = M.array[10] * M.array[15] - M.array[14] * M.array[11];
+	c[0] = M[8]  * M[13] - M[12] * M[9];
+	c[1] = M[8]  * M[14] - M[12] * M[10];
+	c[2] = M[8]  * M[15] - M[12] * M[11];
+	c[3] = M[9]  * M[14] - M[13] * M[10];
+	c[4] = M[9]  * M[15] - M[13] * M[11];
+	c[5] = M[10] * M[15] - M[14] * M[11];
 	
 	// assumes it is invertible
 	f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-    return {
-        ( M.array[5]  * c[5] - M.array[6]  * c[4] + M.array[7]  * c[3]) * idet,
-        (-M.array[1]  * c[5] + M.array[2]  * c[4] - M.array[3]  * c[3]) * idet,
-        ( M.array[13] * s[5] - M.array[14] * s[4] + M.array[15] * s[3]) * idet,
-        (-M.array[9]  * s[5] + M.array[10] * s[4] - M.array[11] * s[3]) * idet,
+    out[0]  = ( M[5]  * c[5] - M[6]  * c[4] + M[7]  * c[3]) * idet;
+    out[1]  = (-M[1]  * c[5] + M[2]  * c[4] - M[3]  * c[3]) * idet;
+    out[2]  = ( M[13] * s[5] - M[14] * s[4] + M[15] * s[3]) * idet;
+    out[3]  = (-M[9]  * s[5] + M[10] * s[4] - M[11] * s[3]) * idet;
 
-        (-M.array[4]  * c[5] + M.array[6]  * c[2] - M.array[7]  * c[1]) * idet,
-        ( M.array[0]  * c[5] - M.array[2]  * c[2] + M.array[3]  * c[1]) * idet,
-        (-M.array[12] * s[5] + M.array[14] * s[2] - M.array[15] * s[1]) * idet,
-        ( M.array[8]  * s[5] - M.array[10] * s[2] + M.array[11] * s[1]) * idet,
+    out[4]  = (-M[4]  * c[5] + M[6]  * c[2] - M[7]  * c[1]) * idet;
+    out[5]  = ( M[0]  * c[5] - M[2]  * c[2] + M[3]  * c[1]) * idet;
+    out[6]  = (-M[12] * s[5] + M[14] * s[2] - M[15] * s[1]) * idet;
+    out[7]  = ( M[8]  * s[5] - M[10] * s[2] + M[11] * s[1]) * idet;
 
-        ( M.array[4]  * c[4] - M.array[5]  * c[2] + M.array[7]  * c[0]) * idet,
-        (-M.array[0]  * c[4] + M.array[1]  * c[2] - M.array[3]  * c[0]) * idet,
-        ( M.array[12] * s[4] - M.array[13] * s[2] + M.array[15] * s[0]) * idet,
-        (-M.array[8]  * s[4] + M.array[9]  * s[2] - M.array[11] * s[0]) * idet,
+    out[8]  = ( M[4]  * c[4] - M[5]  * c[2] + M[7]  * c[0]) * idet;
+    out[9]  = (-M[0]  * c[4] + M[1]  * c[2] - M[3]  * c[0]) * idet;
+    out[10] = ( M[12] * s[4] - M[13] * s[2] + M[15] * s[0]) * idet;
+    out[11] = (-M[8]  * s[4] + M[9]  * s[2] - M[11] * s[0]) * idet;
 
-        (-M.array[4]  * c[3] + M.array[5]  * c[1] - M.array[6]  * c[0]) * idet,
-        ( M.array[0]  * c[3] - M.array[1]  * c[1] + M.array[2]  * c[0]) * idet,
-        (-M.array[12] * s[3] + M.array[13] * s[1] - M.array[14] * s[0]) * idet,
-        ( M.array[8]  * s[3] - M.array[9]  * s[1] + M.array[10] * s[0]) * idet,
-    };
+    out[12] = (-M[4]  * c[3] + M[5]  * c[1] - M[6]  * c[0]) * idet;
+    out[13] = ( M[0]  * c[3] - M[1]  * c[1] + M[2]  * c[0]) * idet;
+    out[14] = (-M[12] * s[3] + M[13] * s[1] - M[14] * s[0]) * idet;
+    out[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
 // Quat:
-inline Quat quat_identity(void) {
-    return { 0.0f, 0.0f, 0.0f, 1.0f };
+inline void quat_identity(f32 out[4]) {
+    out[0] = 0.0f;
+    out[1] = 0.0f;
+    out[2] = 0.0f;
+    out[3] = 1.0f;
 }
 
-inline Quat quat_make(f32 x, f32 y, f32 z, f32 angle) {
+inline void quat_make(f32 out[4], f32 x, f32 y, f32 z, f32 angle) {
     f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
-    f32 s = inv_len * sin(angle / 2.0f);
+    f32 s       = inv_len * sin(angle / 2.0f);
 
-    return {
-        x * s,
-        y * s,
-        z * s,
-        cosf(angle / 2.0f)
-    };
+    out[0] = x * s;
+    out[1] = y * s;
+    out[2] = z * s;
+    out[3] = cosf(angle / 2.0f);
 }
 
-inline Quat quat_add(Quat a, Quat b) {
-    return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+inline void quat_conj(f32 out[4], const f32 q[4]) {
+    out[0] = -q[0];
+    out[1] = -q[1];
+    out[2] = -q[2];
+    out[3] =  q[3];
 }
 
-inline Quat quat_conj(Quat q) {
-    return { -q.x, -q.y, -q.z, q.w };
+inline void quat_mul(f32 out[4], const f32 a[4], const f32 b[4]) {
+    out[0] = a[1] * b[2] - a[2] * b[1] + a[3] * b[0] + b[3] * a[0];
+    out[1] = a[2] * b[0] - a[0] * b[2] + a[3] * b[1] + b[3] * a[1];
+    out[2] = a[0] * b[1] - a[1] * b[0] + a[3] * b[2] + b[3] * a[2];
+    out[3] = a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2];
 }
 
-inline Quat operator*(Quat a, Quat b) {
-    return {
-        a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
-        a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
-        a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
-        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
-    };
-}
+inline void quat_rotate(f32 out[4], const f32 axis[3], f32 angle) {
+    f32 s    = sinf(0.5f * angle);
+    f32 v[3] = { s * axis[0], s * axis[1], s * axis[2] };
 
-inline Quat quat_rotate(v3 axis, f32 angle) {
-    f32 s = sin(0.5f * angle);
-    v3 v = { s * axis.x, s * axis.y, s * axis.z };
-
-    return { v.x, v.y, v.z, cosf(0.5f * angle) };
+    out[0] = v[0];
+    out[1] = v[1];
+    out[2] = v[2];
+    out[3] = cosf(0.5f * angle);
 }
 
 // --------------------- v2i ------------------------- // 
 
-inline v2i V2i(i32 x, i32 y) {
-    return { x, y };
+inline b32 v2i_equal(const i32 a[2], const i32 b[2]) {
+    return a[0] == b[0] && a[1] == b[1];
 }
 
-inline v2i V2i(v2 a) {
-    return { i32(a.x), i32(a.y) };
+inline i32 v2i_dist_sq(const i32 a[2], const i32 b[2]) {
+    i32 dx = a[0] - b[0];
+    i32 dy = a[1] - b[1];
+
+    return dx * dx + dy * dy;
 }
 
-inline v2i operator-(v2i a) {
-    return { -a.x, -a.y };
-}
-
-inline v2i operator+(v2i a, v2i b) {
-    return { a.x + b.x, a.y + b.y };
-}
-
-inline v2i operator-(v2i a, v2i b) {
-    return { a.x - b.x, a.y - b.y };
-}
-
-inline v2i operator*(v2i a, v2i b) {
-    return { a.x * b.x, a.y * b.y };
-}
-
-inline v2i operator/(v2i a, v2i b) {
-    return { a.x / b.x, a.y / b.y };
-}
-
-inline v2i operator*(v2i a, i32 s) {
-    return { a.x * s, a.y * s };
-}
-
-inline v2i operator*(i32 s, v2i a) {
-    return { a.x * s, a.y * s };
-}
-
-inline v2i operator/(v2i a, i32 s) {
-    return { a.x / s, a.y / s };
-}
-
-inline bool operator==(v2i a, v2i b) {
-    return a.x == b.x && a.y == b.y;
-}
-
-inline bool operator!=(v2i a, v2i b) {
-    return a.x != b.x || a.y != b.y;
-}
-
-inline v2i operator+=(v2i& a, v2i b) {
-    return a = a + b;
-}
-
-inline v2i operator-=(v2i& a, v2i b) {
-    return a = a - b;
-}
-
-inline i32 dist_sq(v2i a, v2i b) {
-    v2i d = a - b;
-    return d.x * d.x + d.y * d.y;
-}
-
-inline i32 manhattan(v2i a, v2i b) {
-    i32 dx = abs(a.x - b.x);
-    i32 dy = abs(a.y - b.y);
+inline i32 v2i_manhattan(const i32 a[2], const i32 b[2]) {
+    i32 dx = abs(a[0] - b[0]);
+    i32 dy = abs(a[1] - b[1]);
 
     return dx + dy;
 }
 
-inline v2i clamp(v2i a, i32 min, i32 max) {
-    return {
-        clamp(a.x, min, max),
-        clamp(a.y, min, max),
-    };
+inline void v2i_clamp(i32 out[2], const i32 a[2], i32 min, i32 max) {
+    out[0] = clamp(a[0], min, max);
+    out[1] = clamp(a[1], min, max);
 }
 
-inline v2i min(v2i a, v2i b) {
-    return {
-        (a.x < b.x? a.x : b.x),
-        (a.y < b.y? a.y : b.y)
-    };
+inline void v2i_min(i32 out[2], const i32 a[2], const i32 b[2]) {
+    out[0] = (a[0] < b[0]? a[0] : b[0]);
+    out[1] = (a[1] < b[1]? a[1] : b[1]);
 }
 
-inline v2i max(v2i a, v2i b) {
-    return {
-        (a.x > b.x? a.x : b.x),
-        (a.y > b.y? a.y : b.y)
-    };
+inline void v2i_max(i32 out[2], const i32 a[2], const i32 b[2]) {
+    out[0] = (a[0] > b[0]? a[0] : b[0]);
+    out[1] = (a[1] > b[1]? a[1] : b[1]);
 }
 
 // --------------------- v3i ------------------------- // 
 
-inline v3i V3i(i32 x, i32 y, i32 z) {
-    return { x, y, z };
-}
+inline i32 dist_sq(const i32 a[2], const i32 b[2]) {
+    i32 dx = a[0] - b[0];
+    i32 dy = a[1] - b[1];
+    i32 dz = a[2] - b[2];
 
-inline v3i V3i(v3 a) {
-    return { i32(a.x), i32(a.y), i32(a.z) };
-}
-
-inline v3i operator+(v3i a, v3i b) {
-    return { a.x + b.x, a.y + b.y, a.z + b.z };
-}
-
-inline v3i operator-(v3i a, v3i b) {
-    return { a.x - b.x, a.y - b.y, a.z - b.z };
-}
-
-inline v3i operator*(v3i a, v3i b) {
-    return { a.x * b.x, a.y * b.y, a.z * b.z };
-}
-
-inline v3i operator/(v3i a, v3i b) {
-    return { a.x / b.x, a.y / b.y, a.z / b.z };
-}
-
-inline v3i operator*(v3i a, i32 s) {
-    return { a.x * s, a.y * s, a.z * s };
-}
-
-inline v3i operator/(v3i a, i32 s) {
-    return { a.x / s, a.y / s, a.z / s };
-}
-
-inline i32 dist_sq(v3i a, v3i b) {
-    v3i d = a - b;
-    return d.x * d.x + d.y * d.y + d.z * d.z;
+    return dx * dx + dy * dy + dz * dz;
 }
 
 // --------------------- v4i ------------------------- // 
 
-inline v4i V4i(i32 x, i32 y, i32 z, i32 w) {
-    return { x, y, z, w };
-}
-
-inline v4i operator+(v4i a, v4i b) {
-    return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
-}
-
-inline v4i operator-(v4i a, v4i b) {
-    return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
-}
-
-inline v4i operator*(v4i a, v4i b) {
-    return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
-}
-
-inline v4i operator/(v4i a, v4i b) {
-    return { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w };
-}
-
-inline v4i operator*(v4i a, i32 s) {
-    return { a.x * s, a.y * s, a.z * s, a.w * s };
-}
-
-inline v4i operator/(v4i a, i32 s) {
-    return { a.x / s, a.y / s, a.z / s, a.w / s };
-}
 
 // =================================================== SHAPES =============================================== //
 
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
+#if 0
 struct Circle {
     v2      pos;
     f32     rad;
