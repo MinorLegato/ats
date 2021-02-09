@@ -1228,15 +1228,14 @@ inline Box box_move(Box box, const f32 offset[3]) {
     return box;
 }
 
-#if 0
 // ----------------------------------------- FRUSTUM --------------------------------------- //
 
-struct Plane {
+typedef struct {
     f32     a;
     f32     b;
     f32     c;
     f32     d;
-};
+} Plane;
 
 inline Plane normalize_plane(Plane plane) {
     f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
@@ -1249,48 +1248,48 @@ inline Plane normalize_plane(Plane plane) {
     return plane;
 }
 
-struct Frustum {
+typedef struct {
     Plane   plane[6];
-};
+} Frustum;
 
-inline Frustum extract_planes(m4 combo_matrix, bool normalize = true) {
-    Frustum frustum = {};
+inline Frustum frustum_create(const f32 matrix[16], bool normalize) {
+    Frustum frustum = {0};
 
     // left clipping plane
-    frustum.plane[0].a = combo_matrix.x.w + combo_matrix.x.x;
-    frustum.plane[0].b = combo_matrix.y.w + combo_matrix.y.x;
-    frustum.plane[0].c = combo_matrix.z.w + combo_matrix.z.x;
-    frustum.plane[0].d = combo_matrix.w.w + combo_matrix.w.x;
+    frustum.plane[0].a = matrix[3]  + matrix[0];
+    frustum.plane[0].b = matrix[7]  + matrix[4];
+    frustum.plane[0].c = matrix[11] + matrix[8];
+    frustum.plane[0].d = matrix[15] + matrix[12];
 
     // right clipping plane
-    frustum.plane[1].a = combo_matrix.x.w - combo_matrix.x.x;
-    frustum.plane[1].b = combo_matrix.y.w - combo_matrix.y.x;
-    frustum.plane[1].c = combo_matrix.z.w - combo_matrix.z.x;
-    frustum.plane[1].d = combo_matrix.w.w - combo_matrix.w.x;
+    frustum.plane[1].a = matrix[3]  - matrix[0];
+    frustum.plane[1].b = matrix[7]  - matrix[4];
+    frustum.plane[1].c = matrix[11] - matrix[8];
+    frustum.plane[1].d = matrix[15] - matrix[12];
 
     // top clipping plane
-    frustum.plane[2].a = combo_matrix.x.w - combo_matrix.x.y;
-    frustum.plane[2].b = combo_matrix.y.w - combo_matrix.y.y;
-    frustum.plane[2].c = combo_matrix.z.w - combo_matrix.z.y;
-    frustum.plane[2].d = combo_matrix.w.w - combo_matrix.w.y;
+    frustum.plane[2].a = matrix[3]  - matrix[1];
+    frustum.plane[2].b = matrix[7]  - matrix[5];
+    frustum.plane[2].c = matrix[11] - matrix[9];
+    frustum.plane[2].d = matrix[15] - matrix[13];
 
     // bottom clipping plane
-    frustum.plane[3].a = combo_matrix.x.w + combo_matrix.x.y;
-    frustum.plane[3].b = combo_matrix.y.w + combo_matrix.y.y;
-    frustum.plane[3].c = combo_matrix.z.w + combo_matrix.z.y;
-    frustum.plane[3].d = combo_matrix.w.w + combo_matrix.w.y;
+    frustum.plane[3].a = matrix[3]  + matrix[1];
+    frustum.plane[3].b = matrix[7]  + matrix[5];
+    frustum.plane[3].c = matrix[11] + matrix[9];
+    frustum.plane[3].d = matrix[15] + matrix[13];
 
     // near clipping plane
-    frustum.plane[4].a = combo_matrix.x.w + combo_matrix.x.z;
-    frustum.plane[4].b = combo_matrix.y.w + combo_matrix.y.z;
-    frustum.plane[4].c = combo_matrix.z.w + combo_matrix.z.z;
-    frustum.plane[4].d = combo_matrix.w.w + combo_matrix.w.z;
+    frustum.plane[4].a = matrix[3]  + matrix[2];
+    frustum.plane[4].b = matrix[7]  + matrix[6];
+    frustum.plane[4].c = matrix[11] + matrix[10];
+    frustum.plane[4].d = matrix[15] + matrix[14];
 
     // far clipping plane
-    frustum.plane[5].a = combo_matrix.x.w - combo_matrix.x.z;
-    frustum.plane[5].b = combo_matrix.y.w - combo_matrix.y.z;
-    frustum.plane[5].c = combo_matrix.z.w - combo_matrix.z.z;
-    frustum.plane[5].d = combo_matrix.w.w - combo_matrix.w.z;
+    frustum.plane[5].a = matrix[3]  - matrix[2];
+    frustum.plane[5].b = matrix[7]  - matrix[6];
+    frustum.plane[5].c = matrix[11] - matrix[10];
+    frustum.plane[5].d = matrix[15] - matrix[14];
 
     // Normalize the plane equations, if requested
     if (normalize == true) {
@@ -1305,9 +1304,9 @@ inline Frustum extract_planes(m4 combo_matrix, bool normalize = true) {
     return frustum;
 }
 
-inline bool contains(Frustum frustum, v3 pos) {
+inline bool frustum_contains(Frustum frustum, const f32 pos[3]) {
     for(i32 i = 0; i < 6; i++ )	 {
-		if(frustum.plane[i].a * pos.x + frustum.plane[i].b * pos.y + frustum.plane[i].c * pos.z + frustum.plane[i].d <= 0) {
+		if(frustum.plane[i].a * pos[0] + frustum.plane[i].b * pos[1] + frustum.plane[i].c * pos[2] + frustum.plane[i].d <= 0) {
 			return false;
 		}
 	}
@@ -1315,9 +1314,9 @@ inline bool contains(Frustum frustum, v3 pos) {
 	return true;
 }
 
-inline bool intersect(Frustum frustum, Sphere sphere) {
+inline bool frustum_intersect_sphere(Frustum frustum, Sphere sphere) {
     for(i32 i = 0; i < 6; i++ )	 {
-		if(frustum.plane[i].a * sphere.pos.x + frustum.plane[i].b * sphere.pos.y + frustum.plane[i].c * sphere.pos.z + frustum.plane[i].d <= -sphere.rad) {
+		if(frustum.plane[i].a * sphere.pos[0] + frustum.plane[i].b * sphere.pos[1] + frustum.plane[i].c * sphere.pos[2] + frustum.plane[i].d <= -sphere.rad) {
 			return false;
 		}
 	}
@@ -1325,16 +1324,16 @@ inline bool intersect(Frustum frustum, Sphere sphere) {
 	return true;
 }
 
-inline bool intersect(Frustum frustum, Box box) {
+inline b32 frustum_intersect_box(Frustum frustum, Box box) {
     for(int i = 0; i < 6; i++ ) {
-		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
 
 		return false;
 	}
@@ -1344,92 +1343,27 @@ inline bool intersect(Frustum frustum, Box box) {
 
 // ================================================= COLOR PACKING =========================================== //
 
-inline u32 pack_color(u8 r, u8 g, u8 b, u8 a) {
+inline u32 pack_color_u8(u8 r, u8 g, u8 b, u8 a) {
     u32 color = 0;
 
-    color |= u32(r) << 0;
-    color |= u32(g) << 8;
-    color |= u32(b) << 16;
-    color |= u32(a) << 24;
+    color |= (u32)(r) << 0;
+    color |= (u32)(g) << 8;
+    color |= (u32)(b) << 16;
+    color |= (u32)(a) << 24;
 
     return color;
 }
 
-inline u32 pack_color(f32 r, f32 g, f32 b, f32 a) {
-    return pack_color(u8(255 * r), u8(255 * g), u8(255 * b), u8(255 * a));
+inline u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a) {
+    return pack_color_u8(255 * r, 255 * g, 255 * b, 255 * a);
 }
 
-inline u32 pack_color(f64 r, f64 g, f64 b, f64 a) {
-    return pack_color(u8(255 * r), u8(255 * g), u8(255 * b), u8(255 * a));
+inline u32 pack_color_v4(const f32 color[4]) {
+    return pack_color_f32(color[0], color[1], color[2], color[3]);
 }
 
-inline u32 pack_color(v4 color) {
-    return pack_color(color.r, color.g, color.b, color.a);
-}
-
-inline u32 pack_color(v3 color, f32 a = 1.0) {
-    return pack_color(color.r, color.g, color.b, a);
-}
-
-// ============================================== RANDOM GENERATOR =========================================== //
-// random number generator: xorshf96
-
-struct Rnd_Gen {
-    u32     x;
-    u32     y;
-    u32     z;
-};
-
-inline u32 next_random(Rnd_Gen* g) {
-    g->x ^= g->x << 16;
-    g->x ^= g->x >> 5;
-    g->x ^= g->x << 1;
-
-    u32 t = g->x;
-
-    g->x = g->y;
-    g->y = g->z;
-    g->z = t ^ g->x ^ g->y;
-
-    return g->z;
-}
-
-thread_local Rnd_Gen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
-
-inline void rand_seed(u32 x, u32 y, u32 z) {
-    assert(x && y && z);
-
-    default_rnd_gen.x = x;
-    default_rnd_gen.y = y;
-    default_rnd_gen.z = z;
-}
-
-inline i32 rand_i32(i32 min, i32 max) {
-    return min + next_random(&default_rnd_gen) % (max - min);
-}
-
-inline f32 rand_f32(f32 min, f32 max) {
-    return min + ((f32)next_random(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
-}
-
-inline v2 rand_v2(void) {
-    return norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
-}
-
-inline v3 rand_v3(void) {
-    return norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
-}
-
-inline v2 rand_v2(f32 min, f32 max) {
-    return rand_f32(min, max) * rand_v2();
-}
-
-inline v3 rand_v3(f32 min, f32 max) {
-    return rand_f32(min, max) * rand_v3();
-}
-
-inline Quat rand_quat(void) {
-    return quat_make(rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-PI, PI));
+inline u32 pack_color_v3(const f32 color[3]) {
+    return pack_color_f32(color[0], color[1], color[2], 1.0);
 }
 
 // =================================== XORSHIFT32 ============================================= //
@@ -1452,25 +1386,6 @@ inline f32 rand_f32(u32* state, f32 min, f32 max) {
     return min + ((f32)rand_u32(state) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2 rand_v2(u32* state) {
-    return norm(V2(rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
-}
-
-inline v3 rand_v3(u32* state) {
-    return norm(V3(rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
-}
-
-inline v2 rand_v2(u32* state, f32 min, f32 max) {
-    return rand_f32(state, min, max) * rand_v2(state);
-}
-
-inline v3 rand_v3(u32* state, f32 min, f32 max) {
-    return rand_f32(state, min, max) * rand_v3(state);
-}
-
-inline Quat rand_quat(u32* state) {
-    return quat_make(rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -PI, PI));
-}
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
 
@@ -1492,7 +1407,6 @@ inline u32 hash_cstr(const char *str) {
 
     return hash + (hash >> 16);
 }
-#endif
 
 // ==================================== FILES ==================================== //
 
