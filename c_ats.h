@@ -63,6 +63,28 @@ typedef uint16_t b16;
 typedef uint32_t b32;
 typedef uint64_t b64;
 
+typedef f32 v2[2];
+typedef f32 v3[3];
+typedef f32 v4[4];
+
+typedef i32 v2i[2];
+typedef i32 v3i[3];
+typedef i32 v4i[4];
+
+typedef f32 m2[4];
+typedef f32 m3[9];
+typedef f32 m4[16];
+
+typedef f32 Quat[4];
+
+#define V2(...)     ((v2) { __VA_ARGS__ })
+#define V3(...)     ((v3) { __VA_ARGS__ })
+#define V4(...)     ((v4) { __VA_ARGS__ })
+
+#define V2i(...)    ((v2i) { __VA_ARGS__ })
+#define V3i(...)    ((v3i) { __VA_ARGS__ })
+#define V4i(...)    ((v4i) { __VA_ARGS__ })
+
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
 
 #define sqrt    __sqrt
@@ -128,23 +150,23 @@ inline f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
 
 // ---------------------- v2 ---------------------- //
 
-inline f32 v2_dot(const f32 a[2], const f32 b[2]) {
+inline f32 v2_dot(const v2 a, const v2 b) {
     return a[0] * b[0] + a[1] * b[1];
 }
 
-inline f32 v2_det(const f32 a[2], const f32 b[2]) {
+inline f32 v2_det(const v2 a, const v2 b) {
     return a[0] * b[1] - a[1] * b[0];
 }
 
-inline f32 v2_len_sq(const f32 v[2]) {
+inline f32 v2_len_sq(const v2 v) {
     return v2_dot(v, v);
 }
 
-inline f32 v2_len(const f32 v[2]) {
+inline f32 v2_len(const v2 v) {
     return sqrt(v2_dot(v, v));
 }
 
-inline f32 v2_dist_sq(const f32 a[2], const f32 b[2]) {
+inline f32 v2_dist_sq(const v2 a, const v2 b) {
     f32 delta[2] = {
         a[0] - b[0],
         a[1] - b[1]
@@ -153,47 +175,47 @@ inline f32 v2_dist_sq(const f32 a[2], const f32 b[2]) {
     return v2_len_sq(delta);
 }
 
-inline f32 v2_dist(const f32 a[2], const f32 b[2]) {
+inline f32 v2_dist(const v2 a, const v2 b) {
     return sqrt(v2_dist_sq(a, b));
 }
 
-inline void v2_proj(f32 out[2], const f32 a[2], const f32 b[2]) {
+inline void v2_proj(v2 out, const v2 a, const v2 b) {
     f32 k = v2_dot(a, a) / v2_dot(b, b);
 
     out[0] = k * b[0];
     out[1] = k * b[1];
 }
 
-inline void v2_norm(f32 out[2], const f32 v[2]) {
+inline void v2_norm(v2 out, const v2 v) {
     f32 k = rsqrt(v2_dot(v, v));
 
     out[0] = k * v[0];
     out[1] = k * v[1];
 }
 
-inline void v2_min(f32 out[2], const f32 a[2], const f32 b[2]) {
+inline void v2_min(v2 out, const v2 a, const v2 b) {
     out[0] = a[0] < b[0]? a[0] : b[0];
     out[1] = a[1] < b[1]? a[1] : b[1];
 }
 
-inline void v2_max(f32 out[2], const f32 a[2], const f32 b[2]) {
+inline void v2_max(v2 out, const v2 a, const v2 b) {
     out[0] = a[0] > b[0]? a[0] : b[0];
     out[1] = a[1] > b[1]? a[1] : b[1];
 }
 
-inline void v2_lerp(f32 out[2], const f32 a[2], const f32 b[2], f32 t) {
+inline void v2_lerp(v2 out, const v2 a, const v2 b, f32 t) {
     out[0] = a[0] + t * (b[0] - a[0]);
     out[1] = a[1] + t * (b[1] - a[1]);
 }
 
-inline f32 v2_get_angle(const f32 a[2], const f32 b[2]) {
+inline f32 v2_get_angle(const v2 a, const v2 b) {
     f32 det = a[0] * b[1] - b[0] * a[1];
     f32 dot = a[0] * b[0] + a[1] * b[1];
     
     return atan2f(det, dot);
 }
 
-inline void v2_spline(f32 out[2], f32 f, const f32 a[2], const f32 b[2], const f32 c[2], const f32 d[2]) {
+inline void v2_spline(v2 out, f32 f, const v2 a, const v2 b, const v2 c, const v2 d) {
 	f32 i = 1.0f - f;
 
 	out[0] = ((d[0] * f + c[0] * i) * f + (c[0] * f + b[0] * i) * i) * f + ((c[0] * f + b[0] * i) * f + (b[0] * f + a[0] * i) * i) * i;
@@ -202,20 +224,20 @@ inline void v2_spline(f32 out[2], f32 f, const f32 a[2], const f32 b[2], const f
 
 // ----------------------------- v3 ----------------------------- //
 
-inline f32 v3_dot(const f32 a[3], const f32 b[3]) {
+inline f32 v3_dot(const v3 a, const v3 b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
-inline f32 v3_len_sq(const f32 v[3]) {
+inline f32 v3_len_sq(const v3 v) {
     return v3_dot(v, v);
 }
 
-inline f32 v3_len(const f32 v[3]) {
+inline f32 v3_len(const v3 v) {
     return sqrt(v3_dot(v, v));
 }
 
-inline f32 v3_dist_sq(const f32 a[3], const f32 b[3]) {
-    f32 delta[3] = {
+inline f32 v3_dist_sq(const v3 a, const v3 b) {
+    v3 delta = {
         a[0] - b[0],
         a[1] - b[1],
         a[2] - b[2]
@@ -224,11 +246,11 @@ inline f32 v3_dist_sq(const f32 a[3], const f32 b[3]) {
     return v3_len_sq(delta);
 }
 
-inline f32 v3_dist(const f32 a[3], const f32 b[3]) {
+inline f32 v3_dist(const v3 a, const v3 b) {
     return sqrt(v3_dist_sq(a, b));
 }
 
-inline void v3_proj(f32 out[3], const f32 a[3], const f32 b[3]) {
+inline void v3_proj(v3 out, const v3 a, const v3 b) {
     f32 k = v3_dot(a, b) / v3_dot(b, b);
 
     out[0] = k * b[0];
@@ -236,7 +258,7 @@ inline void v3_proj(f32 out[3], const f32 a[3], const f32 b[3]) {
     out[2] = k * b[2];
 }
 
-inline void v3_norm(f32 out[3], const f32 v[3]) {
+inline void v3_norm(v3 out, const v3 v) {
     f32 k = rsqrt(v3_dot(v, v));
 
     out[0] = k * v[0];
@@ -244,31 +266,31 @@ inline void v3_norm(f32 out[3], const f32 v[3]) {
     out[2] = k * v[2];
 }
 
-inline void v3_min(f32 out[3], const f32 a[3], const f32 b[3]) {
+inline void v3_min(v3 out, const v3 a, const v3 b) {
     out[0] = a[0] < b[0]? a[0] : b[0];
     out[1] = a[1] < b[1]? a[1] : b[1];
     out[2] = a[2] < b[2]? a[2] : b[2];
 }
 
-inline void v3_max(f32 out[3], const f32 a[3], const f32 b[3]) {
+inline void v3_max(v3 out, const v3 a, const v3 b) {
     out[0] = a[0] > b[0]? a[0] : b[0];
     out[1] = a[1] > b[1]? a[1] : b[1];
     out[2] = a[2] > b[2]? a[2] : b[2];
 }
 
-inline void v3_lerp(f32 out[3], const f32 a[3], const f32 b[3], f32 t) {
+inline void v3_lerp(v3 out, const v3 a, const v3 b, f32 t) {
     out[0] = a[0] + t * (b[0] - a[0]);
     out[1] = a[1] + t * (b[1] - a[1]);
     out[2] = a[2] + t * (b[2] - a[2]);
 }
 
-inline void v3_cross(f32 out[3], const f32 a[3], const f32 b[3]) {
+inline void v3_cross(v3 out, const v3 a, const v3 b) {
     out[0] = a[1] * b[2] - a[2] * b[1];
     out[1] = a[2] * b[0] - a[0] * b[2];
     out[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-inline void v3_spline(f32 out[3], f32 f, const f32 a[3], const f32 b[3], const f32 c[3], const f32 d[3]) {
+inline void v3_spline(v3 out, f32 f, const v3 a, const v3 b, const v3 c, const v3 d) {
 	f32 i = 1.0f - f;
 
     out[0] = ((d[0] * f + c[0] * i) * f + (c[0] * f + b[0] * i) * i) * f + ((c[0] * f + b[0] * i) * f + (b[0] * f + a[0] * i) * i) * i;
@@ -278,26 +300,26 @@ inline void v3_spline(f32 out[3], f32 f, const f32 a[3], const f32 b[3], const f
 
 // ----------------------------- v4 ---------------------------- //
 
-inline void v4_from_packed_color(f32 out[4], u32 color) {
+inline void v4_from_packed_color(v4 out, u32 color) {
     out[0] = ((color & 0x000000ff) >> 0)  / 256.0f;
     out[1] = ((color & 0x0000ff00) >> 8)  / 256.0f;
     out[2] = ((color & 0x00ff0000) >> 16) / 256.0f;
     out[3] = ((color & 0xff000000) >> 24) / 256.0f;
 }
 
-inline f32 v4_dot(const f32 a[4], const f32 b[4]) {
+inline f32 v4_dot(const v4 a, const v4 b) {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
 }
 
-inline f32 v4_len_sq(const f32 v[4]) {
+inline f32 v4_len_sq(const v4 v) {
     return v4_dot(v, v);
 }
 
-inline f32 v4_len(const f32 v[4]) {
+inline f32 v4_len(const v4 v) {
     return sqrt(v4_dot(v, v));
 }
 
-inline f32 v4_dist_sq(const f32 a[4], const f32 b[4]) {
+inline f32 v4_dist_sq(const v4 a, const v4 b) {
     f32 delta[4] = {
         b[0] - a[0],
         b[1] - a[1],
@@ -308,11 +330,11 @@ inline f32 v4_dist_sq(const f32 a[4], const f32 b[4]) {
     return v4_len_sq(delta);
 }
 
-inline f32 v4_dist(const f32 a[4], const f32 b[4]) {
+inline f32 v4_dist(const v4 a, const v4 b) {
     return sqrt(v4_dist_sq(a, b));
 }
 
-inline void v4_norm(f32 out[4], const f32 v[4]) {
+inline void v4_norm(v4 out, const v4 v) {
     f32 k = rsqrt(v4_dot(v, v));
 
     out[0] = k * v[0];
@@ -321,35 +343,35 @@ inline void v4_norm(f32 out[4], const f32 v[4]) {
     out[3] = k * v[3];
 }
 
-inline void v4_min(f32 out[4], const f32 a[4], const f32 b[4]) {
+inline void v4_min(v4 out, const v4 a, const v4 b) {
     out[0] = a[0] < b[0]? a[0] : b[0];
     out[1] = a[1] < b[1]? a[1] : b[1];
     out[2] = a[2] < b[2]? a[2] : b[2];
     out[3] = a[3] < b[3]? a[3] : b[3];
 }
 
-inline void v4_max(f32 out[4], const f32 a[4], const f32 b[4]) {
+inline void v4_max(v4 out, const v4 a, const v4 b) {
     out[0] = a[0] > b[0]? a[0] : b[0];
     out[1] = a[1] > b[1]? a[1] : b[1];
     out[2] = a[2] > b[2]? a[2] : b[2];
     out[3] = a[3] > b[3]? a[3] : b[3];
 }
 
-inline void v4_lerp(f32 out[4], const f32 a[4], const f32 b[4], f32 t) {
+inline void v4_lerp(v4 out, const v4 a, const v4 b, f32 t) {
     out[0] = a[0] + t * (b[0] - a[0]);
     out[1] = a[1] + t * (b[1] - a[1]);
     out[2] = a[2] + t * (b[2] - a[2]);
     out[3] = a[3] + t * (b[3] - a[3]);
 }
 
-inline void v4_cross(f32 out[4], const f32 a[4], const f32 b[4]) {
+inline void v4_cross(v4 out, const v4 a, const v4 b) {
     out[0] = a[1] * b[2] - a[2] * b[1];
     out[1] = a[2] * b[0] - a[0] * b[2];
     out[2] = a[0] * b[1] - a[1] * b[0];
     out[3] = 1.0;
 }
 
-inline void v4_spline(f32 out[4], f32 f, const f32 a[4], const f32 b[4], const f32 c[4], const f32 d[4]) {
+inline void v4_spline(v4 out, f32 f, const v4 a, const v4 b, const v4 c, const v4 d) {
 	f32 i = 1.0f - f;
 
     out[0] = ((d[0] * f + c[0] * i) * f + (c[0] * f + b[0] * i) * i) * f + ((c[0] * f + b[0] * i) * f + (b[0] * f + a[0] * i) * i) * i;
@@ -359,8 +381,8 @@ inline void v4_spline(f32 out[4], f32 f, const f32 a[4], const f32 b[4], const f
 }
 
 // m2:
-inline void m2_mul(f32 out[4], const f32 A[4], const f32 B[4]) {
-    f32 tmp[4];
+inline void m2_mul(m2 out, const m2 A, const m2 B) {
+    m2 tmp;
 
     tmp[0] = A[0] * B[0] + A[2] * B[1];
     tmp[1] = A[1] * B[0] + A[3] * B[1];
@@ -373,8 +395,8 @@ inline void m2_mul(f32 out[4], const f32 A[4], const f32 B[4]) {
     out[3] = tmp[3];
 }
 
-inline void m2_mulv(f32 out[4], const f32 R[4], const f32 v[2]) {
-    f32 tmp[4];
+inline void m2_mulv(m2 out, const m2 R, const v2 v) {
+    m2 tmp;
 
     tmp[0] = R[0] * v[0] + R[2] * v[1];
     tmp[1] = R[1] * v[0] + R[3] * v[1];
@@ -383,21 +405,21 @@ inline void m2_mulv(f32 out[4], const f32 R[4], const f32 v[2]) {
     out[1] = tmp[1];
 }
 
-inline void m2_identity(f32 out[2]) {
+inline void m2_identity(m2 out) {
     out[0] = 1.0f;
     out[1] = 0.0f;
     out[2] = 0.0f;
     out[3] = 1.0f;
 }
 
-inline void m2_rotate_cs(f32 out[4], f32 co, f32 si) {
+inline void m2_rotate_cs(m2 out, f32 co, f32 si) {
     out[0] =  co;
     out[1] =  si;
     out[2] = -si;
     out[3] =  co;
 }
 
-inline void m2_rotate(f32 out[4], f32 angle) {
+inline void m2_rotate(m2 out, f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
@@ -407,25 +429,25 @@ inline void m2_rotate(f32 out[4], f32 angle) {
     out[3] =  c;
 }
 
-inline void m2_scale(f32 out[4], f32 sx, f32 sy) {
+inline void m2_scale(m2 out, f32 sx, f32 sy) {
     out[0] = sx;
     out[1] = 0.0f;
     out[2] = 0.0f;
     out[3] = sy;
 }
 
-inline f32 m2_det(const f32 m[4]) {
+inline f32 m2_det(const m2 m) {
     return m[0] * m[2] - m[1] * m[3];
 }
 
-inline void m2_transpose(f32 out[4], const f32 m[4]) {
+inline void m2_transpose(m2 out, const m2 m) {
     out[0] = m[0];
     out[1] = m[2];
     out[2] = m[1];
     out[3] = m[3];
 }
 
-inline void m2_inverse(f32 out[4], const f32 m[4]) {
+inline void m2_inverse(m2 out, const m2 m) {
     f32 k = 1.0 / m2_det(m);
 
     out[0] =  k * m[3];
@@ -435,8 +457,8 @@ inline void m2_inverse(f32 out[4], const f32 m[4]) {
 }
 
 // m3:
-inline void m3_mul(f32 out[9], const f32 A[9], const f32 B[9]) {
-    f32 tmp[9];
+inline void m3_mul(m3 out, const m3 A, const m3 B) {
+    m3 tmp;
 
     tmp[0] = A[0] * B[0] + A[3] * B[1]  + A[6] * B[2];
     tmp[1] = A[1] * B[0] + A[4] * B[1]  + A[7] * B[2];
@@ -463,13 +485,13 @@ inline void m3_mul(f32 out[9], const f32 A[9], const f32 B[9]) {
     out[8] = tmp[8];
 }
 
-inline void m3_mulv(f32 out[3], const f32 M[9], const f32 v[3]) {
+inline void m3_mulv(m3 out, const m3 M, const v3 v) {
     out[0] = M[0] * v[0] + M[3] * v[1] + M[6] * v[2];
     out[1] = M[1] * v[0] + M[4] * v[1] + M[7] * v[2];
     out[2] = M[2] * v[0] + M[5] * v[1] + M[8] * v[2];
 }
 
-inline void m3_identity(f32 out[3]) {
+inline void m3_identity(m3 out) {
     out[0] = 1.0f;
     out[1] = 0.0f;
     out[2] = 0.0f;
@@ -483,14 +505,14 @@ inline void m3_identity(f32 out[3]) {
     out[8] = 1.0f;
 }
 
-inline void m3_rotate(f32 out[9], const f32 axis[3], f32 angle) {
+inline void m3_rotate(m3 out, const v3 axis, f32 angle) {
     f32 c       = cosf(angle);
     f32 s       = sinf(angle);
 
     f32 k       = 1.0f - c;
 
-    f32 sa[3]   = { s * axis[0], s * axis[1], s * axis[2] };
-    f32 omca[3] = { k * axis[0], k * axis[1], k * axis[2] };
+    v3  sa      = { s * axis[0], s * axis[1], s * axis[2] };
+    v3  omca    = { k * axis[0], k * axis[1], k * axis[2] };
 
     out[0] = omca[0] * axis[0] + c;
     out[1] = omca[0] * axis[1] - sa[2];
@@ -505,7 +527,7 @@ inline void m3_rotate(f32 out[9], const f32 axis[3], f32 angle) {
     out[8] = omca[2] * axis[2] + c;
 }
 
-inline void m3_euler(f32 out[9], f32 yaw, f32 pitch, f32 roll) {
+inline void m3_euler(m3 out, f32 yaw, f32 pitch, f32 roll) {
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
     f32 cp = cosf(pitch);
@@ -526,7 +548,7 @@ inline void m3_euler(f32 out[9], f32 yaw, f32 pitch, f32 roll) {
     out[8] = cp * cr;
 }
 
-inline void m3_from_quat(f32 out[9], const f32 quat[4]) {
+inline void m3_from_quat(m3 out, const Quat quat) {
     f32 a = quat[3];
 	f32 b = quat[0];
 	f32 c = quat[1];
@@ -551,8 +573,8 @@ inline void m3_from_quat(f32 out[9], const f32 quat[4]) {
 }
 
 // m4:
-inline void m4_mul(f32 out[16], const f32 A[16], const f32 B[16]) {
-    f32 tmp[16];
+inline void m4_mul(m4 out, const m4 A, const m4 B) {
+    m4 tmp;
 
     tmp[0]  = A[0] * B[0]  + A[4] * B[1]  + A[8]  * B[2]  + A[12] * B[3];
     tmp[1]  = A[1] * B[0]  + A[5] * B[1]  + A[9]  * B[2]  + A[13] * B[3];
@@ -595,14 +617,14 @@ inline void m4_mul(f32 out[16], const f32 A[16], const f32 B[16]) {
     out[15] = tmp[15];
 }
 
-inline void m4_mulv(f32 out[4], const f32 M[16], const f32 v[4]) {
+inline void m4_mulv(m4 out, const m4 M, const v4 v) {
     out[4] = M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3];
     out[4] = M[1] * v[0] + M[5] * v[1] + M[9]  * v[2] + M[13] * v[3];
     out[4] = M[2] * v[0] + M[6] * v[1] + M[10] * v[2] + M[14] * v[3];
     out[4] = M[3] * v[0] + M[7] * v[1] + M[11] * v[2] + M[15] * v[3];
 }
 
-inline void m4_identity(f32 out[16]) {
+inline void m4_identity(m4 out) {
     out[0]  = 1.0f;
     out[1]  = 0.0f;
     out[2]  = 0.0f;
@@ -624,7 +646,7 @@ inline void m4_identity(f32 out[16]) {
     out[15] = 1.0f;
 }
 
-inline void transpose(f32 out[16], const f32 N[16]) {
+inline void m4_transpose(m4 out, const m4 N) {
     out[0]  = N[0];
     out[1]  = N[4];
     out[2]  = N[8];
@@ -646,7 +668,7 @@ inline void transpose(f32 out[16], const f32 N[16]) {
     out[15] = N[15];
 }
 
-inline void m4_translate(f32 out[16], f32 x, f32 y, f32 z) {
+inline void m4_translate(m4 out, f32 x, f32 y, f32 z) {
     out[0]  = 1.0f;
     out[1]  = 0.0f;
     out[2]  = 0.0f;
@@ -669,7 +691,7 @@ inline void m4_translate(f32 out[16], f32 x, f32 y, f32 z) {
 }
 
 
-inline void m4_scale(f32 out[16], f32 x, f32 y, f32 z) {
+inline void m4_scale(m4 out, f32 x, f32 y, f32 z) {
     out[0]  = x;
     out[1]  = 0.0f;
     out[2]  = 0.0f;
@@ -691,7 +713,7 @@ inline void m4_scale(f32 out[16], f32 x, f32 y, f32 z) {
     out[15] = 1.0f;
 }
 
-inline void m4_rotate_x(f32 out[16], f32 angle) {
+inline void m4_rotate_x(m4 out, f32 angle) {
     f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
@@ -716,7 +738,7 @@ inline void m4_rotate_x(f32 out[16], f32 angle) {
     out[15] = 1.0f;
 }
 
-inline void m4_rotate_y(f32 out[16], f32 angle) {
+inline void m4_rotate_y(m4 out, f32 angle) {
     f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
@@ -741,7 +763,7 @@ inline void m4_rotate_y(f32 out[16], f32 angle) {
     out[15] = 1.0f;
 }
 
-inline void m4_rotate_z(f32 out[16], f32 angle) {
+inline void m4_rotate_z(m4 out, f32 angle) {
 	f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
@@ -766,9 +788,9 @@ inline void m4_rotate_z(f32 out[16], f32 angle) {
     out[15] = 1.0f;
 }
 
-inline void m4_rotate(f32 out[16], const f32 axis[3], f32 angle) {
-    f32 sa[3];
-    f32 omca[3];
+inline void m4_rotate(m4 out, const v3 axis, f32 angle) {
+    v3 sa;
+    v3 omca;
 
     f32 cosv        = cosf(angle);
     f32 sinv        = sinf(angle);
@@ -803,7 +825,7 @@ inline void m4_rotate(f32 out[16], const f32 axis[3], f32 angle) {
     out[15] = 1.0f;
 }
 
-inline void m4_frustum(f32 out[16], f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+inline void m4_frustum(m4 out, f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     out[0]  = 2.0f * n / (r - l);
     out[1]  = 0.0f;
     out[2]  = 0.0f;
@@ -825,7 +847,7 @@ inline void m4_frustum(f32 out[16], f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     out[15] = 0.0f;
 }
 
-inline void m4_ortho(f32 out[16], f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+inline void m4_ortho(m4 out, f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     out[0]  = 2.0f / (r - l);
     out[1]  = 0.0f;
     out[2]  = 0.0f;
@@ -847,7 +869,7 @@ inline void m4_ortho(f32 out[16], f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     out[15] = 1.0f;
 }
 
-inline void m4_perspective(f32 out[16], f32 y_fov, f32 aspect, f32 n, f32 f) {
+inline void m4_perspective(m4 out, f32 y_fov, f32 aspect, f32 n, f32 f) {
     const f32 a = 1.0f / tanf(y_fov / 2.0f);
 
     out[0]  = a / aspect;
@@ -871,10 +893,10 @@ inline void m4_perspective(f32 out[16], f32 y_fov, f32 aspect, f32 n, f32 f) {
     out[15] = 0.0f;
 }
 
-inline void m4_look_at(f32 out[16], const f32 eye[3], const f32 center[3], const f32 up[3]) {
-    f32 f[3] = { center[0] - eye[0], center[1] - eye[1], center[2] - eye[2] };
-    f32 s[3] = {0};
-    f32 t[3] = {0};
+inline void m4_look_at(m4 out, const v3 eye, const v3 center, const v3 up) {
+    v3 f = { center[0] - eye[0], center[1] - eye[1], center[2] - eye[2] };
+    v3 s = {0};
+    v3 t = {0};
 
     v3_norm(f, f);
 
@@ -885,17 +907,17 @@ inline void m4_look_at(f32 out[16], const f32 eye[3], const f32 center[3], const
 	out[0]  =  s[0];
 	out[1]  =  t[0];
 	out[2]  = -f[0];
-	out[3]  =   0.0f;
+	out[3]  =  0.0f;
 
 	out[4]  =  s[1];
 	out[5]  =  t[1];
 	out[6]  = -f[1];
-	out[7]  =   0.0f;
+	out[7]  =  0.0f;
 
 	out[8]  =  s[2];
 	out[9]  =  t[2];
 	out[10] = -f[2];
-	out[11] =   0.0f;
+	out[11] =  0.0f;
 
     out[12] = -(out[0] * eye[0] + out[4] * eye[1] + out[8]  * eye[2]);
     out[13] = -(out[1] * eye[0] + out[5] * eye[1] + out[9]  * eye[2]);
@@ -903,7 +925,7 @@ inline void m4_look_at(f32 out[16], const f32 eye[3], const f32 center[3], const
     out[15] = -(out[3] * eye[0] + out[7] * eye[1] + out[11] * eye[2] - 1.0f);
 }
 
-inline void m4_from_quat(f32 out[16], const f32 q[4]) {
+inline void m4_from_quat(m4 out, const Quat q) {
     f32 a = q[3];
 	f32 b = q[0];
 	f32 c = q[1];
@@ -935,7 +957,7 @@ inline void m4_from_quat(f32 out[16], const f32 q[4]) {
     out[15] = 1.0f;
 }
 
-inline void m4_invert(f32 out[16], const f32 M[16]) {
+inline void m4_invert(m4 out, const m4 M) {
 	f32 s[6], c[6];
 
 	s[0] = M[0] * M[5] - M[4] * M[1];
@@ -977,14 +999,14 @@ inline void m4_invert(f32 out[16], const f32 M[16]) {
 }
 
 // Quat:
-inline void quat_identity(f32 out[4]) {
+inline void quat_identity(Quat out) {
     out[0] = 0.0f;
     out[1] = 0.0f;
     out[2] = 0.0f;
     out[3] = 1.0f;
 }
 
-inline void quat_make(f32 out[4], f32 x, f32 y, f32 z, f32 angle) {
+inline void quat_make(Quat out, f32 x, f32 y, f32 z, f32 angle) {
     f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
     f32 s       = inv_len * sin(angle / 2.0f);
 
@@ -994,23 +1016,23 @@ inline void quat_make(f32 out[4], f32 x, f32 y, f32 z, f32 angle) {
     out[3] = cosf(angle / 2.0f);
 }
 
-inline void quat_conj(f32 out[4], const f32 q[4]) {
+inline void quat_conj(Quat out, const Quat q) {
     out[0] = -q[0];
     out[1] = -q[1];
     out[2] = -q[2];
     out[3] =  q[3];
 }
 
-inline void quat_mul(f32 out[4], const f32 a[4], const f32 b[4]) {
+inline void quat_mul(Quat out, const Quat a, const Quat b) {
     out[0] = a[1] * b[2] - a[2] * b[1] + a[3] * b[0] + b[3] * a[0];
     out[1] = a[2] * b[0] - a[0] * b[2] + a[3] * b[1] + b[3] * a[1];
     out[2] = a[0] * b[1] - a[1] * b[0] + a[3] * b[2] + b[3] * a[2];
     out[3] = a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2];
 }
 
-inline void quat_rotate(f32 out[4], const f32 axis[3], f32 angle) {
-    f32 s    = sinf(0.5f * angle);
-    f32 v[3] = { s * axis[0], s * axis[1], s * axis[2] };
+inline void quat_rotate(Quat out, const v3 axis, f32 angle) {
+    f32 s   = sinf(0.5f * angle);
+    v3  v   = { s * axis[0], s * axis[1], s * axis[2] };
 
     out[0] = v[0];
     out[1] = v[1];
@@ -1020,42 +1042,42 @@ inline void quat_rotate(f32 out[4], const f32 axis[3], f32 angle) {
 
 // --------------------- v2i ------------------------- // 
 
-inline b32 v2i_equal(const i32 a[2], const i32 b[2]) {
+inline b32 v2i_equal(const v2i a, const v2i b) {
     return a[0] == b[0] && a[1] == b[1];
 }
 
-inline i32 v2i_dist_sq(const i32 a[2], const i32 b[2]) {
+inline i32 v2i_dist_sq(const v2i a, const v2i b) {
     i32 dx = a[0] - b[0];
     i32 dy = a[1] - b[1];
 
     return dx * dx + dy * dy;
 }
 
-inline i32 v2i_manhattan(const i32 a[2], const i32 b[2]) {
+inline i32 v2i_manhattan(const v2i a, const v2i b) {
     i32 dx = abs(a[0] - b[0]);
     i32 dy = abs(a[1] - b[1]);
 
     return dx + dy;
 }
 
-inline void v2i_clamp(i32 out[2], const i32 a[2], i32 min, i32 max) {
+inline void v2i_clamp(v2i out, const v2i a, i32 min, i32 max) {
     out[0] = clamp(a[0], min, max);
     out[1] = clamp(a[1], min, max);
 }
 
-inline void v2i_min(i32 out[2], const i32 a[2], const i32 b[2]) {
+inline void v2i_min(v2i out, const v2i a, const v2i b) {
     out[0] = (a[0] < b[0]? a[0] : b[0]);
     out[1] = (a[1] < b[1]? a[1] : b[1]);
 }
 
-inline void v2i_max(i32 out[2], const i32 a[2], const i32 b[2]) {
+inline void v2i_max(v2i out, const v2i a, const v2i b) {
     out[0] = (a[0] > b[0]? a[0] : b[0]);
     out[1] = (a[1] > b[1]? a[1] : b[1]);
 }
 
 // --------------------- v3i ------------------------- // 
 
-inline i32 v3i_dist_sq(const i32 a[3], const i32 b[3]) {
+inline i32 v3i_dist_sq(const v2i a, const v2i b) {
     i32 dx = a[0] - b[0];
     i32 dy = a[1] - b[1];
     i32 dz = a[2] - b[2];
@@ -1067,10 +1089,12 @@ inline i32 v3i_dist_sq(const i32 a[3], const i32 b[3]) {
 
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
-typedef struct {
-    f32     pos[2];
+typedef struct Circle Circle;
+
+struct Circle {
+    v3      pos;
     f32     rad;
-} Circle;
+};
 
 inline b32 circle_intersect(Circle a, Circle b) {
     f32 dx  = b.pos[0] - a.pos[0];
@@ -1080,8 +1104,8 @@ inline b32 circle_intersect(Circle a, Circle b) {
     return dx * dx + dy * dy < rt * rt;
 };
 
-inline void circle_get_intersect_vector(f32 out[2], Circle a, Circle b) {
-    f32 delta[2]    = {
+inline void circle_get_intersect_vector(v2 out, Circle a, Circle b) {
+    v2 delta = {
         a.pos[0] - b.pos[0],
         a.pos[1] - b.pos[1]
     };
@@ -1094,10 +1118,12 @@ inline void circle_get_intersect_vector(f32 out[2], Circle a, Circle b) {
 
 // --------------------------------------- SHPERE ------------------------------------ //
 
-typedef struct {
-    f32     pos[3];
+typedef struct Sphere Sphere;
+
+struct Sphere {
+    v3      pos;
     f32     rad;
-} Sphere;
+};
 
 inline b32 sphere_intersect(Sphere a, Sphere b) {
     f32 dx  = b.pos[0] - a.pos[0];
@@ -1109,8 +1135,8 @@ inline b32 sphere_intersect(Sphere a, Sphere b) {
     return dx * dx + dy * dy < rt * rt;
 };
 
-inline void sphere_get_intersect_vector(f32 out[3], Sphere a, Sphere b) {
-    f32 delta[3] = {
+inline void sphere_get_intersect_vector(v3 out, Sphere a, Sphere b) {
+    v3 delta = {
         b.pos[0] - a.pos[0],
         b.pos[1] - a.pos[1],
         b.pos[2] - a.pos[2],
@@ -1125,12 +1151,14 @@ inline void sphere_get_intersect_vector(f32 out[3], Sphere a, Sphere b) {
 
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
-typedef struct {
-    f32     min[2];
-    f32     max[2];
-} Rect;
+typedef struct Rect Rect;
 
-inline b32 rect_contains(Rect rect, const f32 pos[2]) {
+struct Rect {
+    v2  min;
+    v2  max;
+};
+
+inline b32 rect_contains(Rect rect, const v2 pos) {
     if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
     if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
 
@@ -1153,7 +1181,7 @@ inline Rect rect_get_overlap(Rect a, Rect b) {
     return rect;
 }
 
-inline void rect_get_intersect_vector(f32 out[2], Rect a, Rect b) {
+inline void rect_get_intersect_vector(v2 out, Rect a, Rect b) {
     Rect    o   = rect_get_overlap(a, b);
     f32     dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
     f32     dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
@@ -1162,7 +1190,7 @@ inline void rect_get_intersect_vector(f32 out[2], Rect a, Rect b) {
     out[1] = sign(dy) * (o.max[1] - o.min[1]);
 }
 
-inline Rect rect_move(Rect rect, const f32 offset[2]) {
+inline Rect rect_move(Rect rect, const v2 offset) {
     rect.min[0] += offset[0];
     rect.min[1] += offset[1];
 
@@ -1174,12 +1202,14 @@ inline Rect rect_move(Rect rect, const f32 offset[2]) {
 
 // ----------------------------------------- BOX --------------------------------------- //
 
-typedef struct {
-    f32     min[3];
-    f32     max[3];
-} Box;
+typedef struct Box Box;
 
-inline b32 box_contains(Box rect, const f32 pos[3]) {
+struct Box {
+    v3  min;
+    v3  max;
+};
+
+inline b32 box_contains(Box rect, const v3 pos) {
     if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
     if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
     if (pos[2] < rect.min[2] || pos[2] > rect.max[2]) return false;
@@ -1204,7 +1234,7 @@ inline Box box_get_overlap(Box a, Box b) {
     return box;
 }
 
-inline void box_get_intersect_vector(f32 out[3], Box a, Box b) {
+inline void box_get_intersect_vector(v3 out, Box a, Box b) {
     Box o   = box_get_overlap(a, b);
 
     f32 dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
@@ -1216,7 +1246,7 @@ inline void box_get_intersect_vector(f32 out[3], Box a, Box b) {
     out[2] = sign(dz) * (o.max[2] - o.min[2]);
 }
 
-inline Box box_move(Box box, const f32 offset[3]) {
+inline Box box_move(Box box, const v3 offset) {
     box.min[0] += offset[0];
     box.min[1] += offset[1];
     box.min[2] += offset[2];
@@ -1230,12 +1260,14 @@ inline Box box_move(Box box, const f32 offset[3]) {
 
 // ----------------------------------------- FRUSTUM --------------------------------------- //
 
-typedef struct {
+typedef struct Plane Plane;
+
+struct Plane {
     f32     a;
     f32     b;
     f32     c;
     f32     d;
-} Plane;
+};
 
 inline Plane normalize_plane(Plane plane) {
     f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
@@ -1248,11 +1280,13 @@ inline Plane normalize_plane(Plane plane) {
     return plane;
 }
 
-typedef struct {
-    Plane   plane[6];
-} Frustum;
+typedef struct Frustum Frustum;
 
-inline Frustum frustum_create(const f32 matrix[16], bool normalize) {
+struct Frustum {
+    Plane   plane[6];
+};
+
+inline Frustum frustum_create(const m4 matrix, bool normalize) {
     Frustum frustum = {0};
 
     // left clipping plane
@@ -1291,8 +1325,7 @@ inline Frustum frustum_create(const f32 matrix[16], bool normalize) {
     frustum.plane[5].c = matrix[11] - matrix[10];
     frustum.plane[5].d = matrix[15] - matrix[14];
 
-    // Normalize the plane equations, if requested
-    if (normalize == true) {
+    if (normalize) {
         frustum.plane[0] = normalize_plane(frustum.plane[0]);
         frustum.plane[1] = normalize_plane(frustum.plane[1]);
         frustum.plane[2] = normalize_plane(frustum.plane[2]);
@@ -1304,7 +1337,7 @@ inline Frustum frustum_create(const f32 matrix[16], bool normalize) {
     return frustum;
 }
 
-inline bool frustum_contains(Frustum frustum, const f32 pos[3]) {
+inline bool frustum_contains(Frustum frustum, const v3 pos) {
     for(i32 i = 0; i < 6; i++ )	 {
 		if(frustum.plane[i].a * pos[0] + frustum.plane[i].b * pos[1] + frustum.plane[i].c * pos[2] + frustum.plane[i].d <= 0) {
 			return false;
@@ -1395,14 +1428,26 @@ inline u32 hash_u32(u32 a) {
     a = a ^ (a >> 4);
     a = a * 0x27d4eb2d;
     a = a ^ (a >> 15);
+
     return a;
 }
 
-inline u32 hash_cstr(const char *str) {
+inline u32 hash_cstr(const char* str) {
     u32 hash = 0;
 
     while (*str) {
         hash = (hash << 7) + (hash >> 25) + *str++;
+    }
+
+    return hash + (hash >> 16);
+}
+
+inline u32 hash_mem(const void* ptr, u32 size) {
+    const u8*   m       = ptr; 
+    u32         hash    = 0;
+
+    for (u32 i = 0; i < size; ++i) {
+        hash = (hash << 7) + (hash >> 25) + m[i];
     }
 
     return hash + (hash >> 16);
@@ -1972,8 +2017,8 @@ typedef struct {
 static Platform platform;
 
 static struct {
-    GLFWwindow* window;
-    GLFWmonitor* monitor;
+    GLFWwindow*     window;
+    GLFWmonitor*    monitor;
 } platform_internal;
 
 void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {

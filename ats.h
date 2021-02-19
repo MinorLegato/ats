@@ -1501,8 +1501,28 @@ inline v3i operator*(v3i a, i32 s) {
     return { a.x * s, a.y * s, a.z * s };
 }
 
+inline v3i operator*(i32 s, v3i a) {
+    return { a.x * s, a.y * s, a.z * s };
+}
+
 inline v3i operator/(v3i a, i32 s) {
     return { a.x / s, a.y / s, a.z / s };
+}
+
+inline bool operator==(v3i a, v3i b) {
+    return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
+}
+
+inline bool operator!=(v3i a, v3i b) {
+    return (a.x != b.x) || (a.y != b.y) || (a.z != b.z);
+}
+
+inline i32 manhattan(v3i a, v3i b) {
+    i32 dx = abs(a.x - b.x);
+    i32 dy = abs(a.y - b.y);
+    i32 dz = abs(a.z - b.z);
+
+    return dx + dy + dz;
 }
 
 inline i32 dist_sq(v3i a, v3i b) {
@@ -1922,7 +1942,7 @@ inline u32 hash_u32(u32 a) {
     return a;
 }
 
-inline u32 hash_cstr(const char *str) {
+inline u32 hash_cstr(const char* str) {
     u32 hash = 0;
 
     while (*str) {
@@ -1931,6 +1951,50 @@ inline u32 hash_cstr(const char *str) {
 
     return hash + (hash >> 16);
 }
+
+inline u32 hash_mem(const void* mem, u32 size) {
+    const u8* m     = (const u8*)mem;
+    u32 hash        = 0;
+
+    for (u32 i = 0; i < size; ++i) {
+        hash = (hash << 7) + (hash >> 25) + m[i];
+    }
+
+    return hash + (hash >> 16);
+}
+
+template <>
+struct std::hash<v2i> {
+    inline u64 operator()(const v2i& k) const {
+        u64 a = std::hash<i32>()(k.x);
+        u64 b = std::hash<i32>()(k.y);
+
+        return a ^ b;
+    }
+};
+
+template <>
+struct std::hash<v3i> {
+    inline u64 operator()(const v3i& k) const {
+        u64 a = std::hash<i32>()(k.x);
+        u64 b = std::hash<i32>()(k.y);
+        u64 c = std::hash<i32>()(k.z);
+
+        return a ^ b ^ c;
+    }
+};
+
+template <>
+struct std::hash<v4i> {
+    inline u64 operator()(const v4i& k) const {
+        u64 a = std::hash<i32>()(k.x);
+        u64 b = std::hash<i32>()(k.y);
+        u64 c = std::hash<i32>()(k.z);
+        u64 d = std::hash<i32>()(k.w);
+
+        return a ^ b ^ c ^ d;
+    }
+};
 
 // ================================================= MEMORY ============================================== //
 
