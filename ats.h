@@ -1942,6 +1942,12 @@ inline u32 hash_u32(u32 a) {
     return a;
 }
 
+inline u32 hash_i32(i32 a) {
+    union { u32 u; i32 i; } convert;
+    convert.i = a;
+    return hash_u32(convert.u);
+}
+
 inline u32 hash_cstr(const char* str) {
     u32 hash = 0;
 
@@ -1963,38 +1969,34 @@ inline u32 hash_mem(const void* mem, u32 size) {
     return hash + (hash >> 16);
 }
 
-template <>
-struct std::hash<v2i> {
-    inline u64 operator()(const v2i& k) const {
-        u64 a = std::hash<i32>()(k.x);
-        u64 b = std::hash<i32>()(k.y);
+constexpr u32 hash_prime0 = 3323784421u;
+constexpr u32 hash_prime1 = 1449091801u;
+constexpr u32 hash_prime2 = 4280703257u;
+constexpr u32 hash_prime3 = 1609059329u;
 
-        return a ^ b;
-    }
-};
+inline u32 hash_v2i(v2i k) {
+    u32 a = hash_i32(k.x);
+    u32 b = hash_i32(k.y);
 
-template <>
-struct std::hash<v3i> {
-    inline u64 operator()(const v3i& k) const {
-        u64 a = std::hash<i32>()(k.x);
-        u64 b = std::hash<i32>()(k.y);
-        u64 c = std::hash<i32>()(k.z);
+    return (a * hash_prime0) ^ (b * hash_prime1);
+}
 
-        return a ^ b ^ c;
-    }
-};
+inline u32 hash_v3i(v3i& k) {
+    u32 a = hash_i32(k.x);
+    u32 b = hash_i32(k.y);
+    u32 c = hash_i32(k.z);
 
-template <>
-struct std::hash<v4i> {
-    inline u64 operator()(const v4i& k) const {
-        u64 a = std::hash<i32>()(k.x);
-        u64 b = std::hash<i32>()(k.y);
-        u64 c = std::hash<i32>()(k.z);
-        u64 d = std::hash<i32>()(k.w);
+    return (a * hash_prime0) ^ (b * hash_prime1) ^ (c * hash_prime2);
+}
 
-        return a ^ b ^ c ^ d;
-    }
-};
+inline u32 hash_v4i(v4i k) {
+    u32 a = hash_i32(k.x);
+    u32 b = hash_i32(k.y);
+    u32 c = hash_i32(k.z);
+    u32 d = hash_i32(k.w);
+
+    return (a * hash_prime0) ^ (b * hash_prime1) ^ (c * hash_prime2) ^ (d * hash_prime3);
+}
 
 // ================================================= MEMORY ============================================== //
 
