@@ -541,6 +541,10 @@ inline v3 V3(v2 a, f32 z) {
     return { a.x, a.y, z };
 }
 
+inline v3 V3(v2i a, i32 z) {
+    return { f32(a.x), f32(a.y), f32(z) };
+}
+
 inline v3 V3(f32 x, v2 a) {
     return { x, a.x, a.y };
 }
@@ -662,6 +666,49 @@ inline v3 spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
 	f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
+}
+
+
+#define F_EPSILON 0.000001
+
+inline b32 raycast_triangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, f32 *t, f32 *u, f32 *v) {
+    v3 edge1 = vert1 - vert0;
+    v3 edge2 = vert2 - vert0;
+
+    v3 pvec = {
+        dir.y * edge2.z - dir.z * edge2.y,
+        dir.z * edge2.x - dir.x * edge2.z,
+        dir.x * edge2.y - dir.y * edge2.x,
+    };
+
+	f32 det = edge1.x * pvec.x + edge1.y * pvec.y + edge1.z * pvec.z;
+
+	if (det > -F_EPSILON && det < F_EPSILON)
+		return false;
+
+	f32 inv_det = 1.0f / det;
+
+    v3 tvec = orig - vert0;
+
+	*u = (tvec.x * pvec.x + tvec.y * pvec.y + tvec.z * pvec.z) * inv_det;
+
+	if (*u < 0.0 || *u > 1.0)
+		return false;
+
+    v3 qvec = {
+        tvec.y * edge1.z - tvec.z * edge1.y,
+        tvec.z * edge1.x - tvec.x * edge1.z,
+        tvec.x * edge1.y - tvec.y * edge1.x,
+    };
+
+	*v = (dir.x * qvec.x + dir.y * qvec.y + dir.z * qvec.z) * inv_det;
+
+	if (*v < 0.0 || *u + *v > 1.0)
+		return false;
+
+	*t = (edge2.x * qvec.x + edge2.y * qvec.y + edge2.z * qvec.z) * inv_det;
+
+	return true;
 }
 
 // ----------------------------- v4 ---------------------------- //
@@ -1390,6 +1437,10 @@ inline v2i V2i(v2 a) {
     return { i32(a.x), i32(a.y) };
 }
 
+inline v2i V2i(v3 a) {
+    return { i32(a.x), i32(a.y) };
+}
+
 inline v2i operator-(v2i a) {
     return { -a.x, -a.y };
 }
@@ -1479,6 +1530,10 @@ inline v3i V3i(i32 x, i32 y, i32 z) {
 
 inline v3i V3i(v3 a) {
     return { i32(a.x), i32(a.y), i32(a.z) };
+}
+
+inline v3i V3i(v2i a, i32 z) {
+    return { a.x, a.y, z };
 }
 
 inline v3i operator+(v3i a, v3i b) {
@@ -3293,6 +3348,18 @@ inline Shader shader_load_from_memory(const char *vs, const char *fs, const char
     return shader;
 }
 
+inline Shader shader_load_from_file(const char *vs, const char *fs) {
+    char* vertex   = file_read_cstr(vs);
+    char* fragment = file_read_cstr(fs);
+
+    Shader shader = shader_load_from_memory(vertex, fragment);
+
+    free(vertex);
+    free(fragment);
+
+    return shader;
+}
+
 #endif // ATS_MODERN_OPENGL
 
 // =================================================== BITMAP FONT =================================================== //
@@ -4393,14 +4460,16 @@ inline void gl_init_shapes(void) {
     {
         glNewList(square_list, GL_COMPILE);
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLES);
 
         glNormal3f(0.0f, 0.0f, 1.0f);
 
         glVertex3f(-1.0f, -1.0f, 0.0f);
         glVertex3f(+1.0f, -1.0f, 0.0f);
         glVertex3f(+1.0f, +1.0f, 0.0f);
+        glVertex3f(+1.0f, +1.0f, 0.0f);
         glVertex3f(-1.0f, +1.0f, 0.0f);
+        glVertex3f(-1.0f, -1.0f, 0.0f);
 
         glEnd();
 
@@ -4410,13 +4479,15 @@ inline void gl_init_shapes(void) {
     {
         glNewList(cube_list, GL_COMPILE);
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLES);
 
         glNormal3f(0.0f, 0.0f, -1.0f);
 
         glVertex3f(-1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, -1.0f);
         glVertex3f(+1.0f, -1.0f, -1.0f);
         glVertex3f(+1.0f, +1.0f, -1.0f);
+        glVertex3f(-1.0f, -1.0f, -1.0f);
         glVertex3f(-1.0f, +1.0f, -1.0f);
 
         glNormal3f(0.0f, 0.0f, 1.0f);
@@ -4424,35 +4495,45 @@ inline void gl_init_shapes(void) {
         glVertex3f(-1.0f, -1.0f, +1.0f);
         glVertex3f(+1.0f, -1.0f, +1.0f);
         glVertex3f(+1.0f, +1.0f, +1.0f);
+        glVertex3f(+1.0f, +1.0f, +1.0f);
         glVertex3f(-1.0f, +1.0f, +1.0f);
+        glVertex3f(-1.0f, -1.0f, +1.0f);
+
+        glNormal3f(-1.0f, 0.0f, 0.0f);
+
+        glVertex3f(-1.0f, +1.0f, +1.0f);
+        glVertex3f(-1.0f, +1.0f, -1.0f);
+        glVertex3f(-1.0f, -1.0f, -1.0f);
+        glVertex3f(-1.0f, -1.0f, -1.0f);
+        glVertex3f(-1.0f, -1.0f, +1.0f);
+        glVertex3f(-1.0f, +1.0f, +1.0f);
+        
+        glNormal3f(1.0f, 0.0f, 0.0f);
+
+        glVertex3f(+1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, +1.0f);
+        glVertex3f(+1.0f, -1.0f, +1.0f);
+        glVertex3f(+1.0f, +1.0f, +1.0f);
+        glVertex3f(+1.0f, -1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, -1.0f);
 
         glNormal3f(0.0f, -1.0f, 0.0f);
 
         glVertex3f(-1.0f, -1.0f, -1.0f);
         glVertex3f(+1.0f, -1.0f, -1.0f);
         glVertex3f(+1.0f, -1.0f, +1.0f);
+        glVertex3f(+1.0f, -1.0f, +1.0f);
         glVertex3f(-1.0f, -1.0f, +1.0f);
+        glVertex3f(-1.0f, -1.0f, -1.0f);
 
         glNormal3f(0.0f, 1.0f, 0.0f);
 
         glVertex3f(-1.0f, +1.0f, -1.0f);
+        glVertex3f(+1.0f, +1.0f, +1.0f);
         glVertex3f(+1.0f, +1.0f, -1.0f);
         glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(-1.0f, +1.0f, +1.0f);
-
-        glNormal3f(-1.0f, 0.0f, 0.0f);
-
-        glVertex3f(-1.0f, -1.0f, -1.0f);
         glVertex3f(-1.0f, +1.0f, -1.0f);
         glVertex3f(-1.0f, +1.0f, +1.0f);
-        glVertex3f(-1.0f, -1.0f, +1.0f);
-        
-        glNormal3f(1.0f, 0.0f, 0.0f);
-
-        glVertex3f(+1.0f, -1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(+1.0f, -1.0f, +1.0f);
 
         glEnd();
 
@@ -4484,110 +4565,45 @@ inline void gl_init(void) {
     gl_init_bitmap();
 }
 
-inline void gl_clear_color(v4 color) {
-    glClearColor(color.r, color.g, color.b, color.a);
-}
-
-inline void gl_clear(void) {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-inline void gl_set_matrix(m4 matrix) {
-    glLoadMatrixf(matrix.array);
-}
-
-inline void gl_set_projection_view(m4 projection_view) {
-    glMatrixMode(GL_PROJECTION);
-    gl_set_matrix(projection_view);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-}
-
-inline void gl_set_model(v3 pos, v3 scale) {
-    m4 T = m4_translate(pos) * m4_scale(scale);
-
-    gl_set_matrix(T);
-}
-
-inline void gl_set_camera(v3 pos, v3 look, v3 up, f32 fov, f32 aspect, f32 n,  f32 f) {
-    m4 P = m4_perspective(TO_RAD(fov), aspect, n, f);
-    m4 V = m4_look_at(pos, look, up);
-    m4 PV = P * V;
-
-    gl_set_projection_view(PV);
-}
-
-inline void gl_set_camera_2D(v3 pos, v3 look, v3 up, v2 rad, f32 n,  f32 f) {
-    m4 PV = m4_ortho(-rad.x, rad.x, -rad.y, rad.y, n, f) * m4_look_at(pos, look, up);
-
-    gl_set_projection_view(PV);
-}
-
-inline void gl_set_camera_ortho(f32 width, f32 height, f32 n, f32 f) {
-    m4 PV = m4_ortho(0, width, height, 0, n, f);
-
-    gl_set_projection_view(PV);
-}
-
-inline void gl_set_camera_translate_ortho(f32 x, f32 y, f32 rad_x, f32 rad_y, f32 n, f32 f) {
-    m4 PV = m4_ortho(x - rad_x, x + rad_x, y + rad_y, y - rad_y, n, f);
-
-    gl_set_projection_view(PV);
-}
-
-inline void gl_set_color(v4 color) {
-    glColor4f(color.r, color.g, color.b, color.a);
-}
-
 inline void gl_render_square(v3 pos, f32 rad, v4 color) {
-    gl_set_color(color);
-    gl_set_model(pos, V3(rad, rad, rad));
+    glPushMatrix();
+
+    glColor4fv(color.array);
+    glTranslatef(pos.x, pos.y, pos.z);
+    glScalef(rad, rad, 1.0f);
 
     glCallList(square_list);
-}
 
-inline void gl_render_rotated_square(v3 pos, f32 rad, f32 rot, v4 color) {
-    gl_set_color(color);
-    
-    m4 T = m4_translate(pos) * m4_scale(rad, rad, 1) * m4_rotate_z(rot);
-
-    glLoadMatrixf(T.array);
-    glCallList(square_list);
-}
-
-inline void gl_render_rect(v3 pos, f32 width, f32 height, v4 color) {
-    f32 half_width  = 0.5f * width;
-    f32 half_height = 0.5f * height;
-
-    gl_set_color(color);
-    gl_set_model(V3(pos.x + half_width, pos.y + half_height, pos.z), V3(half_width, half_height, 1.0f));
-
-    glCallList(square_list);
-}
-
-inline void gl_render_center_rect(v3 pos, v2 rad, v4 color) {
-    gl_set_color(color);
-    gl_set_model(pos, V3(rad, 1.0f));
-
-    glCallList(square_list);
+    glPopMatrix();
 }
 
 inline void gl_render_cube(v3 pos, f32 rad, v4 color) {
-    gl_set_color(color);
-    gl_set_model(pos, V3(rad, rad, rad));
+    glPushMatrix();
+
+    glColor4fv(color.array);
+    glTranslatef(pos.x, pos.y, pos.z);
+    glScalef(rad, rad, rad);
 
     glCallList(cube_list);
+
+    glPopMatrix();
 }
 
 inline void gl_render_cube(v3 pos, v3 rad, v4 color) {
-    gl_set_color(color);
-    gl_set_model(pos, rad);
+    glPushMatrix();
+
+    glColor4fv(color.array);
+
+    glTranslatef(pos.x, pos.y, pos.z);
+    glScalef(rad.x, rad.y, rad.z);
 
     glCallList(cube_list);
+
+    glPopMatrix();
 }
 
 inline void gl_render_line(v3 a, v3 b, v4 color) {
-    gl_set_color(color);
+    glColor4fv(color.array);
 
     glLoadIdentity();
     glBegin(GL_LINES);
@@ -4632,6 +4648,26 @@ inline void gl_set_light_emitter(int index, f32 bright, v3 p) {
     glLightfv(light, GL_DIFFUSE,  c);
     glLightfv(light, GL_AMBIENT,  zero);
     glLightfv(light, GL_SPECULAR, zero);
+    
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+inline void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
+    f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4]    = { color.r, color.g, color.b, 0.0f };
+    u32 light   = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, pos);
+    glLightfv(light, GL_DIFFUSE,  c);
+    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_SPECULAR, zero);
+    
+    glLightf(light, GL_CONSTANT_ATTENUATION,    constant);
+    glLightf(light, GL_LINEAR_ATTENUATION,      linear);
+    glLightf(light, GL_QUADRATIC_ATTENUATION,   quadratic);
 
     glEnable(light);
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
@@ -4643,6 +4679,23 @@ inline void gl_set_light_directed(int index, f32 bright, v3 pos) {
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { bright, bright, bright, 0.0f };
+    u32 light   = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, dir);
+    glLightfv(light, GL_DIFFUSE,  c);
+    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_SPECULAR, zero);
+
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+inline void gl_set_light_directed(int index, v3 pos, v3 color) {
+    f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
+    f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4]    = { color.r, color.g, color.b, 0.0f };
     u32 light   = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, dir);
@@ -4719,10 +4772,10 @@ inline void gl_init_bitmap(void) {
                 f32 y   = j * scale;
 
                 if (BITMAP_GETBIT(c, i, j)) {
-                    glVertex3f(x - 0, y - 0,  0.0f);
-                    glVertex3f(x + scale, y - 0,  0.0f);
-                    glVertex3f(x + scale, y + scale,  0.0f);
-                    glVertex3f(x - 0, y + scale,  0.0f);
+                    glVertex3f(x - 0,       y + scale,  0.0f);
+                    glVertex3f(x + scale,   y + scale,  0.0f);
+                    glVertex3f(x + scale,   y - 0,      0.0f);
+                    glVertex3f(x - 0,       y - 0,      0.0f);
                 }
             }
         }
@@ -4736,9 +4789,12 @@ inline void gl_init_bitmap(void) {
 inline void gl_render_ascii(u8 c, v3 pos, v2 scale) {
     m4 T = m4_translate(pos) * m4_scale(V3(scale, 1.0f));
 
-    gl_set_matrix(T);
+    glPushMatrix();
 
+    glMultMatrixf(T.array);
     glCallList(bitmap_display_list[c]);
+
+    glPopMatrix();
 }
 
 inline void gl_render_string(const char *str, v3 pos, v2 scale, v4 color) {
