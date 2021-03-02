@@ -264,7 +264,7 @@ private:
 };
 
 template <u32 N>
-struct Bit_Set {
+struct BitSet {
     u32 buf[N / 32 + 1];
 
     inline bool get(u32 i) const { return buf[i >> 5] & (1 << (i & 31)); }
@@ -272,15 +272,15 @@ struct Bit_Set {
 };
 
 template <u32 W, u32 H>
-struct Bit_Map {
-    Bit_Set<W * H> buf;
+struct BitMap {
+    BitSet<W * H> buf;
 
     inline bool get(u32 x, u32 y) const { return buf.get(y * W + x); }
     inline void set(u32 x, u32 y)       { buf.set(y * W + x); }
 };
 
 template <typename T, u32 N>
-struct Fifo_Queue {
+struct FifoQueue {
     i32     begin;
     i32     end;
     T       array[N];
@@ -293,7 +293,7 @@ struct Fifo_Queue {
 
 
 template <typename T, u32 N>
-struct Priority_Queue {
+struct PriorityQueue {
     struct Node { f32 weight; T e; };
 
     i32     len;
