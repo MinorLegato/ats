@@ -42,20 +42,6 @@
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
-template <typename Func>
-struct Scope_Exit {
-public:
-    Scope_Exit(const Func& func) : func(func) {}
-    ~Scope_Exit() { func(); }
-private:
-    Func func;
-};
-
-#define JOIN_TOKEN_HELPER(A, B) A ## B
-#define JOIN_TOKEN(A, B) JOIN_TOKEN_HELPER(A, B)
-
-#define defer Scope_Exit [[maybe_unused]] JOIN_TOKEN(__defer__, __LINE__) = [&] ()
-
 // ================================================== TYPES ================================================= //
 
 typedef float f32;
@@ -187,14 +173,14 @@ inline f32 unlerp(f32 a, f32 b, f32 t) {
     return (t - a) / (b - a);
 }
 
-inline f32 shortest_angle_distance(f32 a, f32 b) {
+inline f32 angleDist(f32 a, f32 b) {
     f32 max = 2.0f * PI;
     f32 da  = fmodf(b - a, max);
     return fmodf(2.0f * da, max) - da;
 }
 
-inline f32 lerp_angle(f32 a, f32 b, f32 t) {
-    return a + shortest_angle_distance(a, b) * t;
+inline f32 lerpAngle(f32 a, f32 b, f32 t) {
+    return a + angleDist(a, b) * t;
 }
 
 inline f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
@@ -220,12 +206,12 @@ inline T clamp(T n, U min, V max) {
 }
 
 template <typename T, typename U>
-inline T clamp_min(T n, U min) {
+inline T clampMin(T n, U min) {
     return n < min? min : n;
 }
 
 template <typename T, typename U>
-inline T clamp_max(T n, U max) {
+inline T clampMax(T n, U max) {
     return n > max? max : n;
 }
 
@@ -235,7 +221,7 @@ inline T sign(T n) {
 }
 
 template <typename T>
-inline T sign_or_zero(T n) {
+inline T signOrZero(T n) {
     if (n < 0) return -1;
     if (n > 0) return +1;
 
@@ -248,8 +234,8 @@ struct Array {
     u32     cap     = 0;
     T*      buf     = nullptr;
 
-    inline T*   add     ()              { ensure_next(); return new (&buf[len++]) T(); }
-    inline void add     (const T& e)    { ensure_next(); buf[len++] = e; }
+    inline T*   add     ()              { ensureNext(); return new (&buf[len++]) T(); }
+    inline void add     (const T& e)    { ensureNext(); buf[len++] = e; }
     inline void remove  (u32 i)         { assert(i < len); buf[i] = buf[--len]; }
 
     inline void ensure  (u32 size)      { if (size > cap) { cap = size; buf = (T*)realloc(buf, cap * sizeof (T)); assert(buf); } }
@@ -274,7 +260,7 @@ struct Array {
     inline const T* end() const { return buf + len; }
 
 private:
-    inline void ensure_next() { if (len + 1 > cap) ensure(max(INIT_SIZE, cap << 1)); }
+    inline void ensureNext() { if (len + 1 > cap) ensure(max(INIT_SIZE, cap << 1)); }
 };
 
 template <u32 N>
@@ -434,7 +420,7 @@ inline f32 dot(v2 a, v2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-inline f32 len_sq(v2 v) {
+inline f32 lenSq(v2 v) {
     return dot(v, v);
 }
 
@@ -442,16 +428,19 @@ inline f32 len(v2 v) {
     return sqrt(dot(v, v));
 }
 
-inline f32 dist_sq(v2 a, v2 b) {
-    return len_sq(b - a);
+inline f32 distSq(v2 a, v2 b) {
+    return lenSq(b - a);
 }
 
 inline f32 dist(v2 a, v2 b) {
-    return sqrt(dist_sq(a, b));
+    return sqrt(distSq(a, b));
 }
 
 inline v2 proj(v2 a, v2 b) {
-    return (dot(a, b) / dot(b, b)) * b;
+    f32 d = dot(b, b);
+    if (d == 0) return {};
+
+    return (dot(a, b) / d) * b;
 }
 
 inline v2 norm(v2 v) {
@@ -476,7 +465,7 @@ inline v2 lerp(v2 a, v2 b, f32 t) {
     return a + t * (b - a);
 }
 
-inline f32 get_angle(v2 a, v2 b) {
+inline f32 getAngle(v2 a, v2 b) {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
     
@@ -489,7 +478,7 @@ inline v2 spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
 	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
+inline b32 circleIntersect(v2 p0, f32 r0, v2 p1, f32 r1) {
     f32 dx = p1.x - p0.x;
     f32 dy = p1.y - p0.y;
 
@@ -498,7 +487,7 @@ inline b32 circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1) {
     return (dx * dx + dy * dy) < (r * r);
 }
 
-inline b32 segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
+inline b32 segmentIsIntersectingCircle(v2 start, v2 end, v2 pos, f32 rad) {
     v2 a = start - pos;
     v2 b = end - pos;
 
@@ -516,7 +505,7 @@ inline b32 segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad) {
     return dot(seg, seg) < (rad * rad);
 }
 
-inline m2 outer_product(v2 a, v2 b) {
+inline m2 outerProduct(v2 a, v2 b) {
     return m2 {
         a.x * b.x, a.y * b.x,
         a.x * b.y, a.y * b.y,
@@ -610,7 +599,7 @@ inline f32 dot(v3 a, v3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-inline f32 len_sq(v3 v) {
+inline f32 lenSq(v3 v) {
     return dot(v, v);
 }
 
@@ -618,16 +607,19 @@ inline f32 len(v3 v) {
     return sqrt(dot(v, v));
 }
 
-inline f32 dist_sq(v3 a, v3 b) {
-    return len_sq(b - a);
+inline f32 distSq(v3 a, v3 b) {
+    return lenSq(b - a);
 }
 
 inline f32 dist(v3 a, v3 b) {
-    return sqrt(dist_sq(a, b));
+    return sqrt(distSq(a, b));
 }
 
 inline v3 proj(v3 a, v3 b) {
-    return (dot(a, b) / dot(b, b)) * b;
+    f32 d = dot(b, b);
+    if (d == 0) return {};
+
+    return (dot(a, b) / d) * b;
 }
 
 inline v3 norm(v3 v) {
@@ -668,47 +660,45 @@ inline v3 spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
+inline b32 raycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* result) {
+    const f32 EPSILON = 0.0000001;
 
-#define F_EPSILON 0.000001
+    v3  edge1   = vert1 - vert0;
+    v3  edge2   = vert2 - vert0;
+    v3  pvec    = cross(dir, edge2);
+    f32 det     = dot(edge1, pvec);
 
-inline b32 raycast_triangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, f32 *t, f32 *u, f32 *v) {
-    v3 edge1 = vert1 - vert0;
-    v3 edge2 = vert2 - vert0;
+    if (det > -EPSILON && det < EPSILON) {
+        return false;
+    }
 
-    v3 pvec = {
-        dir.y * edge2.z - dir.z * edge2.y,
-        dir.z * edge2.x - dir.x * edge2.z,
-        dir.x * edge2.y - dir.y * edge2.x,
-    };
+    f32 inv_det = 1.0f / det;
+    v3  tvec    = orig - vert0;
 
-	f32 det = edge1.x * pvec.x + edge1.y * pvec.y + edge1.z * pvec.z;
+    result->x   = dot(tvec, pvec) * inv_det;
 
-	if (det > -F_EPSILON && det < F_EPSILON)
-		return false;
+    if (result->x < 0.0f || result->x > 1.0f) {
+        return false;
+    }
 
-	f32 inv_det = 1.0f / det;
+    v3 qvec     = cross(tvec, edge1);
+    result->y   = dot(dir, qvec) * inv_det;
 
-    v3 tvec = orig - vert0;
+    if (result->y < 0.0f || result->x + result->y > 1.0f) {
+        return false;
+    }
 
-	*u = (tvec.x * pvec.x + tvec.y * pvec.y + tvec.z * pvec.z) * inv_det;
+    result->z   = dot(edge2, qvec) * inv_det;
 
-	if (*u < 0.0 || *u > 1.0)
-		return false;
+    v3 intersection = vert0 + result->x * edge2 + result->y * edge1;
 
-    v3 qvec = {
-        tvec.y * edge1.z - tvec.z * edge1.y,
-        tvec.z * edge1.x - tvec.x * edge1.z,
-        tvec.x * edge1.y - tvec.y * edge1.x,
-    };
+    if (result->z < EPSILON) {
+        return false;
+    }
 
-	*v = (dir.x * qvec.x + dir.y * qvec.y + dir.z * qvec.z) * inv_det;
+    *result = vert0 + result->x * edge2 + result->y * edge1;
 
-	if (*v < 0.0 || *u + *v > 1.0)
-		return false;
-
-	*t = (edge2.x * qvec.x + edge2.y * qvec.y + edge2.z * qvec.z) * inv_det;
-
-	return true;
+    return true;
 }
 
 // ----------------------------- v4 ---------------------------- //
@@ -801,7 +791,7 @@ inline f32 dot(v4 a, v4 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline f32 len_sq(v4 v) {
+inline f32 lenSq(v4 v) {
     return dot(v, v);
 }
 
@@ -809,12 +799,12 @@ inline f32 len(v4 v) {
     return sqrt(dot(v, v));
 }
 
-inline f32 dist_sq(v4 a, v4 b) {
-    return len_sq(b - a);
+inline f32 distSq(v4 a, v4 b) {
+    return lenSq(b - a);
 }
 
 inline f32 dist(v4 a, v4 b) {
-    return sqrt(dist_sq(a, b));
+    return sqrt(distSq(a, b));
 }
 
 inline v4 norm(v4 v) {
@@ -930,7 +920,7 @@ inline m2 m2_inverse(m2 m) {
     };
 }
 
-inline void m2_polar_decomp(m2 m, m2* R, m2* S) {
+inline void m2_polarDecomp(m2 m, m2* R, m2* S) {
     f32 x = m.x.x + m.y.y;
     f32 y = m.y.x - m.x.y;
     f32 scale = 1.0f / sqrt(x * x + y * y);
@@ -1024,7 +1014,7 @@ inline m3 m3_euler(f32 yaw, f32 pitch, f32 roll) {
     };
 }
 
-inline m3 m3_from_quat(Quat quat) {
+inline m3 m3_fromQuat(Quat quat) {
     f32 a = quat.w;
 	f32 b = quat.x;
 	f32 c = quat.y;
@@ -1267,7 +1257,7 @@ inline m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     };
 }
 
-inline m4 m4_look_at(v3 eye, v3 center, v3 up) {
+inline m4 m4_lookAt(v3 eye, v3 center, v3 up) {
     v3 f = norm(center - eye);
     v3 s = norm(cross(f, up));
 	v3 t = cross(s, f);
@@ -1297,7 +1287,7 @@ inline m4 m4_look_at(v3 eye, v3 center, v3 up) {
     return M;
 }
 
-inline m4 m4_from_quat(Quat q) {
+inline m4 m4_fromQuat(Quat q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1387,11 +1377,11 @@ inline m4 invert(m4 M) {
 }
 
 // Quat:
-inline Quat quat_identity(void) {
+inline Quat identityQuat(void) {
     return { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
-inline Quat quat_make(f32 x, f32 y, f32 z, f32 angle) {
+inline Quat makeQuat(f32 x, f32 y, f32 z, f32 angle) {
     f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
     f32 s = inv_len * sin(angle / 2.0f);
 
@@ -1403,11 +1393,11 @@ inline Quat quat_make(f32 x, f32 y, f32 z, f32 angle) {
     };
 }
 
-inline Quat quat_add(Quat a, Quat b) {
+inline Quat addQuat(Quat a, Quat b) {
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline Quat quat_conj(Quat q) {
+inline Quat conjQuat(Quat q) {
     return { -q.x, -q.y, -q.z, q.w };
 }
 
@@ -1420,7 +1410,7 @@ inline Quat operator*(Quat a, Quat b) {
     };
 }
 
-inline Quat quat_rotate(v3 axis, f32 angle) {
+inline Quat rotateQuat(v3 axis, f32 angle) {
     f32 s = sin(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
 
@@ -1489,7 +1479,7 @@ inline v2i operator-=(v2i& a, v2i b) {
     return a = a - b;
 }
 
-inline i32 dist_sq(v2i a, v2i b) {
+inline i32 distSq(v2i a, v2i b) {
     v2i d = a - b;
     return d.x * d.x + d.y * d.y;
 }
@@ -1580,7 +1570,7 @@ inline i32 manhattan(v3i a, v3i b) {
     return dx + dy + dz;
 }
 
-inline i32 dist_sq(v3i a, v3i b) {
+inline i32 distSq(v3i a, v3i b) {
     v3i d = a - b;
     return d.x * d.x + d.y * d.y + d.z * d.z;
 }
@@ -1631,7 +1621,7 @@ inline b32 intersect(Circle a, Circle b) {
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v2 get_intersect_vector(Circle a, Circle b) {
+inline v2 getIntersectVector(Circle a, Circle b) {
     v2  delta   = b.pos - a.pos;
     f32 depth   = len(delta) - (a.rad + b.rad);
     
@@ -1652,7 +1642,7 @@ inline b32 intersect(Sphere a, Sphere b) {
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v3 get_intersect_vector(Sphere a, Sphere b) {
+inline v3 getIntersectVector(Sphere a, Sphere b) {
     v3  delta   = b.pos - a.pos;
     f32 depth   = len(delta) - (a.rad + b.rad);
     
@@ -1680,15 +1670,15 @@ inline b32 intersect(Rect a, Rect b) {
     return true;
 }
 
-inline Rect get_overlap(Rect a, Rect b) {
+inline Rect getOverlap(Rect a, Rect b) {
     return {
         max(a.min, b.min),
         min(a.max, b.max)
     };
 }
 
-inline v2 get_intersect_vector(Rect a, Rect b) {
-    Rect o      = get_overlap(a, b);
+inline v2 getIntersectVector(Rect a, Rect b) {
+    Rect o      = getOverlap(a, b);
     v2   delta  = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
@@ -1724,15 +1714,15 @@ inline b32 intersect(Box a, Box b) {
     return true;
 }
 
-inline Box get_overlap(Box a, Box b) {
+inline Box getOverlap(Box a, Box b) {
     return {
         max(a.min, b.min),
         min(a.max, b.max)
     };
 }
 
-inline v3 get_intersect_vector(Box a, Box b) {
-    Box o       = get_overlap(a, b);
+inline v3 getIntersectVector(Box a, Box b) {
+    Box o       = getOverlap(a, b);
     v3  delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
@@ -1752,7 +1742,7 @@ struct Plane {
     f32     d;
 };
 
-inline Plane normalize_plane(Plane plane) {
+inline Plane normalizePlane(Plane plane) {
     f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
     plane.a = plane.a / mag;
@@ -1767,7 +1757,7 @@ struct Frustum {
     Plane   plane[6];
 };
 
-inline Frustum extract_planes(m4 combo_matrix, bool normalize = true) {
+inline Frustum makeFrustum(m4 combo_matrix, bool normalize = true) {
     Frustum frustum = {};
 
     // left clipping plane
@@ -1808,12 +1798,12 @@ inline Frustum extract_planes(m4 combo_matrix, bool normalize = true) {
 
     // Normalize the plane equations, if requested
     if (normalize == true) {
-        frustum.plane[0] = normalize_plane(frustum.plane[0]);
-        frustum.plane[1] = normalize_plane(frustum.plane[1]);
-        frustum.plane[2] = normalize_plane(frustum.plane[2]);
-        frustum.plane[3] = normalize_plane(frustum.plane[3]);
-        frustum.plane[4] = normalize_plane(frustum.plane[4]);
-        frustum.plane[5] = normalize_plane(frustum.plane[5]);
+        frustum.plane[0] = normalizePlane(frustum.plane[0]);
+        frustum.plane[1] = normalizePlane(frustum.plane[1]);
+        frustum.plane[2] = normalizePlane(frustum.plane[2]);
+        frustum.plane[3] = normalizePlane(frustum.plane[3]);
+        frustum.plane[4] = normalizePlane(frustum.plane[4]);
+        frustum.plane[5] = normalizePlane(frustum.plane[5]);
     }
     
     return frustum;
@@ -1858,7 +1848,7 @@ inline bool intersect(Frustum frustum, Box box) {
 
 // ================================================= COLOR PACKING =========================================== //
 
-inline u32 pack_color(u8 r, u8 g, u8 b, u8 a) {
+inline u32 packColorU8(u8 r, u8 g, u8 b, u8 a) {
     u32 color = 0;
 
     color |= u32(r) << 0;
@@ -1869,32 +1859,28 @@ inline u32 pack_color(u8 r, u8 g, u8 b, u8 a) {
     return color;
 }
 
-inline u32 pack_color(f32 r, f32 g, f32 b, f32 a) {
-    return pack_color(u8(255 * r), u8(255 * g), u8(255 * b), u8(255 * a));
+inline u32 packColorF32(f32 r, f32 g, f32 b, f32 a) {
+    return packColorU8(255 * r, 255 * g, 255 * b, 255 * a);
 }
 
-inline u32 pack_color(f64 r, f64 g, f64 b, f64 a) {
-    return pack_color(u8(255 * r), u8(255 * g), u8(255 * b), u8(255 * a));
+inline u32 packColor(v4 color) {
+    return packColorF32(color.r, color.g, color.b, color.a);
 }
 
-inline u32 pack_color(v4 color) {
-    return pack_color(color.r, color.g, color.b, color.a);
-}
-
-inline u32 pack_color(v3 color, f32 a = 1.0) {
-    return pack_color(color.r, color.g, color.b, a);
+inline u32 packColor(v3 color, f32 a = 1.0) {
+    return packColorF32(color.r, color.g, color.b, a);
 }
 
 // ============================================== RANDOM GENERATOR =========================================== //
 // random number generator: xorshf96
 
-struct Rnd_Gen {
+struct RndGen {
     u32     x;
     u32     y;
     u32     z;
 };
 
-inline u32 next_random(Rnd_Gen* g) {
+inline u32 nextRandom(RndGen* g) {
     g->x ^= g->x << 16;
     g->x ^= g->x >> 5;
     g->x ^= g->x << 1;
@@ -1908,9 +1894,9 @@ inline u32 next_random(Rnd_Gen* g) {
     return g->z;
 }
 
-thread_local Rnd_Gen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
+thread_local RndGen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
 
-inline void rand_seed(u32 x, u32 y, u32 z) {
+inline void randSeed(u32 x, u32 y, u32 z) {
     assert(x && y && z);
 
     default_rnd_gen.x = x;
@@ -1918,37 +1904,37 @@ inline void rand_seed(u32 x, u32 y, u32 z) {
     default_rnd_gen.z = z;
 }
 
-inline i32 rand_i32(i32 min, i32 max) {
-    return min + next_random(&default_rnd_gen) % (max - min);
+inline i32 randI32(i32 min, i32 max) {
+    return min + nextRandom(&default_rnd_gen) % (max - min);
 }
 
-inline f32 rand_f32(f32 min, f32 max) {
-    return min + ((f32)next_random(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
+inline f32 randF32(f32 min, f32 max) {
+    return min + ((f32)nextRandom(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2 rand_v2(void) {
-    return norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
+inline v2 randV2(void) {
+    return norm(V2(randF32(-1, 1), randF32(-1, 1)));
 }
 
-inline v3 rand_v3(void) {
-    return norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
+inline v3 randV3(void) {
+    return norm(V3(randF32(-1, 1), randF32(-1, 1), randF32(-1, 1)));
 }
 
-inline v2 rand_v2(f32 min, f32 max) {
-    return rand_f32(min, max) * rand_v2();
+inline v2 randV2(f32 min, f32 max) {
+    return randF32(min, max) * randV2();
 }
 
-inline v3 rand_v3(f32 min, f32 max) {
-    return rand_f32(min, max) * rand_v3();
+inline v3 randV3(f32 min, f32 max) {
+    return randF32(min, max) * randV3();
 }
 
-inline Quat rand_quat(void) {
-    return quat_make(rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-PI, PI));
+inline Quat randQuat(void) {
+    return makeQuat(randF32(-1.0f, 1.0f), randF32(-1.0f, 1.0f), randF32(-1.0f, 1.0f), randF32(-PI, PI));
 }
 
 // =================================== XORSHIFT32 ============================================= //
 
-inline u32 rand_u32(u32* state) {
+inline u32 randU32(u32* state) {
 	u32 x = *state;
 
 	x ^= x << 13;
@@ -1958,37 +1944,37 @@ inline u32 rand_u32(u32* state) {
 	return *state = x;
 }
 
-inline i32 rand_i32(u32* state, i32 min, i32 max) {
-    return min + rand_u32(state) % (max - min);
+inline i32 randI32(u32* state, i32 min, i32 max) {
+    return min + randU32(state) % (max - min);
 }
 
-inline f32 rand_f32(u32* state, f32 min, f32 max) {
-    return min + ((f32)rand_u32(state) / (f32)0xFFFFFFFF) * (max - min); 
+inline f32 randF32(u32* state, f32 min, f32 max) {
+    return min + ((f32)randU32(state) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2 rand_v2(u32* state) {
-    return norm(V2(rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
+inline v2 randV2(u32* state) {
+    return norm(V2(randF32(state, -1, 1), randF32(state, -1, 1)));
 }
 
-inline v3 rand_v3(u32* state) {
-    return norm(V3(rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
+inline v3 randV3(u32* state) {
+    return norm(V3(randF32(state, -1, 1), randF32(state, -1, 1), randF32(state, -1, 1)));
 }
 
-inline v2 rand_v2(u32* state, f32 min, f32 max) {
-    return rand_f32(state, min, max) * rand_v2(state);
+inline v2 randV2(u32* state, f32 min, f32 max) {
+    return randF32(state, min, max) * randV2(state);
 }
 
-inline v3 rand_v3(u32* state, f32 min, f32 max) {
-    return rand_f32(state, min, max) * rand_v3(state);
+inline v3 randV3(u32* state, f32 min, f32 max) {
+    return randF32(state, min, max) * randV3(state);
 }
 
-inline Quat rand_quat(u32* state) {
-    return quat_make(rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -PI, PI));
+inline Quat randQuat(u32* state) {
+    return makeQuat(randF32(state, -1.0f, 1.0f), randF32(state, -1.0f, 1.0f), randF32(state, -1.0f, 1.0f), randF32(state, -PI, PI));
 }
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
 
-inline u32 hash_u32(u32 a) {
+inline u32 hashU32(u32 a) {
     a = (a ^ 61) ^ (a >> 16);
     a = a + (a << 3);
     a = a ^ (a >> 4);
@@ -1997,13 +1983,13 @@ inline u32 hash_u32(u32 a) {
     return a;
 }
 
-inline u32 hash_i32(i32 a) {
+inline u32 hashI32(i32 a) {
     union { u32 u; i32 i; } convert;
     convert.i = a;
-    return hash_u32(convert.u);
+    return hashU32(convert.u);
 }
 
-inline u32 hash_cstr(const char* str) {
+inline u32 hashCStr(const char* str) {
     u32 hash = 0;
 
     while (*str) {
@@ -2013,7 +1999,7 @@ inline u32 hash_cstr(const char* str) {
     return hash + (hash >> 16);
 }
 
-inline u32 hash_mem(const void* mem, u32 size) {
+inline u32 hashMem(const void* mem, u32 size) {
     const u8* m     = (const u8*)mem;
     u32 hash        = 0;
 
@@ -2029,318 +2015,33 @@ constexpr u32 hash_prime1 = 1449091801u;
 constexpr u32 hash_prime2 = 4280703257u;
 constexpr u32 hash_prime3 = 1609059329u;
 
-inline u32 hash_v2i(v2i k) {
-    u32 a = hash_i32(k.x);
-    u32 b = hash_i32(k.y);
+inline u32 hashV2i(v2i k) {
+    u32 a = hashI32(k.x);
+    u32 b = hashI32(k.y);
 
     return (a * hash_prime0) ^ (b * hash_prime1);
 }
 
-inline u32 hash_v3i(v3i& k) {
-    u32 a = hash_i32(k.x);
-    u32 b = hash_i32(k.y);
-    u32 c = hash_i32(k.z);
+inline u32 hashV3i(v3i& k) {
+    u32 a = hashI32(k.x);
+    u32 b = hashI32(k.y);
+    u32 c = hashI32(k.z);
 
     return (a * hash_prime0) ^ (b * hash_prime1) ^ (c * hash_prime2);
 }
 
-inline u32 hash_v4i(v4i k) {
-    u32 a = hash_i32(k.x);
-    u32 b = hash_i32(k.y);
-    u32 c = hash_i32(k.z);
-    u32 d = hash_i32(k.w);
+inline u32 hashV4i(v4i k) {
+    u32 a = hashI32(k.x);
+    u32 b = hashI32(k.y);
+    u32 c = hashI32(k.z);
+    u32 d = hashI32(k.w);
 
     return (a * hash_prime0) ^ (b * hash_prime1) ^ (c * hash_prime2) ^ (d * hash_prime3);
 }
 
-// ================================================= MEMORY ============================================== //
-
-struct Memory_Arena {
-    u32     cap;
-    u32     idx;
-    u8*     buf;
-
-    u32     count;
-    u32     stack[8];
-};
-
-inline void init_arena(Memory_Arena* arena, u8* memory, u32 cap) {
-    memset(arena, 0, sizeof (Memory_Arena));
-
-    arena->cap = cap;
-    arena->buf = memory;
-}
-
-inline void push_arena(Memory_Arena* arena) {
-    assert(arena->count < ARRAY_COUNT(arena->stack));
-
-    arena->stack[arena->count++] = arena->idx;
-}
-
-inline void pop_arena(Memory_Arena* arena) {
-    assert(arena->count > 0);
-
-    arena->idx = arena->stack[--arena->count];
-}
-
-inline void* alloc(Memory_Arena* arena, u32 size) {
-    assert(arena->idx + size <= arena->cap);
-
-    u32 idx = arena->idx;
-    arena->idx += size;
-
-    return (void*)(arena->buf + idx);
-}
-
-#define alloc_type(arena, T)     ((T*)alloc(arena, sizeof (T)))
-#define alloc_array(arena, T, N) ((T*)alloc(arena, (N) * sizeof (T)))
-
-// =================================== STRING ARENA THING ==================================== //
-
-static struct {
-    u32     cap;
-    u32     idx;
-    char*   buf;
-
-    u32     save_count;
-    u32     save_array[8];
-} str_arena;
-
-inline void reset_str_arena(void) {
-    str_arena.idx = 0;
-}
-
-inline void push_str_arena(void) {
-    str_arena.save_array[str_arena.save_count++] = str_arena.idx;
-}
-
-inline void pop_str_arena(void) {
-    str_arena.idx = str_arena.save_array[--str_arena.save_count];
-}
-
-inline void free_str_arena(void) {
-    free(str_arena.buf);
-
-    str_arena.cap = 0;
-    str_arena.idx = 0;
-    str_arena.buf = NULL;
-}
-
-inline u32 allocate_str(u32 size) {
-    auto arena = &str_arena;
-
-    u32 idx     = arena->idx;
-    u32 new_idx = idx + size + 1;
-
-    if (new_idx >= arena->cap) {
-        arena->cap = arena->cap? max(arena->cap << 1, new_idx) : max(2048, new_idx);
-        arena->buf = (char*)realloc(arena->buf, arena->cap);
-    }
-
-    memset(arena->buf + idx, 0, size + 1);
-    arena->idx = new_idx;
-
-    return idx;
-}
-
-inline u32 allocate_str(const char* str, u32 len) {
-    u32 idx = allocate_str(len);
-    memcpy(str_arena.buf + idx, str, len);
-
-    return idx;
-}
-
-struct Str {
-    u32 begin;
-    u32 end;
-
-    inline char operator[](u32 i) const {
-        return str_arena.buf[begin + i];
-    }
-
-    inline char& operator[](u32 i) {
-        return str_arena.buf[begin + i];
-    }
-
-    inline const char* data(void) const {
-        return &str_arena.buf[begin];
-    }
-
-    inline char* data(void) {
-        return &str_arena.buf[begin];
-    }
-
-    inline u32 len(void) const {
-        return end - begin;
-    }
-};
-
-inline b32 str_equal(const char* a, const char* b, u32 len) {
-    for (u32 i = 0; i < len; ++i) {
-        if (a[i] != b[i]) { return false; }
-    }
-
-    return true;
-}
-
-inline bool operator==(Str a, Str b) {
-    if (a.len() != b.len()) { return false; }
-
-    return str_equal(a.data(), b.data(), a.len());
-}
-
-inline bool operator==(Str a, const char* b) {
-    u32 len = strlen(b);
-    if (a.len() != len) { return false; }
-
-    return str_equal(a.data(), b, len);
-}
-
-inline bool operator==(const char* b, Str a) {
-    return a == b;
-}
-
-inline Str make_str(u32 len) {
-    u32 idx = allocate_str(len);
-    return { idx, idx + len };
-}
-
-inline Str make_str(const char* str, u32 len) {
-    u32 idx = allocate_str(str, len);
-
-    return { idx, idx + len };
-}
-
-inline Str make_str(const char* str) {
-    u32 len = strlen(str);
-    
-    return make_str(str, len);
-}
-
-inline Str append(Str a, Str b) {
-    u32 len = a.len() + b.len();
-
-    Str c = make_str(len);
-
-    u32 j = 0;
-    for (u32 i = 0; i < a.len(); ++i) c[j++] = a[i];
-    for (u32 i = 0; i < b.len(); ++i) c[j++] = b[i];
-
-    return c;
-}
-
-inline Str append(Str a, const char* b) {
-    u32 b_len   = strlen(b);
-    u32 n_len   = a.len() + b_len;
-    Str c       = make_str(n_len);
-
-    u32 j = 0;
-    for (u32 i = 0; i < a.len(); ++i) c[j++] = a[i];
-    for (u32 i = 0; i < b_len; ++i)   c[j++] = b[i];
-
-    return c;
-}
-
-inline Str append(const char* b, Str a) {
-    u32 b_len   = strlen(b);
-    u32 n_len   = a.len() + b_len;
-    Str c       = make_str(n_len);
-
-    u32 j = 0;
-    for (u32 i = 0; i < b_len; ++i)   c[j++] = b[i];
-    for (u32 i = 0; i < a.len(); ++i) c[j++] = a[i];
-
-    return c;
-}
-
-inline u32 index(Str str, char c) {
-    for (u32 i = 0; i < str.len(); ++i) {
-        if (str[i] == c) { return i; }
-    }
-
-    return 0;
-}
-
-inline Str substr(Str str, u32 begin, u32 end) {
-    assert(end >= begin);
-
-    return make_str(str.data() + begin, end - begin);
-}
-
-inline b32 empty(Str str) {
-    return str.begin >= str.end;
-}
-
-inline Str split_in_place(Str* str, char c) {
-    u32 ln = 0;
-
-    while (ln < str->len() && (*str)[ln] != c) ln++;
-    (*str)[ln++] = '\0';
-
-    Str result = { str->begin, str->begin + ln - 1 };
-
-    while ((*str)[ln] == c) {
-        ln++;
-    }
-
-    str->begin += ln;
-
-    return result;
-}
-
-inline Str split_in_place(Str* str, const char* tokens) {
-    b32 token_buffer[256] = {};
-
-    while ((*tokens) != '\0') {
-        token_buffer[*(tokens++)] = true;
-    }
-
-    token_buffer['\0'] = true;
-
-    u32 ln = 0;
-    while (!token_buffer[(*str)[ln]]) ln++;
-    (*str)[ln++] = '\0';
-
-    Str result = { str->begin, str->begin + ln - 1 };
-
-    while (token_buffer[(*str)[ln]]) {
-        ln++;
-    }
-
-    str->begin += ln;
-
-    return result;
-}
-
-inline Str copy(Str str) {
-    Str c = make_str(str.len());
-    memcpy(c.data(), str.data(), str.len());
-    return c;
-}
-
-inline Str to_lower(Str str) {
-    Str c = copy(str);
-
-    for (u32 i = 0; i < c.len(); ++i) {
-        if (c[i] >= 'A' && c[i] <= 'Z') { c[i] += ('a' - 'A'); }
-    }
-
-    return c;
-}
-
-inline Str to_upper(Str str) {
-    Str c = copy(str);
-
-    for (u32 i = 0; i < c.len(); ++i) {
-        if (c[i] >= 'a' && c[i] <= 'z') { c[i] -= ('a' - 'A'); }
-    }
-
-    return c;
-}
-
 // ==================================== FILES ==================================== //
 
-inline size_t file_get_size(FILE* fp) {
+inline size_t getFileSize(FILE* fp) {
     fseek(fp, 0L, SEEK_END);
     size_t size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -2348,12 +2049,12 @@ inline size_t file_get_size(FILE* fp) {
     return size;
 }
 
-inline char* file_read_cstr(const char* file_name) {
+inline char* readFileAsCStr(const char* file_name) {
     FILE *fp      = NULL;
     char *buffer  = NULL;
     
     if (fopen_s(&fp, file_name, "rb") == 0) {
-        size_t size = file_get_size(fp);
+        size_t size = getFileSize(fp);
 
         buffer = (char*)malloc(size + 1);
 
@@ -2372,7 +2073,7 @@ inline char* file_read_cstr(const char* file_name) {
     return buffer;
 }
 
-inline b32 file_write_cstr(const char* file_name, const char* buffer) {
+inline b32 writeCStrToFile(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "w") == 0) {
@@ -2385,7 +2086,7 @@ inline b32 file_write_cstr(const char* file_name, const char* buffer) {
     return false;
 }
 
-inline b32 file_append_cstr(const char* file_name, const char* buffer) {
+inline b32 appendCStrToFile(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "a") == 0) {
@@ -2400,22 +2101,7 @@ inline b32 file_append_cstr(const char* file_name, const char* buffer) {
     return false;
 }
 
-inline Str file_read_str(const char* file_name) {
-    FILE *fp = NULL;
-
-    assert(fopen_s(&fp, file_name, "rb") == 0);
-
-    size_t size = file_get_size(fp);
-
-    Str str = make_str(size);
-    assert(fread(str.data(), 1, size, fp) == size);
-
-    fclose(fp);
-
-    return str;
-}
-
-inline b32 file_read_bin(const char* file_name, void* buffer, size_t size) {
+inline b32 readFileAsBin(const char* file_name, void* buffer, size_t size) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "rb") == 0) {
@@ -2428,7 +2114,7 @@ inline b32 file_read_bin(const char* file_name, void* buffer, size_t size) {
     return false;
 } 
 
-inline b32 file_write_bin(const char* file_name, const void* buffer, size_t size) {
+inline b32 writeBinToFile(const char* file_name, const void* buffer, size_t size) {
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "wb") == 0) {
@@ -2441,7 +2127,7 @@ inline b32 file_write_bin(const char* file_name, const void* buffer, size_t size
 
 // ====================================================================================================== //
 
-inline void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
+inline void f4x4Mul64(f64 *R, const f64 *a, const f64 *b) {
     f64 M[16];
 
     M[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
@@ -2485,7 +2171,7 @@ inline void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
     R[15] = M[15];
 }
 
-inline void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
+inline void f4x4Mulv64(f64 *out, const f64 *M, const f64 *v) {
     f64 r[4];
 
 	r[0] = M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3];
@@ -2499,7 +2185,7 @@ inline void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
     out[3] = r[3];
 }
 
-inline void f4x4_invert_64(f64* T, const f64* M) {
+inline void f4x4Invert64(f64* T, const f64* M) {
 	f64 s[6], c[6];
 
 	s[0] = M[0] * M[5] - M[4] * M[1];
@@ -2540,7 +2226,7 @@ inline void f4x4_invert_64(f64* T, const f64* M) {
 	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-inline b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
+inline b32 f4x4Project64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
     f64 fTempo[8];
 
     fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
@@ -2569,19 +2255,19 @@ inline b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* model
     return true;
 }
 
-inline b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
+inline b32 f4x4Unproject64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
     f64 m[16], A[16];
     f64 in[4], out[4];
 
-    f4x4_mul_64(A, projection, modelview);
-    f4x4_invert_64(m, A);
+    f4x4Mul64(A, projection, modelview);
+    f4x4Invert64(m, A);
 
     in[0] = (winx - (f64)viewport[0]) / (f64)viewport[2] * 2.0f - 1.0f;
     in[1] = (winy - (f64)viewport[1]) / (f64)viewport[3] * 2.0f - 1.0f;
     in[2] = 2.0f * winz - 1.0f;
     in[3] = 1.0;
 
-    f4x4_mulv_64(out, m, in);
+    f4x4Mulv64(out, m, in);
     
     if (out[3] == 0.0f)
         return false;
@@ -2811,44 +2497,44 @@ inline b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
 
 // ==================================================================== GAMEPAD ===================================================== //
 
-union Gamepad_Buttons {
+union GamepadButtons {
     struct {
-        u32 X : 1;
-        u32 A : 1;
-        u32 B : 1;
-        u32 Y : 1;
+        u32     X       : 1;
+        u32     A       : 1;
+        u32     B       : 1;
+        u32     Y       : 1;
 
-        u32 LB : 1;
-        u32 RB : 1;
-        u32 LT : 1;
-        u32 RT : 1;
+        u32     LB      : 1;
+        u32     RB      : 1;
+        u32     LT      : 1;
+        u32     RT      : 1;
         
-        u32 select : 1;
-        u32 start : 1;
-        u32 LS : 1;
-        u32 RS : 1;
+        u32     select  : 1;
+        u32     start   : 1;
+        u32     LS      : 1;
+        u32     RS      : 1;
 
-        u32 UP : 1;
-        u32 RIGHT : 1;
-        u32 DOWN : 1;
-        u32 LEFT : 1;
+        u32     UP      : 1;
+        u32     RIGHT   : 1;
+        u32     DOWN    : 1;
+        u32     LEFT    : 1;
     } button;
 
     u32 data;
 };
 
 struct Gamepad {
-    b32 active;
+    b32             active;
 
-    v2  LS;
-    v2  RS;
+    v2              LS;
+    v2              RS;
 
-    f32 LT;
-    f32 RT;
+    f32             LT;
+    f32             RT;
 
-    Gamepad_Buttons  state;
-    Gamepad_Buttons  pressed;
-    Gamepad_Buttons  released;
+    GamepadButtons  state;
+    GamepadButtons  pressed;
+    GamepadButtons  released;
 };
 
 // =========================================================== MOUSE MODES ================================================= //
@@ -2912,7 +2598,7 @@ struct Platform {
 
     Gamepad gamepad[JOYSTICK_LAST];
 
-    Gamepad* get_gamepad(int index) {
+    Gamepad* getGamepad(int index) {
         return gamepad[index].active? &gamepad[index] : NULL;
     }
 };
@@ -2924,66 +2610,65 @@ static struct {
     GLFWmonitor* monitor;
 } platform_internal;
 
-void window_key_callback(GLFWwindow*, int key, int, int action, int) {
+void windowKeyCallback(GLFWwindow*, int key, int, int action, int) {
     switch (action) {
         case GLFW_PRESS:
-            platform.keyboard.key = key;
+            platform.keyboard.key           = key;
 
-            platform.keyboard.is_down = 1;
-            platform.keyboard.is_pressed = 1;
-            platform.keyboard.is_repeat = 1;
+            platform.keyboard.is_down       = 1;
+            platform.keyboard.is_pressed    = 1;
+            platform.keyboard.is_repeat     = 1;
 
-            platform.keyboard.state[key] = 1;
-            platform.keyboard.pressed[key] = 1;
-            platform.keyboard.repeat[key] = 1;
+            platform.keyboard.state[key]    = 1;
+            platform.keyboard.pressed[key]  = 1;
+            platform.keyboard.repeat[key]   = 1;
             break;
         case GLFW_REPEAT:
-            platform.keyboard.is_repeat = 1;
-
-            platform.keyboard.repeat[key] = 1;
+            platform.keyboard.is_repeat     = 1;
+            platform.keyboard.repeat[key]   = 1;
             break;
         case GLFW_RELEASE:
-            platform.keyboard.is_down = 0;
-            platform.keyboard.is_released = 1;
+            platform.keyboard.is_down       = 0;
+            platform.keyboard.is_released   = 1;
             
-            platform.keyboard.state[key] = 0;
+            platform.keyboard.state[key]    = 0;
             platform.keyboard.released[key] = 1;
             break;
     }
 }
 
-void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+void windowCharCallback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-void window_mouse_button_callback(GLFWwindow*, int button, int action, int) {
+void windowMouseButtonCallback(GLFWwindow*, int button, int action, int) {
     switch (action) {
         case GLFW_PRESS: {
-            platform.mouse.is_down = 1;
-            platform.mouse.is_pressed = 1;
+            platform.mouse.is_down          = 1;
+            platform.mouse.is_pressed       = 1;
 
-            platform.mouse.state[button] = 1;
-            platform.mouse.pressed[button] = 1;
+            platform.mouse.state[button]    = 1;
+            platform.mouse.pressed[button]  = 1;
             break;
         }
         case GLFW_RELEASE: {
-            platform.mouse.is_down = 0;
-            platform.mouse.is_released = 1;
+            platform.mouse.is_down          = 0;
+            platform.mouse.is_released      = 1;
 
-            platform.mouse.state[button] = 0;
+            platform.mouse.state[button]    = 0;
             platform.mouse.released[button] = 1;
             break;
         }
     }
 }
 
-void window_scroll_callback(GLFWwindow*, double xoffset, double yoffset) {
+void windowScrollCallback(GLFWwindow*, f64 xoffset, f64 yoffset) {
     platform.mouse.scroll.x = xoffset;
     platform.mouse.scroll.y = yoffset;
 }
 
-void window_joystick_callback(int joy, int event) {
+void windowJoystickCallback(int joy, int event) {
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
 
@@ -2995,17 +2680,17 @@ void window_joystick_callback(int joy, int event) {
     }
 }
 
-void platform_init(const char* title, int width, int height, int samples) {
+void initPlatform(const char* title, int width, int height, int samples) {
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
 
     const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
 
-    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+    glfwWindowHint(GLFW_RED_BITS,       mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS,     mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS,      mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE,   mode->refreshRate);
 
 #ifdef ATS_MODERN_OPENGL
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -3015,11 +2700,11 @@ void platform_init(const char* title, int width, int height, int samples) {
 
     glfwWindowHint(GLFW_SAMPLES, samples);
 
-    platform.width = width;
-    platform.height = height;
+    platform.width              = width;
+    platform.height             = height;
 
-    platform_internal.window = glfwCreateWindow(width, height, title, NULL, NULL);
-    platform.native = glfwGetWin32Window(platform_internal.window);
+    platform_internal.window    = glfwCreateWindow(width, height, title, NULL, NULL);
+    platform.native             = glfwGetWin32Window(platform_internal.window);
 
     glfwSetWindowPos(platform_internal.window, (mode->width - width) / 2, (mode->height - height) / 2);
 
@@ -3029,11 +2714,11 @@ void platform_init(const char* title, int width, int height, int samples) {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 #endif
 
-    glfwSetKeyCallback(platform_internal.window, window_key_callback);
-    glfwSetCharCallback(platform_internal.window, window_char_callback);
-    glfwSetMouseButtonCallback(platform_internal.window, window_mouse_button_callback);
-    glfwSetScrollCallback(platform_internal.window, window_scroll_callback);
-    glfwSetJoystickCallback(window_joystick_callback);
+    glfwSetKeyCallback(platform_internal.window,            windowKeyCallback);
+    glfwSetCharCallback(platform_internal.window,           windowCharCallback);
+    glfwSetMouseButtonCallback(platform_internal.window,    windowMouseButtonCallback);
+    glfwSetScrollCallback(platform_internal.window,         windowScrollCallback);
+    glfwSetJoystickCallback(windowJoystickCallback);
 
     // init mouse:
     {
@@ -3056,7 +2741,7 @@ void platform_init(const char* title, int width, int height, int samples) {
     glfwSetTime(0.0);
 }
 
-void platform_update(void) {
+void updatePlatform(void) {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
@@ -3072,7 +2757,7 @@ void platform_update(void) {
 
     // update mouse:
     {
-        double x, y;
+        f64 x, y;
         glfwGetCursorPos(platform_internal.window, &x, &y);
 
         platform.mouse.delta.x = x - platform.mouse.pos.x;
@@ -3103,7 +2788,7 @@ void platform_update(void) {
 
         for (int i = 0; i < JOYSTICK_LAST; ++i) {
             if (platform.gamepad[i].active) {
-                Gamepad_Buttons old = platform.gamepad[i].state;
+                GamepadButtons old = platform.gamepad[i].state;
 
                 platform.gamepad[i].state.data = 0;
                 platform.gamepad[i].pressed.data = 0;
@@ -3181,7 +2866,7 @@ void platform_update(void) {
 
 // =================================================== TIMER STUFF =================================================== //
 
-inline f64 timer_get_current(void) {
+inline f64 getCurrentTime(void) {
     return glfwGetTime();
 }
 
@@ -3312,7 +2997,7 @@ inline u32 shader_link_program_v(u32 vertex_shader) {
     return shader_program;
 }
 
-inline Shader shader_load_from_memory(const char *vs, const char *fs, const char *gs = NULL) {
+inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *gs = NULL) {
     Shader shader = {};
 
     if (vs != NULL && fs != NULL && gs != NULL) {
@@ -3348,11 +3033,11 @@ inline Shader shader_load_from_memory(const char *vs, const char *fs, const char
     return shader;
 }
 
-inline Shader shader_load_from_file(const char *vs, const char *fs) {
-    char* vertex   = file_read_cstr(vs);
-    char* fragment = file_read_cstr(fs);
+inline Shader loadShaderFromFile(const char *vs, const char *fs) {
+    char* vertex   = readFileAsCStr(vs);
+    char* fragment = readFileAsCStr(fs);
 
-    Shader shader = shader_load_from_memory(vertex, fragment);
+    Shader shader = loadShaderFromMemory(vertex, fragment);
 
     free(vertex);
     free(fragment);
@@ -4143,7 +3828,7 @@ inline void ce_push_line(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
     v2 line_pos = p0 + 0.5f * line;
 
     v2  axis    = { 0.0f, -1.0f };
-    f32 rot     = get_angle(axis, line);
+    f32 rot     = getAngle(axis, line);
     v3  pos     = V3(line_pos, z);
     v3  scale   = V3(rad, 0.5f * line_length, rad);
 
@@ -4323,7 +4008,7 @@ inline v3 ce_get_world_position(int x, int y) {
     glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
  
     f64 result[3];
-    f4x4_unproject_64(result, winX, winY, winZ, identity, projection_view, viewport);
+    f4x4Unproject64(result, winX, winY, winZ, identity, projection_view, viewport);
  
     return V3(result[0], result[1], result[2]);
 }
@@ -4339,16 +4024,17 @@ inline v3 ce_get_world_position(int x, int y) {
 #include "dep/stb_image.h" 
 
 struct Image {
-    int width;
-    int height;
+    int     width;
+    int     height;
 
-    u32* pixels;
+    u32*    pixels;
 };
 
-inline Image image_load_from_file(const char* path) {
-    Image image     = {};
-    i32   channels  = 0;
-    image.pixels    = (u32*)stbi_load(path, &image.width, &image.height, &channels, 0);
+inline Image loadImageFromFile(const char* path) {
+    Image   image       = {};
+    i32     channels    = 0;
+
+    image.pixels        = (u32*)stbi_load(path, &image.width, &image.height, &channels, 0);
 
     assert(image.pixels);
 
@@ -4358,12 +4044,12 @@ inline Image image_load_from_file(const char* path) {
 #endif
 
 struct Texture {
-    u32 id;
-    int width;
-    int height;
+    u32     id;
+    int     width;
+    int     height;
 };
 
-inline Texture texture_create(void *pixels, int width, int height, int is_smooth) {
+inline Texture createTexture(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
     Texture texture = {0};
@@ -4385,7 +4071,7 @@ inline Texture texture_create(void *pixels, int width, int height, int is_smooth
     return texture;
 }
 
-inline void texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth) {
+inline void updateTexture(Texture* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width = width;
     texture->height = height;
 
@@ -4401,7 +4087,7 @@ inline void texture_update(Texture* texture, void *pixels, int width, int height
 }
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-inline Texture texture_load_from_file(const char *texture_path, int is_smooth) {
+inline Texture loadTextureFromFile(const char *texture_path, int is_smooth) {
     Texture         texture     = {};
     i32             channels    = 0;
     unsigned char*  pixels      = NULL;
@@ -4427,7 +4113,7 @@ inline Texture texture_load_from_file(const char *texture_path, int is_smooth) {
 }
 #endif
 
-inline void texture_bind(const Texture *texture) {
+inline void bindTexture(const Texture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
     glMatrixMode(GL_TEXTURE);
@@ -4438,7 +4124,7 @@ inline void texture_bind(const Texture *texture) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-inline void texture_delete(Texture* texture) {
+inline void deleteTexture(Texture* texture) {
     glDeleteTextures(1, &texture->id);
     
     memset(texture, 0, sizeof *texture);
@@ -4453,7 +4139,7 @@ inline void texture_delete(Texture* texture) {
 int cube_list;
 int square_list;
 
-inline void gl_init_shapes(void) {
+inline void gl_initShapes(void) {
     square_list = glGenLists(1);
     cube_list   = glGenLists(1);
 
@@ -4541,7 +4227,7 @@ inline void gl_init_shapes(void) {
     }
 }
 
-inline void gl_init_bitmap(void);
+inline void gl_initBitmap(void);
 
 inline void gl_init(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
@@ -4561,11 +4247,11 @@ inline void gl_init(void) {
 
     glEnable(GL_NORMALIZE);
 
-    gl_init_shapes();
-    gl_init_bitmap();
+    gl_initShapes();
+    gl_initBitmap();
 }
 
-inline void gl_render_square(v3 pos, f32 rad, v4 color) {
+inline void gl_renderSquare(v3 pos, f32 rad, v4 color) {
     glPushMatrix();
 
     glColor4fv(color.array);
@@ -4577,7 +4263,7 @@ inline void gl_render_square(v3 pos, f32 rad, v4 color) {
     glPopMatrix();
 }
 
-inline void gl_render_cube(v3 pos, f32 rad, v4 color) {
+inline void gl_renderCube(v3 pos, f32 rad, v4 color) {
     glPushMatrix();
 
     glColor4fv(color.array);
@@ -4589,7 +4275,7 @@ inline void gl_render_cube(v3 pos, f32 rad, v4 color) {
     glPopMatrix();
 }
 
-inline void gl_render_cube(v3 pos, v3 rad, v4 color) {
+inline void gl_renderCube(v3 pos, v3 rad, v4 color) {
     glPushMatrix();
 
     glColor4fv(color.array);
@@ -4602,7 +4288,7 @@ inline void gl_render_cube(v3 pos, v3 rad, v4 color) {
     glPopMatrix();
 }
 
-inline void gl_render_line(v3 a, v3 b, v4 color) {
+inline void gl_renderLine(v3 a, v3 b, v4 color) {
     glColor4fv(color.array);
 
     glLoadIdentity();
@@ -4615,7 +4301,7 @@ inline void gl_render_line(v3 a, v3 b, v4 color) {
     glEnd();
 }
 
-inline void gl_render_line_loop_2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count) {
+inline void gl_renderLineLoop2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count) {
     glLoadIdentity();
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad, rad, 1.0f);
@@ -4638,7 +4324,7 @@ inline void gl_render_line_loop_2D(v3 pos, f32 rad, f32 rot, v4 color, const v2*
     glEnd();
 }
 
-inline void gl_set_light_emitter(int index, f32 bright, v3 p) {
+inline void gl_setLightEmitter(int index, f32 bright, v3 p) {
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { bright, bright, bright, 0.0f };
@@ -4654,7 +4340,7 @@ inline void gl_set_light_emitter(int index, f32 bright, v3 p) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
+inline void gl_setLightEmitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { color.r, color.g, color.b, 0.0f };
@@ -4674,7 +4360,7 @@ inline void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 li
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_set_light_directed(int index, f32 bright, v3 pos) {
+inline void gl_setLightDirected(int index, f32 bright, v3 pos) {
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -4691,7 +4377,7 @@ inline void gl_set_light_directed(int index, f32 bright, v3 pos) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_set_light_directed(int index, v3 pos, v3 color) {
+inline void gl_setLightDirected(int index, v3 pos, v3 color) {
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -4708,25 +4394,25 @@ inline void gl_set_light_directed(int index, v3 pos, v3 color) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_set_light_global_ambient(v3 color) {
+inline void gl_setLightGlobalAmbient(v3 color) {
     f32 v[4] = { color.r, color.g, color.b, 0 };
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-inline m4 gl_get_projection_matrix(void) {
+inline m4 gl_getProjectionMatrix(void) {
     m4 projection;
     glGetFloatv(GL_PROJECTION_MATRIX, projection.array);
     return projection;
 }
 
-inline m4 gl_get_modelview_matrix(void) {
+inline m4 gl_getModelviewMatrix(void) {
     m4 modelview;
     glGetFloatv(GL_MODELVIEW_MATRIX, modelview.array);
     return modelview;
 }
 
-inline v3 gl_get_world_position(int x, int y) {
+inline v3 gl_getWorldPosition(int x, int y) {
     GLint viewport[4];
 
     f64 modelview[16];
@@ -4745,7 +4431,7 @@ inline v3 gl_get_world_position(int x, int y) {
     glReadPixels(x, int(win_y), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &win_z);
  
     f64 result[3];
-    f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
+    f4x4Unproject64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
     return V3(result[0], result[1], result[2]);
 }
@@ -4754,7 +4440,7 @@ int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) ((u64(N)) & (1ull << ((u64(Y)) * 8ull + (u64(X)))))
 
-inline void gl_init_bitmap(void) {
+inline void gl_initBitmap(void) {
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
 
@@ -4786,7 +4472,7 @@ inline void gl_init_bitmap(void) {
     }
 }
 
-inline void gl_render_ascii(u8 c, v3 pos, v2 scale) {
+inline void gl_renderAscii(u8 c, v3 pos, v2 scale) {
     m4 T = m4_translate(pos) * m4_scale(V3(scale, 1.0f));
 
     glPushMatrix();
@@ -4797,22 +4483,22 @@ inline void gl_render_ascii(u8 c, v3 pos, v2 scale) {
     glPopMatrix();
 }
 
-inline void gl_render_string(const char *str, v3 pos, v2 scale, v4 color) {
+inline void gl_renderString(const char *str, v3 pos, v2 scale, v4 color) {
     glColor4f(color.r, color.g, color.b, color.a);
 
     for (int i = 0; str[i] != '\0'; i++) {
-        gl_render_ascii(str[i], pos + V3(i * scale.x, 0, 0), scale);
+        gl_renderAscii(str[i], pos + V3(i * scale.x, 0, 0), scale);
     }
 }
 
-inline void gl_render_string_format(v3 pos, v2 scale, v4 color, const char* fmt, ...) {
+inline void gl_renderStringFormat(v3 pos, v2 scale, v4 color, const char* fmt, ...) {
     va_list list;
     char    buffer[256];
 
     va_start(list, fmt);
 
     vsnprintf(buffer, 256, fmt, list);
-    gl_render_string(buffer, pos, scale, color);
+    gl_renderString(buffer, pos, scale, color);
 
     va_end(list);
 }
