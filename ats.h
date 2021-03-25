@@ -2285,8 +2285,6 @@ inline b32 f4x4Unproject64(f64* result, f64 winx, f64 winy, f64 winz, f64* model
 
 #ifdef ATS_PLATFORM_GLFW
 
-#include <windows.h>
-
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #pragma comment(lib, "glfw3.lib")
 #pragma comment(lib, "opengl32.lib")
@@ -2693,7 +2691,7 @@ void initPlatform(const char* title, int width, int height, int samples) {
     glfwWindowHint(GLFW_REFRESH_RATE,   mode->refreshRate);
 
 #ifdef ATS_MODERN_OPENGL
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
@@ -3041,6 +3039,49 @@ inline Shader loadShaderFromFile(const char *vs, const char *fs) {
 
     free(vertex);
     free(fragment);
+
+    return shader;
+}
+
+inline u32 shader_link_program_c(u32 compute_shader) {
+    int success;
+    char info_log[512];
+
+    u32 shader_program = glCreateProgram();
+
+    glAttachShader(shader_program, compute_shader);
+
+    glLinkProgram(shader_program);
+    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
+
+    if (!success) {
+        glGetProgramInfoLog(shader_program, 512, NULL, info_log);
+        puts(info_log);
+
+        exit(EXIT_FAILURE);
+    }
+
+    return shader_program;
+}
+
+inline Shader loadComputeShaderFromMemory(const char* cs) {
+    Shader shader = {};
+
+    u32 compute = shader_compile(cs, GL_COMPUTE_SHADER);
+
+    shader.program = shader_link_program_c(compute);
+
+    glUseProgram(shader.program);
+    glDeleteShader(compute);
+
+    return shader;
+}
+
+inline Shader loadComputeShaderFromFile(const char* cs) {
+    char*   compute = readFileAsCStr(cs);
+    Shader  shader  = loadComputeShaderFromMemory(compute);
+
+    free(compute);
 
     return shader;
 }
@@ -4092,7 +4133,7 @@ inline Texture loadTextureFromFile(const char *texture_path, int is_smooth) {
     i32             channels    = 0;
     unsigned char*  pixels      = NULL;
 
-    pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 0);
+    pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
 
     assert(pixels);
 
@@ -4113,6 +4154,7 @@ inline Texture loadTextureFromFile(const char *texture_path, int is_smooth) {
 }
 #endif
 
+#ifndef ATS_MODERN_OPENGL
 inline void bindTexture(const Texture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
@@ -4123,6 +4165,7 @@ inline void bindTexture(const Texture *texture) {
 
     glMatrixMode(GL_MODELVIEW);
 }
+#endif
 
 inline void deleteTexture(Texture* texture) {
     glDeleteTextures(1, &texture->id);
@@ -4151,11 +4194,11 @@ inline void gl_initShapes(void) {
         glNormal3f(0.0f, 0.0f, 1.0f);
 
         glVertex3f(-1.0f, -1.0f, 0.0f);
+        glVertex3f(+1.0f, +1.0f, 0.0f);
         glVertex3f(+1.0f, -1.0f, 0.0f);
         glVertex3f(+1.0f, +1.0f, 0.0f);
-        glVertex3f(+1.0f, +1.0f, 0.0f);
-        glVertex3f(-1.0f, +1.0f, 0.0f);
         glVertex3f(-1.0f, -1.0f, 0.0f);
+        glVertex3f(-1.0f, +1.0f, 0.0f);
 
         glEnd();
 
