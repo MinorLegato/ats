@@ -62,13 +62,15 @@ typedef uint16_t b16;
 typedef uint32_t b32;
 typedef uint64_t b64;
 
-union v2 {
+union v2
+{
     struct { f32 x, y; };
 
     f32 array[2];
 };
 
-union v3 {
+union v3
+{
     struct { f32 x, y, z; };
     struct { f32 r, g, b; };
 
@@ -77,7 +79,8 @@ union v3 {
     f32 array[3];
 };
 
-union v4 {
+union v4
+{
     struct { f32 x, y, z, w; };
     struct { f32 r, g, b, a; };
 
@@ -87,37 +90,43 @@ union v4 {
     f32 array[4];
 };
 
-union Quat {
+union Quat
+{
     struct { f32 x, y, z, w; };
 
     f32 array[4];
 };
 
-union m2 {
+union m2
+{
     struct { v2 x, y; };
 
     f32 array[4];
 };
 
-union m3 {
+union m3
+{
     struct { v3 x, y, z; };
 
     f32 array[9];
 };
 
-union m4 {
+union m4
+{
     struct { v4 x, y, z, w; };
 
     f32 array[16];
 };
 
-union v2i {
+union v2i
+{
     struct { i32 x, y; };
 
     i32 array[2];
 };
 
-union v3i {
+union v3i
+{
     struct { i32 x, y, z; };
 
     struct { v2i xy; i32 _z; };
@@ -125,7 +134,8 @@ union v3i {
     i32 array[3];
 };
 
-union v4i {
+union v4i
+{
     struct { i32 x, y, z, w; };
 
     i32 array[4];
@@ -133,10 +143,8 @@ union v4i {
 
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
 
-#define sqrt    __sqrt
-#define rsqrt   __rsqrt
-
-inline f32 __sqrt(f32 n) {
+inline f32 Sqrt(f32 n)
+{
     f32 x = n * 0.5f;
     f32 y = n;
     int i = *(int*)&y;
@@ -148,161 +156,113 @@ inline f32 __sqrt(f32 n) {
     return n * y;
 }
 
-inline f32 __rsqrt(f32 n) {
-	f32 x2 = n * 0.5F;
-	f32 y  = n;
-	int i  = *(long*)&y;           // evil f32ing point bit level hacking
+inline f32 RSqrt(f32 n)
+{
+    f32 x2 = n * 0.5F;
+    f32 y  = n;
+    int i  = *(long*)&y;           // evil f32ing point bit level hacking
 
-	i = 0x5f3759df - (i >> 1);     // what the fuck? 
-	y = *(f32*) &i;
-	y = y * (1.5f - (x2 * y * y)); // 1st iteration
+    i = 0x5f3759df - (i >> 1);     // what the fuck? 
+    y = *(f32*) &i;
+    y = y * (1.5f - (x2 * y * y)); // 1st iteration
 
-	return y;
+    return y;
 }
 
 template <typename T>
-inline T square(T n) {
+inline T Square(T n)
+{
     return n * n;
 }
 
-inline f32 lerp(f32 a, f32 b, f32 t) {
+inline f32 Lerp(f32 a, f32 b, f32 t)
+{
     return a + t * (b - a);
 }
 
-inline f32 unlerp(f32 a, f32 b, f32 t) {
+inline f32 UnLerp(f32 a, f32 b, f32 t)
+{
     return (t - a) / (b - a);
 }
 
-inline f32 angleDist(f32 a, f32 b) {
+inline f32 AngleDist(f32 a, f32 b)
+{
     f32 max = 2.0f * PI;
     f32 da  = fmodf(b - a, max);
     return fmodf(2.0f * da, max) - da;
 }
 
-inline f32 lerpAngle(f32 a, f32 b, f32 t) {
-    return a + angleDist(a, b) * t;
+inline f32 LerpAngle(f32 a, f32 b, f32 t)
+{
+    return a + AngleDist(a, b) * t;
 }
 
-inline f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
-	f32 i = 1.0f - f;
-	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
+inline f32 Spline(f32 f, f32 a, f32 b, f32 c, f32 d)
+{
+    f32 i = 1.0f - f;
+    return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
 template <typename T, typename U>
-inline T min(T a, U b) {
+inline T Min(T a, U b)
+{
     return a < b? a : b;
 }
 
 template <typename T, typename U>
-inline T max(T a, U b) {
+inline T Max(T a, U b)
+{
     return a > b? a : b;
 }
 
 template <typename T, typename U, typename V>
-inline T clamp(T n, U min, V max) {
+inline T Clamp(T n, U min, V max)
+{
     if (n < min) return min;
     if (n > max) return max;
+
     return n;
 }
 
 template <typename T, typename U>
-inline T clampMin(T n, U min) {
+inline T ClampMin(T n, U min)
+{
     return n < min? min : n;
 }
 
 template <typename T, typename U>
-inline T clampMax(T n, U max) {
+inline T ClampMax(T n, U max)
+{
     return n > max? max : n;
 }
 
 template <typename T>
-inline T sign(T n) {
+inline T Sign(T n)
+{
     return n < 0? -1 : 1;
 }
 
 template <typename T>
-inline T signOrZero(T n) {
+inline T SignOrZero(T n)
+{
     if (n < 0) return -1;
     if (n > 0) return +1;
 
     return 0;
 }
 
-template <typename T, u32 INIT_SIZE = 256>
-struct Array {
-    u32     len     = 0;
-    u32     cap     = 0;
-    T*      buf     = nullptr;
-
-    inline T*   add     ()              { ensureNext(); return new (&buf[len++]) T(); }
-    inline void add     (const T& e)    { ensureNext(); buf[len++] = e; }
-    inline void remove  (u32 i)         { assert(i < len); buf[i] = buf[--len]; }
-
-    inline void ensure  (u32 size)      { if (size > cap) { cap = size; buf = (T*)realloc(buf, cap * sizeof (T)); assert(buf); } }
-    inline void clear   ()              { len = 0; }
-    inline void free    ()              { if (buf) ::free(buf); }
-
-    inline T*       get(u32 i)       { assert(i < len); return &buf[i]; };
-    inline const T* get(u32 i) const { assert(i < len); return &buf[i]; };
-
-    inline T*       ptr()       { return buf; };
-    inline const T* ptr() const { return buf; };
-
-    inline T&       operator[](u32 i)       { assert(i < len); return buf[i]; }
-    inline const T& operator[](u32 i) const { assert(i < len); return buf[i]; }
-
-    inline i32      size() const { return len; }
-
-    inline T*       begin()       { return buf; }
-    inline const T* begin() const { return buf; }
-
-    inline T*       end()       { return buf + len; }
-    inline const T* end() const { return buf + len; }
-
-private:
-    inline void ensureNext() { if (len + 1 > cap) ensure(max(INIT_SIZE, cap << 1)); }
-};
-
-template <u32 N>
-struct BitSet {
-    u32 buf[N / 32 + 1];
-
-    inline bool get(u32 i) const { return buf[i >> 5] & (1 << (i & 31)); }
-    inline void set(u32 i)       { buf[i >> 5] |= (1 << (i & 31)); }
-};
-
-template <u32 W, u32 H>
-struct BitMap {
-    BitSet<W * H> buf;
-
-    inline bool get(u32 x, u32 y) const { return buf.get(y * W + x); }
-    inline void set(u32 x, u32 y)       { buf.set(y * W + x); }
-};
-
-template <typename T, u32 N>
-struct FifoQueue {
-    i32     begin;
-    i32     end;
-    T       array[N];
-
-    inline bool empty   () const        { return begin == end; }
-    inline void clear   ()              { begin = end = 0; }
-    inline void push    (const T& e)    { array[end++] = e; }
-    inline T    pop     ()              { return array[begin++]; }
-};
-
-
-template <typename T, u32 N>
-struct PriorityQueue {
-    struct Node { f32 weight; T e; };
+struct PriorityQueue
+{
+    struct Node { f32 weight; v2i e; };
 
     i32     len;
-    Node    array[N];
+    Node*   array;
 
-    inline bool empty   ()  const   { return len == 0; }
-    inline void clear   ()          { len = 0; }
+    inline bool Empty   ()  const   { return len == 0; }
+    inline void Clear   ()          { len = 0; }
 
-    inline void push(const T& e, f32 weight) {
+    inline void Push(v2i e, f32 weight)
+    {
         Node node = { .weight = weight, .e = e };
 
         int i = len + 1;
@@ -319,7 +279,8 @@ struct PriorityQueue {
         len++;
     }
 
-    inline Node pop() {
+    inline Node Pop()
+    {
         Node data = array[1];
 
         array[1] = array[len];
@@ -347,138 +308,167 @@ struct PriorityQueue {
 
 // ---------------------- v2 ---------------------- //
 
-inline v2 V2(f32 x, f32 y) {
+inline v2 V2(f32 x, f32 y)
+{
     return { x, y };
 }
 
-inline v2 V2(v3 a) {
+inline v2 V2(v3 a)
+{
     return { a.x, a.y };
 }
 
-inline v2 V2(v2i a) {
+inline v2 V2(v2i a)
+{
     return { (f32)a.x, (f32)a.y };
 }
 
-inline v2 operator-(v2 a) {
+inline v2 operator-(v2 a)
+{
     return { -a.x, -a.y };
 }
 
-inline v2 operator+(v2 a, v2 b) {
+inline v2 operator+(v2 a, v2 b)
+{
     return { a.x + b.x, a.y + b.y };
 }
 
-inline v2 operator-(v2 a, v2 b) {
+inline v2 operator-(v2 a, v2 b)
+{
     return { a.x - b.x, a.y - b.y };
 }
 
-inline v2 operator*(v2 a, v2 b) {
+inline v2 operator*(v2 a, v2 b)
+{
     return { a.x * b.x, a.y * b.y };
 }
 
-inline v2 operator*(v2 a, f32 s) {
+inline v2 operator*(v2 a, f32 s)
+{
     return { a.x * s, a.y * s };
 }
 
-inline v2 operator*(f32 s, v2 a) {
+inline v2 operator*(f32 s, v2 a)
+{
     return { a.x * s, a.y * s };
 }
 
-inline v2 operator/(v2 a, f32 s) {
+inline v2 operator/(v2 a, f32 s)
+{
     return { a.x / s, a.y / s };
 }
 
-inline v2 operator+=(v2& a, v2 b) {
+inline v2 operator+=(v2& a, v2 b)
+{
     a = a + b;
     return a;
 }
 
-inline v2 operator-=(v2& a, v2 b) {
+inline v2 operator-=(v2& a, v2 b)
+{
     a = a - b;
     return a;
 }
 
-inline v2 operator*=(v2& a, v2 b) {
+inline v2 operator*=(v2& a, v2 b)
+{
     a = a * b;
     return a;
 }
 
-inline v2 operator*=(v2& a, f32 s) {
+inline v2 operator*=(v2& a, f32 s)
+{
     a = a * s;
     return a;
 }
 
-inline v2 operator/=(v2& a, f32 s) {
+inline v2 operator/=(v2& a, f32 s)
+{
     a = a / s;
     return a;
 }
 
-inline f32 det(v2 a, v2 b) {
+inline f32 Det(v2 a, v2 b)
+{
     return a.x * b.y - a.y * b.x;
 }
 
-inline f32 dot(v2 a, v2 b) {
+inline f32 Dot(v2 a, v2 b)
+{
     return a.x * b.x + a.y * b.y;
 }
 
-inline f32 lenSq(v2 v) {
-    return dot(v, v);
+inline f32 LenSq(v2 v)
+{
+    return Dot(v, v);
 }
 
-inline f32 len(v2 v) {
-    return sqrt(dot(v, v));
+inline f32 Len(v2 v)
+{
+    return Sqrt(Dot(v, v));
 }
 
-inline f32 distSq(v2 a, v2 b) {
-    return lenSq(b - a);
+inline f32 DistSq(v2 a, v2 b)
+{
+    return LenSq(b - a);
 }
 
-inline f32 dist(v2 a, v2 b) {
-    return sqrt(distSq(a, b));
+inline f32 Dist(v2 a, v2 b)
+{
+    return Sqrt(DistSq(a, b));
 }
 
-inline v2 proj(v2 a, v2 b) {
-    f32 d = dot(b, b);
+inline v2 Proj(v2 a, v2 b)
+{
+    f32 d = Dot(b, b);
     if (d == 0) return {};
 
-    return (dot(a, b) / d) * b;
+    return (Dot(a, b) / d) * b;
 }
 
-inline v2 norm(v2 v) {
-    return v * rsqrt(dot(v, v));
+inline v2 Norm(v2 v)
+{
+    return v * RSqrt(Dot(v, v));
 }
 
-inline v2 min(v2 a, v2 b) {
+inline v2 Min(v2 a, v2 b)
+{
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y)
     };
 }
 
-inline v2 max(v2 a, v2 b) {
+inline v2 Max(v2 a, v2 b)
+{
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y)
     };
 }
 
-inline v2 lerp(v2 a, v2 b, f32 t) {
+inline v2 Lerp(v2 a, v2 b, f32 t)
+{
     return a + t * (b - a);
 }
 
-inline f32 getAngle(v2 a, v2 b) {
+inline f32 GetAngle(v2 a, v2 b)
+{
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
-    
+
     return atan2f(det, dot);
 }
 
-inline v2 spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
-	f32 i = 1.0f - f;
+inline v2 Spline(f32 f, v2 a, v2 b, v2 c, v2 d)
+{
+    f32 i = 1.0f - f;
 
-	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
+    return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 circleIntersect(v2 p0, f32 r0, v2 p1, f32 r1) {
+inline b32 CircleIntersect(v2 p0, f32 r0, v2 p1, f32 r1)
+{
     f32 dx = p1.x - p0.x;
     f32 dy = p1.y - p0.y;
 
@@ -487,146 +477,175 @@ inline b32 circleIntersect(v2 p0, f32 r0, v2 p1, f32 r1) {
     return (dx * dx + dy * dy) < (r * r);
 }
 
-inline b32 segmentIsIntersectingCircle(v2 start, v2 end, v2 pos, f32 rad) {
+inline b32 SegmentIsIntersectingCircle(v2 start, v2 end, v2 pos, f32 rad)
+{
     v2 a = start - pos;
     v2 b = end - pos;
 
-    if (dot(a, a) > dot(b, b)) return false;
+    if (Dot(a, a) > Dot(b, b)) return false;
 
     v2 seg = end - start;
     v2 cir = pos - start;
 
-    f32 dot_sc = dot(seg, cir);
+    f32 dot_sc = Dot(seg, cir);
 
     if (dot_sc < 0.0f) return false;
 
-    seg = (dot_sc / dot(seg, seg)) * seg - cir;
+    seg = (dot_sc / Dot(seg, seg)) * seg - cir;
 
-    return dot(seg, seg) < (rad * rad);
+    return Dot(seg, seg) < (rad * rad);
 }
 
-inline m2 outerProduct(v2 a, v2 b) {
+inline m2 OuterProduct(v2 a, v2 b)
+{
     return m2 {
         a.x * b.x, a.y * b.x,
         a.x * b.y, a.y * b.y,
     };
 }
 
-inline v2 square(v2 a) {
+inline v2 Square(v2 a)
+{
     return { a.x * a.x, a.y * a.y };
 }
 
 // ----------------------------- v3 ----------------------------- //
 
-inline v3 V3(f32 x, f32 y, f32 z) {
+inline v3 V3(f32 x, f32 y, f32 z)
+{
     return { x, y, z };
 }
 
-inline v3 V3(v2 a) {
+inline v3 V3(v2 a)
+{
     return { a.x, a.y, 0.0f };
 }
 
-inline v3 V3(v2 a, f32 z) {
+inline v3 V3(v2 a, f32 z)
+{
     return { a.x, a.y, z };
 }
 
-inline v3 V3(v2i a, i32 z) {
+inline v3 V3(v2i a, i32 z)
+{
     return { f32(a.x), f32(a.y), f32(z) };
 }
 
-inline v3 V3(f32 x, v2 a) {
+inline v3 V3(f32 x, v2 a)
+{
     return { x, a.x, a.y };
 }
 
-inline v3 V3(v3i a) {
+inline v3 V3(v3i a)
+{
     return { f32(a.x), f32(a.y), f32(a.z) };
 }
 
-inline v3 operator-(v3 a) {
+inline v3 operator-(v3 a)
+{
     return { -a.x, -a.y, -a.z };
 }
 
-inline v3 operator+(v3 a, v3 b) {
+inline v3 operator+(v3 a, v3 b)
+{
     return { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
-inline v3 operator-(v3 a, v3 b) {
+inline v3 operator-(v3 a, v3 b)
+{
     return { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
-inline v3 operator*(v3 a, v3 b) {
+inline v3 operator*(v3 a, v3 b)
+{
     return { a.x * b.x, a.y * b.y, a.z * b.z };
 }
 
-inline v3 operator*(v3 a, f32 s) {
+inline v3 operator*(v3 a, f32 s)
+{
     return { a.x * s, a.y * s, a.z * s };
 }
 
-inline v3 operator*(f32 s, v3 a) {
+inline v3 operator*(f32 s, v3 a)
+{
     return { a.x * s, a.y * s, a.z * s };
 }
 
-inline v3 operator/(v3 a, f32 s) {
+inline v3 operator/(v3 a, f32 s)
+{
     return { a.x / s, a.y / s, a.z / s };
 }
 
-inline v3 operator+=(v3& a, v3 b) {
+inline v3 operator+=(v3& a, v3 b)
+{
     a = a + b;
     return a;
 }
 
-inline v3 operator-=(v3& a, v3 b) {
+inline v3 operator-=(v3& a, v3 b)
+{
     a = a - b;
     return a;
 }
 
-inline v3 operator*=(v3& a, v3 b) {
+inline v3 operator*=(v3& a, v3 b)
+{
     a = a * b;
     return a;
 }
 
-inline v3 operator*=(v3& a, f32 s) {
+inline v3 operator*=(v3& a, f32 s)
+{
     a = a * s;
     return a;
 }
 
-inline v3 operator/=(v3& a, f32 s) {
+inline v3 operator/=(v3& a, f32 s)
+{
     a = a / s;
     return a;
 }
 
-inline f32 dot(v3 a, v3 b) {
+inline f32 Dot(v3 a, v3 b)
+{
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-inline f32 lenSq(v3 v) {
-    return dot(v, v);
+inline f32 LenSq(v3 v)
+{
+    return Dot(v, v);
 }
 
-inline f32 len(v3 v) {
-    return sqrt(dot(v, v));
+inline f32 Len(v3 v)
+{
+    return Sqrt(Dot(v, v));
 }
 
-inline f32 distSq(v3 a, v3 b) {
-    return lenSq(b - a);
+inline f32 DistSq(v3 a, v3 b)
+{
+    return LenSq(b - a);
 }
 
-inline f32 dist(v3 a, v3 b) {
-    return sqrt(distSq(a, b));
+inline f32 Dist(v3 a, v3 b)
+{
+    return Sqrt(DistSq(a, b));
 }
 
-inline v3 proj(v3 a, v3 b) {
-    f32 d = dot(b, b);
+inline v3 Proj(v3 a, v3 b)
+{
+    f32 d = Dot(b, b);
     if (d == 0) return {};
 
-    return (dot(a, b) / d) * b;
+    return (Dot(a, b) / d) * b;
 }
 
-inline v3 norm(v3 v) {
-    return v * rsqrt(dot(v, v));
+inline v3 Norm(v3 v)
+{
+    return v * RSqrt(Dot(v, v));
 }
 
-inline v3 min(v3 a, v3 b) {
+inline v3 Min(v3 a, v3 b)
+{
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y),
@@ -634,7 +653,8 @@ inline v3 min(v3 a, v3 b) {
     };
 }
 
-inline v3 max(v3 a, v3 b) {
+inline v3 Max(v3 a, v3 b)
+{
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y),
@@ -642,11 +662,13 @@ inline v3 max(v3 a, v3 b) {
     };
 }
 
-inline v3 lerp(v3 a, v3 b, f32 t) {
+inline v3 Lerp(v3 a, v3 b, f32 t)
+{
     return a + t * (b - a);
 }
 
-inline v3 cross(v3 a, v3 b) {
+inline v3 Cross(v3 a, v3 b)
+{
     return {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -654,19 +676,21 @@ inline v3 cross(v3 a, v3 b) {
     };
 }
 
-inline v3 spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
-	f32 i = 1.0f - f;
+inline v3 Spline(f32 f, v3 a, v3 b, v3 c, v3 d)
+{
+    f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 raycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* result) {
+inline b32 RaycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* result)
+{
     const f32 EPSILON = 0.0000001;
 
     v3  edge1   = vert1 - vert0;
     v3  edge2   = vert2 - vert0;
-    v3  pvec    = cross(dir, edge2);
-    f32 det     = dot(edge1, pvec);
+    v3  pvec    = Cross(dir, edge2);
+    f32 det     = Dot(edge1, pvec);
 
     if (det > -EPSILON && det < EPSILON) {
         return false;
@@ -675,20 +699,20 @@ inline b32 raycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* re
     f32 inv_det = 1.0f / det;
     v3  tvec    = orig - vert0;
 
-    result->x   = dot(tvec, pvec) * inv_det;
+    result->x   = Dot(tvec, pvec) * inv_det;
 
     if (result->x < 0.0f || result->x > 1.0f) {
         return false;
     }
 
-    v3 qvec     = cross(tvec, edge1);
-    result->y   = dot(dir, qvec) * inv_det;
+    v3 qvec     = Cross(tvec, edge1);
+    result->y   = Dot(dir, qvec) * inv_det;
 
     if (result->y < 0.0f || result->x + result->y > 1.0f) {
         return false;
     }
 
-    result->z   = dot(edge2, qvec) * inv_det;
+    result->z   = Dot(edge2, qvec) * inv_det;
 
     v3 intersection = vert0 + result->x * edge2 + result->y * edge1;
 
@@ -703,27 +727,33 @@ inline b32 raycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* re
 
 // ----------------------------- v4 ---------------------------- //
 
-inline v4 V4(f32 x, f32 y, f32 z, f32 w) {
+inline v4 V4(f32 x, f32 y, f32 z, f32 w)
+{
     return { x, y, z, w };
 }
 
-inline v4 V4(v2 a, v2 b) {
+inline v4 V4(v2 a, v2 b)
+{
     return V4(a.x, a.y, b.x, b.y);
 }
 
-inline v4 V4(v2 a, f32 z, f32 w) {
+inline v4 V4(v2 a, f32 z, f32 w)
+{
     return V4(a.x, a.y, z, w);
 }
 
-inline v4 V4(v3 a, f32 w) {
+inline v4 V4(v3 a, f32 w)
+{
     return V4(a.x, a.y, a.z, w);
 }
 
-inline v4 V4(f32 x, v3 a) {
+inline v4 V4(f32 x, v3 a)
+{
     return V4(x, a.x, a.y, a.z);
 }
 
-inline v4 V4(u32 color) {
+inline v4 V4(u32 color)
+{
     v4 result = {};
 
     result.r = ((color & 0x000000FF) >> 0)  / 256.0f;
@@ -734,84 +764,103 @@ inline v4 V4(u32 color) {
     return result;
 }
 
-inline v4 operator-(v4 a) {
+inline v4 operator-(v4 a)
+{
     return { -a.x, -a.y, -a.z, -a.w };
 }
 
-inline v4 operator+(v4 a, v4 b) {
+inline v4 operator+(v4 a, v4 b)
+{
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline v4 operator-(v4 a, v4 b) {
+inline v4 operator-(v4 a, v4 b)
+{
     return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 
-inline v4 operator*(v4 a, v4 b) {
+inline v4 operator*(v4 a, v4 b)
+{
     return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
 }
 
-inline v4 operator*(v4 a, f32 s) {
+inline v4 operator*(v4 a, f32 s)
+{
     return { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
-inline v4 operator*(f32 s, v4 a) {
+inline v4 operator*(f32 s, v4 a)
+{
     return { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
-inline v4 operator/(v4 a, f32 s) {
+inline v4 operator/(v4 a, f32 s)
+{
     return { a.x / s, a.y * s, a.z / s, a.w / s };
 }
 
-inline v4 operator+=(v4& a, v4 b)  {
+inline v4 operator+=(v4& a, v4 b)
+{
     a = a + b;
     return a;
 }
 
-inline v4 operator-=(v4& a, v4 b)  {
+inline v4 operator-=(v4& a, v4 b)
+{
     a = a - b;
     return a;
 }
 
-inline v4 operator*=(v4& a, v4 b)  {
+inline v4 operator*=(v4& a, v4 b)
+{
     a = a * b;
     return a;
 }
 
-inline v4 operator*=(v4& a, f32 s) {
+inline v4 operator*=(v4& a, f32 s)
+{
     a = a * s;
     return a;
 }
 
-inline v4 operator/=(v4& a, f32 s) {
+inline v4 operator/=(v4& a, f32 s)
+{
     a = a / s;
     return a;
 }
 
-inline f32 dot(v4 a, v4 b) {
+inline f32 Dot(v4 a, v4 b)
+{
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline f32 lenSq(v4 v) {
-    return dot(v, v);
+inline f32 LenSq(v4 v)
+{
+    return Dot(v, v);
 }
 
-inline f32 len(v4 v) {
-    return sqrt(dot(v, v));
+inline f32 Len(v4 v)
+{
+    return Sqrt(Dot(v, v));
 }
 
-inline f32 distSq(v4 a, v4 b) {
-    return lenSq(b - a);
+inline f32 DistSq(v4 a, v4 b)
+{
+    return LenSq(b - a);
 }
 
-inline f32 dist(v4 a, v4 b) {
-    return sqrt(distSq(a, b));
+inline f32 Dist(v4 a, v4 b)
+{
+    return Sqrt(DistSq(a, b));
 }
 
-inline v4 norm(v4 v) {
-    return v * rsqrt(dot(v, v));
+inline v4 Norm(v4 v)
+{
+    return v * RSqrt(Dot(v, v));
 }
 
-inline v4 min(v4 a, v4 b) {
+inline v4 Min(v4 a, v4 b)
+{
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y),
@@ -820,7 +869,8 @@ inline v4 min(v4 a, v4 b) {
     };
 }
 
-inline v4 max(v4 a, v4 b) {
+inline v4 Max(v4 a, v4 b)
+{
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y),
@@ -829,11 +879,13 @@ inline v4 max(v4 a, v4 b) {
     };
 }
 
-inline v4 lerp(v4 a, v4 b, f32 t) {
+inline v4 Lerp(v4 a, v4 b, f32 t)
+{
     return a + t * (b - a);
 }
 
-inline v4 cross(v4 a, v4 b) {
+inline v4 Cross(v4 a, v4 b)
+{
     return {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -842,30 +894,36 @@ inline v4 cross(v4 a, v4 b) {
     };
 }
 
-inline v4 spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
-	f32 i = 1.0f - f;
+inline v4 Spline(f32 f, v4 a, v4 b, v4 c, v4 d)
+{
+    f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
 // m2:
-inline m2 operator+(m2 a, m2 b) {
+inline m2 operator+(m2 a, m2 b)
+{
     return { a.x + b.x, a.y + b.y };
 }
 
-inline m2 operator-(m2 a, m2 b) {
+inline m2 operator-(m2 a, m2 b)
+{
     return { a.x - b.x, a.y - b.y };
 }
 
-inline m2 operator*(m2 a, f32 s) {
+inline m2 operator*(m2 a, f32 s)
+{
     return { a.x * s, a.y * s };
 }
 
-inline m2 operator*(f32 s, m2 a) {
+inline m2 operator*(f32 s, m2 a)
+{
     return { a.x * s, a.y * s };
 }
 
-inline m2 operator*(m2 a, m2 b) {
+inline m2 operator*(m2 a, m2 b)
+{
     return {
         a.array[0] * b.array[0] + a.array[2] * b.array[1],
         a.array[1] * b.array[0] + a.array[3] * b.array[1],
@@ -874,56 +932,65 @@ inline m2 operator*(m2 a, m2 b) {
     };
 }
 
-inline v2 operator*(m2 R, v2 v) {
+inline v2 operator*(m2 R, v2 v)
+{
     return {
         R.array[0] * v.x + R.array[2] * v.y,
         R.array[1] * v.x + R.array[3] * v.y
     };
 }
 
-inline m2 m2_identity(void) {
+inline m2 m2_Identity(void)
+{
     return { 1.0f, 0.0f, 0.0f, 1.0f };
 }
 
-inline m2 m2_rotate(f32 co, f32 si) {
+inline m2 m2_Rotate(f32 co, f32 si)
+{
     return { co, si, -si, co };
 }
 
-inline m2 m2_rotate(f32 angle) {
+inline m2 m2_Rotate(f32 angle)
+{
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
     return { c, s, -s, c };
 }
 
-inline m2 m2_scale(f32 sx, f32 sy) {
+inline m2 m2_Scale(f32 sx, f32 sy)
+{
     return { sx, 0.0f, 0.0f, sy };
 }
 
-inline f32 m2_det(m2 m) {
+inline f32 Det(m2 m)
+{
     return m.x.x * m.y.y - m.x.y * m.y.x;
 }
 
-inline m2 m2_transpose(m2 m) {
+inline m2 Transpose(m2 m)
+{
     return {
         m.x.x, m.y.x,
         m.x.y, m.y.y
     };
 }
 
-inline m2 m2_inverse(m2 m) {
-    f32 det = m2_det(m);
+inline m2 Inverse(m2 m)
+{
+    f32 det = Det(m);
 
     return (1.0 / det) * m2 {
-         m.y.y, -m.y.x,
+        m.y.y, -m.y.x,
         -m.x.y,  m.x.x
     };
 }
 
-inline void m2_polarDecomp(m2 m, m2* R, m2* S) {
+inline void PolarDecomp(m2 m, m2* R, m2* S)
+{
     f32 x = m.x.x + m.y.y;
     f32 y = m.y.x - m.x.y;
-    f32 scale = 1.0f / sqrt(x * x + y * y);
+    f32 scale = RSqrt(x * x + y * y);
     f32 c = x * scale, s = y * scale;
 
     R->x.x = c;
@@ -931,11 +998,12 @@ inline void m2_polarDecomp(m2 m, m2* R, m2* S) {
     R->y.x = s;
     R->y.y = c;
 
-    *S = m2_transpose(*R) * m;
+    *S = Transpose(*R) * m;
 }
 
 // m3:
-inline m3 operator*(m3 a, m3 b) {
+inline m3 operator*(m3 a, m3 b)
+{
     return {
         a.array[0] * b.array[0] + a.array[3] * b.array[1]  + a.array[6] * b.array[2],
         a.array[1] * b.array[0] + a.array[4] * b.array[1]  + a.array[7] * b.array[2],
@@ -951,7 +1019,8 @@ inline m3 operator*(m3 a, m3 b) {
     };
 }
 
-inline v3 operator*(m3 M, v3 v) {
+inline v3 operator*(m3 M, v3 v)
+{
     return {
         M.array[0] * v.array[0] + M.array[3] * v.array[1] + M.array[6] * v.array[2],
         M.array[1] * v.array[0] + M.array[4] * v.array[1] + M.array[7] * v.array[2],
@@ -959,7 +1028,8 @@ inline v3 operator*(m3 M, v3 v) {
     };
 }
 
-inline m3 m3_identity(void) {
+inline m3 m3_Identity(void)
+{
     return {
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
@@ -967,7 +1037,8 @@ inline m3 m3_identity(void) {
     };
 }
 
-inline m3 m3_rotate(v3 axis, f32 angle) {
+inline m3 m3_Rotate(v3 axis, f32 angle)
+{
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
@@ -991,7 +1062,8 @@ inline m3 m3_rotate(v3 axis, f32 angle) {
     };
 }
 
-inline m3 m3_euler(f32 yaw, f32 pitch, f32 roll) {
+inline m3 m3_Euler(f32 yaw, f32 pitch, f32 roll)
+{
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
     f32 cp = cosf(pitch);
@@ -1014,16 +1086,17 @@ inline m3 m3_euler(f32 yaw, f32 pitch, f32 roll) {
     };
 }
 
-inline m3 m3_fromQuat(Quat quat) {
+inline m3 m3_FromQuat(Quat quat)
+{
     f32 a = quat.w;
-	f32 b = quat.x;
-	f32 c = quat.y;
-	f32 d = quat.z;
+    f32 b = quat.x;
+    f32 c = quat.y;
+    f32 d = quat.z;
 
-	f32 a2 = a * a;
-	f32 b2 = b * b;
-	f32 c2 = c * c;
-	f32 d2 = d * d;
+    f32 a2 = a * a;
+    f32 b2 = b * b;
+    f32 c2 = c * c;
+    f32 d2 = d * d;
 
     return {
         a2 + b2 - c2 - d2,
@@ -1042,7 +1115,8 @@ inline m3 m3_fromQuat(Quat quat) {
 
 // m4:
 
-inline m4 operator*(m4 a, m4 b) {
+inline m4 operator*(m4 a, m4 b)
+{
     return {
         a.array[0] * b.array[0]  + a.array[4] * b.array[1]  + a.array[8]  * b.array[2]  + a.array[12] * b.array[3],
         a.array[1] * b.array[0]  + a.array[5] * b.array[1]  + a.array[9]  * b.array[2]  + a.array[13] * b.array[3],
@@ -1066,7 +1140,8 @@ inline m4 operator*(m4 a, m4 b) {
     };
 }
 
-inline v4 operator*(m4 M, v4 v) {
+inline v4 operator*(m4 M, v4 v)
+{
     return {
         M.array[0] * v.array[0] + M.array[4] * v.array[1] + M.array[8]  * v.array[2] + M.array[12] * v.array[3],
         M.array[1] * v.array[0] + M.array[5] * v.array[1] + M.array[9]  * v.array[2] + M.array[13] * v.array[3],
@@ -1075,7 +1150,8 @@ inline v4 operator*(m4 M, v4 v) {
     };
 }
 
-inline m4 m4_identity(void) {
+inline m4 m4_Identity(void)
+{
     return {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
@@ -1084,16 +1160,18 @@ inline m4 m4_identity(void) {
     };
 }
 
-inline m4 transpose(m4 N) {
+inline m4 Transpose(m4 N)
+{
     return {
         N.array[0], N.array[4], N.array[8],  N.array[12],
-	    N.array[1], N.array[5], N.array[9],  N.array[13],
-	    N.array[2], N.array[6], N.array[10], N.array[14],
-	    N.array[3], N.array[7], N.array[11], N.array[15]
+        N.array[1], N.array[5], N.array[9],  N.array[13],
+        N.array[2], N.array[6], N.array[10], N.array[14],
+        N.array[3], N.array[7], N.array[11], N.array[15]
     };
 }
 
-inline m4 m4_translate(f32 x, f32 y, f32 z) {
+inline m4 m4_Translate(f32 x, f32 y, f32 z)
+{
     return {
         1.0f,   0.0f,   0.0f,   0.0f,
         0.0f,   1.0f,   0.0f,   0.0f,
@@ -1102,11 +1180,13 @@ inline m4 m4_translate(f32 x, f32 y, f32 z) {
     };
 }
 
-inline m4 m4_translate(v3 pos) {
-    return m4_translate(pos.x, pos.y, pos.z);
+inline m4 m4_Translate(v3 pos)
+{
+    return m4_Translate(pos.x, pos.y, pos.z);
 }
 
-inline m4 m4_scale(f32 x, f32 y, f32 z) {
+inline m4 m4_Scale(f32 x, f32 y, f32 z)
+{
     return {
         x,      0.0f,   0.0f,   0.0f,
         0.0f,   y,      0.0f,   0.0f,
@@ -1115,17 +1195,20 @@ inline m4 m4_scale(f32 x, f32 y, f32 z) {
     };
 }
 
-inline m4 m4_scale(v3 scale) {
-    return m4_scale(scale.x, scale.y, scale.z);
+inline m4 m4_Scale(v3 scale)
+{
+    return m4_Scale(scale.x, scale.y, scale.z);
 }
 
-inline m4 m4_scale(f32 scale) {
-    return m4_scale(scale, scale, scale);
+inline m4 m4_Scale(f32 scale)
+{
+    return m4_Scale(scale, scale, scale);
 }
 
-inline m4 m4_rotate_x(f32 angle) {
+inline m4 m4_RotateX(f32 angle)
+{
     f32 s = sinf(angle);
-	f32 c = cosf(angle);
+    f32 c = cosf(angle);
 
     return {
         1.0f,   0.0f,   0.0f,   0.0f,
@@ -1135,31 +1218,34 @@ inline m4 m4_rotate_x(f32 angle) {
     };
 }
 
-inline m4 m4_rotate_y(f32 angle) {
+inline m4 m4_RotateY(f32 angle)
+{
     f32 s = sinf(angle);
-	f32 c = cosf(angle);
+    f32 c = cosf(angle);
 
     return {
-           c,   0.0f,      s,   0.0f,
+        c,   0.0f,      s,   0.0f,
         0.0f,   1.0f,   0.0f,   0.0f,
-          -s,   0.0f,      c,   0.0f,
+        -s,   0.0f,      c,   0.0f,
         0.0f,   0.0f,   0.0f,   1.0f
     };
 }
 
-inline m4 m4_rotate_z(f32 angle) {
-	f32 s = sinf(angle);
-	f32 c = cosf(angle);
+inline m4 m4_RotateZ(f32 angle)
+{
+    f32 s = sinf(angle);
+    f32 c = cosf(angle);
 
     return {
-           c,      s,   0.0f,   0.0f,
-          -s,      c,   0.0f,   0.0f,
+        c,      s,   0.0f,   0.0f,
+        -s,      c,   0.0f,   0.0f,
         0.0f,   0.0f,   1.0f,   0.0f,
         0.0f,   0.0f,   0.0f,   1.0f
     };
 }
 
-inline m4 m4_rotate(v3 axis, f32 angle) {
+inline m4 m4_Rotate(v3 axis, f32 angle)
+{
     f32 sa[3];
     f32 omca[3];
 
@@ -1183,31 +1269,8 @@ inline m4 m4_rotate(v3 axis, f32 angle) {
     };
 }
 
-inline m4 m4_frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
-    return {
-        2.0f * n / (r - l),
-        0.0f,
-        0.0f,
-        0.0f,
-
-        0.0f,
-        2.0f * n / (t - b),
-        0.0f,
-        0.0f,
-
-        (r + l) / (r - l),
-        (t + b) / (t - b),
-        -(f + n) / (f - n),
-        -1.0f,
-
-        0.0f,
-        0.0f,
-        -2.0f * (f * n) / (f - n),
-        0.0f
-    };
-}
-
-inline m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+inline m4 Ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
+{
     return {
         2.0f / (r - l),
         0.0f,
@@ -1231,7 +1294,8 @@ inline m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     };
 }
 
-inline m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
+inline m4 Perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
+{
     const f32 a = 1.0f / tanf(y_fov / 2.0f);
 
     return {
@@ -1257,27 +1321,28 @@ inline m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     };
 }
 
-inline m4 m4_lookAt(v3 eye, v3 center, v3 up) {
-    v3 f = norm(center - eye);
-    v3 s = norm(cross(f, up));
-	v3 t = cross(s, f);
+inline m4 LookAt(v3 eye, v3 center, v3 up)
+{
+    v3 f = Norm(center - eye);
+    v3 s = Norm(Cross(f, up));
+    v3 t = Cross(s, f);
 
     m4 M;
 
-	M.array[0]  =  s.x;
-	M.array[1]  =  t.x;
-	M.array[2]  = -f.x;
-	M.array[3]  =   0.0f;
+    M.array[0]  =  s.x;
+    M.array[1]  =  t.x;
+    M.array[2]  = -f.x;
+    M.array[3]  =   0.0f;
 
-	M.array[4]  =  s.y;
-	M.array[5]  =  t.y;
-	M.array[6]  = -f.y;
-	M.array[7]  =   0.0f;
+    M.array[4]  =  s.y;
+    M.array[5]  =  t.y;
+    M.array[6]  = -f.y;
+    M.array[7]  =   0.0f;
 
-	M.array[8]  =  s.z;
-	M.array[9]  =  t.z;
-	M.array[10] = -f.z;
-	M.array[11] =   0.0f;
+    M.array[8]  =  s.z;
+    M.array[9]  =  t.z;
+    M.array[10] = -f.z;
+    M.array[11] =   0.0f;
 
     M.array[12] = -(M.array[0] * eye.x + M.array[4] * eye.y + M.array[8]  * eye.z);
     M.array[13] = -(M.array[1] * eye.x + M.array[5] * eye.y + M.array[9]  * eye.z);
@@ -1287,16 +1352,17 @@ inline m4 m4_lookAt(v3 eye, v3 center, v3 up) {
     return M;
 }
 
-inline m4 m4_fromQuat(Quat q) {
+inline m4 m4_FromQuat(Quat q)
+{
     f32 a = q.w;
-	f32 b = q.x;
-	f32 c = q.y;
-	f32 d = q.z;
+    f32 b = q.x;
+    f32 c = q.y;
+    f32 d = q.z;
 
-	f32 a2 = a * a;
-	f32 b2 = b * b;
-	f32 c2 = c * c;
-	f32 d2 = d * d;
+    f32 a2 = a * a;
+    f32 b2 = b * b;
+    f32 c2 = c * c;
+    f32 d2 = d * d;
 
     return {
         a2 + b2 - c2 - d2,
@@ -1321,9 +1387,10 @@ inline m4 m4_fromQuat(Quat q) {
     };
 }
 
-inline m4 m4_dir(v3 dir, v3 up) {
-    v3 left = norm(cross(up, dir));
-    v3 cup  = norm(cross(dir, left));
+inline m4 m4_Dir(v3 dir, v3 up)
+{
+    v3 left = Norm(Cross(up, dir));
+    v3 cup  = Norm(Cross(dir, left));
 
     return {
         cup.x, left.x, dir.x, 0,
@@ -1333,25 +1400,26 @@ inline m4 m4_dir(v3 dir, v3 up) {
     };
 }
 
-inline m4 invert(m4 M) {
-	f32 s[6], c[6];
+inline m4 Invert(m4 M)
+{
+    f32 s[6], c[6];
 
-	s[0] = M.array[0] * M.array[5] - M.array[4] * M.array[1];
-	s[1] = M.array[0] * M.array[6] - M.array[4] * M.array[2];
-	s[2] = M.array[0] * M.array[7] - M.array[4] * M.array[3];
-	s[3] = M.array[1] * M.array[6] - M.array[5] * M.array[2];
-	s[4] = M.array[1] * M.array[7] - M.array[5] * M.array[3];
-	s[5] = M.array[2] * M.array[7] - M.array[6] * M.array[3];
+    s[0] = M.array[0] * M.array[5] - M.array[4] * M.array[1];
+    s[1] = M.array[0] * M.array[6] - M.array[4] * M.array[2];
+    s[2] = M.array[0] * M.array[7] - M.array[4] * M.array[3];
+    s[3] = M.array[1] * M.array[6] - M.array[5] * M.array[2];
+    s[4] = M.array[1] * M.array[7] - M.array[5] * M.array[3];
+    s[5] = M.array[2] * M.array[7] - M.array[6] * M.array[3];
 
-	c[0] = M.array[8]  * M.array[13] - M.array[12] * M.array[9];
-	c[1] = M.array[8]  * M.array[14] - M.array[12] * M.array[10];
-	c[2] = M.array[8]  * M.array[15] - M.array[12] * M.array[11];
-	c[3] = M.array[9]  * M.array[14] - M.array[13] * M.array[10];
-	c[4] = M.array[9]  * M.array[15] - M.array[13] * M.array[11];
-	c[5] = M.array[10] * M.array[15] - M.array[14] * M.array[11];
-	
-	// assumes it is invertible
-	f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
+    c[0] = M.array[8]  * M.array[13] - M.array[12] * M.array[9];
+    c[1] = M.array[8]  * M.array[14] - M.array[12] * M.array[10];
+    c[2] = M.array[8]  * M.array[15] - M.array[12] * M.array[11];
+    c[3] = M.array[9]  * M.array[14] - M.array[13] * M.array[10];
+    c[4] = M.array[9]  * M.array[15] - M.array[13] * M.array[11];
+    c[5] = M.array[10] * M.array[15] - M.array[14] * M.array[11];
+
+    // assumes it is invertible
+    f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
     return {
         ( M.array[5]  * c[5] - M.array[6]  * c[4] + M.array[7]  * c[3]) * idet,
@@ -1377,12 +1445,14 @@ inline m4 invert(m4 M) {
 }
 
 // Quat:
-inline Quat identityQuat(void) {
+inline Quat IdentityQuat(void)
+{
     return { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
-inline Quat makeQuat(f32 x, f32 y, f32 z, f32 angle) {
-    f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
+inline Quat MakeQuat(f32 x, f32 y, f32 z, f32 angle)
+{
+    f32 inv_len = RSqrt((x * x) + (y * y) + (z * z));
     f32 s = inv_len * sin(angle / 2.0f);
 
     return {
@@ -1393,15 +1463,18 @@ inline Quat makeQuat(f32 x, f32 y, f32 z, f32 angle) {
     };
 }
 
-inline Quat addQuat(Quat a, Quat b) {
+inline Quat AddQuat(Quat a, Quat b)
+{
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline Quat conjQuat(Quat q) {
+inline Quat ConjQuat(Quat q)
+{
     return { -q.x, -q.y, -q.z, q.w };
 }
 
-inline Quat operator*(Quat a, Quat b) {
+inline Quat operator*(Quat a, Quat b)
+{
     return {
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -1410,7 +1483,8 @@ inline Quat operator*(Quat a, Quat b) {
     };
 }
 
-inline Quat rotateQuat(v3 axis, f32 angle) {
+inline Quat RotateQuat(v3 axis, f32 angle)
+{
     f32 s = sin(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
 
@@ -1419,93 +1493,113 @@ inline Quat rotateQuat(v3 axis, f32 angle) {
 
 // --------------------- v2i ------------------------- // 
 
-inline v2i V2i(i32 x, i32 y) {
+inline v2i V2i(i32 x, i32 y)
+{
     return { x, y };
 }
 
-inline v2i V2i(v2 a) {
+inline v2i V2i(v2 a)
+{
     return { i32(a.x), i32(a.y) };
 }
 
-inline v2i V2i(v3 a) {
+inline v2i V2i(v3 a)
+{
     return { i32(a.x), i32(a.y) };
 }
 
-inline v2i operator-(v2i a) {
+inline v2i operator-(v2i a)
+{
     return { -a.x, -a.y };
 }
 
-inline v2i operator+(v2i a, v2i b) {
+inline v2i operator+(v2i a, v2i b)
+{
     return { a.x + b.x, a.y + b.y };
 }
 
-inline v2i operator-(v2i a, v2i b) {
+inline v2i operator-(v2i a, v2i b)
+{
     return { a.x - b.x, a.y - b.y };
 }
 
-inline v2i operator*(v2i a, v2i b) {
+inline v2i operator*(v2i a, v2i b)
+{
     return { a.x * b.x, a.y * b.y };
 }
 
-inline v2i operator/(v2i a, v2i b) {
+inline v2i operator/(v2i a, v2i b)
+{
     return { a.x / b.x, a.y / b.y };
 }
 
-inline v2i operator*(v2i a, i32 s) {
+inline v2i operator*(v2i a, i32 s)
+{
     return { a.x * s, a.y * s };
 }
 
-inline v2i operator*(i32 s, v2i a) {
+inline v2i operator*(i32 s, v2i a)
+{
     return { a.x * s, a.y * s };
 }
 
-inline v2i operator/(v2i a, i32 s) {
+inline v2i operator/(v2i a, i32 s)
+{
     return { a.x / s, a.y / s };
 }
 
-inline bool operator==(v2i a, v2i b) {
+inline bool operator==(v2i a, v2i b)
+{
     return a.x == b.x && a.y == b.y;
 }
 
-inline bool operator!=(v2i a, v2i b) {
+inline bool operator!=(v2i a, v2i b)
+{
     return a.x != b.x || a.y != b.y;
 }
 
-inline v2i operator+=(v2i& a, v2i b) {
+inline v2i operator+=(v2i& a, v2i b)
+{
     return a = a + b;
 }
 
-inline v2i operator-=(v2i& a, v2i b) {
+inline v2i operator-=(v2i& a, v2i b)
+{
     return a = a - b;
 }
 
-inline i32 distSq(v2i a, v2i b) {
+inline i32 DistSq(v2i a, v2i b)
+{
     v2i d = a - b;
     return d.x * d.x + d.y * d.y;
 }
 
-inline i32 manhattan(v2i a, v2i b) {
+inline i32 Manhattan(v2i a, v2i b)
+{
     i32 dx = abs(a.x - b.x);
     i32 dy = abs(a.y - b.y);
 
     return dx + dy;
 }
 
-inline v2i clamp(v2i a, i32 min, i32 max) {
+inline v2i Clamp(v2i a, i32 min, i32 max)
+{
     return {
-        clamp(a.x, min, max),
-        clamp(a.y, min, max),
+        Clamp(a.x, min, max),
+        Clamp(a.y, min, max),
     };
 }
 
-inline v2i min(v2i a, v2i b) {
+inline v2i Min(v2i a, v2i b)
+{
     return {
         (a.x < b.x? a.x : b.x),
         (a.y < b.y? a.y : b.y)
     };
 }
 
-inline v2i max(v2i a, v2i b) {
+inline v2i Max(v2i a, v2i b)
+{
     return {
         (a.x > b.x? a.x : b.x),
         (a.y > b.y? a.y : b.y)
@@ -1514,55 +1608,68 @@ inline v2i max(v2i a, v2i b) {
 
 // --------------------- v3i ------------------------- // 
 
-inline v3i V3i(i32 x, i32 y, i32 z) {
+inline v3i V3i(i32 x, i32 y, i32 z)
+{
     return { x, y, z };
 }
 
-inline v3i V3i(v3 a) {
+inline v3i V3i(v3 a)
+{
     return { i32(a.x), i32(a.y), i32(a.z) };
 }
 
-inline v3i V3i(v2i a, i32 z) {
+inline v3i V3i(v2i a, i32 z)
+{
     return { a.x, a.y, z };
 }
 
-inline v3i operator+(v3i a, v3i b) {
+inline v3i operator+(v3i a, v3i b)
+{
     return { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
-inline v3i operator-(v3i a, v3i b) {
+inline v3i operator-(v3i a, v3i b)
+{
     return { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
-inline v3i operator*(v3i a, v3i b) {
+inline v3i operator*(v3i a, v3i b)
+{
     return { a.x * b.x, a.y * b.y, a.z * b.z };
 }
 
-inline v3i operator/(v3i a, v3i b) {
+inline v3i operator/(v3i a, v3i b)
+{
     return { a.x / b.x, a.y / b.y, a.z / b.z };
 }
 
-inline v3i operator*(v3i a, i32 s) {
+inline v3i operator*(v3i a, i32 s)
+{
     return { a.x * s, a.y * s, a.z * s };
 }
 
-inline v3i operator*(i32 s, v3i a) {
+inline v3i operator*(i32 s, v3i a)
+{
     return { a.x * s, a.y * s, a.z * s };
 }
 
-inline v3i operator/(v3i a, i32 s) {
+inline v3i operator/(v3i a, i32 s)
+{
     return { a.x / s, a.y / s, a.z / s };
 }
 
-inline bool operator==(v3i a, v3i b) {
+inline bool operator==(v3i a, v3i b)
+{
     return (a.x == b.x) && (a.y == b.y) && (a.z == b.z);
 }
 
-inline bool operator!=(v3i a, v3i b) {
+inline bool operator!=(v3i a, v3i b)
+{
     return (a.x != b.x) || (a.y != b.y) || (a.z != b.z);
 }
 
-inline i32 manhattan(v3i a, v3i b) {
+inline i32 Manhattan(v3i a, v3i b)
+{
     i32 dx = abs(a.x - b.x);
     i32 dy = abs(a.y - b.y);
     i32 dz = abs(a.z - b.z);
@@ -1570,38 +1677,46 @@ inline i32 manhattan(v3i a, v3i b) {
     return dx + dy + dz;
 }
 
-inline i32 distSq(v3i a, v3i b) {
+inline i32 DistSq(v3i a, v3i b)
+{
     v3i d = a - b;
     return d.x * d.x + d.y * d.y + d.z * d.z;
 }
 
 // --------------------- v4i ------------------------- // 
 
-inline v4i V4i(i32 x, i32 y, i32 z, i32 w) {
+inline v4i V4i(i32 x, i32 y, i32 z, i32 w)
+{
     return { x, y, z, w };
 }
 
-inline v4i operator+(v4i a, v4i b) {
+inline v4i operator+(v4i a, v4i b)
+{
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline v4i operator-(v4i a, v4i b) {
+inline v4i operator-(v4i a, v4i b)
+{
     return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 
-inline v4i operator*(v4i a, v4i b) {
+inline v4i operator*(v4i a, v4i b)
+{
     return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
 }
 
-inline v4i operator/(v4i a, v4i b) {
+inline v4i operator/(v4i a, v4i b)
+{
     return { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w };
 }
 
-inline v4i operator*(v4i a, i32 s) {
+inline v4i operator*(v4i a, i32 s)
+{
     return { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
-inline v4i operator/(v4i a, i32 s) {
+inline v4i operator/(v4i a, i32 s)
+{
     return { a.x / s, a.y / s, a.z / s, a.w / s };
 }
 
@@ -1609,82 +1724,94 @@ inline v4i operator/(v4i a, i32 s) {
 
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
-struct Circle {
+struct Circle
+{
     v2      pos;
     f32     rad;
 };
 
-inline b32 intersect(Circle a, Circle b) {
+inline b32 Intersect(Circle a, Circle b)
+{
     v2  d   = b.pos - a.pos;
     f32 rt  = a.rad + b.rad;
 
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v2 getIntersectVector(Circle a, Circle b) {
+inline v2 GetIntersectVector(Circle a, Circle b)
+{
     v2  delta   = b.pos - a.pos;
-    f32 depth   = len(delta) - (a.rad + b.rad);
+    f32 depth   = Len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
 
 // --------------------------------------- SHPERE ------------------------------------ //
 
-struct Sphere {
+struct Sphere
+{
     v3      pos;
     f32     rad;
 };
 
-inline b32 intersect(Sphere a, Sphere b) {
+inline b32 Intersect(Sphere a, Sphere b)
+{
     v3  d   = b.pos - a.pos;
     f32 rt  = a.rad + b.rad;
 
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v3 getIntersectVector(Sphere a, Sphere b) {
+inline v3 GetIntersectVector(Sphere a, Sphere b)
+{
     v3  delta   = b.pos - a.pos;
-    f32 depth   = len(delta) - (a.rad + b.rad);
+    f32 depth   = Len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
 
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
-struct Rect {
+struct Rect
+{
     v2  min;
     v2  max;
 };
 
-inline b32 contains(Rect rect, v2 pos) {
+inline b32 Contains(Rect rect, v2 pos)
+{
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
 
     return true;
 }
 
-inline b32 intersect(Rect a, Rect b) {
+inline b32 Intersect(Rect a, Rect b)
+{
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
     return true;
 }
 
-inline Rect getOverlap(Rect a, Rect b) {
+inline Rect GetOverlap(Rect a, Rect b)
+{
     return {
-        max(a.min, b.min),
-        min(a.max, b.max)
+        Max(a.min, b.min),
+        Min(a.max, b.max)
     };
 }
 
-inline v2 getIntersectVector(Rect a, Rect b) {
-    Rect o      = getOverlap(a, b);
+inline v2 GetIntersectVector(Rect a, Rect b)
+{
+    Rect o      = GetOverlap(a, b);
     v2   delta  = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
+    return V2(Sign(delta.x), Sign(delta.y)) * (o.max - o.min);
 }
 
-inline Rect move(Rect rect, v2 offset) {
+inline Rect Move(Rect rect, v2 offset)
+{
     return {
         rect.min + offset,
         rect.max + offset,
@@ -1693,12 +1820,14 @@ inline Rect move(Rect rect, v2 offset) {
 
 // ----------------------------------------- BOX --------------------------------------- //
 
-struct Box {
+struct Box
+{
     v3  min;
     v3  max;
 };
 
-inline b32 contains(Box rect, v3 pos) {
+inline b32 Contains(Box rect, v3 pos)
+{
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
@@ -1706,7 +1835,8 @@ inline b32 contains(Box rect, v3 pos) {
     return true;
 }
 
-inline b32 intersect(Box a, Box b) {
+inline b32 Intersect(Box a, Box b)
+{
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
@@ -1714,36 +1844,41 @@ inline b32 intersect(Box a, Box b) {
     return true;
 }
 
-inline Box getOverlap(Box a, Box b) {
+inline Box GetOverlap(Box a, Box b)
+{
     return {
-        max(a.min, b.min),
-        min(a.max, b.max)
+        Max(a.min, b.min),
+        Min(a.max, b.max)
     };
 }
 
-inline v3 getIntersectVector(Box a, Box b) {
-    Box o       = getOverlap(a, b);
+inline v3 GetIntersectVector(Box a, Box b)
+{
+    Box o       = GetOverlap(a, b);
     v3  delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
+    return V3(Sign(delta.x), Sign(delta.y), Sign(delta.z)) * (o.max - o.min);
 }
 
-inline Box move(Box box, v3 offset) {
+inline Box Move(Box box, v3 offset)
+{
     return {
         box.min + offset,
         box.max + offset,
     };
 }
 
-struct Plane {
+struct Plane
+{
     f32     a;
     f32     b;
     f32     c;
     f32     d;
 };
 
-inline Plane normalizePlane(Plane plane) {
-    f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
+inline Plane NormalizePlane(Plane plane)
+{
+    f32 mag = Sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
     plane.a = plane.a / mag;
     plane.b = plane.b / mag;
@@ -1753,11 +1888,13 @@ inline Plane normalizePlane(Plane plane) {
     return plane;
 }
 
-struct Frustum {
+struct Frustum
+{
     Plane   plane[6];
 };
 
-inline Frustum makeFrustum(m4 combo_matrix, bool normalize = true) {
+inline Frustum MakeFrustum(m4 combo_matrix, bool normalize = true)
+{
     Frustum frustum = {};
 
     // left clipping plane
@@ -1798,18 +1935,19 @@ inline Frustum makeFrustum(m4 combo_matrix, bool normalize = true) {
 
     // Normalize the plane equations, if requested
     if (normalize == true) {
-        frustum.plane[0] = normalizePlane(frustum.plane[0]);
-        frustum.plane[1] = normalizePlane(frustum.plane[1]);
-        frustum.plane[2] = normalizePlane(frustum.plane[2]);
-        frustum.plane[3] = normalizePlane(frustum.plane[3]);
-        frustum.plane[4] = normalizePlane(frustum.plane[4]);
-        frustum.plane[5] = normalizePlane(frustum.plane[5]);
+        frustum.plane[0] = NormalizePlane(frustum.plane[0]);
+        frustum.plane[1] = NormalizePlane(frustum.plane[1]);
+        frustum.plane[2] = NormalizePlane(frustum.plane[2]);
+        frustum.plane[3] = NormalizePlane(frustum.plane[3]);
+        frustum.plane[4] = NormalizePlane(frustum.plane[4]);
+        frustum.plane[5] = NormalizePlane(frustum.plane[5]);
     }
     
     return frustum;
 }
 
-inline bool contains(Frustum frustum, v3 pos) {
+inline bool Contains(Frustum frustum, v3 pos)
+{
     for(i32 i = 0; i < 6; i++ )	 {
 		if(frustum.plane[i].a * pos.x + frustum.plane[i].b * pos.y + frustum.plane[i].c * pos.z + frustum.plane[i].d <= 0) {
 			return false;
@@ -1819,7 +1957,8 @@ inline bool contains(Frustum frustum, v3 pos) {
 	return true;
 }
 
-inline bool intersect(Frustum frustum, Sphere sphere) {
+inline bool Intersect(Frustum frustum, Sphere sphere)
+{
     for(i32 i = 0; i < 6; i++ )	 {
 		if(frustum.plane[i].a * sphere.pos.x + frustum.plane[i].b * sphere.pos.y + frustum.plane[i].c * sphere.pos.z + frustum.plane[i].d <= -sphere.rad) {
 			return false;
@@ -1829,7 +1968,8 @@ inline bool intersect(Frustum frustum, Sphere sphere) {
 	return true;
 }
 
-inline bool intersect(Frustum frustum, Box box) {
+inline bool Intersect(Frustum frustum, Box box)
+{
     for(int i = 0; i < 6; i++ ) {
 		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
 		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
@@ -1848,7 +1988,8 @@ inline bool intersect(Frustum frustum, Box box) {
 
 // ================================================= COLOR PACKING =========================================== //
 
-inline u32 packColorU8(u8 r, u8 g, u8 b, u8 a) {
+inline u32 PackColorU8(u8 r, u8 g, u8 b, u8 a)
+{
     u32 color = 0;
 
     color |= u32(r) << 0;
@@ -1859,28 +2000,33 @@ inline u32 packColorU8(u8 r, u8 g, u8 b, u8 a) {
     return color;
 }
 
-inline u32 packColorF32(f32 r, f32 g, f32 b, f32 a) {
-    return packColorU8(255 * r, 255 * g, 255 * b, 255 * a);
+inline u32 PackColorF32(f32 r, f32 g, f32 b, f32 a)
+{
+    return PackColorU8(255 * r, 255 * g, 255 * b, 255 * a);
 }
 
-inline u32 packColor(v4 color) {
-    return packColorF32(color.r, color.g, color.b, color.a);
+inline u32 PackColor(v4 color)
+{
+    return PackColorF32(color.r, color.g, color.b, color.a);
 }
 
-inline u32 packColor(v3 color, f32 a = 1.0) {
-    return packColorF32(color.r, color.g, color.b, a);
+inline u32 PackColor(v3 color, f32 a = 1.0)
+{
+    return PackColorF32(color.r, color.g, color.b, a);
 }
 
 // ============================================== RANDOM GENERATOR =========================================== //
 // random number generator: xorshf96
 
-struct RndGen {
+struct RndGen
+{
     u32     x;
     u32     y;
     u32     z;
 };
 
-inline u32 nextRandom(RndGen* g) {
+inline u32 NextRandom(RndGen* g)
+{
     g->x ^= g->x << 16;
     g->x ^= g->x >> 5;
     g->x ^= g->x << 1;
@@ -1896,7 +2042,8 @@ inline u32 nextRandom(RndGen* g) {
 
 thread_local RndGen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
 
-inline void randSeed(u32 x, u32 y, u32 z) {
+inline void RandSeed(u32 x, u32 y, u32 z)
+{
     assert(x && y && z);
 
     default_rnd_gen.x = x;
@@ -1904,37 +2051,45 @@ inline void randSeed(u32 x, u32 y, u32 z) {
     default_rnd_gen.z = z;
 }
 
-inline i32 randI32(i32 min, i32 max) {
-    return min + nextRandom(&default_rnd_gen) % (max - min);
+inline i32 RandI32(i32 min, i32 max)
+{
+    return min + NextRandom(&default_rnd_gen) % (max - min);
 }
 
-inline f32 randF32(f32 min, f32 max) {
-    return min + ((f32)nextRandom(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
+inline f32 RandF32(f32 min, f32 max)
+{
+    return min + ((f32)NextRandom(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2 randV2(void) {
-    return norm(V2(randF32(-1, 1), randF32(-1, 1)));
+inline v2 RandV2(void)
+{
+    return Norm(V2(RandF32(-1, 1), RandF32(-1, 1)));
 }
 
-inline v3 randV3(void) {
-    return norm(V3(randF32(-1, 1), randF32(-1, 1), randF32(-1, 1)));
+inline v3 RandV3(void)
+{
+    return Norm(V3(RandF32(-1, 1), RandF32(-1, 1), RandF32(-1, 1)));
 }
 
-inline v2 randV2(f32 min, f32 max) {
-    return randF32(min, max) * randV2();
+inline v2 RandV2(f32 min, f32 max)
+{
+    return RandF32(min, max) * RandV2();
 }
 
-inline v3 randV3(f32 min, f32 max) {
-    return randF32(min, max) * randV3();
+inline v3 RandV3(f32 min, f32 max)
+{
+    return RandF32(min, max) * RandV3();
 }
 
-inline Quat randQuat(void) {
-    return makeQuat(randF32(-1.0f, 1.0f), randF32(-1.0f, 1.0f), randF32(-1.0f, 1.0f), randF32(-PI, PI));
+inline Quat RandQuat(void)
+{
+    return MakeQuat(RandF32(-1.0f, 1.0f), RandF32(-1.0f, 1.0f), RandF32(-1.0f, 1.0f), RandF32(-PI, PI));
 }
 
 // =================================== XORSHIFT32 ============================================= //
 
-inline u32 randU32(u32* state) {
+inline u32 RandU32(u32* state)
+{
 	u32 x = *state;
 
 	x ^= x << 13;
@@ -1944,52 +2099,63 @@ inline u32 randU32(u32* state) {
 	return *state = x;
 }
 
-inline i32 randI32(u32* state, i32 min, i32 max) {
-    return min + randU32(state) % (max - min);
+inline i32 RandI32(u32* state, i32 min, i32 max)
+{
+    return min + RandU32(state) % (max - min);
 }
 
-inline f32 randF32(u32* state, f32 min, f32 max) {
-    return min + ((f32)randU32(state) / (f32)0xFFFFFFFF) * (max - min); 
+inline f32 RandF32(u32* state, f32 min, f32 max)
+{
+    return min + ((f32)RandU32(state) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2 randV2(u32* state) {
-    return norm(V2(randF32(state, -1, 1), randF32(state, -1, 1)));
+inline v2 RandV2(u32* state)
+{
+    return Norm(V2(RandF32(state, -1, 1), RandF32(state, -1, 1)));
 }
 
-inline v3 randV3(u32* state) {
-    return norm(V3(randF32(state, -1, 1), randF32(state, -1, 1), randF32(state, -1, 1)));
+inline v3 RandV3(u32* state)
+{
+    return Norm(V3(RandF32(state, -1, 1), RandF32(state, -1, 1), RandF32(state, -1, 1)));
 }
 
-inline v2 randV2(u32* state, f32 min, f32 max) {
-    return randF32(state, min, max) * randV2(state);
+inline v2 RandV2(u32* state, f32 min, f32 max)
+{
+    return RandF32(state, min, max) * RandV2(state);
 }
 
-inline v3 randV3(u32* state, f32 min, f32 max) {
-    return randF32(state, min, max) * randV3(state);
+inline v3 RandV3(u32* state, f32 min, f32 max)
+{
+    return RandF32(state, min, max) * RandV3(state);
 }
 
-inline Quat randQuat(u32* state) {
-    return makeQuat(randF32(state, -1.0f, 1.0f), randF32(state, -1.0f, 1.0f), randF32(state, -1.0f, 1.0f), randF32(state, -PI, PI));
+inline Quat RandQuat(u32* state)
+{
+    return MakeQuat(RandF32(state, -1.0f, 1.0f), RandF32(state, -1.0f, 1.0f), RandF32(state, -1.0f, 1.0f), RandF32(state, -PI, PI));
 }
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
 
-inline u32 hashU32(u32 a) {
+inline u32 HashU32(u32 a)
+{
     a = (a ^ 61) ^ (a >> 16);
     a = a + (a << 3);
     a = a ^ (a >> 4);
     a = a * 0x27d4eb2d;
     a = a ^ (a >> 15);
+
     return a;
 }
 
-inline u32 hashI32(i32 a) {
+inline u32 HashI32(i32 a)
+{
     union { u32 u; i32 i; } convert;
     convert.i = a;
-    return hashU32(convert.u);
+    return HashU32(convert.u);
 }
 
-inline u32 hashCStr(const char* str) {
+inline u32 HashCStr(const char* str)
+{
     u32 hash = 0;
 
     while (*str) {
@@ -1999,7 +2165,8 @@ inline u32 hashCStr(const char* str) {
     return hash + (hash >> 16);
 }
 
-inline u32 hashMem(const void* mem, u32 size) {
+inline u32 HashMem(const void* mem, u32 size)
+{
     const u8* m     = (const u8*)mem;
     u32 hash        = 0;
 
@@ -2010,38 +2177,42 @@ inline u32 hashMem(const void* mem, u32 size) {
     return hash + (hash >> 16);
 }
 
-constexpr u32 hash_prime0 = 3323784421u;
-constexpr u32 hash_prime1 = 1449091801u;
-constexpr u32 hash_prime2 = 4280703257u;
-constexpr u32 hash_prime3 = 1609059329u;
+#define HASH_PRIME0 (3323784421u)
+#define HASH_PRIME1 (1449091801u)
+#define HASH_PRIME2 (4280703257u)
+#define HASH_PRIME3 (1609059329u)
 
-inline u32 hashV2i(v2i k) {
-    u32 a = hashI32(k.x);
-    u32 b = hashI32(k.y);
+inline u32 HashV2i(v2i k)
+{
+    u32 a = HashI32(k.x);
+    u32 b = HashI32(k.y);
 
-    return (a * hash_prime0) ^ (b * hash_prime1);
+    return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
-inline u32 hashV3i(v3i& k) {
-    u32 a = hashI32(k.x);
-    u32 b = hashI32(k.y);
-    u32 c = hashI32(k.z);
+inline u32 HashV3i(v3i& k)
+{
+    u32 a = HashI32(k.x);
+    u32 b = HashI32(k.y);
+    u32 c = HashI32(k.z);
 
-    return (a * hash_prime0) ^ (b * hash_prime1) ^ (c * hash_prime2);
+    return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
 }
 
-inline u32 hashV4i(v4i k) {
-    u32 a = hashI32(k.x);
-    u32 b = hashI32(k.y);
-    u32 c = hashI32(k.z);
-    u32 d = hashI32(k.w);
+inline u32 HashV4i(v4i k)
+{
+    u32 a = HashI32(k.x);
+    u32 b = HashI32(k.y);
+    u32 c = HashI32(k.z);
+    u32 d = HashI32(k.w);
 
-    return (a * hash_prime0) ^ (b * hash_prime1) ^ (c * hash_prime2) ^ (d * hash_prime3);
+    return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
 }
 
 // ==================================== FILES ==================================== //
 
-inline size_t getFileSize(FILE* fp) {
+inline size_t GetFileSize(FILE* fp)
+{
     fseek(fp, 0L, SEEK_END);
     size_t size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -2049,12 +2220,13 @@ inline size_t getFileSize(FILE* fp) {
     return size;
 }
 
-inline char* readFileAsCStr(const char* file_name) {
+inline char* ReadFileAsCStr(const char* file_name)
+{
     FILE *fp      = NULL;
     char *buffer  = NULL;
     
     if (fopen_s(&fp, file_name, "rb") == 0) {
-        size_t size = getFileSize(fp);
+        size_t size = GetFileSize(fp);
 
         buffer = (char*)malloc(size + 1);
 
@@ -2073,7 +2245,8 @@ inline char* readFileAsCStr(const char* file_name) {
     return buffer;
 }
 
-inline b32 writeCStrToFile(const char* file_name, const char* buffer) {
+inline b32 WriteCStrToFile(const char* file_name, const char* buffer)
+{
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "w") == 0) {
@@ -2086,7 +2259,8 @@ inline b32 writeCStrToFile(const char* file_name, const char* buffer) {
     return false;
 }
 
-inline b32 appendCStrToFile(const char* file_name, const char* buffer) {
+inline b32 AppendCStrToFile(const char* file_name, const char* buffer)
+{
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "a") == 0) {
@@ -2101,7 +2275,8 @@ inline b32 appendCStrToFile(const char* file_name, const char* buffer) {
     return false;
 }
 
-inline b32 readFileAsBin(const char* file_name, void* buffer, size_t size) {
+inline b32 ReadFileAsBin(const char* file_name, void* buffer, size_t size)
+{
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "rb") == 0) {
@@ -2114,7 +2289,8 @@ inline b32 readFileAsBin(const char* file_name, void* buffer, size_t size) {
     return false;
 } 
 
-inline b32 writeBinToFile(const char* file_name, const void* buffer, size_t size) {
+inline b32 WriteBinToFile(const char* file_name, const void* buffer, size_t size)
+{
     FILE *fp = NULL;
 
     if (fopen_s(&fp, file_name, "wb") == 0) {
@@ -2122,12 +2298,14 @@ inline b32 writeBinToFile(const char* file_name, const void* buffer, size_t size
         fclose(fp);
         return 1;
     }
+
     return false;
 }
 
 // ====================================================================================================== //
 
-inline void f4x4Mul64(f64 *R, const f64 *a, const f64 *b) {
+inline void F4x4Mul64(f64 *R, const f64 *a, const f64 *b)
+{
     f64 M[16];
 
     M[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
@@ -2171,7 +2349,8 @@ inline void f4x4Mul64(f64 *R, const f64 *a, const f64 *b) {
     R[15] = M[15];
 }
 
-inline void f4x4Mulv64(f64 *out, const f64 *M, const f64 *v) {
+inline void F4x4Mulv64(f64 *out, const f64 *M, const f64 *v)
+{
     f64 r[4];
 
 	r[0] = M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3];
@@ -2185,7 +2364,8 @@ inline void f4x4Mulv64(f64 *out, const f64 *M, const f64 *v) {
     out[3] = r[3];
 }
 
-inline void f4x4Invert64(f64* T, const f64* M) {
+inline void F4x4Invert64(f64* T, const f64* M)
+{
 	f64 s[6], c[6];
 
 	s[0] = M[0] * M[5] - M[4] * M[1];
@@ -2226,7 +2406,8 @@ inline void f4x4Invert64(f64* T, const f64* M) {
 	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-inline b32 f4x4Project64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
+inline b32 F4x4Project64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport)
+{
     f64 fTempo[8];
 
     fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
@@ -2255,19 +2436,20 @@ inline b32 f4x4Project64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelvi
     return true;
 }
 
-inline b32 f4x4Unproject64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
+inline b32 F4x4Unproject64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport)
+{
     f64 m[16], A[16];
     f64 in[4], out[4];
 
-    f4x4Mul64(A, projection, modelview);
-    f4x4Invert64(m, A);
+    F4x4Mul64(A, projection, modelview);
+    F4x4Invert64(m, A);
 
     in[0] = (winx - (f64)viewport[0]) / (f64)viewport[2] * 2.0f - 1.0f;
     in[1] = (winy - (f64)viewport[1]) / (f64)viewport[3] * 2.0f - 1.0f;
     in[2] = 2.0f * winz - 1.0f;
     in[3] = 1.0;
 
-    f4x4Mulv64(out, m, in);
+    F4x4Mulv64(out, m, in);
     
     if (out[3] == 0.0f)
         return false;
@@ -2495,8 +2677,10 @@ inline b32 f4x4Unproject64(f64* result, f64 winx, f64 winy, f64 winz, f64* model
 
 // ==================================================================== GAMEPAD ===================================================== //
 
-union GamepadButtons {
-    struct {
+union GamepadButtons
+{
+    struct
+    {
         u32     X       : 1;
         u32     A       : 1;
         u32     B       : 1;
@@ -2521,7 +2705,8 @@ union GamepadButtons {
     u32 data;
 };
 
-struct Gamepad {
+struct Gamepad
+{
     b32             active;
 
     v2              LS;
@@ -2537,7 +2722,8 @@ struct Gamepad {
 
 // =========================================================== MOUSE MODES ================================================= //
 
-enum MouseMode {
+enum MouseMode : u32
+{
     MOUSE_NORMAL,
     MOUSE_HIDDEN,
     MOUSE_DISABLED
@@ -2545,7 +2731,8 @@ enum MouseMode {
 
 // ===========================================================  PLATFORM =================================================== //
 
-struct Platform {
+struct Platform
+{
     b32     close;
 
     i32     width;
@@ -2557,12 +2744,14 @@ struct Platform {
     b32     fullscreen;
     b32     _fullscreen_state_last_update;
 
-    struct Time {
+    struct Time
+    {
         f64     total;
         f64     delta;
     } time;
 
-    struct Mouse {
+    struct Mouse
+    {
         u32     mode;
 
         b32     is_down : 1;
@@ -2578,7 +2767,8 @@ struct Platform {
         b8      released[MOUSE_BUTTON_LAST + 1];
     } mouse;
 
-    struct Keyboard {
+    struct Keyboard
+    {
         i32     key;
         i32     ascii;
 
@@ -2596,19 +2786,22 @@ struct Platform {
 
     Gamepad gamepad[JOYSTICK_LAST];
 
-    Gamepad* getGamepad(int index) {
+    inline Gamepad* GetGamepad(int index)
+    {
         return gamepad[index].active? &gamepad[index] : NULL;
     }
 };
 
 static Platform platform;
 
-static struct {
+static struct
+{
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-void windowKeyCallback(GLFWwindow*, int key, int, int action, int) {
+static void WindowKeyCallback(GLFWwindow*, int key, int, int action, int)
+{
     switch (action) {
         case GLFW_PRESS:
             platform.keyboard.key           = key;
@@ -2635,12 +2828,14 @@ void windowKeyCallback(GLFWwindow*, int key, int, int action, int) {
     }
 }
 
-void windowCharCallback(GLFWwindow* window, unsigned int codepoint) {
+static void WindowCharCallback(GLFWwindow* window, unsigned int codepoint)
+{
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-void windowMouseButtonCallback(GLFWwindow*, int button, int action, int) {
+static void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int)
+{
     switch (action) {
         case GLFW_PRESS: {
             platform.mouse.is_down          = 1;
@@ -2661,12 +2856,14 @@ void windowMouseButtonCallback(GLFWwindow*, int button, int action, int) {
     }
 }
 
-void windowScrollCallback(GLFWwindow*, f64 xoffset, f64 yoffset) {
+static void WindowScrollCallback(GLFWwindow*, f64 xoffset, f64 yoffset)
+{
     platform.mouse.scroll.x = xoffset;
     platform.mouse.scroll.y = yoffset;
 }
 
-void windowJoystickCallback(int joy, int event) {
+static void WindowJoystickCallback(int joy, int event)
+{
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
 
@@ -2678,7 +2875,8 @@ void windowJoystickCallback(int joy, int event) {
     }
 }
 
-void initPlatform(const char* title, int width, int height, int samples) {
+void InitPlatform(const char* title, int width, int height, int samples)
+{
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -2712,11 +2910,11 @@ void initPlatform(const char* title, int width, int height, int samples) {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 #endif
 
-    glfwSetKeyCallback(platform_internal.window,            windowKeyCallback);
-    glfwSetCharCallback(platform_internal.window,           windowCharCallback);
-    glfwSetMouseButtonCallback(platform_internal.window,    windowMouseButtonCallback);
-    glfwSetScrollCallback(platform_internal.window,         windowScrollCallback);
-    glfwSetJoystickCallback(windowJoystickCallback);
+    glfwSetKeyCallback(platform_internal.window,            WindowKeyCallback);
+    glfwSetCharCallback(platform_internal.window,           WindowCharCallback);
+    glfwSetMouseButtonCallback(platform_internal.window,    WindowMouseButtonCallback);
+    glfwSetScrollCallback(platform_internal.window,         WindowScrollCallback);
+    glfwSetJoystickCallback(WindowJoystickCallback);
 
     // init mouse:
     {
@@ -2739,7 +2937,8 @@ void initPlatform(const char* title, int width, int height, int samples) {
     glfwSetTime(0.0);
 }
 
-void updatePlatform(void) {
+void UpdatePlatform(void)
+{
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
@@ -2864,7 +3063,8 @@ void updatePlatform(void) {
 
 // =================================================== TIMER STUFF =================================================== //
 
-inline f64 getCurrentTime(void) {
+inline f64 GetTime(void)
+{
     return glfwGetTime();
 }
 
@@ -2874,35 +3074,37 @@ inline f64 getCurrentTime(void) {
 
 #ifdef ATS_MODERN_OPENGL
 
-struct Shader {
+struct Shader
+{
     u32 program;
 
     inline void use() const { glUseProgram(program); }
 
-    inline u32 get_location(const char *var_name) const { return glGetUniformLocation(program, var_name); }
+    inline u32 GetLocation(const char *var_name) const { return glGetUniformLocation(program, var_name); }
 
-    inline void set(u32 loc, int n) const                      { use(); glUniform1i(loc, n); }
-    inline void set(u32 loc, f32 n) const                      { use(); glUniform1f(loc, n); }
-    inline void set(u32 loc, f32 a, f32 b) const               { use(); glUniform2f(loc, a, b); }
-    inline void set(u32 loc, f32 a, f32 b, f32 c) const        { use(); glUniform3f(loc, a, b, c); }
-    inline void set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { use(); glUniform4f(loc, a, b, c, d); }
-    inline void set(u32 loc, v2 u) const                       { use(); glUniform2fv(loc, 1, u.array); }
-    inline void set(u32 loc, v3 u) const                       { use(); glUniform3fv(loc, 1, u.array); }
-    inline void set(u32 loc, v4 u) const                       { use(); glUniform4fv(loc, 1, u.array); }
-    inline void set(u32 loc, m4 m) const                       { use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
+    inline void Set(u32 loc, int n) const                      { Use(); glUniform1i(loc, n); }
+    inline void Set(u32 loc, f32 n) const                      { Use(); glUniform1f(loc, n); }
+    inline void Set(u32 loc, f32 a, f32 b) const               { Use(); glUniform2f(loc, a, b); }
+    inline void Set(u32 loc, f32 a, f32 b, f32 c) const        { Use(); glUniform3f(loc, a, b, c); }
+    inline void Set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { Use(); glUniform4f(loc, a, b, c, d); }
+    inline void Set(u32 loc, v2 u) const                       { Use(); glUniform2fv(loc, 1, u.array); }
+    inline void Set(u32 loc, v3 u) const                       { Use(); glUniform3fv(loc, 1, u.array); }
+    inline void Set(u32 loc, v4 u) const                       { Use(); glUniform4fv(loc, 1, u.array); }
+    inline void Set(u32 loc, m4 m) const                       { Use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
 
-    inline void set(const char* loc, int n) const                      { set(get_location(loc), n); }
-    inline void set(const char* loc, f32 n) const                      { set(get_location(loc), n); }
-    inline void set(const char* loc, f32 a, f32 b) const               { set(get_location(loc), a, b); }
-    inline void set(const char* loc, f32 a, f32 b, f32 c) const        { set(get_location(loc), a, b, c); }
-    inline void set(const char* loc, f32 a, f32 b, f32 c, f32 d) const { set(get_location(loc), a, b, c, d); }
-    inline void set(const char* loc, v2 u) const                       { set(get_location(loc), u); }
-    inline void set(const char* loc, v3 u) const                       { set(get_location(loc), u); }
-    inline void set(const char* loc, v4 u) const                       { set(get_location(loc), u); }
-    inline void set(const char* loc, m4 m) const                       { set(get_location(loc), m); }
+    inline void Set(const char* loc, int n) const                      { Set(get_location(loc), n); }
+    inline void Set(const char* loc, f32 n) const                      { Set(get_location(loc), n); }
+    inline void Set(const char* loc, f32 a, f32 b) const               { Set(get_location(loc), a, b); }
+    inline void Set(const char* loc, f32 a, f32 b, f32 c) const        { Set(get_location(loc), a, b, c); }
+    inline void Set(const char* loc, f32 a, f32 b, f32 c, f32 d) const { Set(get_location(loc), a, b, c, d); }
+    inline void Set(const char* loc, v2 u) const                       { Set(get_location(loc), u); }
+    inline void Set(const char* loc, v3 u) const                       { Set(get_location(loc), u); }
+    inline void Set(const char* loc, v4 u) const                       { Set(get_location(loc), u); }
+    inline void Set(const char* loc, m4 m) const                       { Set(get_location(loc), m); }
 };
 
-inline u32 shader_compile(const char* source, unsigned int type) {
+inline u32 CompileShader(const char* source, unsigned int type)
+{
     int success;
 
     char info_log[512];
@@ -2924,7 +3126,8 @@ inline u32 shader_compile(const char* source, unsigned int type) {
     return shader;
 }
 
-inline u32 shader_link_program_vf(u32 vertex_shader, u32 fragment_shader) {
+inline u32 LinkShaderProgramVF(u32 vertex_shader, u32 fragment_shader)
+{
     int     success;
     char    info_log[512];
 
@@ -2947,7 +3150,8 @@ inline u32 shader_link_program_vf(u32 vertex_shader, u32 fragment_shader) {
     return shader_program;
 }
 
-inline u32 shader_link_program_vfg(u32 vertex_shader, u32 fragment_shader, u32 geometry_shader) {
+inline u32 LinkShaderProgramVFG(u32 vertex_shader, u32 fragment_shader, u32 geometry_shader)
+{
     int success;
     char info_log[512];
 
@@ -2971,7 +3175,8 @@ inline u32 shader_link_program_vfg(u32 vertex_shader, u32 fragment_shader, u32 g
     return shader_program;
 }
 
-inline u32 shader_link_program_v(u32 vertex_shader) {
+inline u32 LinkShaderProgramV(u32 vertex_shader)
+{
     int success;
     char info_log[512];
 
@@ -2995,34 +3200,35 @@ inline u32 shader_link_program_v(u32 vertex_shader) {
     return shader_program;
 }
 
-inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *gs = NULL) {
+inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *gs = NULL)
+{
     Shader shader = {};
 
     if (vs != NULL && fs != NULL && gs != NULL) {
-        u32 vertex   = shader_compile(vs, GL_VERTEX_SHADER);
-        u32 fragment = shader_compile(fs, GL_FRAGMENT_SHADER);
-        u32 geometry = shader_compile(gs, GL_GEOMETRY_SHADER);
+        u32 vertex   = CompileShader(vs, GL_VERTEX_SHADER);
+        u32 fragment = CompileShader(fs, GL_FRAGMENT_SHADER);
+        u32 geometry = CompileShader(gs, GL_GEOMETRY_SHADER);
 
-        shader.program = shader_link_program_vfg(vertex, fragment, geometry);
+        shader.program = LinkShaderProgramVFG(vertex, fragment, geometry);
 
         glUseProgram(shader.program);
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     } else if (vs != NULL && fs != NULL && gs == NULL) {
-        u32 vertex   = shader_compile(vs, GL_VERTEX_SHADER);
-        u32 fragment = shader_compile(fs, GL_FRAGMENT_SHADER);
+        u32 vertex   = CompileShader(vs, GL_VERTEX_SHADER);
+        u32 fragment = CompileShader(fs, GL_FRAGMENT_SHADER);
 
-        shader.program = shader_link_program_vf(vertex, fragment);
+        shader.program = LinkShaderProgramVF(vertex, fragment);
 
         glUseProgram(shader.program);
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     } else if (vs != NULL && fs == NULL) {
-        u32 vertex = shader_compile(vs, GL_VERTEX_SHADER);
+        u32 vertex = CompileShader(vs, GL_VERTEX_SHADER);
 
-        shader.program = shader_link_program_v(vertex);
+        shader.program = LinkShaderProgramV(vertex);
 
         glUseProgram(shader.program);
         glDeleteShader(vertex);
@@ -3031,11 +3237,12 @@ inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *g
     return shader;
 }
 
-inline Shader loadShaderFromFile(const char *vs, const char *fs) {
-    char* vertex   = readFileAsCStr(vs);
-    char* fragment = readFileAsCStr(fs);
+inline Shader LoadShaderFromFile(const char *vs, const char *fs)
+{
+    char* vertex   = ReadFileAsCStr(vs);
+    char* fragment = ReadFileAsCStr(fs);
 
-    Shader shader = loadShaderFromMemory(vertex, fragment);
+    Shader shader = LoadShaderFromMemory(vertex, fragment);
 
     free(vertex);
     free(fragment);
@@ -3043,7 +3250,8 @@ inline Shader loadShaderFromFile(const char *vs, const char *fs) {
     return shader;
 }
 
-inline u32 shader_link_program_c(u32 compute_shader) {
+inline u32 LinkShaderProgramC(u32 compute_shader)
+{
     int success;
     char info_log[512];
 
@@ -3064,12 +3272,13 @@ inline u32 shader_link_program_c(u32 compute_shader) {
     return shader_program;
 }
 
-inline Shader loadComputeShaderFromMemory(const char* cs) {
+inline Shader LoadComputeShaderFromMemory(const char* cs)
+{
     Shader shader = {};
 
-    u32 compute = shader_compile(cs, GL_COMPUTE_SHADER);
+    u32 compute = CompileShader(cs, GL_COMPUTE_SHADER);
 
-    shader.program = shader_link_program_c(compute);
+    shader.program = LinkShaderProgramC(compute);
 
     glUseProgram(shader.program);
     glDeleteShader(compute);
@@ -3077,9 +3286,10 @@ inline Shader loadComputeShaderFromMemory(const char* cs) {
     return shader;
 }
 
-inline Shader loadComputeShaderFromFile(const char* cs) {
-    char*   compute = readFileAsCStr(cs);
-    Shader  shader  = loadComputeShaderFromMemory(compute);
+inline Shader LoadComputeShaderFromFile(const char* cs)
+{
+    char*   compute = ReadFileAsCStr(cs);
+    Shader  shader  = LoadComputeShaderFromMemory(compute);
 
     free(compute);
 
@@ -3358,7 +3568,8 @@ static const u64 bitascii[BITMAP_COUNT] = {
 #define SHADOW_WIDTH    (2048) 
 #define SHADOW_HEIGHT   (2048) 
 
-struct Vertex {
+struct Vertex
+{
     v4 position;
     v4 normal;
     v4 color;
@@ -3590,38 +3801,44 @@ static int render_count = 0;
 
 static CE_Object render_array[1024 * 1024];
 
-inline void ce_push(const CE_Object& obj) {
+inline void ce_Push(const CE_Object& obj)
+{
     if (render_count < ARRAY_COUNT(render_array)) {
         render_array[render_count++] = obj;
     }
 }
 
-inline int ce_get_cube_count(void) {
+inline int ce_GetCubeCount(void)
+{
     return render_count;
 }
 
-inline void ce_set_light(v3 pos, v3 color) {
+inline void ce_SetLight(v3 pos, v3 color)
+{
     ce_light_pos = pos;
     ce_light_color = color;
 }
 
-inline void ce_set_view(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
+inline void ce_SetView(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane)
+{
     ce_projection_view = 
-        m4_perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane) * 
-        m4_look_at(pos, look, up);
+        Perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane) * 
+        LookA(pos, look, up);
 
     ce_view_pos = pos;
 }
 
-inline void ce_set_view_2D(v3 pos, v3 look, v3 up, v2 rad, f32 near_plane, f32 far_plane) {
+inline void ce_SetView2D(v3 pos, v3 look, v3 up, v2 rad, f32 near_plane, f32 far_plane)
+{
     ce_projection_view =
-        m4_ortho(-rad.x, rad.x, -rad.y, rad.y, near_plane, far_plane) *
-        m4_look_at(pos, look, up);
+        Ortho(-rad.x, rad.x, -rad.y, rad.y, near_plane, far_plane) *
+        LookAt(pos, look, up);
 
     ce_view_pos = pos;
 }
 
-inline void ce_set_projection_view(m4 projection_view) {
+inline void ce_SetProjectionView(m4 projection_view)
+{
     ce_projection_view = projection_view;
 
     ce_view_pos.x = projection_view.array[12];
@@ -3629,26 +3846,30 @@ inline void ce_set_projection_view(m4 projection_view) {
     ce_view_pos.z = projection_view.array[14];
 }
 
-inline void ce_set_light_view(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane) {
-    m4 light_projection = m4_perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane);
-    m4 light_view = m4_look_at(pos, look, up);
+inline void ce_SetLightView(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane)
+{
+    m4 light_projection = Perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane);
+    m4 light_view       = LookAt(pos, look, up);
 
     ce_light_space_matrix = light_projection * light_view;
 }
 
-inline void ce_set_vertex_array(const Vertex* vertex_array, int vertex_count) {
+inline void ce_SetVertexArray(const Vertex* vertex_array, int vertex_count)
+{
     glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube);
     glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof *vertex_array, vertex_array, GL_STATIC_DRAW);
 }
 
-inline void ce_set_render_object_array(const CE_Object* robj_array, int robj_count) {
+inline void ce_SetRenderObjectArray(const CE_Object* robj_array, int robj_count)
+{
     glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube_data);
     glBufferData(GL_ARRAY_BUFFER, robj_count * sizeof *robj_array, robj_array, GL_STATIC_DRAW);
 }
 
-inline void ce_render(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count) {
-    ce_set_vertex_array(vertex_array, vertex_count);
-    ce_set_render_object_array(robj_array, robj_count);
+inline void ce_Render(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count)
+{
+    ce_SetVertexArray(vertex_array, vertex_count);
+    ce_SetRenderObjectArray(robj_array, robj_count);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -3659,8 +3880,8 @@ inline void ce_render(int type, const Vertex* vertex_array, int vertex_count, co
         glDisable(GL_BLEND);
         glDisable(GL_ALPHA_TEST);
 
-        ce_shader_depth.use();
-        ce_shader_depth.set("light_space_matrix", ce_light_space_matrix);
+        ce_shader_depth.Use();
+        ce_shader_depth.Set("light_space_matrix", ce_light_space_matrix);
 
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, ce_depth_fbo);
@@ -3703,37 +3924,41 @@ inline void ce_render(int type, const Vertex* vertex_array, int vertex_count, co
     glDisable(GL_CULL_FACE);
 }
 
-inline void ce_render_cubes(void) {
+inline void ce_RenderCubes(void)
+{
     glBindVertexArray(ce_vao_cube);
 
     ce_render(GL_TRIANGLES, vertex_array_cube, 36, render_array, render_count);
     render_count = 0;
 }
 
-inline void ce_render_no_light(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count) {
+inline void ce_RenderNoLight(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count)
+{
     // normal render:
     {
         glViewport(0, 0, platform.width, platform.height);
 
-        ce_shader_no_light.use();
-        ce_shader_no_light.set("PV", ce_projection_view);
+        ce_shader_no_light.Use();
+        ce_shader_no_light.Set("PV", ce_projection_view);
 
         // render:
-        ce_set_vertex_array(vertex_array, vertex_count);
-        ce_set_render_object_array(robj_array, robj_count);
+        ce_SetVertexArray(vertex_array, vertex_count);
+        ce_SetRenderObjectArray(robj_array, robj_count);
 
         glDrawArraysInstanced(type, 0, vertex_count, robj_count);
     }
 }
 
-inline void ce_render_squares(void) {
+inline void ce_RenderSquares(void)
+{
     glBindVertexArray(ce_vao_cube);
 
-    ce_render_no_light(GL_TRIANGLES, vertex_array_square, 6, render_array, render_count);
+    ce_RenderNoLight(GL_TRIANGLES, vertex_array_square, 6, render_array, render_count);
     render_count = 0;
 }
 
-inline void ce_push_cube(v3 pos, f32 scale, v4 color) {
+inline void ce_PushCube(v3 pos, f32 scale, v4 color)
+{
     CE_Object robj = {
         color,
         {
@@ -3744,10 +3969,11 @@ inline void ce_push_cube(v3 pos, f32 scale, v4 color) {
         }
     };
 
-    ce_push(robj);
+    ce_Push(robj);
 }
 
-inline void ce_push_cube_quat(v3 pos, f32 scale, Quat quat, v4 color) {
+inline void ce_PushCubeQuat(v3 pos, f32 scale, Quat quat, v4 color)
+{
     CE_Object robj = {
         color,
         // model:
@@ -3759,12 +3985,13 @@ inline void ce_push_cube_quat(v3 pos, f32 scale, Quat quat, v4 color) {
         }
     };
 
-    robj.model = robj.model * m4_from_quat(quat);
+    robj.model = robj.model * m4_FromQuat(quat);
 
-    ce_push(robj);
+    ce_Push(robj);
 }
 
-inline void ce_push_box(v3 pos, v3 rad, v4 color) {
+inline void ce_PushBox(v3 pos, v3 rad, v4 color)
+{
     CE_Object robj = {
         color,
         // model:
@@ -3776,7 +4003,7 @@ inline void ce_push_box(v3 pos, v3 rad, v4 color) {
         }
     };
 
-    ce_push(robj);
+    ce_Push(robj);
 }
 
 inline void ce_push_cube_rot_z(v3 pos, f32 scale, f32 rot, v4 color) {
@@ -3796,7 +4023,8 @@ inline void ce_push_cube_rot_z(v3 pos, f32 scale, f32 rot, v4 color) {
     ce_push(robj);
 }
 
-inline void ce_push_cube_euler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color) {
+inline void ce_PushCubeEuler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color)
+{
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
     f32 cp = cosf(pitch);
@@ -3814,10 +4042,11 @@ inline void ce_push_cube_euler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, 
         }
     };
 
-    ce_push(robj);
+    ce_Push(robj);
 }
 
-inline void ce_push_cube_rot_mat(v3 pos, f32 scale, m2 R, v4 color) {
+inline void ce_PushCubeRotMat(v3 pos, f32 scale, m2 R, v4 color)
+{
     CE_Object robj = {
         color,
         {
@@ -3828,10 +4057,11 @@ inline void ce_push_cube_rot_mat(v3 pos, f32 scale, m2 R, v4 color) {
         }
     };
 
-    ce_push(robj);
+    ce_Push(robj);
 }
 
-inline void ce_push_box_rot(v3 pos, v3 rad, f32 rot, v4 color) {
+inline void ce_PushBoxRot(v3 pos, v3 rad, f32 rot, v4 color)
+{
     f32 s = sinf(rot);
     f32 c = cosf(rot);
 
@@ -3845,10 +4075,11 @@ inline void ce_push_box_rot(v3 pos, v3 rad, f32 rot, v4 color) {
         }
     };
 
-    ce_push(robj);
+    ce_Push(robj);
 }
 
-inline void ce_push_box_rot_mat(v3 pos, v3 rad, m2 R, v4 color) {
+inline void ce_PushBoxRotMat(v3 pos, v3 rad, m2 R, v4 color)
+{
     CE_Object robj = {
         color,
         {
@@ -3859,30 +4090,33 @@ inline void ce_push_box_rot_mat(v3 pos, v3 rad, m2 R, v4 color) {
         }
     };
 
-    ce_push(robj);
+    ce_Push(robj);
 }
 
-inline void ce_push_line(v2 p0, v2 p1, f32 z, f32 rad, v4 color) {
+inline void ce_PushLine(v2 p0, v2 p1, f32 z, f32 rad, v4 color)
+{
     v2 line         = p1 - p0;
-    f32 line_length = len(line);
+    f32 line_length = Len(line);
 
     v2 line_pos = p0 + 0.5f * line;
 
     v2  axis    = { 0.0f, -1.0f };
-    f32 rot     = getAngle(axis, line);
+    f32 rot     = GetAngle(axis, line);
     v3  pos     = V3(line_pos, z);
     v3  scale   = V3(rad, 0.5f * line_length, rad);
 
-    ce_push_box_rot(pos, scale, rot, color);
+    ce_PushBoxRot(pos, scale, rot, color);
 }
 
-inline void ce_clear(void) {
+inline void ce_Clear(void)
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-inline void ce_init(void) {
-    ce_shader           = shader_load_from_memory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
-    ce_shader_no_light  = shader_load_from_memory(ce_shader_vertex, ce_shader_fragment, NULL);
+inline void ce_Init(void)
+{
+    ce_shader           = LoadShaderFromMemory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
+    ce_shader_no_light  = LoadShaderFromMemory(ce_shader_vertex, ce_shader_fragment, NULL);
 
     // init opengl:
     {
@@ -4064,14 +4298,16 @@ inline v3 ce_get_world_position(int x, int y) {
 #define STBI_ONLY_PNG
 #include "dep/stb_image.h" 
 
-struct Image {
+struct Image
+{
     int     width;
     int     height;
 
     u32*    pixels;
 };
 
-inline Image loadImageFromFile(const char* path) {
+inline Image LoadImageFromFile(const char* path)
+{
     Image   image       = {};
     i32     channels    = 0;
 
@@ -4084,13 +4320,15 @@ inline Image loadImageFromFile(const char* path) {
 
 #endif
 
-struct Texture {
+struct Texture
+{
     u32     id;
     int     width;
     int     height;
 };
 
-inline Texture createTexture(void *pixels, int width, int height, int is_smooth) {
+inline Texture CreateTexture(void *pixels, int width, int height, int is_smooth)
+{
     assert(pixels);
 
     Texture texture = {0};
@@ -4112,7 +4350,8 @@ inline Texture createTexture(void *pixels, int width, int height, int is_smooth)
     return texture;
 }
 
-inline void updateTexture(Texture* texture, void *pixels, int width, int height, int is_smooth) {
+inline void UpdateTexture(Texture* texture, void *pixels, int width, int height, int is_smooth)
+{
     texture->width = width;
     texture->height = height;
 
@@ -4128,7 +4367,8 @@ inline void updateTexture(Texture* texture, void *pixels, int width, int height,
 }
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-inline Texture loadTextureFromFile(const char *texture_path, int is_smooth) {
+inline Texture LoadTextureFromFile(const char *texture_path, int is_smooth)
+{
     Texture         texture     = {};
     i32             channels    = 0;
     unsigned char*  pixels      = NULL;
@@ -4155,7 +4395,8 @@ inline Texture loadTextureFromFile(const char *texture_path, int is_smooth) {
 #endif
 
 #ifndef ATS_MODERN_OPENGL
-inline void bindTexture(const Texture *texture) {
+inline void BindTexture(const Texture *texture)
+{
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
     glMatrixMode(GL_TEXTURE);
@@ -4167,7 +4408,8 @@ inline void bindTexture(const Texture *texture) {
 }
 #endif
 
-inline void deleteTexture(Texture* texture) {
+inline void DeleteTexture(Texture* texture)
+{
     glDeleteTextures(1, &texture->id);
     
     memset(texture, 0, sizeof *texture);
@@ -4182,7 +4424,8 @@ inline void deleteTexture(Texture* texture) {
 int cube_list;
 int square_list;
 
-inline void gl_initShapes(void) {
+inline void gl_InitShapes(void)
+{
     square_list = glGenLists(1);
     cube_list   = glGenLists(1);
 
@@ -4270,9 +4513,9 @@ inline void gl_initShapes(void) {
     }
 }
 
-inline void gl_initBitmap(void);
+inline void gl_InitBitmap(void);
 
-inline void gl_init(void) {
+inline void gl_Init(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glClearDepth(1.0f);
 
@@ -4290,11 +4533,12 @@ inline void gl_init(void) {
 
     glEnable(GL_NORMALIZE);
 
-    gl_initShapes();
-    gl_initBitmap();
+    gl_InitShapes();
+    gl_InitBitmap();
 }
 
-inline void gl_renderSquare(v3 pos, f32 rad, v4 color) {
+inline void gl_RenderSquare(v3 pos, f32 rad, v4 color)
+{
     glPushMatrix();
 
     glColor4fv(color.array);
@@ -4306,7 +4550,8 @@ inline void gl_renderSquare(v3 pos, f32 rad, v4 color) {
     glPopMatrix();
 }
 
-inline void gl_renderCube(v3 pos, f32 rad, v4 color) {
+inline void gl_RenderCube(v3 pos, f32 rad, v4 color)
+{
     glPushMatrix();
 
     glColor4fv(color.array);
@@ -4318,7 +4563,8 @@ inline void gl_renderCube(v3 pos, f32 rad, v4 color) {
     glPopMatrix();
 }
 
-inline void gl_renderCube(v3 pos, v3 rad, v4 color) {
+inline void gl_RenderCube(v3 pos, v3 rad, v4 color)
+{
     glPushMatrix();
 
     glColor4fv(color.array);
@@ -4331,7 +4577,8 @@ inline void gl_renderCube(v3 pos, v3 rad, v4 color) {
     glPopMatrix();
 }
 
-inline void gl_renderLine(v3 a, v3 b, v4 color) {
+inline void gl_RenderLine(v3 a, v3 b, v4 color)
+{
     glColor4fv(color.array);
 
     glLoadIdentity();
@@ -4344,7 +4591,8 @@ inline void gl_renderLine(v3 a, v3 b, v4 color) {
     glEnd();
 }
 
-inline void gl_renderLineLoop2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count) {
+inline void gl_RenderLineLoop2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count)
+{
     glLoadIdentity();
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad, rad, 1.0f);
@@ -4367,7 +4615,8 @@ inline void gl_renderLineLoop2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* po
     glEnd();
 }
 
-inline void gl_setLightEmitter(int index, f32 bright, v3 p) {
+inline void gl_SetLightEmitter(int index, f32 bright, v3 p)
+{
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { bright, bright, bright, 0.0f };
@@ -4383,7 +4632,8 @@ inline void gl_setLightEmitter(int index, f32 bright, v3 p) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_setLightEmitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
+inline void gl_SetLightEmitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
+{
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { color.r, color.g, color.b, 0.0f };
@@ -4403,7 +4653,8 @@ inline void gl_setLightEmitter(int index, v3 p, v3 color, f32 constant, f32 line
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_setLightDirected(int index, f32 bright, v3 pos) {
+inline void gl_SetLightDirected(int index, f32 bright, v3 pos)
+{
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -4420,7 +4671,8 @@ inline void gl_setLightDirected(int index, f32 bright, v3 pos) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_setLightDirected(int index, v3 pos, v3 color) {
+inline void gl_SetLightDirected(int index, v3 pos, v3 color)
+{
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -4437,25 +4689,29 @@ inline void gl_setLightDirected(int index, v3 pos, v3 color) {
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_setLightGlobalAmbient(v3 color) {
+inline void gl_SetLightGlobalAmbient(v3 color)
+{
     f32 v[4] = { color.r, color.g, color.b, 0 };
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-inline m4 gl_getProjectionMatrix(void) {
+inline m4 gl_GetProjectionMatrix(void)
+{
     m4 projection;
     glGetFloatv(GL_PROJECTION_MATRIX, projection.array);
     return projection;
 }
 
-inline m4 gl_getModelviewMatrix(void) {
+inline m4 gl_GetModelviewMatrix(void)
+{
     m4 modelview;
     glGetFloatv(GL_MODELVIEW_MATRIX, modelview.array);
     return modelview;
 }
 
-inline v3 gl_getWorldPosition(int x, int y) {
+inline v3 gl_GetWorldPosition(int x, int y)
+{
     GLint viewport[4];
 
     f64 modelview[16];
@@ -4474,7 +4730,7 @@ inline v3 gl_getWorldPosition(int x, int y) {
     glReadPixels(x, int(win_y), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &win_z);
  
     f64 result[3];
-    f4x4Unproject64(result, win_x, win_y, win_z, modelview, projection, viewport);
+    F4x4Unproject64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
     return V3(result[0], result[1], result[2]);
 }
@@ -4483,7 +4739,8 @@ int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) ((u64(N)) & (1ull << ((u64(Y)) * 8ull + (u64(X)))))
 
-inline void gl_initBitmap(void) {
+inline void gl_InitBitmap(void)
+{
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
 
@@ -4515,8 +4772,9 @@ inline void gl_initBitmap(void) {
     }
 }
 
-inline void gl_renderAscii(u8 c, v3 pos, v2 scale) {
-    m4 T = m4_translate(pos) * m4_scale(V3(scale, 1.0f));
+inline void gl_RenderAscii(u8 c, v3 pos, v2 scale)
+{
+    m4 T = m4_Translate(pos) * m4_Scale(V3(scale, 1.0f));
 
     glPushMatrix();
 
@@ -4526,22 +4784,24 @@ inline void gl_renderAscii(u8 c, v3 pos, v2 scale) {
     glPopMatrix();
 }
 
-inline void gl_renderString(const char *str, v3 pos, v2 scale, v4 color) {
+inline void gl_RenderString(const char *str, v3 pos, v2 scale, v4 color)
+{
     glColor4f(color.r, color.g, color.b, color.a);
 
     for (int i = 0; str[i] != '\0'; i++) {
-        gl_renderAscii(str[i], pos + V3(i * scale.x, 0, 0), scale);
+        gl_RenderAscii(str[i], pos + V3(i * scale.x, 0, 0), scale);
     }
 }
 
-inline void gl_renderStringFormat(v3 pos, v2 scale, v4 color, const char* fmt, ...) {
+inline void gl_RenderStringFormat(v3 pos, v2 scale, v4 color, const char* fmt, ...)
+{
     va_list list;
     char    buffer[256];
 
     va_start(list, fmt);
 
     vsnprintf(buffer, 256, fmt, list);
-    gl_renderString(buffer, pos, scale, color);
+    gl_RenderString(buffer, pos, scale, color);
 
     va_end(list);
 }
