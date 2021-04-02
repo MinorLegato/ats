@@ -4295,7 +4295,6 @@ inline v3 ce_get_world_position(int x, int y) {
 #if defined(ATS_PLATFORM_GLFW)
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
 #include "dep/stb_image.h" 
 
 struct Image
