@@ -313,6 +313,11 @@ inline v2 V2(f32 x, f32 y)
     return { x, y };
 }
 
+inline v2 V2(const f32* u)
+{
+    return { u[0], u[1] };
+}
+
 inline v2 V2(v3 a)
 {
     return { a.x, a.y };
@@ -514,6 +519,11 @@ inline v2 Square(v2 a)
 inline v3 V3(f32 x, f32 y, f32 z)
 {
     return { x, y, z };
+}
+
+inline v3 V3(const f32* u)
+{
+    return { u[0], u[1], u[2] };
 }
 
 inline v3 V3(v2 a)
@@ -730,6 +740,11 @@ inline b32 RaycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* re
 inline v4 V4(f32 x, f32 y, f32 z, f32 w)
 {
     return { x, y, z, w };
+}
+
+inline v4 V4(const f32* u)
+{
+    return { u[0], u[1], u[2], u[3] };
 }
 
 inline v4 V4(v2 a, v2 b)
@@ -4295,7 +4310,6 @@ inline v3 ce_get_world_position(int x, int y) {
 #if defined(ATS_PLATFORM_GLFW)
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-#define STBI_ONLY_PNG
 #include "dep/stb_image.h" 
 
 struct Image
