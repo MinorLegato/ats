@@ -2030,6 +2030,26 @@ inline u32 PackColor(v3 color, f32 a = 1.0)
     return PackColorF32(color.r, color.g, color.b, a);
 }
 
+inline u32 GetRed(u32 color)
+{
+    return color & 0xff;
+}
+
+inline u32 GetGreen(u32 color)
+{
+    return (color & 0xff00) >> 8;
+}
+
+inline u32 GetBlue(u32 color)
+{
+    return (color & 0xff0000) >> 16;
+}
+
+inline u32 GetAlpha(u32 color)
+{
+    return (color & 0xff000000) >> 8;
+}
+
 // ============================================== RANDOM GENERATOR =========================================== //
 // random number generator: xorshf96
 
@@ -2950,6 +2970,10 @@ void InitPlatform(const char* title, int width, int height, int samples)
     }
 
     glfwSetTime(0.0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glfwPollEvents();
+    glfwSwapBuffers(platform_internal.window);
 }
 
 void UpdatePlatform(void)
