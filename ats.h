@@ -17,6 +17,10 @@
 #include "dep/glad/glad.h"
 #endif
 
+#define internal static
+#define local_persist static
+#define global_variable static
+
 #define KB (1024)
 #define MB (1024 * KB)
 #define GB (1024 * MB)
@@ -2827,15 +2831,15 @@ struct Platform
     }
 };
 
-static Platform platform;
+global_variable Platform platform;
 
-static struct
+global_variable struct
 {
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-static void WindowKeyCallback(GLFWwindow*, int key, int, int action, int)
+internal void WindowKeyCallback(GLFWwindow*, int key, int, int action, int)
 {
     switch (action) {
         case GLFW_PRESS:
@@ -2863,13 +2867,13 @@ static void WindowKeyCallback(GLFWwindow*, int key, int, int action, int)
     }
 }
 
-static void WindowCharCallback(GLFWwindow* window, unsigned int codepoint)
+internal void WindowCharCallback(GLFWwindow* window, unsigned int codepoint)
 {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-static void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int)
+internal void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int)
 {
     switch (action) {
         case GLFW_PRESS: {
@@ -2891,13 +2895,13 @@ static void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int)
     }
 }
 
-static void WindowScrollCallback(GLFWwindow*, f64 xoffset, f64 yoffset)
+internal void WindowScrollCallback(GLFWwindow*, f64 xoffset, f64 yoffset)
 {
     platform.mouse.scroll.x = xoffset;
     platform.mouse.scroll.y = yoffset;
 }
 
-static void WindowJoystickCallback(int joy, int event)
+internal void WindowJoystickCallback(int joy, int event)
 {
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
@@ -3341,7 +3345,7 @@ inline Shader LoadComputeShaderFromFile(const char* cs)
 
 #define BITMAP_COUNT    (256)
 
-static const u64 bitascii[BITMAP_COUNT] = {
+global_variable const u64 bitascii[BITMAP_COUNT] = {
     0x0000000000000000,
     0x7e8199bd81a5817e,
     0x7effe7c3ffdbff7e,
@@ -3616,7 +3620,7 @@ struct Vertex
 };
 
 // Layout:  vertex : normal : color : texture
-static const Vertex vertex_array_cube[] = {
+global_variable const Vertex vertex_array_cube[] = {
     // back face
     { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
     { {  1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
@@ -3662,7 +3666,7 @@ static const Vertex vertex_array_cube[] = {
 };
 
 // Layout:  vertex : normal
-static const Vertex vertex_array_square[] = {
+global_variable const Vertex vertex_array_square[] = {
     { { -1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
     { {  1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
     { {  1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right         
@@ -3671,7 +3675,7 @@ static const Vertex vertex_array_square[] = {
     { { -1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
 };
 
-static const char* ce_shader_vertex = GLSL_SHADER(
+global_variable const char* ce_shader_vertex = GLSL_SHADER(
     layout (location = 0) in vec4 vp;
     layout (location = 1) in vec4 np;
     layout (location = 2) in vec4 vc;
@@ -3688,7 +3692,7 @@ static const char* ce_shader_vertex = GLSL_SHADER(
     }
 );
 
-static const char* ce_shader_fragment = GLSL_SHADER(
+global_variable const char* ce_shader_fragment = GLSL_SHADER(
     out vec4 frag_color;
     in  vec4 color;
     
@@ -3697,7 +3701,7 @@ static const char* ce_shader_fragment = GLSL_SHADER(
     }
 );
 
-static const char* ce_shader_vertex_light = GLSL_SHADER(
+global_variable const char* ce_shader_vertex_light = GLSL_SHADER(
     layout (location = 0) in vec4 vp;
     layout (location = 1) in vec4 np;
     layout (location = 2) in vec4 vc;
@@ -3722,7 +3726,7 @@ static const char* ce_shader_vertex_light = GLSL_SHADER(
     }
 );
 
-static const char* ce_shader_fragment_light = GLSL_SHADER(
+global_variable const char* ce_shader_fragment_light = GLSL_SHADER(
     out vec4 frag_color;
 
     in vec3 frag_pos;
@@ -3782,7 +3786,7 @@ static const char* ce_shader_fragment_light = GLSL_SHADER(
     }
 );
 
-static const char* ce_depth_vertex = GLSL_SHADER(
+global_variable const char* ce_depth_vertex = GLSL_SHADER(
     layout (location = 0) in vec4 vp;
     layout (location = 4) in vec4 C;
     layout (location = 5) in mat4 M;
@@ -3797,7 +3801,7 @@ static const char* ce_depth_vertex = GLSL_SHADER(
     }
 );
 
-static const char* ce_depth_fragment = GLSL_SHADER(
+global_variable const char* ce_depth_fragment = GLSL_SHADER(
     in  vec4 color;
     out vec4 frag_color;
 
@@ -3809,36 +3813,36 @@ static const char* ce_depth_fragment = GLSL_SHADER(
 
 // ----------------------------------------------------------------------------------------------- //
 
-static Shader ce_shader;
-static Shader ce_shader_no_light;
-static Shader ce_shader_depth;
+global_variable Shader ce_shader;
+global_variable Shader ce_shader_no_light;
+global_variable Shader ce_shader_depth;
 
-static u32 ce_vao_cube;
-static u32 ce_vbo_cube;
-static u32 ce_vbo_cube_data;
+global_variable u32 ce_vao_cube;
+global_variable u32 ce_vbo_cube;
+global_variable u32 ce_vbo_cube_data;
 
-static u32 ce_depth_fbo;
-static u32 ce_depth_map;
+global_variable u32 ce_depth_fbo;
+global_variable u32 ce_depth_map;
 
-static u32 ce_color_map;
+global_variable u32 ce_color_map;
 
 struct CE_Object {
     v4 color;
     m4 model;
 };
 
-static m4 ce_projection_view  = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
-static m4 ce_light_space_matrix = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
-static v3 ce_view_pos = { 0.0f, 0.0f, 0.0f };
-static v3 ce_light_pos = { 0.0f, 0.0f, 0.0f };
-static v3 ce_light_color = { 1.0f, 1.0f, 1.0f };
+global_variable m4 ce_projection_view  = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
+global_variable m4 ce_light_space_matrix = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
+global_variable v3 ce_view_pos = { 0.0f, 0.0f, 0.0f };
+global_variable v3 ce_light_pos = { 0.0f, 0.0f, 0.0f };
+global_variable v3 ce_light_color = { 1.0f, 1.0f, 1.0f };
 
 #define RENDER_ARRAY_INIT_SIZE  (2048)
 
-static int render_capacity = 0;
-static int render_count = 0;
+global_variable int render_capacity = 0;
+global_variable int render_count = 0;
 
-static CE_Object render_array[1024 * 1024];
+global_variable CE_Object render_array[1024 * 1024];
 
 inline void ce_Push(const CE_Object& obj)
 {
