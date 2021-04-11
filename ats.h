@@ -2029,6 +2029,11 @@ inline u32 PackColor(v4 color)
     return PackColorF32(color.r, color.g, color.b, color.a);
 }
 
+inline u32 PackColor(const f32 color[4])
+{
+    return PackColorF32(color[0], color[1], color[2], color[3]);
+}
+
 inline u32 PackColor(v3 color, f32 a = 1.0)
 {
     return PackColorF32(color.r, color.g, color.b, a);
