@@ -1837,6 +1837,47 @@ inline Rect Move(Rect rect, v2 offset)
     };
 }
 
+// ------------------------------------- RECTANGLE - I32 ------------------------------------- //
+
+struct RectI32
+{
+    v2i min;
+    v2i max;
+};
+
+inline b32 Contains(RectI32 rect, v2i pos)
+{
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+
+    return true;
+}
+
+inline b32 Intersect(RectI32 a, RectI32 b)
+{
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+
+    return true;
+}
+
+inline RectI32 GetOverlap(RectI32 a, RectI32 b)
+{
+    return {
+        Max(a.min, b.min),
+        Min(a.max, b.max)
+    };
+}
+
+inline v2i GetIntersectVector(RectI32 a, RectI32 b)
+{
+    RectI32 o      = GetOverlap(a, b);
+    v2i     delta  = (a.min + a.max) / 2 - (b.min + b.max) / 2;
+
+    return V2i(Sign(delta.x), Sign(delta.y)) * (o.max - o.min);
+}
+
+
 // ----------------------------------------- BOX --------------------------------------- //
 
 struct Box
