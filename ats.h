@@ -68,7 +68,6 @@ typedef uint64_t b64;
 union v2
 {
     struct { f32 x, y; };
-
     f32 array[2];
 };
 
@@ -76,7 +75,6 @@ union v3
 {
     struct { f32 x, y, z; };
     struct { f32 r, g, b; };
-
     struct { v2 xy; f32 _z; };
 
     f32 array[3];
@@ -86,7 +84,6 @@ union v4
 {
     struct { f32 x, y, z, w; };
     struct { f32 r, g, b, a; };
-
     struct { v3 xyz; f32 _w; };
     struct { v3 rgb; f32 _a; };
 
@@ -455,17 +452,19 @@ inline v2 Norm(v2 v)
 
 inline v2 Min(v2 a, v2 b)
 {
-    return {
-        (a.x < b.x? a.x : b.x),
-        (a.y < b.y? a.y : b.y)
+    return
+    {
+        a.x < b.x? a.x : b.x,
+        a.y < b.y? a.y : b.y
     };
 }
 
 inline v2 Max(v2 a, v2 b)
 {
-    return {
-        (a.x > b.x? a.x : b.x),
-        (a.y > b.y? a.y : b.y)
+    return
+    {
+        a.x > b.x? a.x : b.x,
+        a.y > b.y? a.y : b.y
     };
 }
 
