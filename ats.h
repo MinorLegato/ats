@@ -255,58 +255,77 @@ inline T SignOrZero(T n)
     return 0;
 }
 
+struct QueueNode
+{
+    f32     weight;
+    v2i     e;
+};
+
 struct PriorityQueue
 {
-    struct Node { f32 weight; v2i e; };
 
-    i32     len;
-    Node*   array;
-
-    inline bool Empty   ()  const   { return len == 0; }
-    inline void Clear   ()          { len = 0; }
-
-    inline void Push(v2i e, f32 weight)
-    {
-        Node node = { .weight = weight, .e = e };
-
-        int i = len + 1;
-        int j = i / 2;
-
-        while (i > 1 && array[j].weight > node.weight) {
-            array[i] = array[j];
-
-            i = j;
-            j = j / 2;
-        }
-
-        array[i] = node;
-        len++;
-    }
-
-    inline Node Pop()
-    {
-        Node data = array[1];
-
-        array[1] = array[len];
-        len--;
-
-        int i = 1;
-        while (i != len + 1) {
-            int k = len + 1;
-            int j = 2 * i;
-
-            if (j <= len && array[j].weight < array[k].weight)
-                k = j;
-
-            if (j + 1 <= len && array[j + 1].weight < array[k].weight)
-                k = j + 1;
-
-            array[i] = array[k];
-            i = k;
-        }
-        return data;
-    }
+    i32         len;
+    QueueNode*  array;
 };
+
+inline bool
+Empty(const PriorityQueue* queue)
+{
+    return queue->len == 0;
+}
+
+inline void
+Clear(PriorityQueue* queue)
+{
+    queue->len = 0;
+}
+
+inline void
+Push(PriorityQueue* queue, v2i e, f32 weight)
+{
+    QueueNode node = { weight, e };
+
+    int i = queue->len + 1;
+    int j = i / 2;
+
+    while (i > 1 && queue->array[j].weight > node.weight)
+    {
+        queue->array[i] = queue->array[j];
+
+        i = j;
+        j = j / 2;
+    }
+
+    queue->array[i] = node;
+    queue->len++;
+}
+
+inline v2i
+Pop(PriorityQueue* queue)
+{
+    QueueNode data = queue->array[1];
+
+    queue->array[1] = queue->array[queue->len];
+    queue->len--;
+
+    int i = 1;
+    while (i != queue->len + 1)
+    {
+        int k = queue->len + 1;
+        int j = 2 * i;
+
+        if (j <= queue->len && queue->array[j].weight < queue->array[k].weight)
+            k = j;
+
+        if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight)
+            k = j + 1;
+
+        queue->array[i] = queue->array[k];
+        i = k;
+    }
+
+    return data.e;
+}
 
 // ==================================================  MATHS ================================================== //
 
