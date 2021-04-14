@@ -2,7 +2,6 @@
 // defines that enables different parts of the library:
 // #define ATS_PLATFORM_GLFW
 // #define ATS_MODERN_OPENGL 
-// #define ATS_CUBE_ENGINE
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -19,7 +18,7 @@
 
 #define internal static
 #define local_persist static
-#define global_variable static
+#define global static
 
 #define KB (1024)
 #define MB (1024 * KB)
@@ -263,25 +262,21 @@ struct QueueNode
 
 struct PriorityQueue
 {
-
     i32         len;
     QueueNode*  array;
 };
 
-inline bool
-Empty(const PriorityQueue* queue)
+inline bool Empty(const PriorityQueue* queue)
 {
     return queue->len == 0;
 }
 
-inline void
-Clear(PriorityQueue* queue)
+inline void Clear(PriorityQueue* queue)
 {
     queue->len = 0;
 }
 
-inline void
-Push(PriorityQueue* queue, v2i e, f32 weight)
+inline void Push(PriorityQueue* queue, v2i e, f32 weight)
 {
     QueueNode node = { weight, e };
 
@@ -300,8 +295,7 @@ Push(PriorityQueue* queue, v2i e, f32 weight)
     queue->len++;
 }
 
-inline v2i
-Pop(PriorityQueue* queue)
+inline v2i Pop(PriorityQueue* queue)
 {
     QueueNode data = queue->array[1];
 
@@ -526,7 +520,8 @@ inline b32 SegmentIsIntersectingCircle(v2 start, v2 end, v2 pos, f32 rad)
 
 inline m2 OuterProduct(v2 a, v2 b)
 {
-    return m2 {
+    return
+    {
         a.x * b.x, a.y * b.x,
         a.x * b.y, a.y * b.y,
     };
@@ -679,19 +674,21 @@ inline v3 Norm(v3 v)
 
 inline v3 Min(v3 a, v3 b)
 {
-    return {
-        (a.x < b.x? a.x : b.x),
-        (a.y < b.y? a.y : b.y),
-        (a.z < b.z? a.z : b.z)
+    return
+    {
+        a.x < b.x? a.x : b.x,
+        a.y < b.y? a.y : b.y,
+        a.z < b.z? a.z : b.z
     };
 }
 
 inline v3 Max(v3 a, v3 b)
 {
-    return {
-        (a.x > b.x? a.x : b.x),
-        (a.y > b.y? a.y : b.y),
-        (a.z > b.z? a.z : b.z)
+    return
+    {
+        a.x > b.x? a.x : b.x,
+        a.y > b.y? a.y : b.y,
+        a.z > b.z? a.z : b.z
     };
 }
 
@@ -702,7 +699,8 @@ inline v3 Lerp(v3 a, v3 b, f32 t)
 
 inline v3 Cross(v3 a, v3 b)
 {
-    return {
+    return
+    {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x,
@@ -725,33 +723,29 @@ inline b32 RaycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* re
     v3  pvec    = Cross(dir, edge2);
     f32 det     = Dot(edge1, pvec);
 
-    if (det > -EPSILON && det < EPSILON) {
+    if (det > -EPSILON && det < EPSILON)
         return false;
-    }
 
     f32 inv_det = 1.0f / det;
     v3  tvec    = orig - vert0;
 
     result->x   = Dot(tvec, pvec) * inv_det;
 
-    if (result->x < 0.0f || result->x > 1.0f) {
+    if (result->x < 0.0f || result->x > 1.0f)
         return false;
-    }
 
     v3 qvec     = Cross(tvec, edge1);
     result->y   = Dot(dir, qvec) * inv_det;
 
-    if (result->y < 0.0f || result->x + result->y > 1.0f) {
+    if (result->y < 0.0f || result->x + result->y > 1.0f)
         return false;
-    }
 
     result->z   = Dot(edge2, qvec) * inv_det;
 
     v3 intersection = vert0 + result->x * edge2 + result->y * edge1;
 
-    if (result->z < EPSILON) {
+    if (result->z < EPSILON)
         return false;
-    }
 
     *result = vert0 + result->x * edge2 + result->y * edge1;
 
@@ -899,21 +893,23 @@ inline v4 Norm(v4 v)
 
 inline v4 Min(v4 a, v4 b)
 {
-    return {
-        (a.x < b.x? a.x : b.x),
-        (a.y < b.y? a.y : b.y),
-        (a.z < b.z? a.z : b.z),
-        (a.w < b.w? a.w : b.w)
+    return
+    {
+        a.x < b.x? a.x : b.x,
+        a.y < b.y? a.y : b.y,
+        a.z < b.z? a.z : b.z,
+        a.w < b.w? a.w : b.w
     };
 }
 
 inline v4 Max(v4 a, v4 b)
 {
-    return {
-        (a.x > b.x? a.x : b.x),
-        (a.y > b.y? a.y : b.y),
-        (a.z > b.z? a.z : b.z),
-        (a.w > b.w? a.w : b.w)
+    return
+    {
+        a.x > b.x? a.x : b.x,
+        a.y > b.y? a.y : b.y,
+        a.z > b.z? a.z : b.z,
+        a.w > b.w? a.w : b.w
     };
 }
 
@@ -924,7 +920,8 @@ inline v4 Lerp(v4 a, v4 b, f32 t)
 
 inline v4 Cross(v4 a, v4 b)
 {
-    return {
+    return
+    {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x,
@@ -962,7 +959,8 @@ inline m2 operator*(f32 s, m2 a)
 
 inline m2 operator*(m2 a, m2 b)
 {
-    return {
+    return
+    {
         a.array[0] * b.array[0] + a.array[2] * b.array[1],
         a.array[1] * b.array[0] + a.array[3] * b.array[1],
         a.array[0] * b.array[2] + a.array[2] * b.array[3],
@@ -972,7 +970,8 @@ inline m2 operator*(m2 a, m2 b)
 
 inline v2 operator*(m2 R, v2 v)
 {
-    return {
+    return
+    {
         R.array[0] * v.x + R.array[2] * v.y,
         R.array[1] * v.x + R.array[3] * v.y
     };
@@ -1008,7 +1007,8 @@ inline f32 Det(m2 m)
 
 inline m2 Transpose(m2 m)
 {
-    return {
+    return
+    {
         m.x.x, m.y.x,
         m.x.y, m.y.y
     };
@@ -1042,7 +1042,8 @@ inline void PolarDecomp(m2 m, m2* R, m2* S)
 // m3:
 inline m3 operator*(m3 a, m3 b)
 {
-    return {
+    return
+    {
         a.array[0] * b.array[0] + a.array[3] * b.array[1]  + a.array[6] * b.array[2],
         a.array[1] * b.array[0] + a.array[4] * b.array[1]  + a.array[7] * b.array[2],
         a.array[2] * b.array[0] + a.array[5] * b.array[1]  + a.array[8] * b.array[2],
@@ -1059,7 +1060,8 @@ inline m3 operator*(m3 a, m3 b)
 
 inline v3 operator*(m3 M, v3 v)
 {
-    return {
+    return
+    {
         M.array[0] * v.array[0] + M.array[3] * v.array[1] + M.array[6] * v.array[2],
         M.array[1] * v.array[0] + M.array[4] * v.array[1] + M.array[7] * v.array[2],
         M.array[2] * v.array[0] + M.array[5] * v.array[1] + M.array[8] * v.array[2]
@@ -1068,7 +1070,8 @@ inline v3 operator*(m3 M, v3 v)
 
 inline m3 m3_Identity(void)
 {
-    return {
+    return
+    {
         1.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 1.0f
@@ -1085,7 +1088,8 @@ inline m3 m3_Rotate(v3 axis, f32 angle)
     v3 sa   = { s * axis.x, s * axis.y, s * axis.z };
     v3 omca = { k * axis.x, k * axis.y, k * axis.z };
 
-    return {
+    return
+    {
         omca.x * axis.x + c,
         omca.x * axis.y - sa.z,
         omca.x * axis.z + sa.y,
@@ -1109,7 +1113,8 @@ inline m3 m3_Euler(f32 yaw, f32 pitch, f32 roll)
     f32 cr = cosf(roll);
     f32 sr = sinf(roll);
 
-    return {
+    return
+    {
         cy * cp,
         sy * cp,
         -sp,
@@ -1136,7 +1141,8 @@ inline m3 m3_FromQuat(Quat quat)
     f32 c2 = c * c;
     f32 d2 = d * d;
 
-    return {
+    return
+    {
         a2 + b2 - c2 - d2,
         2.0f * (b * c + a * d),
         2.0f * (b * d - a * c),
@@ -1155,7 +1161,8 @@ inline m3 m3_FromQuat(Quat quat)
 
 inline m4 operator*(m4 a, m4 b)
 {
-    return {
+    return
+    {
         a.array[0] * b.array[0]  + a.array[4] * b.array[1]  + a.array[8]  * b.array[2]  + a.array[12] * b.array[3],
         a.array[1] * b.array[0]  + a.array[5] * b.array[1]  + a.array[9]  * b.array[2]  + a.array[13] * b.array[3],
         a.array[2] * b.array[0]  + a.array[6] * b.array[1]  + a.array[10] * b.array[2]  + a.array[14] * b.array[3],
@@ -1180,7 +1187,8 @@ inline m4 operator*(m4 a, m4 b)
 
 inline v4 operator*(m4 M, v4 v)
 {
-    return {
+    return
+    {
         M.array[0] * v.array[0] + M.array[4] * v.array[1] + M.array[8]  * v.array[2] + M.array[12] * v.array[3],
         M.array[1] * v.array[0] + M.array[5] * v.array[1] + M.array[9]  * v.array[2] + M.array[13] * v.array[3],
         M.array[2] * v.array[0] + M.array[6] * v.array[1] + M.array[10] * v.array[2] + M.array[14] * v.array[3],
@@ -1190,7 +1198,8 @@ inline v4 operator*(m4 M, v4 v)
 
 inline m4 m4_Identity(void)
 {
-    return {
+    return
+    {
         1.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
@@ -1200,7 +1209,8 @@ inline m4 m4_Identity(void)
 
 inline m4 Transpose(m4 N)
 {
-    return {
+    return
+    {
         N.array[0], N.array[4], N.array[8],  N.array[12],
         N.array[1], N.array[5], N.array[9],  N.array[13],
         N.array[2], N.array[6], N.array[10], N.array[14],
@@ -1210,7 +1220,8 @@ inline m4 Transpose(m4 N)
 
 inline m4 m4_Translate(f32 x, f32 y, f32 z)
 {
-    return {
+    return
+    {
         1.0f,   0.0f,   0.0f,   0.0f,
         0.0f,   1.0f,   0.0f,   0.0f,
         0.0f,   0.0f,   1.0f,   0.0f,
@@ -1225,7 +1236,8 @@ inline m4 m4_Translate(v3 pos)
 
 inline m4 m4_Scale(f32 x, f32 y, f32 z)
 {
-    return {
+    return
+    {
         x,      0.0f,   0.0f,   0.0f,
         0.0f,   y,      0.0f,   0.0f,
         0.0f,   0.0f,   z,      0.0f,
@@ -1248,7 +1260,8 @@ inline m4 m4_RotateX(f32 angle)
     f32 s = sinf(angle);
     f32 c = cosf(angle);
 
-    return {
+    return
+    {
         1.0f,   0.0f,   0.0f,   0.0f,
         0.0f,      c,      s,   0.0f,
         0.0f,     -s,      c,   0.0f,
@@ -1261,7 +1274,8 @@ inline m4 m4_RotateY(f32 angle)
     f32 s = sinf(angle);
     f32 c = cosf(angle);
 
-    return {
+    return
+    {
         c,   0.0f,      s,   0.0f,
         0.0f,   1.0f,   0.0f,   0.0f,
         -s,   0.0f,      c,   0.0f,
@@ -1299,7 +1313,8 @@ inline m4 m4_Rotate(v3 axis, f32 angle)
     omca[1] = axis.y * inv_cosv;
     omca[2] = axis.z * inv_cosv;
 
-    return {
+    return
+    {
         omca[0] * axis.x + cosv,   omca[0] * axis.y - sa[0],  omca[0] * axis.z + sa[1],  0.0f,
         omca[1] * axis.x + sa[2],  omca[1] * axis.y + cosv,   omca[1] * axis.z - sa[0],  0.0f,
         omca[2] * axis.x - sa[1],  omca[2] * axis.y + sa[0],  omca[2] * axis.z + cosv,   0.0f,
@@ -1309,7 +1324,8 @@ inline m4 m4_Rotate(v3 axis, f32 angle)
 
 inline m4 Ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
 {
-    return {
+    return
+    {
         2.0f / (r - l),
         0.0f,
         0.0f,
@@ -1336,7 +1352,8 @@ inline m4 Perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
 {
     const f32 a = 1.0f / tanf(y_fov / 2.0f);
 
-    return {
+    return
+    {
         a / aspect,
         0.0f,
         0.0f,
@@ -1402,7 +1419,8 @@ inline m4 m4_FromQuat(Quat q)
     f32 c2 = c * c;
     f32 d2 = d * d;
 
-    return {
+    return
+    {
         a2 + b2 - c2 - d2,
         2.0f * (b * c + a * d),
         2.0f * (b * d - a * c),
@@ -1430,7 +1448,8 @@ inline m4 m4_Dir(v3 dir, v3 up)
     v3 left = Norm(Cross(up, dir));
     v3 cup  = Norm(Cross(dir, left));
 
-    return {
+    return
+    {
         cup.x, left.x, dir.x, 0,
         cup.y, left.y, dir.y, 0,
         cup.z, left.z, dir.z, 0,
@@ -1459,7 +1478,8 @@ inline m4 Invert(m4 M)
     // assumes it is invertible
     f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-    return {
+    return
+    {
         ( M.array[5]  * c[5] - M.array[6]  * c[4] + M.array[7]  * c[3]) * idet,
         (-M.array[1]  * c[5] + M.array[2]  * c[4] - M.array[3]  * c[3]) * idet,
         ( M.array[13] * s[5] - M.array[14] * s[4] + M.array[15] * s[3]) * idet,
@@ -1493,7 +1513,8 @@ inline Quat MakeQuat(f32 x, f32 y, f32 z, f32 angle)
     f32 inv_len = RSqrt((x * x) + (y * y) + (z * z));
     f32 s = inv_len * sin(angle / 2.0f);
 
-    return {
+    return
+    {
         x * s,
         y * s,
         z * s,
@@ -1513,7 +1534,8 @@ inline Quat ConjQuat(Quat q)
 
 inline Quat operator*(Quat a, Quat b)
 {
-    return {
+    return
+    {
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
         a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
@@ -1622,7 +1644,8 @@ inline i32 Manhattan(v2i a, v2i b)
 
 inline v2i Clamp(v2i a, i32 min, i32 max)
 {
-    return {
+    return
+    {
         Clamp(a.x, min, max),
         Clamp(a.y, min, max),
     };
@@ -1630,17 +1653,19 @@ inline v2i Clamp(v2i a, i32 min, i32 max)
 
 inline v2i Min(v2i a, v2i b)
 {
-    return {
-        (a.x < b.x? a.x : b.x),
-        (a.y < b.y? a.y : b.y)
+    return
+    {
+        a.x < b.x? a.x : b.x,
+        a.y < b.y? a.y : b.y
     };
 }
 
 inline v2i Max(v2i a, v2i b)
 {
-    return {
-        (a.x > b.x? a.x : b.x),
-        (a.y > b.y? a.y : b.y)
+    return
+    {
+        a.x > b.x? a.x : b.x,
+        a.y > b.y? a.y : b.y
     };
 }
 
@@ -1834,7 +1859,8 @@ inline b32 Intersect(Rect a, Rect b)
 
 inline Rect GetOverlap(Rect a, Rect b)
 {
-    return {
+    return
+    {
         Max(a.min, b.min),
         Min(a.max, b.max)
     };
@@ -1941,7 +1967,8 @@ inline v3 GetIntersectVector(Box a, Box b)
 
 inline Box Move(Box box, v3 offset)
 {
-    return {
+    return
+    {
         box.min + offset,
         box.max + offset,
     };
@@ -2027,10 +2054,10 @@ inline Frustum MakeFrustum(m4 combo_matrix, bool normalize = true)
 
 inline bool Contains(Frustum frustum, v3 pos)
 {
-    for(i32 i = 0; i < 6; i++ )	 {
-		if(frustum.plane[i].a * pos.x + frustum.plane[i].b * pos.y + frustum.plane[i].c * pos.z + frustum.plane[i].d <= 0) {
+    for (i32 i = 0; i < 6; i++)
+    {
+		if (frustum.plane[i].a * pos.x + frustum.plane[i].b * pos.y + frustum.plane[i].c * pos.z + frustum.plane[i].d <= 0)
 			return false;
-		}
 	}
 
 	return true;
@@ -2038,10 +2065,10 @@ inline bool Contains(Frustum frustum, v3 pos)
 
 inline bool Intersect(Frustum frustum, Sphere sphere)
 {
-    for(i32 i = 0; i < 6; i++ )	 {
-		if(frustum.plane[i].a * sphere.pos.x + frustum.plane[i].b * sphere.pos.y + frustum.plane[i].c * sphere.pos.z + frustum.plane[i].d <= -sphere.rad) {
+    for (i32 i = 0; i < 6; i++)
+    {
+		if(frustum.plane[i].a * sphere.pos.x + frustum.plane[i].b * sphere.pos.y + frustum.plane[i].c * sphere.pos.z + frustum.plane[i].d <= -sphere.rad)
 			return false;
-		}
 	}
 
 	return true;
@@ -2049,15 +2076,16 @@ inline bool Intersect(Frustum frustum, Sphere sphere)
 
 inline bool Intersect(Frustum frustum, Box box)
 {
-    for(int i = 0; i < 6; i++ ) {
-		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
-		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
-		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
-		if(frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
-		if(frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+    for (int i = 0; i < 6; i++ )
+    {
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
 
 		return false;
 	}
@@ -2262,9 +2290,8 @@ inline u32 HashCStr(const char* str)
 {
     u32 hash = 0;
 
-    while (*str) {
+    while (*str)
         hash = (hash << 7) + (hash >> 25) + *str++;
-    }
 
     return hash + (hash >> 16);
 }
@@ -2274,9 +2301,8 @@ inline u32 HashMem(const void* mem, u32 size)
     const u8* m     = (const u8*)mem;
     u32 hash        = 0;
 
-    for (u32 i = 0; i < size; ++i) {
+    for (u32 i = 0; i < size; ++i)
         hash = (hash << 7) + (hash >> 25) + m[i];
-    }
 
     return hash + (hash >> 16);
 }
@@ -2329,15 +2355,18 @@ inline char* ReadFileAsCStr(const char* file_name)
     FILE *fp      = NULL;
     char *buffer  = NULL;
     
-    if (fopen_s(&fp, file_name, "rb") == 0) {
+    if (fopen_s(&fp, file_name, "rb") == 0)
+    {
         size_t size = GetFileSize(fp);
 
         buffer = (char*)malloc(size + 1);
 
-        if (buffer) {
+        if (buffer)
+        {
             buffer[size] = 0;
 
-            if (fread(buffer, 1, size, fp) == 0) {
+            if (fread(buffer, 1, size, fp) == 0)
+            {
                 free(buffer);
                 buffer = 0;
             }
@@ -2353,10 +2382,12 @@ inline b32 WriteCStrToFile(const char* file_name, const char* buffer)
 {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "w") == 0) {
+    if (fopen_s(&fp, file_name, "w") == 0)
+    {
         size_t size = strlen(buffer);
         size_t n = fwrite(buffer, 1, size, fp);
         fclose(fp);
+
         return n == size;
     }
 
@@ -2367,7 +2398,8 @@ inline b32 AppendCStrToFile(const char* file_name, const char* buffer)
 {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "a") == 0) {
+    if (fopen_s(&fp, file_name, "a") == 0)
+    {
         size_t size = strlen(buffer);
         size_t n    = fwrite(buffer, 1, size, fp);
 
@@ -2383,7 +2415,8 @@ inline b32 ReadFileAsBin(const char* file_name, void* buffer, size_t size)
 {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "rb") == 0) {
+    if (fopen_s(&fp, file_name, "rb") == 0)
+    {
         fread(buffer, size, 1, fp);
         fclose(fp);
 
@@ -2397,7 +2430,8 @@ inline b32 WriteBinToFile(const char* file_name, const void* buffer, size_t size
 {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "wb") == 0) {
+    if (fopen_s(&fp, file_name, "wb") == 0)
+    {
         fwrite(buffer, size, 1, fp);
         fclose(fp);
         return 1;
@@ -2896,9 +2930,9 @@ struct Platform
     }
 };
 
-global_variable Platform platform;
+global Platform platform;
 
-global_variable struct
+global struct
 {
     GLFWwindow* window;
     GLFWmonitor* monitor;
@@ -2906,7 +2940,8 @@ global_variable struct
 
 internal void WindowKeyCallback(GLFWwindow*, int key, int, int action, int)
 {
-    switch (action) {
+    switch (action)
+    {
         case GLFW_PRESS:
             platform.keyboard.key           = key;
 
@@ -2940,7 +2975,8 @@ internal void WindowCharCallback(GLFWwindow* window, unsigned int codepoint)
 
 internal void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int)
 {
-    switch (action) {
+    switch (action)
+    {
         case GLFW_PRESS: {
             platform.mouse.is_down          = 1;
             platform.mouse.is_pressed       = 1;
@@ -2968,15 +3004,14 @@ internal void WindowScrollCallback(GLFWwindow*, f64 xoffset, f64 yoffset)
 
 internal void WindowJoystickCallback(int joy, int event)
 {
-    if (event == GLFW_CONNECTED) {
+    if (event == GLFW_CONNECTED)
+    {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
-
         platform.gamepad[joy].active = 1;
     }
 
-    if (event == GLFW_DISCONNECTED) {
+    if (event == GLFW_DISCONNECTED)
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
-    }
 }
 
 void InitPlatform(const char* title, int width, int height, int samples)
@@ -3032,10 +3067,10 @@ void InitPlatform(const char* title, int width, int height, int samples)
     }
 
     // init connected controllers
-    for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
-        if (glfwJoystickPresent(i)) {
+    for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i)
+    {
+        if (glfwJoystickPresent(i))
             platform.gamepad[i].active = 1;
-        }
     }
 
     glfwSetTime(0.0);
@@ -3074,7 +3109,8 @@ void UpdatePlatform(void)
         platform.mouse.scroll.x = 0;
         platform.mouse.scroll.y = 0;
 
-        switch (platform.mouse.mode) {
+        switch (platform.mouse.mode)
+        {
             case MOUSE_NORMAL:
                 glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 break;
@@ -3091,8 +3127,10 @@ void UpdatePlatform(void)
     {
         GLFWgamepadstate state;
 
-        for (int i = 0; i < JOYSTICK_LAST; ++i) {
-            if (platform.gamepad[i].active) {
+        for (int i = 0; i < JOYSTICK_LAST; ++i)
+        {
+            if (platform.gamepad[i].active)
+            {
                 GamepadButtons old = platform.gamepad[i].state;
 
                 platform.gamepad[i].state.data = 0;
@@ -3136,12 +3174,16 @@ void UpdatePlatform(void)
         }
     }
 
-    if (platform.fullscreen != platform._fullscreen_state_last_update) {
+    if (platform.fullscreen != platform._fullscreen_state_last_update)
+    {
         const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
 
-        if (platform.fullscreen) {
+        if (platform.fullscreen)
+        {
             glfwSetWindowMonitor(platform_internal.window, platform_internal.monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-        } else {
+        }
+        else
+        {
             glfwSetWindowMonitor(platform_internal.window, NULL, 64, 64, mode->width - 256, mode->height - 256, mode->refreshRate);
         }
     }
@@ -3224,7 +3266,8 @@ inline u32 CompileShader(const char* source, unsigned int type)
 
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
-    if (!success) {
+    if (!success)
+    {
         glGetShaderInfoLog(shader, 512, NULL, info_log);
         puts(info_log);
 
@@ -3248,7 +3291,8 @@ inline u32 LinkShaderProgramVF(u32 vertex_shader, u32 fragment_shader)
 
     glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
 
-    if (!success) {
+    if (!success)
+    {
         glGetProgramInfoLog(shader_program, 512, NULL, info_log);
         puts(info_log);
 
@@ -3273,7 +3317,8 @@ inline u32 LinkShaderProgramVFG(u32 vertex_shader, u32 fragment_shader, u32 geom
 
     glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
 
-    if (!success) {
+    if (!success)
+    {
         glGetProgramInfoLog(shader_program, 512, NULL, info_log);
         puts(info_log);
 
@@ -3298,7 +3343,8 @@ inline u32 LinkShaderProgramV(u32 vertex_shader)
     glLinkProgram(shader_program);
     glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
 
-    if (!success) {
+    if (!success)
+    {
         glGetProgramInfoLog(shader_program, 512, NULL, info_log);
         puts(info_log);
 
@@ -3312,7 +3358,8 @@ inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *g
 {
     Shader shader = {};
 
-    if (vs != NULL && fs != NULL && gs != NULL) {
+    if (vs != NULL && fs != NULL && gs != NULL)
+    {
         u32 vertex   = CompileShader(vs, GL_VERTEX_SHADER);
         u32 fragment = CompileShader(fs, GL_FRAGMENT_SHADER);
         u32 geometry = CompileShader(gs, GL_GEOMETRY_SHADER);
@@ -3323,7 +3370,9 @@ inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *g
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-    } else if (vs != NULL && fs != NULL && gs == NULL) {
+    }
+    else if (vs != NULL && fs != NULL && gs == NULL)
+    {
         u32 vertex   = CompileShader(vs, GL_VERTEX_SHADER);
         u32 fragment = CompileShader(fs, GL_FRAGMENT_SHADER);
 
@@ -3333,7 +3382,9 @@ inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *g
 
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-    } else if (vs != NULL && fs == NULL) {
+    }
+    else if (vs != NULL && fs == NULL)
+    {
         u32 vertex = CompileShader(vs, GL_VERTEX_SHADER);
 
         shader.program = LinkShaderProgramV(vertex);
@@ -3370,7 +3421,8 @@ inline u32 LinkShaderProgramC(u32 compute_shader)
     glLinkProgram(shader_program);
     glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
 
-    if (!success) {
+    if (!success)
+    {
         glGetProgramInfoLog(shader_program, 512, NULL, info_log);
         puts(info_log);
 
@@ -3410,7 +3462,7 @@ inline Shader LoadComputeShaderFromFile(const char* cs)
 
 #define BITMAP_COUNT    (256)
 
-global_variable const u64 bitascii[BITMAP_COUNT] = {
+global const u64 bitascii[BITMAP_COUNT] = {
     0x0000000000000000,
     0x7e8199bd81a5817e,
     0x7effe7c3ffdbff7e,
@@ -3668,735 +3720,6 @@ global_variable const u64 bitascii[BITMAP_COUNT] = {
     0x007e7e7e7e7e7e00,
     0x007e424242427e00
 };
-
-// ================================================ CUBE ENGINE =================================================== //
-
-#ifdef ATS_CUBE_ENGINE
-
-#define SHADOW_WIDTH    (2048) 
-#define SHADOW_HEIGHT   (2048) 
-
-struct Vertex
-{
-    v4 position;
-    v4 normal;
-    v4 color;
-    v2 texture;
-};
-
-// Layout:  vertex : normal : color : texture
-global_variable const Vertex vertex_array_cube[] = {
-    // back face
-    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { {  1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { {  1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right         
-    { {  1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { { -1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    // front face
-    { { -1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { {  1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
-    { {  1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { {  1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { { -1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    { { -1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f,  0.0f,  1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    // left face
-    { { -1.0f,  1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { { -1.0f,  1.0f, -1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    { { -1.0f, -1.0f, -1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { { -1.0f, -1.0f, -1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { { -1.0f, -1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
-    { { -1.0f,  1.0f,  1.0f, 1.0f }, { -1.0f,  0.0f,  0.0f, 0.0f },{ 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    // right face
-    { { 1.0f, -1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    { { 1.0f, -1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
-    { { 1.0f,  1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right         
-    { { 1.0f, -1.0f, -1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
-    { { 1.0f,  1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    { { 1.0f, -1.0f,  1.0f, 1.0f },  { 1.0f,  0.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left     
-    // bottom face
-    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { {  1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    { {  1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { {  1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { { -1.0f, -1.0f,  1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
-    { { -1.0f, -1.0f, -1.0f, 1.0f }, { 0.0f, -1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    // top face
-    { { -1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    { {  1.0f,  1.0f , 1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
-    { {  1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right     
-    { {  1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right
-    { { -1.0f,  1.0f, -1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-    { { -1.0f,  1.0f,  1.0f, 1.0f }, { 0.0f,  1.0f,  0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }  // bottom-left  
-};
-
-// Layout:  vertex : normal
-global_variable const Vertex vertex_array_square[] = {
-    { { -1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { {  1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { {  1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-right         
-    { {  1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-right
-    { { -1.0f, -1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // bottom-left
-    { { -1.0f,  1.0f, 0.0f, 1.0f }, { 0.0f,  0.0f, -1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } }, // top-left
-};
-
-global_variable const char* ce_shader_vertex = GLSL_SHADER(
-    layout (location = 0) in vec4 vp;
-    layout (location = 1) in vec4 np;
-    layout (location = 2) in vec4 vc;
-    layout (location = 4) in vec4 C;
-    layout (location = 5) in mat4 M;
-
-    uniform mat4 PV;
-
-    out vec4 color;
-
-    void main() {
-        gl_Position = PV * M * vp;
-        color       = C;
-    }
-);
-
-global_variable const char* ce_shader_fragment = GLSL_SHADER(
-    out vec4 frag_color;
-    in  vec4 color;
-    
-    void main() {
-        frag_color = color;
-    }
-);
-
-global_variable const char* ce_shader_vertex_light = GLSL_SHADER(
-    layout (location = 0) in vec4 vp;
-    layout (location = 1) in vec4 np;
-    layout (location = 2) in vec4 vc;
-    layout (location = 4) in vec4 C;
-    layout (location = 5) in mat4 M;
-
-    out vec3 frag_pos;
-    out vec3 normal;
-    out vec4 frag_pos_light_space;
-    out vec4 color;
-
-    uniform mat4 PV;
-    uniform mat4 light_space_matrix;
-
-    void main() {
-        vec4 mpos               = M * vp;
-        gl_Position             = PV * mpos;
-        frag_pos                = mpos.xyz;
-        normal                  = normalize((M * np).xyz);
-        frag_pos_light_space    = light_space_matrix * vec4(frag_pos, 1.0);
-        color                   = C * vc;
-    }
-);
-
-global_variable const char* ce_shader_fragment_light = GLSL_SHADER(
-    out vec4 frag_color;
-
-    in vec3 frag_pos;
-    in vec3 normal;
-    in vec2 tex_coords;
-    in vec4 frag_pos_light_space;
-    in vec4 color;
-
-    uniform sampler2D shadow_map;
-    uniform sampler2D color_map;
-
-    uniform vec3 light_pos;
-    uniform vec3 view_pos;
-    //
-    uniform vec3 light_color;
-
-    float shadow_calculation(vec3 proj_coords) {
-        if(proj_coords.z > 1.0)
-            return 0.0;
-
-        float current_depth = proj_coords.z;
-
-        vec3 normal = normalize(normal);
-        vec3 light_dir = normalize(light_pos - frag_pos);
-        float bias = max(0.05 * (1.0 - dot(normal, light_dir)), 0.005);
-
-        float shadow = current_depth - bias > texture(shadow_map, proj_coords.xy).r? 1.0 : 0.0;
-
-        return shadow;
-    }
-
-    vec4 color_calculation(vec3 proj_coords) {
-        vec4 closest_depth  = texture(color_map, proj_coords.xy);
-        return closest_depth;
-    }
-   
-    void main() {
-        float ambient_str = 0.2;
-        vec3 ambient = ambient_str * light_color;
-        vec3 light_dir = normalize(light_pos - frag_pos);
-        float diff = max(dot(normal, light_dir), 0.0);
-        vec3 diffuse = diff * light_color;
-        float specular_str = 0.1;
-        vec3 view_dir = normalize(view_pos - frag_pos);
-        vec3 reflect_dir  = reflect(-light_dir, normal);
-        float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 2);
-        vec3 specular = specular_str * spec * light_color;
-
-        vec3 proj_coords = 0.5 * (frag_pos_light_space.xyz / frag_pos_light_space.w) + 0.5;
-
-        float shadow = shadow_calculation(proj_coords);
-        vec4 caster = color_calculation(proj_coords);
-
-        vec3 result = color.rgb * (ambient + (1.0 - 0.7 * caster.a * shadow) * (diffuse + specular));
-
-        frag_color = vec4(result, color.a);
-    }
-);
-
-global_variable const char* ce_depth_vertex = GLSL_SHADER(
-    layout (location = 0) in vec4 vp;
-    layout (location = 4) in vec4 C;
-    layout (location = 5) in mat4 M;
-
-    out vec4 color;
-
-    uniform mat4 light_space_matrix;
-
-    void main() {
-        gl_Position = light_space_matrix * M * vp;
-        color = C;
-    }
-);
-
-global_variable const char* ce_depth_fragment = GLSL_SHADER(
-    in  vec4 color;
-    out vec4 frag_color;
-
-    void main() {
-        gl_FragDepth = gl_FragCoord.z;
-        frag_color = color;
-    }
-);
-
-// ----------------------------------------------------------------------------------------------- //
-
-global_variable Shader ce_shader;
-global_variable Shader ce_shader_no_light;
-global_variable Shader ce_shader_depth;
-
-global_variable u32 ce_vao_cube;
-global_variable u32 ce_vbo_cube;
-global_variable u32 ce_vbo_cube_data;
-
-global_variable u32 ce_depth_fbo;
-global_variable u32 ce_depth_map;
-
-global_variable u32 ce_color_map;
-
-struct CE_Object {
-    v4 color;
-    m4 model;
-};
-
-global_variable m4 ce_projection_view  = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
-global_variable m4 ce_light_space_matrix = { 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.0f, 0.0f, 1.0f };
-global_variable v3 ce_view_pos = { 0.0f, 0.0f, 0.0f };
-global_variable v3 ce_light_pos = { 0.0f, 0.0f, 0.0f };
-global_variable v3 ce_light_color = { 1.0f, 1.0f, 1.0f };
-
-#define RENDER_ARRAY_INIT_SIZE  (2048)
-
-global_variable int render_capacity = 0;
-global_variable int render_count = 0;
-
-global_variable CE_Object render_array[1024 * 1024];
-
-inline void ce_Push(const CE_Object& obj)
-{
-    if (render_count < ARRAY_COUNT(render_array)) {
-        render_array[render_count++] = obj;
-    }
-}
-
-inline int ce_GetCubeCount(void)
-{
-    return render_count;
-}
-
-inline void ce_SetLight(v3 pos, v3 color)
-{
-    ce_light_pos = pos;
-    ce_light_color = color;
-}
-
-inline void ce_SetView(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane)
-{
-    ce_projection_view = 
-        Perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane) * 
-        LookA(pos, look, up);
-
-    ce_view_pos = pos;
-}
-
-inline void ce_SetView2D(v3 pos, v3 look, v3 up, v2 rad, f32 near_plane, f32 far_plane)
-{
-    ce_projection_view =
-        Ortho(-rad.x, rad.x, -rad.y, rad.y, near_plane, far_plane) *
-        LookAt(pos, look, up);
-
-    ce_view_pos = pos;
-}
-
-inline void ce_SetProjectionView(m4 projection_view)
-{
-    ce_projection_view = projection_view;
-
-    ce_view_pos.x = projection_view.array[12];
-    ce_view_pos.y = projection_view.array[13];
-    ce_view_pos.z = projection_view.array[14];
-}
-
-inline void ce_SetLightView(v3 pos, v3 look, v3 up, f32 fov, f32 near_plane, f32 far_plane)
-{
-    m4 light_projection = Perspective(TO_RAD(fov), platform.aspect_ratio, near_plane, far_plane);
-    m4 light_view       = LookAt(pos, look, up);
-
-    ce_light_space_matrix = light_projection * light_view;
-}
-
-inline void ce_SetVertexArray(const Vertex* vertex_array, int vertex_count)
-{
-    glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube);
-    glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof *vertex_array, vertex_array, GL_STATIC_DRAW);
-}
-
-inline void ce_SetRenderObjectArray(const CE_Object* robj_array, int robj_count)
-{
-    glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube_data);
-    glBufferData(GL_ARRAY_BUFFER, robj_count * sizeof *robj_array, robj_array, GL_STATIC_DRAW);
-}
-
-inline void ce_Render(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count)
-{
-    ce_SetVertexArray(vertex_array, vertex_count);
-    ce_SetRenderObjectArray(robj_array, robj_count);
-
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-
-    // depth render:
-    {
-        glDisable(GL_BLEND);
-        glDisable(GL_ALPHA_TEST);
-
-        ce_shader_depth.Use();
-        ce_shader_depth.Set("light_space_matrix", ce_light_space_matrix);
-
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, ce_depth_fbo);
-
-        u32 attachments[] = { GL_COLOR_ATTACHMENT0, GL_DEPTH_ATTACHMENT };
-        glDrawBuffers(2, attachments);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glDrawArraysInstanced(type, 0, vertex_count, robj_count);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    }
-
-    glCullFace(GL_BACK);
-
-    // normal render:
-    {
-        glEnable(GL_BLEND);
-        glEnable(GL_ALPHA_TEST);
-
-        glViewport(0, 0, platform.width, platform.height);
-
-        ce_shader.use();
-        ce_shader.set("light_space_matrix", ce_light_space_matrix);
-        ce_shader.set("PV",                 ce_projection_view);
-        ce_shader.set("view_pos",           ce_view_pos);
-        ce_shader.set("light_pos",          ce_light_pos);
-        ce_shader.set("light_color",        ce_light_color);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, ce_depth_map);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, ce_color_map);
-
-        glDrawArraysInstanced(type, 0, vertex_count, robj_count);
-    }
-
-    glDisable(GL_CULL_FACE);
-}
-
-inline void ce_RenderCubes(void)
-{
-    glBindVertexArray(ce_vao_cube);
-
-    ce_render(GL_TRIANGLES, vertex_array_cube, 36, render_array, render_count);
-    render_count = 0;
-}
-
-inline void ce_RenderNoLight(int type, const Vertex* vertex_array, int vertex_count, const CE_Object* robj_array, int robj_count)
-{
-    // normal render:
-    {
-        glViewport(0, 0, platform.width, platform.height);
-
-        ce_shader_no_light.Use();
-        ce_shader_no_light.Set("PV", ce_projection_view);
-
-        // render:
-        ce_SetVertexArray(vertex_array, vertex_count);
-        ce_SetRenderObjectArray(robj_array, robj_count);
-
-        glDrawArraysInstanced(type, 0, vertex_count, robj_count);
-    }
-}
-
-inline void ce_RenderSquares(void)
-{
-    glBindVertexArray(ce_vao_cube);
-
-    ce_RenderNoLight(GL_TRIANGLES, vertex_array_square, 6, render_array, render_count);
-    render_count = 0;
-}
-
-inline void ce_PushCube(v3 pos, f32 scale, v4 color)
-{
-    CE_Object robj = {
-        color,
-        {
-            scale,  0.0f,   0.0f,   0.0f,
-            0.0f,   scale,  0.0f,   0.0f,
-            0.0f,   0.0f,   scale,  0.0f,
-            pos.x,  pos.y,  pos.z,  1.0f
-        }
-    };
-
-    ce_Push(robj);
-}
-
-inline void ce_PushCubeQuat(v3 pos, f32 scale, Quat quat, v4 color)
-{
-    CE_Object robj = {
-        color,
-        // model:
-        {
-            scale,  0.0f,   0.0f,   0.0f,
-            0.0f,   scale,  0.0f,   0.0f,
-            0.0f,   0.0f,   scale,  0.0f,
-            pos.x,  pos.y,  pos.z,  1.0f
-        }
-    };
-
-    robj.model = robj.model * m4_FromQuat(quat);
-
-    ce_Push(robj);
-}
-
-inline void ce_PushBox(v3 pos, v3 rad, v4 color)
-{
-    CE_Object robj = {
-        color,
-        // model:
-        {
-            rad.x,  0.0f,   0.0f,   0.0f,
-            0.0f,   rad.y,  0.0f,   0.0f,
-            0.0f,   0.0f,   rad.z,  0.0f,
-            pos.x,  pos.y,  pos.z,  1.0f
-        }
-    };
-
-    ce_Push(robj);
-}
-
-inline void ce_push_cube_rot_z(v3 pos, f32 scale, f32 rot, v4 color) {
-    f32 s = sinf(rot);
-    f32 c = cosf(rot);
-
-    CE_Object robj = {
-        color,
-        {
-             c * scale, s * scale,  0.0f,   0.0f,
-            -s * scale, c * scale,  0.0f,   0.0f,
-             0.0f,      0.0f,       scale,  0.0f,
-             pos.x,     pos.y,      pos.z,  1.0f
-        }
-    };
-
-    ce_push(robj);
-}
-
-inline void ce_PushCubeEuler(v3 pos, f32 scale, f32 yaw, f32 pitch, f32 roll, v4 color)
-{
-    f32 cy = cosf(yaw);
-    f32 sy = sinf(yaw);
-    f32 cp = cosf(pitch);
-    f32 sp = sinf(pitch);
-    f32 cr = cosf(roll);
-    f32 sr = sinf(roll);
-
-    CE_Object robj = {
-        color,
-        {
-            scale * (cy * cp),                  scale * (sy * cp),                  scale * (-sp),          0.0f,
-            scale * (cy * sp * sr - sy * cr),   scale * (sy * sp * sr + cy * cr),   scale * (cp * sr),      0.0f,
-            scale * (cy * sp * cr + sy * sr),   scale * (sy * sp * cr - cy * sr),   scale * (cp * cr),      0.0f,
-            pos.x,                              pos.y,                              pos.z,                  1.0f
-        }
-    };
-
-    ce_Push(robj);
-}
-
-inline void ce_PushCubeRotMat(v3 pos, f32 scale, m2 R, v4 color)
-{
-    CE_Object robj = {
-        color,
-        {
-            R.x.x * scale,  R.x.y * scale,  0.0f,       0.0f,
-            R.y.x * scale,  R.y.y * scale,  0.0f,       0.0f,
-            0.0f,           0,              scale,      0.0f,
-            pos.x,          pos.y,          pos.z,      1.0f
-        }
-    };
-
-    ce_Push(robj);
-}
-
-inline void ce_PushBoxRot(v3 pos, v3 rad, f32 rot, v4 color)
-{
-    f32 s = sinf(rot);
-    f32 c = cosf(rot);
-
-    CE_Object robj = {
-        color,
-        {
-             c * rad.x, s * rad.x,  0.0f,   0.0f,
-            -s * rad.y, c * rad.y,  0.0f,   0.0f,
-             0.0f,      0.0f,       rad.z,  0.0f,
-             pos.x,     pos.y,      pos.z,  1.0f
-        }
-    };
-
-    ce_Push(robj);
-}
-
-inline void ce_PushBoxRotMat(v3 pos, v3 rad, m2 R, v4 color)
-{
-    CE_Object robj = {
-        color,
-        {
-            R.x.x * rad.x,  R.x.y * rad.x,  0.0f,   0.0f,
-            R.y.x * rad.y,  R.y.y * rad.y,  0.0f,   0.0f,
-            0.0f,           0.0f,           rad.z,  0.0f,
-            pos.x,          pos.y,          pos.z,  1.0f
-        }
-    };
-
-    ce_Push(robj);
-}
-
-inline void ce_PushLine(v2 p0, v2 p1, f32 z, f32 rad, v4 color)
-{
-    v2 line         = p1 - p0;
-    f32 line_length = Len(line);
-
-    v2 line_pos = p0 + 0.5f * line;
-
-    v2  axis    = { 0.0f, -1.0f };
-    f32 rot     = GetAngle(axis, line);
-    v3  pos     = V3(line_pos, z);
-    v3  scale   = V3(rad, 0.5f * line_length, rad);
-
-    ce_PushBoxRot(pos, scale, rot, color);
-}
-
-inline void ce_Clear(void)
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-inline void ce_Init(void)
-{
-    ce_shader           = LoadShaderFromMemory(ce_shader_vertex_light, ce_shader_fragment_light, NULL);
-    ce_shader_no_light  = LoadShaderFromMemory(ce_shader_vertex, ce_shader_fragment, NULL);
-
-    // init opengl:
-    {
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClearDepth(1.0f);
-        glDepthFunc(GL_LESS);
-        glEnable(GL_DEPTH_TEST);
-        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glEnable(GL_BLEND);
-
-        glAlphaFunc(GL_GREATER, 0.0);
-        glEnable(GL_ALPHA_TEST);
-    }
-
-    ce_shader.use();
-
-    // setup vbo/vao:
-    {
-        glGenVertexArrays(1, &ce_vao_cube);
-        glGenBuffers(1, &ce_vbo_cube);
-        glGenBuffers(1, &ce_vbo_cube_data);
-
-        glBindVertexArray(ce_vao_cube);
-
-        // cube:
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube);
-            //
-            glEnableVertexAttribArray(0);
-            glEnableVertexAttribArray(1);
-            glEnableVertexAttribArray(2);
-
-            // position : normal : color
-            glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (void*)offsetof(Vertex, position));
-            glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (void*)offsetof(Vertex, normal));
-            glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof (Vertex), (void*)offsetof(Vertex, color));
-        }
-
-        // cube models:
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, ce_vbo_cube_data);
-
-            // color:
-            glEnableVertexAttribArray(4);
-
-            glVertexAttribPointer(4, 4, GL_FLOAT, GL_TRUE, sizeof (CE_Object), (void*)(offsetof(CE_Object, color)));
-            glVertexAttribDivisor(4, 1);
-
-            // model:
-            glEnableVertexAttribArray(5);
-            glEnableVertexAttribArray(6);
-            glEnableVertexAttribArray(7);
-            glEnableVertexAttribArray(8);
-
-            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 0 * sizeof (f32[4])));
-            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 1 * sizeof (f32[4])));
-            glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 2 * sizeof (f32[4])));
-            glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof (CE_Object), (void*)(offsetof(CE_Object, model) + 3 * sizeof (f32[4])));
-
-            glVertexAttribDivisor(5, 1);
-            glVertexAttribDivisor(6, 1);
-            glVertexAttribDivisor(7, 1);
-            glVertexAttribDivisor(8, 1);
-        }
-    }
-
-    // init shadow map stuff
-    {
-        ce_shader_depth = shader_load_from_memory(ce_depth_vertex, ce_depth_fragment, NULL);
-
-        glGenFramebuffers(1, &ce_depth_fbo);
-        // create depth texture
-        glGenTextures(1, &ce_depth_map);
-        glBindTexture(GL_TEXTURE_2D, ce_depth_map);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-        // attach depth texture as FBO's depth buffer
-        glBindFramebuffer(GL_FRAMEBUFFER, ce_depth_fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, ce_depth_map, 0);
-
-        glGenTextures(1, &ce_color_map);
-        glBindTexture(GL_TEXTURE_2D, ce_color_map);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-        // attach color texture as FBO's color buffer
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ce_color_map, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        ce_shader.use();
-        ce_shader.set("shadow_map", 0);
-        ce_shader.set("color_map",  1);
-    }
-}
-
-inline void ce_bitmap_render_rect(f32 x, f32 y, f32 z, f32 sx, f32 sy, f32 r, f32 g, f32 b, f32 a) {
-    ce_push_box(
-        { x, y, z }, 
-        { 0.5f * sx, 0.5f * sy, 0.01 },
-        { r, g, b, a });
-}
-
-inline void ce_push_ascii(unsigned char c, f32 px, f32 py, f32 pz, f32 x_scale, f32 y_scale, f32 r, f32 g, f32 b, f32 a) {
-    u64 n = bitascii[c];
-
-    for (int j = 0; j < 8; ++j) {
-        for (int i = 0; i < 8; ++i) {
-            u64 bit = j * 8 + i;
-
-            if (n & (1ull << bit)) {
-                ce_bitmap_render_rect(px + i * x_scale, py - j * y_scale, pz, x_scale, -y_scale, r, g, b, a);
-            }
-        }
-    }
-}
-
-inline void ce_push_string(const char* str, v3 pos, v2 scale, v4 color) {
-    for (int i = 0; str[i] != '\0'; i++)
-        ce_push_ascii(str[i], pos.x + i * 8 * scale.x, pos.y, pos.z, scale.x, scale.y, color.r, color.g, color.b, color.a);
-}
-
-inline void ce_push_string_format(v3 pos, f32 rad, v4 color, const char* fmt, ...) {
-    va_list list;
-    char buffer[64];
-
-    va_start(list, fmt);
-    vsnprintf(buffer, 64, fmt, list);
-    ce_push_string(buffer, pos, { rad, rad }, color);
-    va_end(list);
-}
-
-inline v3 ce_get_world_position(int x, int y) {
-    f64 identity[16] = {
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    };
-
-    f64 projection_view[16];
-
-    for (u32 i = 0; i < 16; ++i) {
-        projection_view[i] = ce_projection_view.array[i];
-    }
-
-    GLint viewport[4];
-    GLfloat winX, winY, winZ;
-    GLdouble posX, posY, posZ;
- 
-    glGetIntegerv(GL_VIEWPORT, viewport);
- 
-    winX = (f64)x;
-    winY = (f64)viewport[3] - (f64)y;
-
-    glReadPixels(x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ);
- 
-    f64 result[3];
-    f4x4Unproject64(result, winX, winY, winZ, identity, projection_view, viewport);
- 
-    return V3(result[0], result[1], result[2]);
-}
-
-#endif // ATS_CUBE_ENGINE
 
 // ======================================= TEXTURES ======================================== //
 
