@@ -3012,7 +3012,7 @@ internal void WindowJoystickCallback(int joy, int event)
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
 }
 
-void InitPlatform(const char* title, int width, int height, int samples)
+void PlatformInit(const char* title, int width, int height, int samples)
 {
     glfwInit();
 
@@ -3078,7 +3078,7 @@ void InitPlatform(const char* title, int width, int height, int samples)
     glfwSwapBuffers(platform_internal.window);
 }
 
-void UpdatePlatform(void)
+void PlatformUpdate(void)
 {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
@@ -3275,7 +3275,7 @@ inline u32 CompileShader(const char* source, unsigned int type)
     return shader;
 }
 
-inline u32 LinkShaderProgramVF(u32 vertex_shader, u32 fragment_shader)
+inline u32 LinkShaderProgram(u32 vertex_shader, u32 fragment_shader)
 {
     int     success;
     char    info_log[512];
@@ -3300,96 +3300,18 @@ inline u32 LinkShaderProgramVF(u32 vertex_shader, u32 fragment_shader)
     return shader_program;
 }
 
-inline u32 LinkShaderProgramVFG(u32 vertex_shader, u32 fragment_shader, u32 geometry_shader)
-{
-    int success;
-    char info_log[512];
-
-    u32 shader_program = glCreateProgram();
-
-    glAttachShader(shader_program, vertex_shader);
-    glAttachShader(shader_program, fragment_shader);
-    glAttachShader(shader_program, geometry_shader);
-
-    glLinkProgram(shader_program);
-
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-
-    if (!success)
-    {
-        glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-        puts(info_log);
-
-        exit(EXIT_FAILURE);
-    }
-
-    return shader_program;
-}
-
-inline u32 LinkShaderProgramV(u32 vertex_shader)
-{
-    int success;
-    char info_log[512];
-
-    u32 shader_program = glCreateProgram();
-
-    glAttachShader(shader_program, vertex_shader);
-
-    const char* varyings[] = { "pos1", "vel1" };
-    glTransformFeedbackVaryings(shader_program, 2, varyings, GL_INTERLEAVED_ATTRIBS);
-
-    glLinkProgram(shader_program);
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-
-    if (!success)
-    {
-        glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-        puts(info_log);
-
-        exit(EXIT_FAILURE);
-    }
-
-    return shader_program;
-}
-
-inline Shader LoadShaderFromMemory(const char *vs, const char *fs, const char *gs = NULL)
+inline Shader LoadShaderFromMemory(const char *vs, const char *fs)
 {
     Shader shader = {};
 
-    if (vs != NULL && fs != NULL && gs != NULL)
-    {
-        u32 vertex   = CompileShader(vs, GL_VERTEX_SHADER);
-        u32 fragment = CompileShader(fs, GL_FRAGMENT_SHADER);
-        u32 geometry = CompileShader(gs, GL_GEOMETRY_SHADER);
+    u32 vertex      = CompileShader(vs, GL_VERTEX_SHADER);
+    u32 fragment    = CompileShader(fs, GL_FRAGMENT_SHADER);
+    shader.program  = LinkShaderProgram(vertex, fragment);
 
-        shader.program = LinkShaderProgramVFG(vertex, fragment, geometry);
+    glUseProgram(shader.program);
 
-        glUseProgram(shader.program);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-    }
-    else if (vs != NULL && fs != NULL && gs == NULL)
-    {
-        u32 vertex   = CompileShader(vs, GL_VERTEX_SHADER);
-        u32 fragment = CompileShader(fs, GL_FRAGMENT_SHADER);
-
-        shader.program = LinkShaderProgramVF(vertex, fragment);
-
-        glUseProgram(shader.program);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-    }
-    else if (vs != NULL && fs == NULL)
-    {
-        u32 vertex = CompileShader(vs, GL_VERTEX_SHADER);
-
-        shader.program = LinkShaderProgramV(vertex);
-
-        glUseProgram(shader.program);
-        glDeleteShader(vertex);
-    }
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
 
     return shader;
 }
