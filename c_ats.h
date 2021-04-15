@@ -1477,7 +1477,7 @@ struct Plane
 };
 
 inline Plane
-normalize_plane(Plane plane)
+plane_normalize(Plane plane)
 {
     f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
@@ -1538,12 +1538,12 @@ frustum_create(const m4 matrix, bool normalize)
 
     if (normalize)
     {
-        frustum.plane[0] = normalize_plane(frustum.plane[0]);
-        frustum.plane[1] = normalize_plane(frustum.plane[1]);
-        frustum.plane[2] = normalize_plane(frustum.plane[2]);
-        frustum.plane[3] = normalize_plane(frustum.plane[3]);
-        frustum.plane[4] = normalize_plane(frustum.plane[4]);
-        frustum.plane[5] = normalize_plane(frustum.plane[5]);
+        frustum.plane[0] = plane_normalize(frustum.plane[0]);
+        frustum.plane[1] = plane_normalize(frustum.plane[1]);
+        frustum.plane[2] = plane_normalize(frustum.plane[2]);
+        frustum.plane[3] = plane_normalize(frustum.plane[3]);
+        frustum.plane[4] = plane_normalize(frustum.plane[4]);
+        frustum.plane[5] = plane_normalize(frustum.plane[5]);
     }
     
     return frustum;
