@@ -128,7 +128,6 @@ union v2i
 union v3i
 {
     struct { i32 x, y, z; };
-
     struct { v2i xy; i32 _z; };
 
     i32 array[3];
@@ -3227,7 +3226,7 @@ struct Shader
 {
     u32 program;
 
-    inline void use() const { glUseProgram(program); }
+    inline void Use() const { glUseProgram(program); }
 
     inline u32 GetLocation(const char *var_name) const { return glGetUniformLocation(program, var_name); }
 
@@ -3241,15 +3240,15 @@ struct Shader
     inline void Set(u32 loc, v4 u) const                       { Use(); glUniform4fv(loc, 1, u.array); }
     inline void Set(u32 loc, m4 m) const                       { Use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
 
-    inline void Set(const char* loc, int n) const                      { Set(get_location(loc), n); }
-    inline void Set(const char* loc, f32 n) const                      { Set(get_location(loc), n); }
-    inline void Set(const char* loc, f32 a, f32 b) const               { Set(get_location(loc), a, b); }
-    inline void Set(const char* loc, f32 a, f32 b, f32 c) const        { Set(get_location(loc), a, b, c); }
-    inline void Set(const char* loc, f32 a, f32 b, f32 c, f32 d) const { Set(get_location(loc), a, b, c, d); }
-    inline void Set(const char* loc, v2 u) const                       { Set(get_location(loc), u); }
-    inline void Set(const char* loc, v3 u) const                       { Set(get_location(loc), u); }
-    inline void Set(const char* loc, v4 u) const                       { Set(get_location(loc), u); }
-    inline void Set(const char* loc, m4 m) const                       { Set(get_location(loc), m); }
+    inline void Set(const char* loc, int n) const                      { Set(GetLocation(loc), n); }
+    inline void Set(const char* loc, f32 n) const                      { Set(GetLocation(loc), n); }
+    inline void Set(const char* loc, f32 a, f32 b) const               { Set(GetLocation(loc), a, b); }
+    inline void Set(const char* loc, f32 a, f32 b, f32 c) const        { Set(GetLocation(loc), a, b, c); }
+    inline void Set(const char* loc, f32 a, f32 b, f32 c, f32 d) const { Set(GetLocation(loc), a, b, c, d); }
+    inline void Set(const char* loc, v2 u) const                       { Set(GetLocation(loc), u); }
+    inline void Set(const char* loc, v3 u) const                       { Set(GetLocation(loc), u); }
+    inline void Set(const char* loc, v4 u) const                       { Set(GetLocation(loc), u); }
+    inline void Set(const char* loc, m4 m) const                       { Set(GetLocation(loc), m); }
 };
 
 inline u32 CompileShader(const char* source, unsigned int type)
@@ -3353,7 +3352,7 @@ inline u32 LinkShaderProgramV(u32 vertex_shader)
     return shader_program;
 }
 
-inline Shader loadShaderFromMemory(const char *vs, const char *fs, const char *gs = NULL)
+inline Shader LoadShaderFromMemory(const char *vs, const char *fs, const char *gs = NULL)
 {
     Shader shader = {};
 
