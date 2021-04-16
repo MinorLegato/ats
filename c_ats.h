@@ -1264,7 +1264,6 @@ v3i_dist_sq(const v2i a, const v2i b)
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
 typedef struct Circle Circle;
-
 struct Circle
 {
     v3      pos;
@@ -1299,7 +1298,6 @@ circle_get_intersect_vector(v2 out, Circle a, Circle b)
 // --------------------------------------- SHPERE ------------------------------------ //
 
 typedef struct Sphere Sphere;
-
 struct Sphere
 {
     v3      pos;
@@ -1338,14 +1336,14 @@ sphere_get_intersect_vector(v3 out, Sphere a, Sphere b)
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
 typedef struct Rect Rect;
-
 struct Rect
 {
     v2  min;
     v2  max;
 };
 
-inline b32 rect_contains(Rect rect, const v2 pos)
+inline b32
+rect_contains(Rect rect, const v2 pos)
 {
     if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
     if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
@@ -1396,10 +1394,71 @@ rect_move(Rect rect, const v2 offset)
     return rect;
 }
 
+// ---------------------------------------- RECTANGLE - INT ------------------------------------- //
+
+typedef struct RectInt RectInt;
+struct RectInt
+{
+    v2i  min;
+    v2i  max;
+};
+
+inline b32
+recti_contains(RectInt rect, const v2 pos)
+{
+    if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
+    if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
+
+    return true;
+}
+
+inline b32
+recti_intersect(RectInt a, RectInt b)
+{
+    if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
+    if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
+
+    return true;
+}
+
+inline RectInt
+recti_get_overlap(RectInt a, RectInt b)
+{
+    RectInt rect;
+
+    v2i_max(rect.min, a.min, b.min);
+    v2i_min(rect.max, a.max, b.max);
+
+    return rect;
+}
+
+inline void
+recti_get_intersect_vector(v2 out, RectInt a, RectInt b)
+{
+    RectInt o = recti_get_overlap(a, b);
+
+    f32 dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
+    f32 dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
+
+    out[0] = sign(dx) * (o.max[0] - o.min[0]);
+    out[1] = sign(dy) * (o.max[1] - o.min[1]);
+}
+
+inline RectInt
+recti_move(RectInt rect, const v2 offset)
+{
+    rect.min[0] += offset[0];
+    rect.min[1] += offset[1];
+
+    rect.max[0] += offset[0];
+    rect.max[1] += offset[1];
+
+    return rect;
+}
+
 // ----------------------------------------- BOX --------------------------------------- //
 
 typedef struct Box Box;
-
 struct Box
 {
     v3  min;
@@ -2230,7 +2289,8 @@ enum MouseMode
 
 // ===========================================================  PLATFORM =================================================== //
 
-typedef struct
+typedef struct Platform Platform;
+struct Platform
 {
     b32     close;
 
@@ -2284,7 +2344,7 @@ typedef struct
     } keyboard;
 
     Gamepad gamepad[JOYSTICK_LAST];
-} Platform;
+};
 
 static Platform platform;
 
