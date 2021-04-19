@@ -1749,6 +1749,82 @@ hash_mem(const void* ptr, u32 size)
     return hash + (hash >> 16);
 }
 
+// ========================================= PRIORITY QUEUE =================================== //
+
+typedef struct QueueNode QueueNode;
+struct QueueNode
+{
+    f32     weight;
+    v2i     e;
+};
+
+typedef struct PriorityQueue PriorityQueue;
+struct PriorityQueue
+{
+    i32         len;
+    QueueNode*  array;
+};
+
+inline b32
+queue_empty(const PriorityQueue* queue)
+{
+    return queue->len == 0;
+}
+
+inline void
+queue_clear(PriorityQueue* queue)
+{
+    queue->len = 0;
+}
+
+inline void
+queue_push(PriorityQueue* queue, const v2i e, f32 weight)
+{
+    QueueNode node = { weight, e[0], e[1] };
+
+    int i = queue->len + 1;
+    int j = i / 2;
+
+    while (i > 1 && queue->array[j].weight > node.weight)
+    {
+        queue->array[i] = queue->array[j];
+
+        i = j;
+        j = j / 2;
+    }
+
+    queue->array[i] = node;
+    queue->len++;
+}
+
+inline void
+queue_pop(v2i out, PriorityQueue* queue)
+{
+    QueueNode data = queue->array[1];
+
+    queue->array[1] = queue->array[queue->len];
+    queue->len--;
+
+    int i = 1;
+    while (i != queue->len + 1)
+    {
+        int k = queue->len + 1;
+        int j = 2 * i;
+
+        if (j <= queue->len && queue->array[j].weight < queue->array[k].weight)
+            k = j;
+
+        if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight)
+            k = j + 1;
+
+        queue->array[i] = queue->array[k];
+        i = k;
+    }
+
+    out[0] = data.e[0];
+    out[1] = data.e[1];
+}
+
 // ==================================== FILES ==================================== //
 
 inline size_t
