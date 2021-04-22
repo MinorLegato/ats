@@ -1797,7 +1797,7 @@ queue_push(PriorityQueue* queue, const v2i e, f32 weight)
     queue->len++;
 }
 
-inline void
+inline f32
 queue_pop(v2i out, PriorityQueue* queue)
 {
     QueueNode data = queue->array[1];
@@ -1823,6 +1823,8 @@ queue_pop(v2i out, PriorityQueue* queue)
 
     out[0] = data.e[0];
     out[1] = data.e[1];
+
+    return data.weight;
 }
 
 // ==================================== FILES ==================================== //
