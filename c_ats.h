@@ -79,7 +79,7 @@ typedef f32 m2[4];
 typedef f32 m3[9];
 typedef f32 m4[16];
 
-typedef f32 Quat[4];
+typedef f32 quat_t[4];
 
 #define V2(...)     ((v2) { __VA_ARGS__ })
 #define V3(...)     ((v3) { __VA_ARGS__ })
@@ -666,7 +666,7 @@ m3_euler(m3 out, f32 yaw, f32 pitch, f32 roll)
 }
 
 inline void
-m3_from_quat(m3 out, const Quat quat)
+m3_from_quat(m3 out, const quat_t quat)
 {
     f32 a = quat[3];
 	f32 b = quat[0];
@@ -1072,7 +1072,7 @@ m4_look_at(m4 out, const v3 eye, const v3 center, const v3 up)
 }
 
 inline void
-m4_from_quat(m4 out, const Quat q)
+m4_from_quat(m4 out, const quat_t q)
 {
     f32 a = q[3];
 	f32 b = q[0];
@@ -1148,9 +1148,9 @@ m4_invert(m4 out, const m4 M)
     out[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-// Quat:
+// quat_t:
 inline void
-quat_identity(Quat out)
+quat_identity(quat_t out)
 {
     out[0] = 0.0f;
     out[1] = 0.0f;
@@ -1159,7 +1159,7 @@ quat_identity(Quat out)
 }
 
 inline void
-quat_make(Quat out, f32 x, f32 y, f32 z, f32 angle)
+quat_make(quat_t out, f32 x, f32 y, f32 z, f32 angle)
 {
     f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
     f32 s       = inv_len * sin(angle / 2.0f);
@@ -1171,7 +1171,7 @@ quat_make(Quat out, f32 x, f32 y, f32 z, f32 angle)
 }
 
 inline void
-quat_conj(Quat out, const Quat q)
+quat_conj(quat_t out, const quat_t q)
 {
     out[0] = -q[0];
     out[1] = -q[1];
@@ -1180,7 +1180,7 @@ quat_conj(Quat out, const Quat q)
 }
 
 inline void
-quat_mul(Quat out, const Quat a, const Quat b)
+quat_mul(quat_t out, const quat_t a, const quat_t b)
 {
     out[0] = a[1] * b[2] - a[2] * b[1] + a[3] * b[0] + b[3] * a[0];
     out[1] = a[2] * b[0] - a[0] * b[2] + a[3] * b[1] + b[3] * a[1];
@@ -1189,7 +1189,7 @@ quat_mul(Quat out, const Quat a, const Quat b)
 }
 
 inline void
-quat_rotate(Quat out, const v3 axis, f32 angle)
+quat_rotate(quat_t out, const v3 axis, f32 angle)
 {
     f32 s   = sinf(0.5f * angle);
     v3  v   = { s * axis[0], s * axis[1], s * axis[2] };
@@ -1263,15 +1263,15 @@ v3i_dist_sq(const v2i a, const v2i b)
 
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
-typedef struct Circle Circle;
-struct Circle
+typedef struct circle_t circle_t;
+struct circle_t
 {
     v3      pos;
     f32     rad;
 };
 
 inline b32
-circle_intersect(Circle a, Circle b)
+circle_intersect(circle_t a, circle_t b)
 {
     f32 dx  = b.pos[0] - a.pos[0];
     f32 dy  = b.pos[1] - a.pos[1];
@@ -1281,7 +1281,7 @@ circle_intersect(Circle a, Circle b)
 };
 
 inline void
-circle_get_intersect_vector(v2 out, Circle a, Circle b)
+circle_get_intersect_vector(v2 out, circle_t a, circle_t b)
 {
     v2 delta =
     {
@@ -1297,15 +1297,15 @@ circle_get_intersect_vector(v2 out, Circle a, Circle b)
 
 // --------------------------------------- SHPERE ------------------------------------ //
 
-typedef struct Sphere Sphere;
-struct Sphere
+typedef struct sphere_t sphere_t;
+struct sphere_t
 {
     v3      pos;
     f32     rad;
 };
 
 inline b32
-sphere_intersect(Sphere a, Sphere b)
+sphere_intersect(sphere_t a, sphere_t b)
 {
     f32 dx  = b.pos[0] - a.pos[0];
     f32 dy  = b.pos[1] - a.pos[1];
@@ -1317,7 +1317,7 @@ sphere_intersect(Sphere a, Sphere b)
 };
 
 inline void
-sphere_get_intersect_vector(v3 out, Sphere a, Sphere b)
+sphere_get_intersect_vector(v3 out, sphere_t a, sphere_t b)
 {
     v3 delta =
     {
@@ -1335,15 +1335,15 @@ sphere_get_intersect_vector(v3 out, Sphere a, Sphere b)
 
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
-typedef struct Rect Rect;
-struct Rect
+typedef struct rect_t rect_t;
+struct rect_t
 {
     v2  min;
     v2  max;
 };
 
 inline b32
-rect_contains(Rect rect, const v2 pos)
+rect_contains(rect_t rect, const v2 pos)
 {
     if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
     if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
@@ -1352,7 +1352,7 @@ rect_contains(Rect rect, const v2 pos)
 }
 
 inline b32
-rect_intersect(Rect a, Rect b)
+rect_intersect(rect_t a, rect_t b)
 {
     if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
     if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
@@ -1360,10 +1360,10 @@ rect_intersect(Rect a, Rect b)
     return true;
 }
 
-inline Rect
-rect_get_overlap(Rect a, Rect b)
+inline rect_t
+rect_get_overlap(rect_t a, rect_t b)
 {
-    Rect rect;
+    rect_t rect;
 
     v2_max(rect.min, a.min, b.min);
     v2_min(rect.max, a.max, b.max);
@@ -1372,9 +1372,9 @@ rect_get_overlap(Rect a, Rect b)
 }
 
 inline void
-rect_get_intersect_vector(v2 out, Rect a, Rect b)
+rect_get_intersect_vector(v2 out, rect_t a, rect_t b)
 {
-    Rect    o   = rect_get_overlap(a, b);
+    rect_t    o   = rect_get_overlap(a, b);
     f32     dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
     f32     dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
 
@@ -1382,8 +1382,8 @@ rect_get_intersect_vector(v2 out, Rect a, Rect b)
     out[1] = sign(dy) * (o.max[1] - o.min[1]);
 }
 
-inline Rect
-rect_move(Rect rect, const v2 offset)
+inline rect_t
+rect_move(rect_t rect, const v2 offset)
 {
     rect.min[0] += offset[0];
     rect.min[1] += offset[1];
@@ -1396,15 +1396,15 @@ rect_move(Rect rect, const v2 offset)
 
 // ---------------------------------------- RECTANGLE - INT ------------------------------------- //
 
-typedef struct RectInt RectInt;
-struct RectInt
+typedef struct rect_int_t rect_int_t;
+struct rect_int_t
 {
     v2i  min;
     v2i  max;
 };
 
 inline b32
-recti_contains(RectInt rect, const v2 pos)
+recti_contains(rect_int_t rect, const v2 pos)
 {
     if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
     if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
@@ -1413,7 +1413,7 @@ recti_contains(RectInt rect, const v2 pos)
 }
 
 inline b32
-recti_intersect(RectInt a, RectInt b)
+recti_intersect(rect_int_t a, rect_int_t b)
 {
     if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
     if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
@@ -1421,10 +1421,10 @@ recti_intersect(RectInt a, RectInt b)
     return true;
 }
 
-inline RectInt
-recti_get_overlap(RectInt a, RectInt b)
+inline rect_int_t
+recti_get_overlap(rect_int_t a, rect_int_t b)
 {
-    RectInt rect;
+    rect_int_t rect;
 
     v2i_max(rect.min, a.min, b.min);
     v2i_min(rect.max, a.max, b.max);
@@ -1433,9 +1433,9 @@ recti_get_overlap(RectInt a, RectInt b)
 }
 
 inline void
-recti_get_intersect_vector(v2 out, RectInt a, RectInt b)
+recti_get_intersect_vector(v2 out, rect_int_t a, rect_int_t b)
 {
-    RectInt o = recti_get_overlap(a, b);
+    rect_int_t o = recti_get_overlap(a, b);
 
     f32 dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
     f32 dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
@@ -1444,8 +1444,8 @@ recti_get_intersect_vector(v2 out, RectInt a, RectInt b)
     out[1] = sign(dy) * (o.max[1] - o.min[1]);
 }
 
-inline RectInt
-recti_move(RectInt rect, const v2 offset)
+inline rect_int_t
+recti_move(rect_int_t rect, const v2 offset)
 {
     rect.min[0] += offset[0];
     rect.min[1] += offset[1];
@@ -1458,15 +1458,15 @@ recti_move(RectInt rect, const v2 offset)
 
 // ----------------------------------------- BOX --------------------------------------- //
 
-typedef struct Box Box;
-struct Box
+typedef struct box_t box_t;
+struct box_t
 {
     v3  min;
     v3  max;
 };
 
 inline b32
-box_contains(Box rect, const v3 pos)
+box_contains(box_t rect, const v3 pos)
 {
     if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
     if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
@@ -1476,7 +1476,7 @@ box_contains(Box rect, const v3 pos)
 }
 
 inline b32
-box_intersect(Box a, Box b)
+box_intersect(box_t a, box_t b)
 {
     if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
     if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
@@ -1485,10 +1485,10 @@ box_intersect(Box a, Box b)
     return true;
 }
 
-inline Box
-box_get_overlap(Box a, Box b)
+inline box_t
+box_get_overlap(box_t a, box_t b)
 {
-    Box box;
+    box_t box;
 
     v2_max(box.min, a.min, b.min);
     v2_min(box.max, a.max, b.max);
@@ -1497,9 +1497,9 @@ box_get_overlap(Box a, Box b)
 }
 
 inline void
-box_get_intersect_vector(v3 out, Box a, Box b)
+box_get_intersect_vector(v3 out, box_t a, box_t b)
 {
-    Box o   = box_get_overlap(a, b);
+    box_t o   = box_get_overlap(a, b);
 
     f32 dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
     f32 dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
@@ -1510,8 +1510,8 @@ box_get_intersect_vector(v3 out, Box a, Box b)
     out[2] = sign(dz) * (o.max[2] - o.min[2]);
 }
 
-inline Box
-box_move(Box box, const v3 offset)
+inline box_t
+box_move(box_t box, const v3 offset)
 {
     box.min[0] += offset[0];
     box.min[1] += offset[1];
@@ -1526,8 +1526,8 @@ box_move(Box box, const v3 offset)
 
 // ----------------------------------------- FRUSTUM --------------------------------------- //
 
-typedef struct Plane Plane;
-struct Plane
+typedef struct plane_t plane_t;
+struct plane_t
 {
     f32     a;
     f32     b;
@@ -1535,8 +1535,8 @@ struct Plane
     f32     d;
 };
 
-inline Plane
-plane_normalize(Plane plane)
+inline plane_t
+plane_normalize(plane_t plane)
 {
     f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
@@ -1548,16 +1548,16 @@ plane_normalize(Plane plane)
     return plane;
 }
 
-typedef struct Frustum Frustum;
-struct Frustum
+typedef struct frustum_t frustum_t;
+struct frustum_t
 {
-    Plane   plane[6];
+    plane_t   plane[6];
 };
 
-inline Frustum
+inline frustum_t
 frustum_create(const m4 matrix, bool normalize)
 {
-    Frustum frustum = {0};
+    frustum_t frustum = {0};
 
     // left clipping plane
     frustum.plane[0].a = matrix[3]  + matrix[0];
@@ -1609,7 +1609,7 @@ frustum_create(const m4 matrix, bool normalize)
 }
 
 inline b32
-frustum_contains(Frustum frustum, const v3 pos)
+frustum_contains(frustum_t frustum, const v3 pos)
 {
     for(i32 i = 0; i < 6; i++)
     {
@@ -1621,7 +1621,7 @@ frustum_contains(Frustum frustum, const v3 pos)
 }
 
 inline b32
-frustum_intersect_sphere(Frustum frustum, Sphere sphere)
+frustum_intersect_sphere(frustum_t frustum, sphere_t sphere)
 {
     for(i32 i = 0; i < 6; i++)
     {
@@ -1634,7 +1634,7 @@ frustum_intersect_sphere(Frustum frustum, Sphere sphere)
 }
 
 inline b32
-frustum_intersect_box(Frustum frustum, Box box)
+frustum_intersect_box(frustum_t frustum, box_t box)
 {
     for (int i = 0; i < 6; i++)
     {
@@ -2313,7 +2313,8 @@ f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64
 
 // ==================================================================== GAMEPAD ===================================================== //
 
-typedef union
+typedef struct gamepad_buttons_t gamepad_buttons_t;
+union gamepad_buttons_t
 {
     struct
     {
@@ -2339,9 +2340,10 @@ typedef union
     } button;
 
     u32 data;
-} Gamepad_Buttons;
+};
 
-typedef struct
+typedef struct gamepad_t gamepad_t;
+struct gamepad_t
 {
     b32     active;
 
@@ -2351,14 +2353,14 @@ typedef struct
     f32     LT;
     f32     RT;
 
-    Gamepad_Buttons  state;
-    Gamepad_Buttons  pressed;
-    Gamepad_Buttons  released;
-} Gamepad;
+    gamepad_buttons_t  state;
+    gamepad_buttons_t  pressed;
+    gamepad_buttons_t  released;
+};
 
 // =========================================================== MOUSE MODES ================================================= //
 
-enum MouseMode
+enum
 {
     MOUSE_NORMAL,
     MOUSE_HIDDEN,
@@ -2367,8 +2369,8 @@ enum MouseMode
 
 // ===========================================================  PLATFORM =================================================== //
 
-typedef struct Platform Platform;
-struct Platform
+typedef struct platform_t platform_t;
+struct platform_t
 {
     b32     close;
 
@@ -2421,12 +2423,12 @@ struct Platform
         b8      released[KEY_LAST + 1];
     } keyboard;
 
-    Gamepad gamepad[JOYSTICK_LAST];
+    gamepad_t gamepad[JOYSTICK_LAST];
 };
 
-static Platform platform;
+global platform_t platform;
 
-static struct
+global struct
 {
     GLFWwindow*     window;
     GLFWmonitor*    monitor;
@@ -2632,7 +2634,7 @@ platform_update(void)
         {
             if (platform.gamepad[i].active)
             {
-                Gamepad_Buttons old = platform.gamepad[i].state;
+                gamepad_buttons_t old = platform.gamepad[i].state;
 
                 platform.gamepad[i].state.data = 0;
                 platform.gamepad[i].pressed.data = 0;
