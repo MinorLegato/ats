@@ -1727,7 +1727,7 @@ hash_u32(u32 a)
 }
 
 inline u32
-hash_cstr(const char* str)
+hash_str(const char* str)
 {
     u32 hash = 0;
 
@@ -1751,36 +1751,36 @@ hash_mem(const void* ptr, u32 size)
 
 // ========================================= PRIORITY QUEUE =================================== //
 
-typedef struct QueueNode QueueNode;
-struct QueueNode
+typedef struct queue_node_t queue_node_t;
+struct queue_node_t
 {
     f32     weight;
     v2i     e;
 };
 
-typedef struct PriorityQueue PriorityQueue;
-struct PriorityQueue
+typedef struct priority_queue_t priority_queue_t;
+struct priority_queue_t
 {
-    i32         len;
-    QueueNode*  array;
+    i32             len;
+    queue_node_t*   array;
 };
 
 inline b32
-queue_empty(const PriorityQueue* queue)
+queue_empty(const priority_queue_t* queue)
 {
     return queue->len == 0;
 }
 
 inline void
-queue_clear(PriorityQueue* queue)
+queue_clear(priority_queue_t* queue)
 {
     queue->len = 0;
 }
 
 inline void
-queue_push(PriorityQueue* queue, const v2i e, f32 weight)
+queue_push(priority_queue_t* queue, const v2i e, f32 weight)
 {
-    QueueNode node = { weight, e[0], e[1] };
+    queue_node_t node = { weight, e[0], e[1] };
 
     int i = queue->len + 1;
     int j = i / 2;
@@ -1798,9 +1798,9 @@ queue_push(PriorityQueue* queue, const v2i e, f32 weight)
 }
 
 inline f32
-queue_pop(v2i out, PriorityQueue* queue)
+queue_pop(v2i out, priority_queue_t* queue)
 {
-    QueueNode data = queue->array[1];
+    queue_node_t data = queue->array[1];
 
     queue->array[1] = queue->array[queue->len];
     queue->len--;
@@ -1840,7 +1840,7 @@ file_get_size(FILE* fp)
 }
 
 inline char*
-file_read_cstr(const char* file_name)
+file_read_str(const char* file_name)
 {
     FILE *fp      = NULL;
     char *buffer  = NULL;
@@ -1868,7 +1868,7 @@ file_read_cstr(const char* file_name)
 }
 
 inline b32
-file_write_cstr(const char* file_name, const char* buffer)
+file_write_str(const char* file_name, const char* buffer)
 {
     FILE *fp = NULL;
 
@@ -2100,8 +2100,6 @@ f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64
 // ================================================ PLATFORM ============================================= //
 
 #ifdef ATS_PLATFORM_GLFW
-
-#include <windows.h>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #pragma comment(lib, "glfw3.lib")
@@ -2369,8 +2367,7 @@ enum
 
 // ===========================================================  PLATFORM =================================================== //
 
-typedef struct platform_t platform_t;
-struct platform_t
+global struct
 {
     b32     close;
 
@@ -2424,9 +2421,7 @@ struct platform_t
     } keyboard;
 
     gamepad_t gamepad[JOYSTICK_LAST];
-};
-
-global platform_t platform;
+} platform;
 
 global struct
 {
@@ -2434,7 +2429,7 @@ global struct
     GLFWmonitor*    monitor;
 } platform_internal;
 
-void
+internal void
 window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
 {
     (void)window;
@@ -2466,14 +2461,14 @@ window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
     }
 }
 
-void
+internal void
 window_char_callback(GLFWwindow* window, unsigned int codepoint)
 {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-void
+internal void
 window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
 {
     (void)window;
@@ -2496,7 +2491,7 @@ window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
     }
 }
 
-void
+internal void
 window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     (void)window;
@@ -2505,16 +2500,17 @@ window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     platform.mouse.scroll[1] = yoffset;
 }
 
-void
+internal void
 window_joystick_callback(int joy, int event)
 {
-    if (event == GLFW_CONNECTED) {
+    if (event == GLFW_CONNECTED)
+    {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
-
         platform.gamepad[joy].active = 1;
     }
 
-    if (event == GLFW_DISCONNECTED) {
+    if (event == GLFW_DISCONNECTED)
+    {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     }
 }
@@ -2580,6 +2576,12 @@ platform_init(const char* title, int width, int height, int samples)
     }
 
     glfwSetTime(0.0);
+
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glfwSwapBuffers(platform_internal.window);
+    glfwPollEvents();
 }
 
 void
@@ -2784,6 +2786,20 @@ shader_load_from_memory(const char *vs, const char *fs)
     return program;
 }
 
+inline u32
+shader_load_from_file(const char *vs, const char *fs)
+{
+    char* vs_content = file_read_str(vs);
+    char* fs_content = file_read_str(fs);
+
+    u32 program = shader_load_from_memory(vs_content, fs_content);
+
+    free(vs_content);
+    free(fs_content);
+
+    return program;
+}
+
 #endif // ATS_MODERN_OPENGL
 
 // ======================================= TEXTURES ======================================== //
@@ -2905,7 +2921,9 @@ texture_bind(const Texture *texture)
     glLoadIdentity();
     glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
 
+#ifndef ATS_MODERN_OPENGL
     glMatrixMode(GL_MODELVIEW);
+#endif
 }
 
 inline void
