@@ -89,6 +89,13 @@ union v3
         f32     z;
     };
 
+    struct
+    {
+        f32     r;
+        f32     g;
+        f32     b;
+    };
+
     f32 e[3];
 };
 
@@ -101,6 +108,14 @@ union v4
         f32     y;
         f32     z;
         f32     w;
+    };
+
+    struct
+    {
+        f32     r;
+        f32     g;
+        f32     b;
+        f32     a;
     };
 
     f32 e[4];
@@ -1054,191 +1069,187 @@ m4_look_at(v3 eye, v3 center, v3 up)
     return m;
 }
 
-#if 0
-inline void
-m4_from_quat(m4 out, const quat_t q)
+inline m4
+m4_from_quat(quat_t q)
 {
-    f32 a = q[3];
-	f32 b = q[0];
-	f32 c = q[1];
-	f32 d = q[2];
+    f32 a = q.w;
+	f32 b = q.x;
+	f32 c = q.y;
+	f32 d = q.z;
 
 	f32 a2 = a * a;
 	f32 b2 = b * b;
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    out[0]  = a2 + b2 - c2 - d2;
-    out[1]  = 2.0f * (b * c + a * d);
-    out[2]  = 2.0f * (b * d - a * c);
-    out[3]  = 0.f;
-
-    out[4]  = 2.0f * (b * c - a * d);
-    out[5]  = a2 - b2 + c2 - d2;
-    out[6]  = 2.0f * (c * d + a * b);
-    out[7]  = 0.f,
-
-    out[8]  = 2.0f * (b * d + a * c);
-    out[9]  = 2.0f * (c * d - a * b);
-    out[10] = a2 - b2 - c2 + d2;
-    out[11] = 0.0f;
-
-    out[12] = 0.0f;
-    out[13] = 0.0f;
-    out[14] = 0.0f;
-    out[15] = 1.0f;
+    return (m4)
+    {
+        a2 + b2 - c2 - d2,      2  * (b * c + a * d),   2  * (b * d - a * c),   0,
+        2  * (b * c - a * d),   a2 - b2 + c2 - d2,      2  * (c * d + a * b),   0,
+        2  * (b * d + a * c),   2  * (c * d - a * b),   a2 - b2 - c2 + d2,      0,
+        0,                      0,                      0,                      1,
+    };
 }
 
-inline void
-m4_invert(m4 out, const m4 M)
+inline m4
+m4_invert(m4 m)
 {
 	f32 s[6], c[6];
 
-	s[0] = M[0] * M[5] - M[4] * M[1];
-	s[1] = M[0] * M[6] - M[4] * M[2];
-	s[2] = M[0] * M[7] - M[4] * M[3];
-	s[3] = M[1] * M[6] - M[5] * M[2];
-	s[4] = M[1] * M[7] - M[5] * M[3];
-	s[5] = M[2] * M[7] - M[6] * M[3];
+	s[0] = m.e[0] * m.e[5] - m.e[4] * m.e[1];
+	s[1] = m.e[0] * m.e[6] - m.e[4] * m.e[2];
+	s[2] = m.e[0] * m.e[7] - m.e[4] * m.e[3];
+	s[3] = m.e[1] * m.e[6] - m.e[5] * m.e[2];
+	s[4] = m.e[1] * m.e[7] - m.e[5] * m.e[3];
+	s[5] = m.e[2] * m.e[7] - m.e[6] * m.e[3];
 
-	c[0] = M[8]  * M[13] - M[12] * M[9];
-	c[1] = M[8]  * M[14] - M[12] * M[10];
-	c[2] = M[8]  * M[15] - M[12] * M[11];
-	c[3] = M[9]  * M[14] - M[13] * M[10];
-	c[4] = M[9]  * M[15] - M[13] * M[11];
-	c[5] = M[10] * M[15] - M[14] * M[11];
+	c[0] = m.e[8]  * m.e[13] - m.e[12] * m.e[9];
+	c[1] = m.e[8]  * m.e[14] - m.e[12] * m.e[10];
+	c[2] = m.e[8]  * m.e[15] - m.e[12] * m.e[11];
+	c[3] = m.e[9]  * m.e[14] - m.e[13] * m.e[10];
+	c[4] = m.e[9]  * m.e[15] - m.e[13] * m.e[11];
+	c[5] = m.e[10] * m.e[15] - m.e[14] * m.e[11];
 	
 	// assumes it is invertible
 	f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-    out[0]  = ( M[5]  * c[5] - M[6]  * c[4] + M[7]  * c[3]) * idet;
-    out[1]  = (-M[1]  * c[5] + M[2]  * c[4] - M[3]  * c[3]) * idet;
-    out[2]  = ( M[13] * s[5] - M[14] * s[4] + M[15] * s[3]) * idet;
-    out[3]  = (-M[9]  * s[5] + M[10] * s[4] - M[11] * s[3]) * idet;
+    return (m4)
+    {
+        ( m.e[5]  * c[5] - m.e[6]  * c[4] + m.e[7]  * c[3]) * idet,
+        (-m.e[1]  * c[5] + m.e[2]  * c[4] - m.e[3]  * c[3]) * idet,
+        ( m.e[13] * s[5] - m.e[14] * s[4] + m.e[15] * s[3]) * idet,
+        (-m.e[9]  * s[5] + m.e[10] * s[4] - m.e[11] * s[3]) * idet,
 
-    out[4]  = (-M[4]  * c[5] + M[6]  * c[2] - M[7]  * c[1]) * idet;
-    out[5]  = ( M[0]  * c[5] - M[2]  * c[2] + M[3]  * c[1]) * idet;
-    out[6]  = (-M[12] * s[5] + M[14] * s[2] - M[15] * s[1]) * idet;
-    out[7]  = ( M[8]  * s[5] - M[10] * s[2] + M[11] * s[1]) * idet;
+        (-m.e[4]  * c[5] + m.e[6]  * c[2] - m.e[7]  * c[1]) * idet,
+        ( m.e[0]  * c[5] - m.e[2]  * c[2] + m.e[3]  * c[1]) * idet,
+        (-m.e[12] * s[5] + m.e[14] * s[2] - m.e[15] * s[1]) * idet,
+        ( m.e[8]  * s[5] - m.e[10] * s[2] + m.e[11] * s[1]) * idet,
 
-    out[8]  = ( M[4]  * c[4] - M[5]  * c[2] + M[7]  * c[0]) * idet;
-    out[9]  = (-M[0]  * c[4] + M[1]  * c[2] - M[3]  * c[0]) * idet;
-    out[10] = ( M[12] * s[4] - M[13] * s[2] + M[15] * s[0]) * idet;
-    out[11] = (-M[8]  * s[4] + M[9]  * s[2] - M[11] * s[0]) * idet;
+        ( m.e[4]  * c[4] - m.e[5]  * c[2] + m.e[7]  * c[0]) * idet,
+        (-m.e[0]  * c[4] + m.e[1]  * c[2] - m.e[3]  * c[0]) * idet,
+        ( m.e[12] * s[4] - m.e[13] * s[2] + m.e[15] * s[0]) * idet,
+        (-m.e[8]  * s[4] + m.e[9]  * s[2] - m.e[11] * s[0]) * idet,
 
-    out[12] = (-M[4]  * c[3] + M[5]  * c[1] - M[6]  * c[0]) * idet;
-    out[13] = ( M[0]  * c[3] - M[1]  * c[1] + M[2]  * c[0]) * idet;
-    out[14] = (-M[12] * s[3] + M[13] * s[1] - M[14] * s[0]) * idet;
-    out[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
+        (-m.e[4]  * c[3] + m.e[5]  * c[1] - m.e[6]  * c[0]) * idet,
+        ( m.e[0]  * c[3] - m.e[1]  * c[1] + m.e[2]  * c[0]) * idet,
+        (-m.e[12] * s[3] + m.e[13] * s[1] - m.e[14] * s[0]) * idet,
+        ( m.e[8]  * s[3] - m.e[9]  * s[1] + m.e[10] * s[0]) * idet,
+    };
 }
 
 // quat_t:
-inline void
-quat_identity(quat_t out)
+inline quat_t
+quat_identity(void)
 {
-    out[0] = 0.0f;
-    out[1] = 0.0f;
-    out[2] = 0.0f;
-    out[3] = 1.0f;
+    return (quat_t) { 0, 0, 0, 1 };
 }
 
-inline void
-quat_make(quat_t out, f32 x, f32 y, f32 z, f32 angle)
+inline quat_t
+quat_make(f32 x, f32 y, f32 z, f32 angle)
 {
     f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
     f32 s       = inv_len * sin(angle / 2.0f);
 
-    out[0] = x * s;
-    out[1] = y * s;
-    out[2] = z * s;
-    out[3] = cosf(angle / 2.0f);
+    return (quat_t)
+    {
+        x * s,
+        y * s,
+        z * s,
+        cosf(angle / 2.0f),
+    };
 }
 
-inline void
-quat_conj(quat_t out, const quat_t q)
+inline quat_t
+quat_conj(quat_t q)
 {
-    out[0] = -q[0];
-    out[1] = -q[1];
-    out[2] = -q[2];
-    out[3] =  q[3];
+    return (quat_t) { -q.x, -q.y, -q.z, q.w };
 }
 
-inline void
-quat_mul(quat_t out, const quat_t a, const quat_t b)
+inline quat_t
+quat_mul(quat_t a, quat_t b)
 {
-    out[0] = a[1] * b[2] - a[2] * b[1] + a[3] * b[0] + b[3] * a[0];
-    out[1] = a[2] * b[0] - a[0] * b[2] + a[3] * b[1] + b[3] * a[1];
-    out[2] = a[0] * b[1] - a[1] * b[0] + a[3] * b[2] + b[3] * a[2];
-    out[3] = a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2];
+    return (quat_t)
+    {
+        a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
+        a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
+        a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
+        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+    };
 }
 
-inline void
-quat_rotate(quat_t out, const v3 axis, f32 angle)
+inline quat_t
+quat_rotate(v3 axis, f32 angle)
 {
-    f32 s   = sinf(0.5f * angle);
-    v3  v   = { s * axis[0], s * axis[1], s * axis[2] };
+    f32 s = sinf(0.5f * angle);
+    v3  v = { s * axis.x, s * axis.y, s * axis.z };
 
-    out[0] = v[0];
-    out[1] = v[1];
-    out[2] = v[2];
-    out[3] = cosf(0.5f * angle);
+    return (quat_t) { v.x, v.y, v.z, cosf(0.5f * angle) };
 }
 
 // --------------------- v2i ------------------------- // 
 
 inline b32
-v2i_equal(const v2i a, const v2i b)
+v2i_equal(v2i a, v2i b)
 {
-    return a[0] == b[0] && a[1] == b[1];
+    return a.x == b.x && a.y == b.y;
 }
 
 inline i32
-v2i_dist_sq(const v2i a, const v2i b)
+v2i_dist_sq(v2i a, v2i b)
 {
-    i32 dx = a[0] - b[0];
-    i32 dy = a[1] - b[1];
+    i32 dx = a.x - b.x;
+    i32 dy = a.y - b.y;
 
     return dx * dx + dy * dy;
 }
 
 inline i32
-v2i_manhattan(const v2i a, const v2i b)
+v2i_manhattan(v2i a, v2i b)
 {
-    i32 dx = abs(a[0] - b[0]);
-    i32 dy = abs(a[1] - b[1]);
+    i32 dx = abs(a.x - b.x);
+    i32 dy = abs(a.y - b.y);
 
     return dx + dy;
 }
 
-inline void
-v2i_clamp(v2i out, const v2i a, i32 min, i32 max)
+inline v2i
+v2i_clamp(v2i a, i32 min, i32 max)
 {
-    out[0] = clamp(a[0], min, max);
-    out[1] = clamp(a[1], min, max);
+    return (v2i)
+    {
+        clamp(a.x, min, max),
+        clamp(a.y, min, max),
+    };
 }
 
-inline void
-v2i_min(v2i out, const v2i a, const v2i b)
+inline v2i
+v2i_min(v2i a, v2i b)
 {
-    out[0] = (a[0] < b[0]? a[0] : b[0]);
-    out[1] = (a[1] < b[1]? a[1] : b[1]);
+    return (v2i)
+    {
+        a.x < b.x? a.x : b.x,
+        a.y < b.y? a.y : b.y,
+    };
 }
 
-inline void
-v2i_max(v2i out, const v2i a, const v2i b)
+inline v2i
+v2i_max(v2i a, v2i b)
 {
-    out[0] = (a[0] > b[0]? a[0] : b[0]);
-    out[1] = (a[1] > b[1]? a[1] : b[1]);
+    return (v2i)
+    {
+        a.x > b.x? a.x : b.x,
+        a.y > b.y? a.y : b.y,
+    };
 }
 
 // --------------------- v3i ------------------------- // 
 
 inline i32
-v3i_dist_sq(const v2i a, const v2i b)
+v3i_dist_sq(v3i a, v3i b)
 {
-    i32 dx = a[0] - b[0];
-    i32 dy = a[1] - b[1];
-    i32 dz = a[2] - b[2];
+    i32 dx = a.x - b.x;
+    i32 dy = a.y - b.y;
+    i32 dz = a.z - b.z;
 
     return dx * dx + dy * dy + dz * dz;
 }
@@ -1257,26 +1268,24 @@ struct circle_t
 inline b32
 circle_intersect(circle_t a, circle_t b)
 {
-    f32 dx  = b.pos[0] - a.pos[0];
-    f32 dy  = b.pos[1] - a.pos[1];
+    f32 dx  = b.pos.x - a.pos.x;
+    f32 dy  = b.pos.y - a.pos.y;
     f32 rt  = a.rad + b.rad;
 
     return dx * dx + dy * dy < rt * rt;
 };
 
-inline void
-circle_get_intersect_vector(v2 out, circle_t a, circle_t b)
+inline v2
+circle_get_intersect_vector(circle_t a, circle_t b)
 {
-    v2 delta =
-    {
-        a.pos[0] - b.pos[0],
-        a.pos[1] - b.pos[1]
-    };
-
+    v2  delta = { a.pos.x - b.pos.x, a.pos.y - b.pos.y };
     f32 depth = v2_len(delta) - (a.rad + b.rad);
     
-    out[0]  = depth * delta[0];
-    out[1]  = depth * delta[1];
+    return (v2)
+    {
+        depth * delta.x,
+        depth * delta.y,
+    };
 }
 
 // --------------------------------------- SHPERE ------------------------------------ //
@@ -1291,30 +1300,27 @@ struct sphere_t
 inline b32
 sphere_intersect(sphere_t a, sphere_t b)
 {
-    f32 dx  = b.pos[0] - a.pos[0];
-    f32 dy  = b.pos[1] - a.pos[1];
-    f32 dz  = b.pos[2] - a.pos[2];
+    f32 dx  = b.pos.x - a.pos.x;
+    f32 dy  = b.pos.y - a.pos.y;
+    f32 dz  = b.pos.z - a.pos.z;
 
     f32 rt  = a.rad + b.rad;
 
     return dx * dx + dy * dy < rt * rt;
 };
 
-inline void
-sphere_get_intersect_vector(v3 out, sphere_t a, sphere_t b)
+inline v3
+sphere_get_intersect_vector(sphere_t a, sphere_t b)
 {
-    v3 delta =
-    {
-        b.pos[0] - a.pos[0],
-        b.pos[1] - a.pos[1],
-        b.pos[2] - a.pos[2],
-    };
-
+    v3 delta  = { b.pos.x - a.pos.x, b.pos.y - a.pos.y, b.pos.z - a.pos.z };
     f32 depth = v3_len(delta) - (a.rad + b.rad);
     
-    out[0] = depth * delta[0];
-    out[1] = depth * delta[1];
-    out[2] = depth * delta[2];
+    return (v3)
+    {
+        depth * delta.x,
+        depth * delta.y,
+        depth * delta.z,
+    };
 }
 
 // ---------------------------------------- RECTANGLE ------------------------------------- //
@@ -1327,10 +1333,10 @@ struct rect_t
 };
 
 inline b32
-rect_contains(rect_t rect, const v2 pos)
+rect_contains(rect_t rect, v2 pos)
 {
-    if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
-    if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
 
     return true;
 }
@@ -1338,8 +1344,8 @@ rect_contains(rect_t rect, const v2 pos)
 inline b32
 rect_intersect(rect_t a, rect_t b)
 {
-    if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
-    if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
     return true;
 }
@@ -1347,35 +1353,37 @@ rect_intersect(rect_t a, rect_t b)
 inline rect_t
 rect_get_overlap(rect_t a, rect_t b)
 {
-    rect_t rect;
-
-    v2_max(rect.min, a.min, b.min);
-    v2_min(rect.max, a.max, b.max);
-
-    return rect;
+    return (rect_t)
+    {
+        v2_max(a.min, b.min),
+        v2_min(a.max, b.max),
+    };
 }
 
-inline void
-rect_get_intersect_vector(v2 out, rect_t a, rect_t b)
+inline v2
+rect_get_intersect_vector(rect_t a, rect_t b)
 {
-    rect_t    o   = rect_get_overlap(a, b);
-    f32     dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
-    f32     dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
+    rect_t  o   = rect_get_overlap(a, b);
+    f32     dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
+    f32     dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
 
-    out[0] = sign(dx) * (o.max[0] - o.min[0]);
-    out[1] = sign(dy) * (o.max[1] - o.min[1]);
+    return (v2)
+    {
+        sign(dx) * (o.max.x - o.min.x),
+        sign(dy) * (o.max.y - o.min.y),
+    };
 }
 
 inline rect_t
-rect_move(rect_t rect, const v2 offset)
+rect_move(rect_t rect, v2 offset)
 {
-    rect.min[0] += offset[0];
-    rect.min[1] += offset[1];
-
-    rect.max[0] += offset[0];
-    rect.max[1] += offset[1];
-
-    return rect;
+    return (rect_t)
+    {
+        rect.min.x + offset.x,
+        rect.min.y + offset.y,
+        rect.max.x + offset.x,
+        rect.max.y + offset.y,
+    };
 }
 
 // ---------------------------------------- RECTANGLE - INT ------------------------------------- //
@@ -1388,56 +1396,57 @@ struct rect_int_t
 };
 
 inline b32
-recti_contains(rect_int_t rect, const v2 pos)
+rect_int_contains(rect_int_t rect, v2i pos)
 {
-    if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
-    if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
 
     return true;
 }
 
 inline b32
-recti_intersect(rect_int_t a, rect_int_t b)
+rect_int_intersect(rect_int_t a, rect_int_t b)
 {
-    if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
-    if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
     return true;
 }
 
 inline rect_int_t
-recti_get_overlap(rect_int_t a, rect_int_t b)
+rect_int_get_overlap(rect_int_t a, rect_int_t b)
 {
-    rect_int_t rect;
-
-    v2i_max(rect.min, a.min, b.min);
-    v2i_min(rect.max, a.max, b.max);
-
-    return rect;
+    return (rect_int_t)
+    {
+        v2i_max(a.min, b.min),
+        v2i_min(a.max, b.max),
+    };
 }
 
-inline void
-recti_get_intersect_vector(v2 out, rect_int_t a, rect_int_t b)
+inline v2i
+rect_int_get_intersect_vector(rect_int_t a, rect_int_t b)
 {
-    rect_int_t o = recti_get_overlap(a, b);
+    rect_int_t  o   = rect_int_get_overlap(a, b);
+    f32     dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
+    f32     dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
 
-    f32 dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
-    f32 dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
-
-    out[0] = sign(dx) * (o.max[0] - o.min[0]);
-    out[1] = sign(dy) * (o.max[1] - o.min[1]);
+    return (v2i)
+    {
+        sign(dx) * (o.max.x - o.min.x),
+        sign(dy) * (o.max.y - o.min.y),
+    };
 }
 
 inline rect_int_t
-recti_move(rect_int_t rect, const v2 offset)
+rect_int_move(rect_int_t rect, v2i offset)
 {
-    rect.min[0] += offset[0];
-    rect.min[1] += offset[1];
-
-    rect.max[0] += offset[0];
-    rect.max[1] += offset[1];
-
-    return rect;
+    return (rect_int_t)
+    {
+        rect.min.x + offset.x,
+        rect.min.y + offset.y,
+        rect.max.x + offset.x,
+        rect.max.y + offset.y,
+    };
 }
 
 // ----------------------------------------- BOX --------------------------------------- //
@@ -1450,11 +1459,11 @@ struct box_t
 };
 
 inline b32
-box_contains(box_t rect, const v3 pos)
+box_contains(box_t rect, v3 pos)
 {
-    if (pos[0] < rect.min[0] || pos[0] > rect.max[0]) return false;
-    if (pos[1] < rect.min[1] || pos[1] > rect.max[1]) return false;
-    if (pos[2] < rect.min[2] || pos[2] > rect.max[2]) return false;
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+    if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
 
     return true;
 }
@@ -1462,9 +1471,9 @@ box_contains(box_t rect, const v3 pos)
 inline b32
 box_intersect(box_t a, box_t b)
 {
-    if (a.min[0] > b.max[0] || a.max[0] < b.min[0]) return false;
-    if (a.min[1] > b.max[1] || a.max[1] < b.min[1]) return false;
-    if (a.min[2] > b.max[2] || a.max[2] < b.min[2]) return false;
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+    if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
 
     return true;
 }
@@ -1472,40 +1481,42 @@ box_intersect(box_t a, box_t b)
 inline box_t
 box_get_overlap(box_t a, box_t b)
 {
-    box_t box;
-
-    v2_max(box.min, a.min, b.min);
-    v2_min(box.max, a.max, b.max);
-
-    return box;
+    return (box_t)
+    {
+        v3_max(a.min, b.min),
+        v3_min(a.max, b.max),
+    };
 }
 
-inline void
-box_get_intersect_vector(v3 out, box_t a, box_t b)
+inline v3
+box_get_intersect_vector(box_t a, box_t b)
 {
-    box_t o   = box_get_overlap(a, b);
+    box_t o = box_get_overlap(a, b);
+    f32 dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
+    f32 dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
+    f32 dz  = 0.5f * (a.min.z + a.max.z) - 0.5f * (b.min.z + b.max.z);
 
-    f32 dx  = 0.5f * (a.min[0] + a.max[0]) - 0.5f * (b.min[0] + b.max[0]);
-    f32 dy  = 0.5f * (a.min[1] + a.max[1]) - 0.5f * (b.min[1] + b.max[1]);
-    f32 dz  = 0.5f * (a.min[2] + a.max[2]) - 0.5f * (b.min[2] + b.max[2]);
-
-    out[0] = sign(dx) * (o.max[0] - o.min[0]);
-    out[1] = sign(dy) * (o.max[1] - o.min[1]);
-    out[2] = sign(dz) * (o.max[2] - o.min[2]);
+    return (v3)
+    {
+        sign(dx) * (o.max.x - o.min.x),
+        sign(dy) * (o.max.y - o.min.y),
+        sign(dz) * (o.max.z - o.min.z),
+    };
 }
 
 inline box_t
-box_move(box_t box, const v3 offset)
+box_move(box_t box, v3 offset)
 {
-    box.min[0] += offset[0];
-    box.min[1] += offset[1];
-    box.min[2] += offset[2];
+    return (box_t)
+    {
+        box.min.x + offset.x,
+        box.min.y + offset.y,
+        box.min.z + offset.z,
 
-    box.max[0] += offset[0];
-    box.max[1] += offset[1];
-    box.max[2] += offset[2];
-
-    return box;
+        box.max.x + offset.x,
+        box.max.y + offset.y,
+        box.max.z + offset.z,
+    };
 }
 
 // ----------------------------------------- FRUSTUM --------------------------------------- //
@@ -1539,45 +1550,45 @@ struct frustum_t
 };
 
 inline frustum_t
-frustum_create(const m4 matrix, bool normalize)
+frustum_create(m4 m, bool normalize)
 {
     frustum_t frustum = {0};
 
     // left clipping plane
-    frustum.plane[0].a = matrix[3]  + matrix[0];
-    frustum.plane[0].b = matrix[7]  + matrix[4];
-    frustum.plane[0].c = matrix[11] + matrix[8];
-    frustum.plane[0].d = matrix[15] + matrix[12];
+    frustum.plane[0].a = m.e[3]  + m.e[0];
+    frustum.plane[0].b = m.e[7]  + m.e[4];
+    frustum.plane[0].c = m.e[11] + m.e[8];
+    frustum.plane[0].d = m.e[15] + m.e[12];
 
     // right clipping plane
-    frustum.plane[1].a = matrix[3]  - matrix[0];
-    frustum.plane[1].b = matrix[7]  - matrix[4];
-    frustum.plane[1].c = matrix[11] - matrix[8];
-    frustum.plane[1].d = matrix[15] - matrix[12];
+    frustum.plane[1].a = m.e[3]  - m.e[0];
+    frustum.plane[1].b = m.e[7]  - m.e[4];
+    frustum.plane[1].c = m.e[11] - m.e[8];
+    frustum.plane[1].d = m.e[15] - m.e[12];
 
     // top clipping plane
-    frustum.plane[2].a = matrix[3]  - matrix[1];
-    frustum.plane[2].b = matrix[7]  - matrix[5];
-    frustum.plane[2].c = matrix[11] - matrix[9];
-    frustum.plane[2].d = matrix[15] - matrix[13];
+    frustum.plane[2].a = m.e[3]  - m.e[1];
+    frustum.plane[2].b = m.e[7]  - m.e[5];
+    frustum.plane[2].c = m.e[11] - m.e[9];
+    frustum.plane[2].d = m.e[15] - m.e[13];
 
     // bottom clipping plane
-    frustum.plane[3].a = matrix[3]  + matrix[1];
-    frustum.plane[3].b = matrix[7]  + matrix[5];
-    frustum.plane[3].c = matrix[11] + matrix[9];
-    frustum.plane[3].d = matrix[15] + matrix[13];
+    frustum.plane[3].a = m.e[3]  + m.e[1];
+    frustum.plane[3].b = m.e[7]  + m.e[5];
+    frustum.plane[3].c = m.e[11] + m.e[9];
+    frustum.plane[3].d = m.e[15] + m.e[13];
 
     // near clipping plane
-    frustum.plane[4].a = matrix[3]  + matrix[2];
-    frustum.plane[4].b = matrix[7]  + matrix[6];
-    frustum.plane[4].c = matrix[11] + matrix[10];
-    frustum.plane[4].d = matrix[15] + matrix[14];
+    frustum.plane[4].a = m.e[3]  + m.e[2];
+    frustum.plane[4].b = m.e[7]  + m.e[6];
+    frustum.plane[4].c = m.e[11] + m.e[10];
+    frustum.plane[4].d = m.e[15] + m.e[14];
 
     // far clipping plane
-    frustum.plane[5].a = matrix[3]  - matrix[2];
-    frustum.plane[5].b = matrix[7]  - matrix[6];
-    frustum.plane[5].c = matrix[11] - matrix[10];
-    frustum.plane[5].d = matrix[15] - matrix[14];
+    frustum.plane[5].a = m.e[3]  - m.e[2];
+    frustum.plane[5].b = m.e[7]  - m.e[6];
+    frustum.plane[5].c = m.e[11] - m.e[10];
+    frustum.plane[5].d = m.e[15] - m.e[14];
 
     if (normalize)
     {
@@ -1593,11 +1604,11 @@ frustum_create(const m4 matrix, bool normalize)
 }
 
 inline b32
-frustum_contains(frustum_t frustum, const v3 pos)
+frustum_contains(frustum_t frustum, v3 pos)
 {
     for(i32 i = 0; i < 6; i++)
     {
-		if (frustum.plane[i].a * pos[0] + frustum.plane[i].b * pos[1] + frustum.plane[i].c * pos[2] + frustum.plane[i].d <= 0)
+		if (frustum.plane[i].a * pos.x + frustum.plane[i].b * pos.y + frustum.plane[i].c * pos.z + frustum.plane[i].d <= 0)
 			return false;
 	}
 
@@ -1609,7 +1620,7 @@ frustum_intersect_sphere(frustum_t frustum, sphere_t sphere)
 {
     for(i32 i = 0; i < 6; i++)
     {
-		if(frustum.plane[i].a * sphere.pos[0] + frustum.plane[i].b * sphere.pos[1] + frustum.plane[i].c * sphere.pos[2] + frustum.plane[i].d <= -sphere.rad) {
+		if(frustum.plane[i].a * sphere.pos.x + frustum.plane[i].b * sphere.pos.y + frustum.plane[i].c * sphere.pos.z + frustum.plane[i].d <= -sphere.rad) {
 			return false;
 		}
 	}
@@ -1622,14 +1633,14 @@ frustum_intersect_box(frustum_t frustum, box_t box)
 {
     for (int i = 0; i < 6; i++)
     {
-		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.min[2] + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.min[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.min[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
-		if (frustum.plane[i].a * box.max[0] + frustum.plane[i].b * box.max[1] + frustum.plane[i].c * box.max[2] + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
+		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.max.z + frustum.plane[i].d > 0) continue;
 
 		return false;
 	}
@@ -1659,15 +1670,15 @@ pack_color_f32(f32 r, f32 g, f32 b, f32 a)
 }
 
 inline u32
-pack_color_v4(const f32 color[4])
+pack_color_v4(v4 color)
 {
-    return pack_color_f32(color[0], color[1], color[2], color[3]);
+    return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
 inline u32
-pack_color_v3(const f32 color[3])
+pack_color_v3(v3 color)
 {
-    return pack_color_f32(color[0], color[1], color[2], 1.0);
+    return pack_color_f32(color.r, color.g, color.b, 1.0);
 }
 
 // =================================== XORSHIFT32 ============================================= //
@@ -1762,9 +1773,9 @@ queue_clear(priority_queue_t* queue)
 }
 
 inline void
-queue_push(priority_queue_t* queue, const v2i e, f32 weight)
+queue_push(priority_queue_t* queue, v2i e, f32 weight)
 {
-    queue_node_t node = { weight, e[0], e[1] };
+    queue_node_t node = { weight, e };
 
     int i = queue->len + 1;
     int j = i / 2;
@@ -1782,7 +1793,7 @@ queue_push(priority_queue_t* queue, const v2i e, f32 weight)
 }
 
 inline f32
-queue_pop(v2i out, priority_queue_t* queue)
+queue_pop(v2i* out, priority_queue_t* queue)
 {
     queue_node_t data = queue->array[1];
 
@@ -1805,9 +1816,7 @@ queue_pop(v2i out, priority_queue_t* queue)
         i = k;
     }
 
-    out[0] = data.e[0];
-    out[1] = data.e[1];
-
+    *out = data.e;
     return data.weight;
 }
 
@@ -2329,8 +2338,8 @@ struct gamepad_t
 {
     b32     active;
 
-    f32     LS[2];
-    f32     RS[2];
+    v2      LS;
+    v2      RS;
 
     f32     LT;
     f32     RT;
@@ -2378,9 +2387,9 @@ global struct
         b32     is_pressed  : 1;
         b32     is_released : 1;
 
-        f32     pos[2];
-        f32     delta[2];
-        f32     scroll[2];
+        v2      pos;
+        v2      delta;
+        v2      scroll;
 
         b8      state[MOUSE_BUTTON_LAST + 1];
         b8      pressed[MOUSE_BUTTON_LAST + 1];
@@ -2480,8 +2489,8 @@ window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     (void)window;
 
-    platform.mouse.scroll[0] = xoffset;
-    platform.mouse.scroll[1] = yoffset;
+    platform.mouse.scroll.x = xoffset;
+    platform.mouse.scroll.y = yoffset;
 }
 
 internal void
@@ -2548,8 +2557,8 @@ platform_init(const char* title, int width, int height, int samples)
 
         glfwGetCursorPos(platform_internal.window, &x, &y);
 
-        platform.mouse.pos[0] = x;
-        platform.mouse.pos[1] = y;
+        platform.mouse.pos.x = x;
+        platform.mouse.pos.y = y;
     }
 
     // init connected controllers
@@ -2589,14 +2598,14 @@ platform_update(void)
         f64 x, y;
         glfwGetCursorPos(platform_internal.window, &x, &y);
 
-        platform.mouse.delta[0]  = x - platform.mouse.pos[0];
-        platform.mouse.delta[1]  = y - platform.mouse.pos[1];
+        platform.mouse.delta.x  = x - platform.mouse.pos.x;
+        platform.mouse.delta.y  = y - platform.mouse.pos.y;
 
-        platform.mouse.pos[0]    = x;
-        platform.mouse.pos[1]    = y;
+        platform.mouse.pos.x    = x;
+        platform.mouse.pos.y    = y;
 
-        platform.mouse.scroll[0] = 0;
-        platform.mouse.scroll[1] = 0;
+        platform.mouse.scroll.x = 0;
+        platform.mouse.scroll.y = 0;
 
         switch (platform.mouse.mode)
         {
@@ -2628,10 +2637,10 @@ platform_update(void)
 
                 glfwGetGamepadState(i, &state);
 
-                platform.gamepad[i].LS[0] = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
-                platform.gamepad[i].LS[1] = -state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
-                platform.gamepad[i].RS[0] = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
-                platform.gamepad[i].RS[1] = -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
+                platform.gamepad[i].LS.x = +state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
+                platform.gamepad[i].LS.y = -state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
+                platform.gamepad[i].RS.x = +state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
+                platform.gamepad[i].RS.y = -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
 
                 platform.gamepad[i].LT = 0.5f * (state.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
                 platform.gamepad[i].RT = 0.5f * (state.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
@@ -3353,15 +3362,13 @@ gl_init_bitmap(void)
 inline void
 gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
 {
-    m4 TS, T, S;
-
-    m4_translate(T, x, y, z);
-    m4_scale(S, sx, sy, 1);
-    m4_mul(TS, T, S);
+    m4 t  = m4_translate(x, y, z);
+    m4 s  = m4_scale(sx, sy, 1);
+    m4 ts = m4_mul(t, s);
 
     glPushMatrix();
 
-    glMultMatrixf(TS);
+    glMultMatrixf(ts.e);
     glCallList(bitmap_display_list[c]);
 
     glPopMatrix();
@@ -3393,5 +3400,3 @@ gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const ch
 }
 
 #endif // !ATS_MODERN_OPENGL
-
-#endif
