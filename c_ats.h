@@ -91,11 +91,17 @@ union v3
 
     struct
     {
+        v2 xy;
+    };
+
+    struct
+    {
         f32     r;
         f32     g;
         f32     b;
     };
 
+    
     f32 e[3];
 };
 
@@ -108,6 +114,16 @@ union v4
         f32     y;
         f32     z;
         f32     w;
+    };
+
+    struct
+    {
+        v2 xy;
+    };
+
+    struct
+    {
+        v3 xyz;
     };
 
     struct
