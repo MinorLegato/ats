@@ -339,7 +339,7 @@ v2_proj(v2 a, v2 b)
 }
 
 inline v2
-v2_norm(v2 out, const v2 v)
+v2_norm(const v2 v)
 {
     f32 k = rsqrt(v2_dot(v, v));
     return (v2) { k * v.x, k * v.y };
@@ -603,7 +603,7 @@ v4_max(v4 a, v4 b)
 }
 
 inline v4
-v4_lerp(v4 out, v4 a, v4 b, f32 t)
+v4_lerp(v4 a, v4 b, f32 t)
 {
     return (v4)
     {
@@ -756,7 +756,7 @@ m3_mulv(m3 m, v3 v)
 }
 
 inline m3
-m3_identity(m3 out)
+m3_identity(void)
 {
     return (m3)
     {
