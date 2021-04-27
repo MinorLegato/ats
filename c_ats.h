@@ -2809,8 +2809,8 @@ shader_load_from_file(const char *vs, const char *fs)
     return program;
 }
 
-inline void
-gl_get_world_position(f32 out[3], int x, int y, const f32 in_projection[16], const f32 in_modelview[16])
+inline v3
+gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
 {
     GLint   viewport[4]     = {0};
     f64     modelview[16]   = {0};
@@ -2819,8 +2819,8 @@ gl_get_world_position(f32 out[3], int x, int y, const f32 in_projection[16], con
     GLfloat  win_x, win_y, win_z;
     GLdouble pos_x, pos_y, pos_z;
  
-    for (i32 i = 0; i < 16; ++i) projection[i]  = in_projection[i];
-    for (i32 i = 0; i < 16; ++i) modelview[i]   = in_modelview[i];
+    for (i32 i = 0; i < 16; ++i) projection[i]  = in_projection.e[i];
+    for (i32 i = 0; i < 16; ++i) modelview[i]   = in_modelview.e[i];
 
     glGetIntegerv(GL_VIEWPORT, viewport);
  
@@ -2832,9 +2832,7 @@ gl_get_world_position(f32 out[3], int x, int y, const f32 in_projection[16], con
     f64 result[3];
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
-    out[0] = result[0];
-    out[1] = result[1];
-    out[2] = result[2];
+    return (v3) { result[0], result[1], result[2] };
 }
 
 #endif // ATS_MODERN_OPENGL
@@ -3042,8 +3040,8 @@ gl_set_light_global_ambient(f32 r, f32 g, f32 b)
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-inline void
-gl_get_world_position(f32 out[3], int x, int y)
+inline v3
+gl_get_world_position(int x, int y)
 {
     GLint   viewport[4]     = {0};
     f64     modelview[16]   = {0};
@@ -3064,9 +3062,7 @@ gl_get_world_position(f32 out[3], int x, int y)
     f64 result[3];
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
-    out[0] = result[0];
-    out[1] = result[1];
-    out[2] = result[2];
+    return (v3) { result[0], result[1], result[2] };
 }
 
 // ======================================= FONT ====================================== //
