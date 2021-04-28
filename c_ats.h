@@ -308,6 +308,42 @@ spline(f32 f, f32 a, f32 b, f32 c, f32 d)
 
 // ---------------------- v2 ---------------------- //
 
+inline v2
+v2_from_array(const f32* a)
+{
+    return (v2) { a[0], a[1] };
+}
+
+inline v2
+v2_neg(v2 a)
+{
+    return (v2) { -a.x, -a.y };
+}
+
+inline v2
+v2_add(v2 a, v2 b)
+{
+    return (v2) { a.x + b.x, a.y + b.y };
+}
+
+inline v2
+v2_sub(v2 a, v2 b)
+{
+    return (v2) { a.x - b.x, a.y - b.y };
+}
+
+inline v2
+v2_mul(v2 a, v2 b)
+{
+    return (v2) { a.x * b.x, a.y * b.y };
+}
+
+inline v2
+v2_scale(v2 a, f32 s)
+{
+    return (v2) { a.x * s, a.y * s };
+}
+
 inline f32
 v2_dot(v2 a, v2 b)
 {
@@ -413,6 +449,53 @@ v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d)
 }
 
 // ----------------------------- v3 ----------------------------- //
+
+inline v3
+v3_from_array(const f32* a)
+{
+    return (v3) { a[0], a[1], a[2] };
+}
+
+inline v3
+v3_from_packed_color(u32 color)
+{
+    return (v3)
+    {
+        ((color & 0x000000ff) >> 0)  / 256.0f,
+        ((color & 0x0000ff00) >> 8)  / 256.0f,
+        ((color & 0x00ff0000) >> 16) / 256.0f,
+    };
+}
+
+inline v3
+v3_neg(v3 a)
+{
+    return (v3) { -a.x, -a.y, -a.z };
+}
+
+inline v3
+v3_add(v3 a, v3 b)
+{
+    return (v3) { a.x + b.x, a.y + b.y, a.z + b.z };
+}
+
+inline v3
+v3_sub(v3 a, v3 b)
+{
+    return (v3) { a.x - b.x, a.y - b.y, a.z - b.z };
+}
+
+inline v3
+v3_mul(v3 a, v3 b)
+{
+    return (v3) { a.x * b.x, a.y * b.y, a.z * b.z };
+}
+
+inline v3
+v3_scale(v3 a, f32 s)
+{
+    return (v3) { a.x * s, a.y * s, a.z * s };
+}
 
 inline f32
 v3_dot(v3 a, v3 b)
@@ -534,6 +617,12 @@ v3_spline(f32 f, const v3 a, const v3 b, const v3 c, const v3 d)
 // ----------------------------- v4 ---------------------------- //
 
 inline v4
+v4_from_array(const f32* a)
+{
+    return (v4) { a[0], a[1], a[2], a[3] };
+}
+
+inline v4
 v4_from_packed_color(u32 color)
 {
     return (v4)
@@ -543,6 +632,36 @@ v4_from_packed_color(u32 color)
         ((color & 0x00ff0000) >> 16) / 256.0f,
         ((color & 0xff000000) >> 24) / 256.0f,
     };
+}
+
+inline v4
+v4_neg(v4 a)
+{
+    return (v4) { -a.x, -a.y, -a.z, -a.w };
+}
+
+inline v4
+v4_add(v4 a, v4 b)
+{
+    return (v4) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+}
+
+inline v4
+v4_sub(v4 a, v4 b)
+{
+    return (v4) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+}
+
+inline v4
+v4_mul(v4 a, v4 b)
+{
+    return (v4) { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
+}
+
+inline v4
+v4_scale(v4 a, f32 s)
+{
+    return (v4) { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
 inline f32
