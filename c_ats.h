@@ -232,6 +232,10 @@ struct quat_t
 #define V3i(...)    ((v3i) { __VA_ARGS__ })
 #define V4i(...)    ((v4i) { __VA_ARGS__ })
 
+#define v2_cast(type, u) ((type) { .x = (u).x, .y = (u).y })
+#define v3_cast(type, u) ((type) { .x = (u).x, .y = (u).y, .z = (u).z })
+#define v4_cast(type, u) ((type) { .x = (u).x, .y = (u).y, .z = (u).z, .w = (u).w })
+
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
 
 #define sqrt    __sqrt
@@ -1323,6 +1327,18 @@ quat_rotate(v3 axis, f32 angle)
 
 // --------------------- v2i ------------------------- // 
 
+inline v2i
+v2i_add(v2i a, v2i b)
+{
+    return (v2i) { a.x + b.x, a.y + b.y };
+}
+
+inline v2i
+v2i_sub(v2i a, v2i b)
+{
+    return (v2i) { a.x - b.x, a.y - b.y };
+}
+
 inline b32
 v2i_equal(v2i a, v2i b)
 {
@@ -1378,6 +1394,18 @@ v2i_max(v2i a, v2i b)
 }
 
 // --------------------- v3i ------------------------- // 
+
+inline v3i
+v3i_add(v3i a, v3i b)
+{
+    return (v3i) { a.x + b.x, a.y + b.y, a.z + b.z };
+}
+
+inline v3i
+v3i_sub(v3i a, v3i b)
+{
+    return (v3i) { a.x - b.x, a.y - b.y, a.z - b.z };
+}
 
 inline i32
 v3i_dist_sq(v3i a, v3i b)
@@ -1878,6 +1906,81 @@ hash_mem(const void* ptr, u32 size)
 
     return hash + (hash >> 16);
 }
+
+// ========================================== ARENA ALLOCATOR ================================== //
+
+#ifdef ATS_ARENA_ALLOCATOR
+
+#ifndef ATS_ALLOC_STACK_SIZE
+#define ATS_ALLOC_STACK_SIZE  (16)
+#endif
+
+#ifndef ATS_ALLOC_BUFFER_SIZE
+#define ATS_ALLOC_BUFFER_SIZE (GB)
+#endif
+
+global u32 alloc_index    = 0;
+global u32 alloc_max      = 0;
+global u32 alloc_top      = 0;
+global u32 alloc_lock     = false;
+
+global u32 alloc_stack    [ATS_ALLOC_STACK_SIZE];
+global u8  alloc_buffer   [ATS_ALLOC_BUFFER_SIZE];
+
+#define alloc_type(T)           (T*)alloc_size(sizeof (T))
+#define alloc_array(T, count)   (T*)alloc_size((count) * sizeof (T))
+
+internal void*
+alloc_size(u32 byte_size)
+{
+    byte_size = ALIGN_UP(byte_size, 16);
+
+    assert((alloc_index + byte_size) < ATS_ALLOC_BUFFER_SIZE && !alloc_lock);
+
+    void* memory    = alloc_buffer + alloc_index;
+    alloc_index     += byte_size;
+    alloc_max       = max(alloc_max, alloc_index);
+
+    memset(memory, 0, byte_size);
+
+    return memory;
+}
+
+internal void*
+alloc_begin(void)
+{
+    alloc_lock = true;
+    return alloc_buffer + alloc_index;
+}
+
+internal void
+alloc_end(u32 byte_size)
+{
+    alloc_index += ALIGN_UP(byte_size, 16);
+    alloc_lock = false;
+}
+
+internal void
+alloc_save(void)
+{
+    assert(alloc_top < ATS_ALLOC_STACK_SIZE);
+    alloc_stack[alloc_top++] = alloc_index;
+}
+
+internal void
+alloc_restore(void)
+{
+    assert(alloc_top > 0);
+    alloc_index = alloc_stack[--alloc_top];
+}
+
+internal void
+alloc_validate(void)
+{
+    assert(alloc_top == 0);
+}
+
+#endif // ATS_ARENA_ALLOCATOR
 
 // ========================================= PRIORITY QUEUE =================================== //
 
