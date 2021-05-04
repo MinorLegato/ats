@@ -16,9 +16,9 @@
 #include "dep/glad/glad.h"
 #endif
 
-#define internal static
-#define local_persist static
-#define global static
+#define internal        static
+#define local_persist   static
+#define global          static
 
 #define KB (1024)
 #define MB (1024 * KB)
@@ -142,7 +142,11 @@ union v4i
 
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
 
-inline f32 Sqrt(f32 n)
+#define sqrt    __sqrt
+#define rsqrt   __rsqrt
+
+inline f32
+__sqrt(f32 n)
 {
     f32 x = n * 0.5f;
     f32 y = n;
@@ -155,7 +159,8 @@ inline f32 Sqrt(f32 n)
     return n * y;
 }
 
-inline f32 RSqrt(f32 n)
+inline f32
+__rsqrt(f32 n)
 {
     f32 x2 = n * 0.5F;
     f32 y  = n;
@@ -169,53 +174,56 @@ inline f32 RSqrt(f32 n)
 }
 
 template <typename T>
-inline T Square(T n)
+inline T square(T n)
 {
     return n * n;
 }
 
-inline f32 Lerp(f32 a, f32 b, f32 t)
+inline f32 lerp(f32 a, f32 b, f32 t)
 {
     return a + t * (b - a);
 }
 
-inline f32 UnLerp(f32 a, f32 b, f32 t)
+inline f32 unlerp(f32 a, f32 b, f32 t)
 {
     return (t - a) / (b - a);
 }
 
-inline f32 AngleDist(f32 a, f32 b)
+inline f32 angle_dist(f32 a, f32 b)
 {
     f32 max = 2.0f * PI;
     f32 da  = fmodf(b - a, max);
     return fmodf(2.0f * da, max) - da;
 }
 
-inline f32 LerpAngle(f32 a, f32 b, f32 t)
+inline f32 lerp_angle(f32 a, f32 b, f32 t)
 {
-    return a + AngleDist(a, b) * t;
+    return a + angle_dist(a, b) * t;
 }
 
-inline f32 Spline(f32 f, f32 a, f32 b, f32 c, f32 d)
+inline f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d)
 {
     f32 i = 1.0f - f;
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
+#undef min
+#undef max
+
 template <typename T, typename U>
-inline T Min(T a, U b)
+inline T min(T a, U b)
 {
     return a < b? a : b;
 }
 
 template <typename T, typename U>
-inline T Max(T a, U b)
+inline T max(T a, U b)
 {
     return a > b? a : b;
 }
 
 template <typename T, typename U, typename V>
-inline T Clamp(T n, U min, V max)
+inline T clamp(T n, U min, V max)
 {
     if (n < min) return min;
     if (n > max) return max;
@@ -224,25 +232,25 @@ inline T Clamp(T n, U min, V max)
 }
 
 template <typename T, typename U>
-inline T ClampMin(T n, U min)
+inline T clamp_min(T n, U min)
 {
     return n < min? min : n;
 }
 
 template <typename T, typename U>
-inline T ClampMax(T n, U max)
+inline T clamp_max(T n, U max)
 {
     return n > max? max : n;
 }
 
 template <typename T>
-inline T Sign(T n)
+inline T sign(T n)
 {
     return n < 0? -1 : 1;
 }
 
 template <typename T>
-inline T SignOrZero(T n)
+inline T sign_or_zero(T n)
 {
     if (n < 0) return -1;
     if (n > 0) return +1;
@@ -262,17 +270,17 @@ struct PriorityQueue
     QueueNode*  array;
 };
 
-inline bool Empty(const PriorityQueue* queue)
+inline bool empty(const PriorityQueue* queue)
 {
     return queue->len == 0;
 }
 
-inline void Clear(PriorityQueue* queue)
+inline void clear(PriorityQueue* queue)
 {
     queue->len = 0;
 }
 
-inline void Push(PriorityQueue* queue, v2i e, f32 weight)
+inline void push(PriorityQueue* queue, v2i e, f32 weight)
 {
     QueueNode node = { weight, e };
 
@@ -291,7 +299,7 @@ inline void Push(PriorityQueue* queue, v2i e, f32 weight)
     queue->len++;
 }
 
-inline v2i Pop(PriorityQueue* queue)
+inline v2i pop(PriorityQueue* queue)
 {
     QueueNode data = queue->array[1];
 
@@ -406,50 +414,50 @@ inline v2 operator/=(v2& a, f32 s)
     return a;
 }
 
-inline f32 Det(v2 a, v2 b)
+inline f32 det(v2 a, v2 b)
 {
     return a.x * b.y - a.y * b.x;
 }
 
-inline f32 Dot(v2 a, v2 b)
+inline f32 dot(v2 a, v2 b)
 {
     return a.x * b.x + a.y * b.y;
 }
 
-inline f32 LenSq(v2 v)
+inline f32 len_sq(v2 v)
 {
-    return Dot(v, v);
+    return dot(v, v);
 }
 
-inline f32 Len(v2 v)
+inline f32 len(v2 v)
 {
-    return Sqrt(Dot(v, v));
+    return sqrt(dot(v, v));
 }
 
-inline f32 DistSq(v2 a, v2 b)
+inline f32 dist_sq(v2 a, v2 b)
 {
-    return LenSq(b - a);
+    return len_sq(b - a);
 }
 
-inline f32 Dist(v2 a, v2 b)
+inline f32 dist(v2 a, v2 b)
 {
-    return Sqrt(DistSq(a, b));
+    return sqrt(dist_sq(a, b));
 }
 
-inline v2 Proj(v2 a, v2 b)
+inline v2 proj(v2 a, v2 b)
 {
-    f32 d = Dot(b, b);
+    f32 d = dot(b, b);
     if (d == 0) return {};
 
-    return (Dot(a, b) / d) * b;
+    return (dot(a, b) / d) * b;
 }
 
-inline v2 Norm(v2 v)
+inline v2 norm(v2 v)
 {
-    return v * RSqrt(Dot(v, v));
+    return v * rsqrt(dot(v, v));
 }
 
-inline v2 Min(v2 a, v2 b)
+inline v2 min(v2 a, v2 b)
 {
     return
     {
@@ -458,7 +466,7 @@ inline v2 Min(v2 a, v2 b)
     };
 }
 
-inline v2 Max(v2 a, v2 b)
+inline v2 max(v2 a, v2 b)
 {
     return
     {
@@ -467,12 +475,12 @@ inline v2 Max(v2 a, v2 b)
     };
 }
 
-inline v2 Lerp(v2 a, v2 b, f32 t)
+inline v2 lerp(v2 a, v2 b, f32 t)
 {
     return a + t * (b - a);
 }
 
-inline f32 GetAngle(v2 a, v2 b)
+inline f32 get_angle(v2 a, v2 b)
 {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
@@ -480,14 +488,14 @@ inline f32 GetAngle(v2 a, v2 b)
     return atan2f(det, dot);
 }
 
-inline v2 Spline(f32 f, v2 a, v2 b, v2 c, v2 d)
+inline v2 spline(f32 f, v2 a, v2 b, v2 c, v2 d)
 {
     f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 CircleIntersect(v2 p0, f32 r0, v2 p1, f32 r1)
+inline b32 circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1)
 {
     f32 dx = p1.x - p0.x;
     f32 dy = p1.y - p0.y;
@@ -497,26 +505,26 @@ inline b32 CircleIntersect(v2 p0, f32 r0, v2 p1, f32 r1)
     return (dx * dx + dy * dy) < (r * r);
 }
 
-inline b32 SegmentIsIntersectingCircle(v2 start, v2 end, v2 pos, f32 rad)
+inline b32 segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad)
 {
     v2 a = start - pos;
     v2 b = end - pos;
 
-    if (Dot(a, a) > Dot(b, b)) return false;
+    if (dot(a, a) > dot(b, b)) return false;
 
     v2 seg = end - start;
     v2 cir = pos - start;
 
-    f32 dot_sc = Dot(seg, cir);
+    f32 dot_sc = dot(seg, cir);
 
     if (dot_sc < 0.0f) return false;
 
-    seg = (dot_sc / Dot(seg, seg)) * seg - cir;
+    seg = (dot_sc / dot(seg, seg)) * seg - cir;
 
-    return Dot(seg, seg) < (rad * rad);
+    return dot(seg, seg) < (rad * rad);
 }
 
-inline m2 OuterProduct(v2 a, v2 b)
+inline m2 outer_product(v2 a, v2 b)
 {
     return
     {
@@ -525,7 +533,7 @@ inline m2 OuterProduct(v2 a, v2 b)
     };
 }
 
-inline v2 Square(v2 a)
+inline v2 square(v2 a)
 {
     return { a.x * a.x, a.y * a.y };
 }
@@ -632,45 +640,45 @@ inline v3 operator/=(v3& a, f32 s)
     return a;
 }
 
-inline f32 Dot(v3 a, v3 b)
+inline f32 dot(v3 a, v3 b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-inline f32 LenSq(v3 v)
+inline f32 len_sq(v3 v)
 {
-    return Dot(v, v);
+    return dot(v, v);
 }
 
-inline f32 Len(v3 v)
+inline f32 len(v3 v)
 {
-    return Sqrt(Dot(v, v));
+    return sqrt(dot(v, v));
 }
 
-inline f32 DistSq(v3 a, v3 b)
+inline f32 dist_sq(v3 a, v3 b)
 {
-    return LenSq(b - a);
+    return len_sq(b - a);
 }
 
-inline f32 Dist(v3 a, v3 b)
+inline f32 dist(v3 a, v3 b)
 {
-    return Sqrt(DistSq(a, b));
+    return sqrt(dist_sq(a, b));
 }
 
-inline v3 Proj(v3 a, v3 b)
+inline v3 proj(v3 a, v3 b)
 {
-    f32 d = Dot(b, b);
+    f32 d = dot(b, b);
     if (d == 0) return {};
 
-    return (Dot(a, b) / d) * b;
+    return (dot(a, b) / d) * b;
 }
 
-inline v3 Norm(v3 v)
+inline v3 norm(v3 v)
 {
-    return v * RSqrt(Dot(v, v));
+    return v * rsqrt(dot(v, v));
 }
 
-inline v3 Min(v3 a, v3 b)
+inline v3 min(v3 a, v3 b)
 {
     return
     {
@@ -680,7 +688,7 @@ inline v3 Min(v3 a, v3 b)
     };
 }
 
-inline v3 Max(v3 a, v3 b)
+inline v3 max(v3 a, v3 b)
 {
     return
     {
@@ -690,12 +698,12 @@ inline v3 Max(v3 a, v3 b)
     };
 }
 
-inline v3 Lerp(v3 a, v3 b, f32 t)
+inline v3 lerp(v3 a, v3 b, f32 t)
 {
     return a + t * (b - a);
 }
 
-inline v3 Cross(v3 a, v3 b)
+inline v3 cross(v3 a, v3 b)
 {
     return
     {
@@ -705,21 +713,21 @@ inline v3 Cross(v3 a, v3 b)
     };
 }
 
-inline v3 Spline(f32 f, v3 a, v3 b, v3 c, v3 d)
+inline v3 spline(f32 f, v3 a, v3 b, v3 c, v3 d)
 {
     f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 RaycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* result)
+inline b32 raycast_triangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* result)
 {
     const f32 EPSILON = 0.0000001;
 
     v3  edge1   = vert1 - vert0;
     v3  edge2   = vert2 - vert0;
-    v3  pvec    = Cross(dir, edge2);
-    f32 det     = Dot(edge1, pvec);
+    v3  pvec    = cross(dir, edge2);
+    f32 det     = dot(edge1, pvec);
 
     if (det > -EPSILON && det < EPSILON)
         return false;
@@ -727,18 +735,18 @@ inline b32 RaycastTriangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* re
     f32 inv_det = 1.0f / det;
     v3  tvec    = orig - vert0;
 
-    result->x   = Dot(tvec, pvec) * inv_det;
+    result->x   = dot(tvec, pvec) * inv_det;
 
     if (result->x < 0.0f || result->x > 1.0f)
         return false;
 
-    v3 qvec     = Cross(tvec, edge1);
-    result->y   = Dot(dir, qvec) * inv_det;
+    v3 qvec     = cross(tvec, edge1);
+    result->y   = dot(dir, qvec) * inv_det;
 
     if (result->y < 0.0f || result->x + result->y > 1.0f)
         return false;
 
-    result->z   = Dot(edge2, qvec) * inv_det;
+    result->z   = dot(edge2, qvec) * inv_det;
 
     v3 intersection = vert0 + result->x * edge2 + result->y * edge1;
 
@@ -859,37 +867,37 @@ inline v4 operator/=(v4& a, f32 s)
     return a;
 }
 
-inline f32 Dot(v4 a, v4 b)
+inline f32 dot(v4 a, v4 b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline f32 LenSq(v4 v)
+inline f32 len_sq(v4 v)
 {
-    return Dot(v, v);
+    return dot(v, v);
 }
 
-inline f32 Len(v4 v)
+inline f32 len(v4 v)
 {
-    return Sqrt(Dot(v, v));
+    return sqrt(dot(v, v));
 }
 
-inline f32 DistSq(v4 a, v4 b)
+inline f32 dist_sq(v4 a, v4 b)
 {
-    return LenSq(b - a);
+    return len_sq(b - a);
 }
 
-inline f32 Dist(v4 a, v4 b)
+inline f32 dist(v4 a, v4 b)
 {
-    return Sqrt(DistSq(a, b));
+    return sqrt(dist_sq(a, b));
 }
 
-inline v4 Norm(v4 v)
+inline v4 norm(v4 v)
 {
-    return v * RSqrt(Dot(v, v));
+    return v * rsqrt(dot(v, v));
 }
 
-inline v4 Min(v4 a, v4 b)
+inline v4 min(v4 a, v4 b)
 {
     return
     {
@@ -900,7 +908,7 @@ inline v4 Min(v4 a, v4 b)
     };
 }
 
-inline v4 Max(v4 a, v4 b)
+inline v4 max(v4 a, v4 b)
 {
     return
     {
@@ -911,12 +919,12 @@ inline v4 Max(v4 a, v4 b)
     };
 }
 
-inline v4 Lerp(v4 a, v4 b, f32 t)
+inline v4 lerp(v4 a, v4 b, f32 t)
 {
     return a + t * (b - a);
 }
 
-inline v4 Cross(v4 a, v4 b)
+inline v4 cross(v4 a, v4 b)
 {
     return
     {
@@ -927,7 +935,7 @@ inline v4 Cross(v4 a, v4 b)
     };
 }
 
-inline v4 Spline(f32 f, v4 a, v4 b, v4 c, v4 d)
+inline v4 spline(f32 f, v4 a, v4 b, v4 c, v4 d)
 {
     f32 i = 1.0f - f;
 
@@ -975,17 +983,17 @@ inline v2 operator*(m2 R, v2 v)
     };
 }
 
-inline m2 m2_Identity(void)
+inline m2 m2_identity(void)
 {
     return { 1.0f, 0.0f, 0.0f, 1.0f };
 }
 
-inline m2 m2_Rotate(f32 co, f32 si)
+inline m2 m2_rotate(f32 co, f32 si)
 {
     return { co, si, -si, co };
 }
 
-inline m2 m2_Rotate(f32 angle)
+inline m2 m2_rotate(f32 angle)
 {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
@@ -993,17 +1001,17 @@ inline m2 m2_Rotate(f32 angle)
     return { c, s, -s, c };
 }
 
-inline m2 m2_Scale(f32 sx, f32 sy)
+inline m2 m2_scale(f32 sx, f32 sy)
 {
     return { sx, 0.0f, 0.0f, sy };
 }
 
-inline f32 Det(m2 m)
+inline f32 det(m2 m)
 {
     return m.x.x * m.y.y - m.x.y * m.y.x;
 }
 
-inline m2 Transpose(m2 m)
+inline m2 transpose(m2 m)
 {
     return
     {
@@ -1012,21 +1020,22 @@ inline m2 Transpose(m2 m)
     };
 }
 
-inline m2 Inverse(m2 m)
+inline m2 inverse(m2 m)
 {
-    f32 det = Det(m);
+    f32 d = det(m);
 
-    return (1.0 / det) * m2 {
-        m.y.y, -m.y.x,
+    return (1.0 / d) * m2
+    {
+         m.y.y, -m.y.x,
         -m.x.y,  m.x.x
     };
 }
 
-inline void PolarDecomp(m2 m, m2* R, m2* S)
+inline void polar_decomp(m2 m, m2* R, m2* S)
 {
     f32 x = m.x.x + m.y.y;
     f32 y = m.y.x - m.x.y;
-    f32 scale = RSqrt(x * x + y * y);
+    f32 scale = rsqrt(x * x + y * y);
     f32 c = x * scale, s = y * scale;
 
     R->x.x = c;
@@ -1034,7 +1043,7 @@ inline void PolarDecomp(m2 m, m2* R, m2* S)
     R->y.x = s;
     R->y.y = c;
 
-    *S = Transpose(*R) * m;
+    *S = transpose(*R) * m;
 }
 
 // m3:
@@ -1066,7 +1075,7 @@ inline v3 operator*(m3 M, v3 v)
     };
 }
 
-inline m3 m3_Identity(void)
+inline m3 m3_identity(void)
 {
     return
     {
@@ -1076,7 +1085,7 @@ inline m3 m3_Identity(void)
     };
 }
 
-inline m3 m3_Rotate(v3 axis, f32 angle)
+inline m3 m3_rotate(v3 axis, f32 angle)
 {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
@@ -1102,7 +1111,7 @@ inline m3 m3_Rotate(v3 axis, f32 angle)
     };
 }
 
-inline m3 m3_Euler(f32 yaw, f32 pitch, f32 roll)
+inline m3 m3_euler(f32 yaw, f32 pitch, f32 roll)
 {
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
@@ -1127,7 +1136,7 @@ inline m3 m3_Euler(f32 yaw, f32 pitch, f32 roll)
     };
 }
 
-inline m3 m3_FromQuat(Quat quat)
+inline m3 m3_from_quat(Quat quat)
 {
     f32 a = quat.w;
     f32 b = quat.x;
@@ -1194,7 +1203,7 @@ inline v4 operator*(m4 M, v4 v)
     };
 }
 
-inline m4 m4_Identity(void)
+inline m4 m4_identity(void)
 {
     return
     {
@@ -1205,7 +1214,7 @@ inline m4 m4_Identity(void)
     };
 }
 
-inline m4 Transpose(m4 N)
+inline m4 transpose(m4 N)
 {
     return
     {
@@ -1216,7 +1225,7 @@ inline m4 Transpose(m4 N)
     };
 }
 
-inline m4 m4_Translate(f32 x, f32 y, f32 z)
+inline m4 m4_translate(f32 x, f32 y, f32 z)
 {
     return
     {
@@ -1227,12 +1236,12 @@ inline m4 m4_Translate(f32 x, f32 y, f32 z)
     };
 }
 
-inline m4 m4_Translate(v3 pos)
+inline m4 m4_translate(v3 pos)
 {
-    return m4_Translate(pos.x, pos.y, pos.z);
+    return m4_translate(pos.x, pos.y, pos.z);
 }
 
-inline m4 m4_Scale(f32 x, f32 y, f32 z)
+inline m4 m4_scale(f32 x, f32 y, f32 z)
 {
     return
     {
@@ -1243,17 +1252,17 @@ inline m4 m4_Scale(f32 x, f32 y, f32 z)
     };
 }
 
-inline m4 m4_Scale(v3 scale)
+inline m4 m4_scale(v3 scale)
 {
-    return m4_Scale(scale.x, scale.y, scale.z);
+    return m4_scale(scale.x, scale.y, scale.z);
 }
 
-inline m4 m4_Scale(f32 scale)
+inline m4 m4_scale(f32 scale)
 {
-    return m4_Scale(scale, scale, scale);
+    return m4_scale(scale, scale, scale);
 }
 
-inline m4 m4_RotateX(f32 angle)
+inline m4 m4_rotate_x(f32 angle)
 {
     f32 s = sinf(angle);
     f32 c = cosf(angle);
@@ -1267,7 +1276,7 @@ inline m4 m4_RotateX(f32 angle)
     };
 }
 
-inline m4 m4_RotateY(f32 angle)
+inline m4 m4_Rotate_y(f32 angle)
 {
     f32 s = sinf(angle);
     f32 c = cosf(angle);
@@ -1281,7 +1290,7 @@ inline m4 m4_RotateY(f32 angle)
     };
 }
 
-inline m4 m4_RotateZ(f32 angle)
+inline m4 m4_Rotate_z(f32 angle)
 {
     f32 s = sinf(angle);
     f32 c = cosf(angle);
@@ -1294,7 +1303,7 @@ inline m4 m4_RotateZ(f32 angle)
     };
 }
 
-inline m4 m4_Rotate(v3 axis, f32 angle)
+inline m4 m4_rotate(v3 axis, f32 angle)
 {
     f32 sa[3];
     f32 omca[3];
@@ -1320,7 +1329,7 @@ inline m4 m4_Rotate(v3 axis, f32 angle)
     };
 }
 
-inline m4 Ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
+inline m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
 {
     return
     {
@@ -1346,7 +1355,7 @@ inline m4 Ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
     };
 }
 
-inline m4 Perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
+inline m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
 {
     const f32 a = 1.0f / tanf(y_fov / 2.0f);
 
@@ -1374,11 +1383,11 @@ inline m4 Perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
     };
 }
 
-inline m4 LookAt(v3 eye, v3 center, v3 up)
+inline m4 m4_look_at(v3 eye, v3 center, v3 up)
 {
-    v3 f = Norm(center - eye);
-    v3 s = Norm(Cross(f, up));
-    v3 t = Cross(s, f);
+    v3 f = norm(center - eye);
+    v3 s = norm(cross(f, up));
+    v3 t = cross(s, f);
 
     m4 M;
 
@@ -1405,7 +1414,7 @@ inline m4 LookAt(v3 eye, v3 center, v3 up)
     return M;
 }
 
-inline m4 m4_FromQuat(Quat q)
+inline m4 m4_from_quat(Quat q)
 {
     f32 a = q.w;
     f32 b = q.x;
@@ -1441,21 +1450,7 @@ inline m4 m4_FromQuat(Quat q)
     };
 }
 
-inline m4 m4_Dir(v3 dir, v3 up)
-{
-    v3 left = Norm(Cross(up, dir));
-    v3 cup  = Norm(Cross(dir, left));
-
-    return
-    {
-        cup.x, left.x, dir.x, 0,
-        cup.y, left.y, dir.y, 0,
-        cup.z, left.z, dir.z, 0,
-        0, 0, 0, 1,
-    };
-}
-
-inline m4 Invert(m4 M)
+inline m4 m4_invert(m4 M)
 {
     f32 s[6], c[6];
 
@@ -1501,14 +1496,14 @@ inline m4 Invert(m4 M)
 }
 
 // Quat:
-inline Quat IdentityQuat(void)
+inline Quat quat_identity(void)
 {
     return { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
-inline Quat MakeQuat(f32 x, f32 y, f32 z, f32 angle)
+inline Quat quat_make(f32 x, f32 y, f32 z, f32 angle)
 {
-    f32 inv_len = RSqrt((x * x) + (y * y) + (z * z));
+    f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
     f32 s = inv_len * sin(angle / 2.0f);
 
     return
@@ -1520,12 +1515,12 @@ inline Quat MakeQuat(f32 x, f32 y, f32 z, f32 angle)
     };
 }
 
-inline Quat AddQuat(Quat a, Quat b)
+inline Quat operator+(Quat a, Quat b)
 {
     return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-inline Quat ConjQuat(Quat q)
+inline Quat quat_conj(Quat q)
 {
     return { -q.x, -q.y, -q.z, q.w };
 }
@@ -1541,7 +1536,7 @@ inline Quat operator*(Quat a, Quat b)
     };
 }
 
-inline Quat RotateQuat(v3 axis, f32 angle)
+inline Quat quat_rotate(v3 axis, f32 angle)
 {
     f32 s = sin(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
@@ -1626,13 +1621,13 @@ inline v2i operator-=(v2i& a, v2i b)
     return a = a - b;
 }
 
-inline i32 DistSq(v2i a, v2i b)
+inline i32 dist_sq(v2i a, v2i b)
 {
     v2i d = a - b;
     return d.x * d.x + d.y * d.y;
 }
 
-inline i32 Manhattan(v2i a, v2i b)
+inline i32 manhattan(v2i a, v2i b)
 {
     i32 dx = abs(a.x - b.x);
     i32 dy = abs(a.y - b.y);
@@ -1640,16 +1635,16 @@ inline i32 Manhattan(v2i a, v2i b)
     return dx + dy;
 }
 
-inline v2i Clamp(v2i a, i32 min, i32 max)
+inline v2i clamp(v2i a, i32 min, i32 max)
 {
     return
     {
-        Clamp(a.x, min, max),
-        Clamp(a.y, min, max),
+        clamp(a.x, min, max),
+        clamp(a.y, min, max),
     };
 }
 
-inline v2i Min(v2i a, v2i b)
+inline v2i min(v2i a, v2i b)
 {
     return
     {
@@ -1658,7 +1653,7 @@ inline v2i Min(v2i a, v2i b)
     };
 }
 
-inline v2i Max(v2i a, v2i b)
+inline v2i max(v2i a, v2i b)
 {
     return
     {
@@ -1729,7 +1724,7 @@ inline bool operator!=(v3i a, v3i b)
     return (a.x != b.x) || (a.y != b.y) || (a.z != b.z);
 }
 
-inline i32 Manhattan(v3i a, v3i b)
+inline i32 manhattan(v3i a, v3i b)
 {
     i32 dx = abs(a.x - b.x);
     i32 dy = abs(a.y - b.y);
@@ -1738,7 +1733,7 @@ inline i32 Manhattan(v3i a, v3i b)
     return dx + dy + dz;
 }
 
-inline i32 DistSq(v3i a, v3i b)
+inline i32 dist_sq(v3i a, v3i b)
 {
     v3i d = a - b;
     return d.x * d.x + d.y * d.y + d.z * d.z;
@@ -1791,7 +1786,7 @@ struct Circle
     f32     rad;
 };
 
-inline b32 Intersect(Circle a, Circle b)
+inline b32 intersect(Circle a, Circle b)
 {
     v2  d   = b.pos - a.pos;
     f32 rt  = a.rad + b.rad;
@@ -1799,10 +1794,10 @@ inline b32 Intersect(Circle a, Circle b)
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v2 GetIntersectVector(Circle a, Circle b)
+inline v2 get_intersect_vector(Circle a, Circle b)
 {
     v2  delta   = b.pos - a.pos;
-    f32 depth   = Len(delta) - (a.rad + b.rad);
+    f32 depth   = len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -1815,7 +1810,7 @@ struct Sphere
     f32     rad;
 };
 
-inline b32 Intersect(Sphere a, Sphere b)
+inline b32 intersect(Sphere a, Sphere b)
 {
     v3  d   = b.pos - a.pos;
     f32 rt  = a.rad + b.rad;
@@ -1823,10 +1818,10 @@ inline b32 Intersect(Sphere a, Sphere b)
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v3 GetIntersectVector(Sphere a, Sphere b)
+inline v3 get_intersect_vector(Sphere a, Sphere b)
 {
     v3  delta   = b.pos - a.pos;
-    f32 depth   = Len(delta) - (a.rad + b.rad);
+    f32 depth   = len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -1839,7 +1834,7 @@ struct Rect
     v2  max;
 };
 
-inline b32 Contains(Rect rect, v2 pos)
+inline b32 contains(Rect rect, v2 pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1847,7 +1842,7 @@ inline b32 Contains(Rect rect, v2 pos)
     return true;
 }
 
-inline b32 Intersect(Rect a, Rect b)
+inline b32 intersect(Rect a, Rect b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1855,26 +1850,27 @@ inline b32 Intersect(Rect a, Rect b)
     return true;
 }
 
-inline Rect GetOverlap(Rect a, Rect b)
+inline Rect get_overlap(Rect a, Rect b)
 {
     return
     {
-        Max(a.min, b.min),
-        Min(a.max, b.max)
+        max(a.min, b.min),
+        min(a.max, b.max)
     };
 }
 
-inline v2 GetIntersectVector(Rect a, Rect b)
+inline v2 get_intersect_vector(Rect a, Rect b)
 {
-    Rect o      = GetOverlap(a, b);
+    Rect o      = get_overlap(a, b);
     v2   delta  = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    return V2(Sign(delta.x), Sign(delta.y)) * (o.max - o.min);
+    return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
 }
 
-inline Rect Move(Rect rect, v2 offset)
+inline Rect move(Rect rect, v2 offset)
 {
-    return {
+    return
+    {
         rect.min + offset,
         rect.max + offset,
     };
@@ -1882,13 +1878,13 @@ inline Rect Move(Rect rect, v2 offset)
 
 // ------------------------------------- RECTANGLE - I32 ------------------------------------- //
 
-struct RectI32
+struct RectInt
 {
     v2i min;
     v2i max;
 };
 
-inline b32 Contains(RectI32 rect, v2i pos)
+inline b32 contains(RectInt rect, v2i pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1896,7 +1892,7 @@ inline b32 Contains(RectI32 rect, v2i pos)
     return true;
 }
 
-inline b32 Intersect(RectI32 a, RectI32 b)
+inline b32 intersect(RectInt a, RectInt b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1904,20 +1900,20 @@ inline b32 Intersect(RectI32 a, RectI32 b)
     return true;
 }
 
-inline RectI32 GetOverlap(RectI32 a, RectI32 b)
+inline RectInt get_overlap(RectInt a, RectInt b)
 {
     return {
-        Max(a.min, b.min),
-        Min(a.max, b.max)
+        max(a.min, b.min),
+        min(a.max, b.max)
     };
 }
 
-inline v2i GetIntersectVector(RectI32 a, RectI32 b)
+inline v2i get_intersect_vector(RectInt a, RectInt b)
 {
-    RectI32 o      = GetOverlap(a, b);
+    RectInt o      = get_overlap(a, b);
     v2i     delta  = (a.min + a.max) / 2 - (b.min + b.max) / 2;
 
-    return V2i(Sign(delta.x), Sign(delta.y)) * (o.max - o.min);
+    return V2i(sign(delta.x), sign(delta.y)) * (o.max - o.min);
 }
 
 
@@ -1929,7 +1925,7 @@ struct Box
     v3  max;
 };
 
-inline b32 Contains(Box rect, v3 pos)
+inline b32 contains(Box rect, v3 pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1938,7 +1934,7 @@ inline b32 Contains(Box rect, v3 pos)
     return true;
 }
 
-inline b32 Intersect(Box a, Box b)
+inline b32 intersect(Box a, Box b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1947,23 +1943,23 @@ inline b32 Intersect(Box a, Box b)
     return true;
 }
 
-inline Box GetOverlap(Box a, Box b)
+inline Box get_overlap(Box a, Box b)
 {
     return {
-        Max(a.min, b.min),
-        Min(a.max, b.max)
+        max(a.min, b.min),
+        min(a.max, b.max)
     };
 }
 
-inline v3 GetIntersectVector(Box a, Box b)
+inline v3 get_intersect_vector(Box a, Box b)
 {
-    Box o       = GetOverlap(a, b);
+    Box o       = get_overlap(a, b);
     v3  delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    return V3(Sign(delta.x), Sign(delta.y), Sign(delta.z)) * (o.max - o.min);
+    return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
 }
 
-inline Box Move(Box box, v3 offset)
+inline Box move(Box box, v3 offset)
 {
     return
     {
@@ -1980,14 +1976,14 @@ struct Plane
     f32     d;
 };
 
-inline Plane NormalizePlane(Plane plane)
+inline Plane norm(Plane plane)
 {
-    f32 mag = Sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
+    f32 imag = rsqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
-    plane.a = plane.a / mag;
-    plane.b = plane.b / mag;
-    plane.c = plane.c / mag;
-    plane.d = plane.d / mag;
+    plane.a = plane.a * imag;
+    plane.b = plane.b * imag;
+    plane.c = plane.c * imag;
+    plane.d = plane.d * imag;
 
     return plane;
 }
@@ -1997,7 +1993,7 @@ struct Frustum
     Plane   plane[6];
 };
 
-inline Frustum MakeFrustum(m4 combo_matrix, bool normalize = true)
+inline Frustum create_frustum(m4 combo_matrix, bool normalize = true)
 {
     Frustum frustum = {};
 
@@ -2039,18 +2035,18 @@ inline Frustum MakeFrustum(m4 combo_matrix, bool normalize = true)
 
     // Normalize the plane equations, if requested
     if (normalize == true) {
-        frustum.plane[0] = NormalizePlane(frustum.plane[0]);
-        frustum.plane[1] = NormalizePlane(frustum.plane[1]);
-        frustum.plane[2] = NormalizePlane(frustum.plane[2]);
-        frustum.plane[3] = NormalizePlane(frustum.plane[3]);
-        frustum.plane[4] = NormalizePlane(frustum.plane[4]);
-        frustum.plane[5] = NormalizePlane(frustum.plane[5]);
+        frustum.plane[0] = norm(frustum.plane[0]);
+        frustum.plane[1] = norm(frustum.plane[1]);
+        frustum.plane[2] = norm(frustum.plane[2]);
+        frustum.plane[3] = norm(frustum.plane[3]);
+        frustum.plane[4] = norm(frustum.plane[4]);
+        frustum.plane[5] = norm(frustum.plane[5]);
     }
     
     return frustum;
 }
 
-inline bool Contains(Frustum frustum, v3 pos)
+inline bool contains(Frustum frustum, v3 pos)
 {
     for (i32 i = 0; i < 6; i++)
     {
@@ -2061,7 +2057,7 @@ inline bool Contains(Frustum frustum, v3 pos)
 	return true;
 }
 
-inline bool Intersect(Frustum frustum, Sphere sphere)
+inline bool intersect(Frustum frustum, Sphere sphere)
 {
     for (i32 i = 0; i < 6; i++)
     {
@@ -2072,7 +2068,7 @@ inline bool Intersect(Frustum frustum, Sphere sphere)
 	return true;
 }
 
-inline bool Intersect(Frustum frustum, Box box)
+inline bool intersect(Frustum frustum, Box box)
 {
     for (int i = 0; i < 6; i++ )
     {
@@ -2093,7 +2089,7 @@ inline bool Intersect(Frustum frustum, Box box)
 
 // ================================================= COLOR PACKING =========================================== //
 
-inline u32 PackColorU8(u8 r, u8 g, u8 b, u8 a)
+inline u32 pack_color_u8(u8 r, u8 g, u8 b, u8 a)
 {
     u32 color = 0;
 
@@ -2105,42 +2101,42 @@ inline u32 PackColorU8(u8 r, u8 g, u8 b, u8 a)
     return color;
 }
 
-inline u32 PackColorF32(f32 r, f32 g, f32 b, f32 a)
+inline u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a)
 {
-    return PackColorU8(255 * r, 255 * g, 255 * b, 255 * a);
+    return pack_color_u8(255 * r, 255 * g, 255 * b, 255 * a);
 }
 
-inline u32 PackColor(v4 color)
+inline u32 pack_color(v4 color)
 {
-    return PackColorF32(color.r, color.g, color.b, color.a);
+    return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
-inline u32 PackColor(const f32 color[4])
+inline u32 pack_color(const f32 color[4])
 {
-    return PackColorF32(color[0], color[1], color[2], color[3]);
+    return pack_color_f32(color[0], color[1], color[2], color[3]);
 }
 
-inline u32 PackColor(v3 color, f32 a = 1.0)
+inline u32 pack_color(v3 color, f32 a = 1.0)
 {
-    return PackColorF32(color.r, color.g, color.b, a);
+    return pack_color_f32(color.r, color.g, color.b, a);
 }
 
-inline u32 GetRed(u32 color)
+inline u32 get_red(u32 color)
 {
     return color & 0xff;
 }
 
-inline u32 GetGreen(u32 color)
+inline u32 get_green(u32 color)
 {
     return (color & 0xff00) >> 8;
 }
 
-inline u32 GetBlue(u32 color)
+inline u32 get_blue(u32 color)
 {
     return (color & 0xff0000) >> 16;
 }
 
-inline u32 GetAlpha(u32 color)
+inline u32 get_alpha(u32 color)
 {
     return (color & 0xff000000) >> 8;
 }
@@ -2155,7 +2151,7 @@ struct RndGen
     u32     z;
 };
 
-inline u32 NextRandom(RndGen* g)
+inline u32 next_random(RndGen* g)
 {
     g->x ^= g->x << 16;
     g->x ^= g->x >> 5;
@@ -2172,7 +2168,7 @@ inline u32 NextRandom(RndGen* g)
 
 thread_local RndGen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
 
-inline void RandSeed(u32 x, u32 y, u32 z)
+inline void rand_seed(u32 x, u32 y, u32 z)
 {
     assert(x && y && z);
 
@@ -2181,44 +2177,44 @@ inline void RandSeed(u32 x, u32 y, u32 z)
     default_rnd_gen.z = z;
 }
 
-inline i32 RandI32(i32 min, i32 max)
+inline i32 rand_i32(i32 min, i32 max)
 {
-    return min + NextRandom(&default_rnd_gen) % (max - min);
+    return min + next_random(&default_rnd_gen) % (max - min);
 }
 
-inline f32 RandF32(f32 min, f32 max)
+inline f32 rand_f32(f32 min, f32 max)
 {
-    return min + ((f32)NextRandom(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
+    return min + ((f32)next_random(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2 RandV2(void)
+inline v2 rand_v2(void)
 {
-    return Norm(V2(RandF32(-1, 1), RandF32(-1, 1)));
+    return norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
 }
 
 inline v3 RandV3(void)
 {
-    return Norm(V3(RandF32(-1, 1), RandF32(-1, 1), RandF32(-1, 1)));
+    return norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
 }
 
-inline v2 RandV2(f32 min, f32 max)
+inline v2 rand_v2(f32 min, f32 max)
 {
-    return RandF32(min, max) * RandV2();
+    return rand_f32(min, max) * rand_v2();
 }
 
-inline v3 RandV3(f32 min, f32 max)
+inline v3 rand_v3(f32 min, f32 max)
 {
-    return RandF32(min, max) * RandV3();
+    return rand_f32(min, max) * RandV3();
 }
 
-inline Quat RandQuat(void)
+inline Quat rand_quat(void)
 {
-    return MakeQuat(RandF32(-1.0f, 1.0f), RandF32(-1.0f, 1.0f), RandF32(-1.0f, 1.0f), RandF32(-PI, PI));
+    return quat_make(rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-PI, PI));
 }
 
 // =================================== XORSHIFT32 ============================================= //
 
-inline u32 RandU32(u32* state)
+inline u32 rand_u32(u32* state)
 {
 	u32 x = *state;
 
@@ -2229,44 +2225,44 @@ inline u32 RandU32(u32* state)
 	return *state = x;
 }
 
-inline i32 RandI32(u32* state, i32 min, i32 max)
+inline i32 rand_i32(u32* state, i32 min, i32 max)
 {
-    return min + RandU32(state) % (max - min);
+    return min + rand_u32(state) % (max - min);
 }
 
-inline f32 RandF32(u32* state, f32 min, f32 max)
+inline f32 rand_f32(u32* state, f32 min, f32 max)
 {
-    return min + ((f32)RandU32(state) / (f32)0xFFFFFFFF) * (max - min); 
+    return min + ((f32)rand_u32(state) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-inline v2 RandV2(u32* state)
+inline v2 rand_v2(u32* state)
 {
-    return Norm(V2(RandF32(state, -1, 1), RandF32(state, -1, 1)));
+    return norm(V2(rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
 }
 
-inline v3 RandV3(u32* state)
+inline v3 rand_v3(u32* state)
 {
-    return Norm(V3(RandF32(state, -1, 1), RandF32(state, -1, 1), RandF32(state, -1, 1)));
+    return norm(V3(rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
 }
 
-inline v2 RandV2(u32* state, f32 min, f32 max)
+inline v2 rand_v2(u32* state, f32 min, f32 max)
 {
-    return RandF32(state, min, max) * RandV2(state);
+    return rand_f32(state, min, max) * rand_v2(state);
 }
 
-inline v3 RandV3(u32* state, f32 min, f32 max)
+inline v3 rand_v3(u32* state, f32 min, f32 max)
 {
-    return RandF32(state, min, max) * RandV3(state);
+    return rand_f32(state, min, max) * rand_v3(state);
 }
 
-inline Quat RandQuat(u32* state)
+inline Quat rand_quat(u32* state)
 {
-    return MakeQuat(RandF32(state, -1.0f, 1.0f), RandF32(state, -1.0f, 1.0f), RandF32(state, -1.0f, 1.0f), RandF32(state, -PI, PI));
+    return quat_make(rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -PI, PI));
 }
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
 
-inline u32 HashU32(u32 a)
+inline u32 hash_u32(u32 a)
 {
     a = (a ^ 61) ^ (a >> 16);
     a = a + (a << 3);
@@ -2277,14 +2273,14 @@ inline u32 HashU32(u32 a)
     return a;
 }
 
-inline u32 HashI32(i32 a)
+inline u32 hash_i32(i32 a)
 {
     union { u32 u; i32 i; } convert;
     convert.i = a;
-    return HashU32(convert.u);
+    return hash_u32(convert.u);
 }
 
-inline u32 HashCStr(const char* str)
+inline u32 hash_str(const char* str)
 {
     u32 hash = 0;
 
@@ -2294,7 +2290,7 @@ inline u32 HashCStr(const char* str)
     return hash + (hash >> 16);
 }
 
-inline u32 HashMem(const void* mem, u32 size)
+inline u32 hash_mem(const void* mem, u32 size)
 {
     const u8* m     = (const u8*)mem;
     u32 hash        = 0;
@@ -2310,36 +2306,37 @@ inline u32 HashMem(const void* mem, u32 size)
 #define HASH_PRIME2 (4280703257u)
 #define HASH_PRIME3 (1609059329u)
 
-inline u32 HashV2i(v2i k)
+inline u32 hash_v2i(v2i k)
 {
-    u32 a = HashI32(k.x);
-    u32 b = HashI32(k.y);
+    u32 a = hash_i32(k.x);
+    u32 b = hash_i32(k.y);
 
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
-inline u32 HashV3i(v3i& k)
+inline u32 hash_v3i(v3i& k)
 {
-    u32 a = HashI32(k.x);
-    u32 b = HashI32(k.y);
-    u32 c = HashI32(k.z);
+    u32 a = hash_i32(k.x);
+    u32 b = hash_i32(k.y);
+    u32 c = hash_i32(k.z);
 
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
 }
 
-inline u32 HashV4i(v4i k)
+inline u32 hash_v4i(v4i k)
 {
-    u32 a = HashI32(k.x);
-    u32 b = HashI32(k.y);
-    u32 c = HashI32(k.z);
-    u32 d = HashI32(k.w);
+    u32 a = hash_i32(k.x);
+    u32 b = hash_i32(k.y);
+    u32 c = hash_i32(k.z);
+    u32 d = hash_i32(k.w);
 
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
 }
 
 // ==================================== FILES ==================================== //
 
-inline size_t GetFileSize(FILE* fp)
+inline size_t
+file_get_size(FILE* fp)
 {
     fseek(fp, 0L, SEEK_END);
     size_t size = ftell(fp);
@@ -2348,14 +2345,15 @@ inline size_t GetFileSize(FILE* fp)
     return size;
 }
 
-inline char* ReadFileAsCStr(const char* file_name)
+inline char*
+file_read_str(const char* file_name)
 {
     FILE *fp      = NULL;
     char *buffer  = NULL;
     
     if (fopen_s(&fp, file_name, "rb") == 0)
     {
-        size_t size = GetFileSize(fp);
+        size_t size = file_get_size(fp);
 
         buffer = (char*)malloc(size + 1);
 
@@ -2376,7 +2374,8 @@ inline char* ReadFileAsCStr(const char* file_name)
     return buffer;
 }
 
-inline b32 WriteCStrToFile(const char* file_name, const char* buffer)
+inline b32
+file_write_str(const char* file_name, const char* buffer)
 {
     FILE *fp = NULL;
 
@@ -2392,7 +2391,8 @@ inline b32 WriteCStrToFile(const char* file_name, const char* buffer)
     return false;
 }
 
-inline b32 AppendCStrToFile(const char* file_name, const char* buffer)
+inline b32
+file_append_str(const char* file_name, const char* buffer)
 {
     FILE *fp = NULL;
 
@@ -2409,7 +2409,8 @@ inline b32 AppendCStrToFile(const char* file_name, const char* buffer)
     return false;
 }
 
-inline b32 ReadFileAsBin(const char* file_name, void* buffer, size_t size)
+inline b32
+file_read_bin(const char* file_name, void* buffer, size_t size)
 {
     FILE *fp = NULL;
 
@@ -2424,7 +2425,8 @@ inline b32 ReadFileAsBin(const char* file_name, void* buffer, size_t size)
     return false;
 } 
 
-inline b32 WriteBinToFile(const char* file_name, const void* buffer, size_t size)
+inline b32
+file_write_bin(const char* file_name, const void* buffer, size_t size)
 {
     FILE *fp = NULL;
 
@@ -2440,7 +2442,8 @@ inline b32 WriteBinToFile(const char* file_name, const void* buffer, size_t size
 
 // ====================================================================================================== //
 
-inline void F4x4Mul64(f64 *R, const f64 *a, const f64 *b)
+inline void
+f4x4_mul64(f64 *R, const f64 *a, const f64 *b)
 {
     f64 M[16];
 
@@ -2485,7 +2488,8 @@ inline void F4x4Mul64(f64 *R, const f64 *a, const f64 *b)
     R[15] = M[15];
 }
 
-inline void F4x4Mulv64(f64 *out, const f64 *M, const f64 *v)
+inline void
+f4x4_mulv64(f64 *out, const f64 *M, const f64 *v)
 {
     f64 r[4];
 
@@ -2500,7 +2504,8 @@ inline void F4x4Mulv64(f64 *out, const f64 *M, const f64 *v)
     out[3] = r[3];
 }
 
-inline void F4x4Invert64(f64* T, const f64* M)
+inline void
+f4x4_invert64(f64* T, const f64* M)
 {
 	f64 s[6], c[6];
 
@@ -2542,50 +2547,52 @@ inline void F4x4Invert64(f64* T, const f64* M)
 	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-inline b32 F4x4Project64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport)
+inline b32
+f4x4_project64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport)
 {
-    f64 fTempo[8];
+    f64 tmp[8];
 
-    fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
-    fTempo[1] = modelview[1] * objx + modelview[5] * objy + modelview[9]  * objz + modelview[13];
-    fTempo[2] = modelview[2] * objx + modelview[6] * objy + modelview[10] * objz + modelview[14];
-    fTempo[3] = modelview[3] * objx + modelview[7] * objy + modelview[11] * objz + modelview[15];
+    tmp[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
+    tmp[1] = modelview[1] * objx + modelview[5] * objy + modelview[9]  * objz + modelview[13];
+    tmp[2] = modelview[2] * objx + modelview[6] * objy + modelview[10] * objz + modelview[14];
+    tmp[3] = modelview[3] * objx + modelview[7] * objy + modelview[11] * objz + modelview[15];
 
-    fTempo[4] =  projection[0] * fTempo[0] + projection[4] * fTempo[1] + projection[8]  * fTempo[2] + projection[12] * fTempo[3];
-    fTempo[5] =  projection[1] * fTempo[0] + projection[5] * fTempo[1] + projection[9]  * fTempo[2] + projection[13] * fTempo[3];
-    fTempo[6] =  projection[2] * fTempo[0] + projection[6] * fTempo[1] + projection[10] * fTempo[2] + projection[14] * fTempo[3];
-    fTempo[7] = -fTempo[2];
+    tmp[4] =  projection[0] * tmp[0] + projection[4] * tmp[1] + projection[8]  * tmp[2] + projection[12] * tmp[3];
+    tmp[5] =  projection[1] * tmp[0] + projection[5] * tmp[1] + projection[9]  * tmp[2] + projection[13] * tmp[3];
+    tmp[6] =  projection[2] * tmp[0] + projection[6] * tmp[1] + projection[10] * tmp[2] + projection[14] * tmp[3];
+    tmp[7] = -tmp[2];
 
-    if (fTempo[7] == 0.0f)
+    if (tmp[7] == 0.0f)
         return false;
 
-    fTempo[7]= 1.0f / fTempo[7];
+    tmp[7]= 1.0f / tmp[7];
 
-    fTempo[4] *= fTempo[7];
-    fTempo[5] *= fTempo[7];
-    fTempo[6] *= fTempo[7];
+    tmp[4] *= tmp[7];
+    tmp[5] *= tmp[7];
+    tmp[6] *= tmp[7];
 
-    result[0] = (fTempo[4] * 0.5f + 0.5f) * viewport[2] + viewport[0];
-    result[1] = (fTempo[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
-    result[2] = (1.0f + fTempo[6]) * 0.5f;
+    result[0] = (tmp[4] * 0.5f + 0.5f) * viewport[2] + viewport[0];
+    result[1] = (tmp[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
+    result[2] = (1.0f + tmp[6]) * 0.5f;
 
     return true;
 }
 
-inline b32 F4x4Unproject64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport)
+inline b32
+f4x4_unproject64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport)
 {
     f64 m[16], A[16];
     f64 in[4], out[4];
 
-    F4x4Mul64(A, projection, modelview);
-    F4x4Invert64(m, A);
+    f4x4_mul64(A, projection, modelview);
+    f4x4_invert64(m, A);
 
     in[0] = (winx - (f64)viewport[0]) / (f64)viewport[2] * 2.0f - 1.0f;
     in[1] = (winy - (f64)viewport[1]) / (f64)viewport[3] * 2.0f - 1.0f;
     in[2] = 2.0f * winz - 1.0f;
     in[3] = 1.0;
 
-    F4x4Mulv64(out, m, in);
+    f4x4_mulv64(out, m, in);
     
     if (out[3] == 0.0f)
         return false;
@@ -2922,7 +2929,7 @@ struct Platform
 
     Gamepad gamepad[JOYSTICK_LAST];
 
-    inline Gamepad* GetGamepad(int index)
+    inline Gamepad* get_gamepad(int index)
     {
         return gamepad[index].active? &gamepad[index] : NULL;
     }
@@ -2936,7 +2943,8 @@ global struct
     GLFWmonitor* monitor;
 } platform_internal;
 
-internal void WindowKeyCallback(GLFWwindow*, int key, int, int action, int)
+internal void
+window_key_callback(GLFWwindow*, int key, int, int action, int)
 {
     switch (action)
     {
@@ -2965,13 +2973,15 @@ internal void WindowKeyCallback(GLFWwindow*, int key, int, int action, int)
     }
 }
 
-internal void WindowCharCallback(GLFWwindow* window, unsigned int codepoint)
+internal void
+window_char_callback(GLFWwindow* window, unsigned int codepoint)
 {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-internal void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int)
+internal void
+window_mouse_button_callback(GLFWwindow*, int button, int action, int)
 {
     switch (action)
     {
@@ -2994,13 +3004,15 @@ internal void WindowMouseButtonCallback(GLFWwindow*, int button, int action, int
     }
 }
 
-internal void WindowScrollCallback(GLFWwindow*, f64 xoffset, f64 yoffset)
+internal void
+window_scroll_callback(GLFWwindow*, f64 xoffset, f64 yoffset)
 {
     platform.mouse.scroll.x = xoffset;
     platform.mouse.scroll.y = yoffset;
 }
 
-internal void WindowJoystickCallback(int joy, int event)
+internal void
+window_joystick_callback(int joy, int event)
 {
     if (event == GLFW_CONNECTED)
     {
@@ -3012,7 +3024,8 @@ internal void WindowJoystickCallback(int joy, int event)
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
 }
 
-void PlatformInit(const char* title, int width, int height, int samples)
+void
+platform_init(const char* title, int width, int height, int samples)
 {
     glfwInit();
 
@@ -3047,11 +3060,11 @@ void PlatformInit(const char* title, int width, int height, int samples)
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 #endif
 
-    glfwSetKeyCallback(platform_internal.window,            WindowKeyCallback);
-    glfwSetCharCallback(platform_internal.window,           WindowCharCallback);
-    glfwSetMouseButtonCallback(platform_internal.window,    WindowMouseButtonCallback);
-    glfwSetScrollCallback(platform_internal.window,         WindowScrollCallback);
-    glfwSetJoystickCallback(WindowJoystickCallback);
+    glfwSetKeyCallback(platform_internal.window,            window_key_callback);
+    glfwSetCharCallback(platform_internal.window,           window_char_callback);
+    glfwSetMouseButtonCallback(platform_internal.window,    window_mouse_button_callback);
+    glfwSetScrollCallback(platform_internal.window,         window_scroll_callback);
+    glfwSetJoystickCallback(window_joystick_callback);
 
     // init mouse:
     {
@@ -3078,7 +3091,8 @@ void PlatformInit(const char* title, int width, int height, int samples)
     glfwSwapBuffers(platform_internal.window);
 }
 
-void PlatformUpdate(void)
+void
+platform_update(void)
 {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
@@ -3211,7 +3225,8 @@ void PlatformUpdate(void)
 
 // =================================================== TIMER STUFF =================================================== //
 
-inline f64 GetTime(void)
+inline f64
+get_time(void)
 {
     return glfwGetTime();
 }
@@ -3226,32 +3241,33 @@ struct Shader
 {
     u32 program;
 
-    inline void Use() const { glUseProgram(program); }
+    inline void use() const { glUseProgram(program); }
 
-    inline u32 GetLocation(const char *var_name) const { return glGetUniformLocation(program, var_name); }
+    inline u32 get_location(const char *var_name) const { return glGetUniformLocation(program, var_name); }
 
-    inline void Set(u32 loc, int n) const                      { Use(); glUniform1i(loc, n); }
-    inline void Set(u32 loc, f32 n) const                      { Use(); glUniform1f(loc, n); }
-    inline void Set(u32 loc, f32 a, f32 b) const               { Use(); glUniform2f(loc, a, b); }
-    inline void Set(u32 loc, f32 a, f32 b, f32 c) const        { Use(); glUniform3f(loc, a, b, c); }
-    inline void Set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { Use(); glUniform4f(loc, a, b, c, d); }
-    inline void Set(u32 loc, v2 u) const                       { Use(); glUniform2fv(loc, 1, u.array); }
-    inline void Set(u32 loc, v3 u) const                       { Use(); glUniform3fv(loc, 1, u.array); }
-    inline void Set(u32 loc, v4 u) const                       { Use(); glUniform4fv(loc, 1, u.array); }
-    inline void Set(u32 loc, m4 m) const                       { Use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
+    inline void set(u32 loc, int n) const                      { use(); glUniform1i(loc, n); }
+    inline void set(u32 loc, f32 n) const                      { use(); glUniform1f(loc, n); }
+    inline void set(u32 loc, f32 a, f32 b) const               { use(); glUniform2f(loc, a, b); }
+    inline void set(u32 loc, f32 a, f32 b, f32 c) const        { use(); glUniform3f(loc, a, b, c); }
+    inline void set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { use(); glUniform4f(loc, a, b, c, d); }
+    inline void set(u32 loc, v2 u) const                       { use(); glUniform2fv(loc, 1, u.array); }
+    inline void set(u32 loc, v3 u) const                       { use(); glUniform3fv(loc, 1, u.array); }
+    inline void set(u32 loc, v4 u) const                       { use(); glUniform4fv(loc, 1, u.array); }
+    inline void set(u32 loc, m4 m) const                       { use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
 
-    inline void Set(const char* loc, int n) const                      { Set(GetLocation(loc), n); }
-    inline void Set(const char* loc, f32 n) const                      { Set(GetLocation(loc), n); }
-    inline void Set(const char* loc, f32 a, f32 b) const               { Set(GetLocation(loc), a, b); }
-    inline void Set(const char* loc, f32 a, f32 b, f32 c) const        { Set(GetLocation(loc), a, b, c); }
-    inline void Set(const char* loc, f32 a, f32 b, f32 c, f32 d) const { Set(GetLocation(loc), a, b, c, d); }
-    inline void Set(const char* loc, v2 u) const                       { Set(GetLocation(loc), u); }
-    inline void Set(const char* loc, v3 u) const                       { Set(GetLocation(loc), u); }
-    inline void Set(const char* loc, v4 u) const                       { Set(GetLocation(loc), u); }
-    inline void Set(const char* loc, m4 m) const                       { Set(GetLocation(loc), m); }
+    inline void set(const char* loc, int n) const                      { set(get_location(loc), n); }
+    inline void set(const char* loc, f32 n) const                      { set(get_location(loc), n); }
+    inline void set(const char* loc, f32 a, f32 b) const               { set(get_location(loc), a, b); }
+    inline void set(const char* loc, f32 a, f32 b, f32 c) const        { set(get_location(loc), a, b, c); }
+    inline void set(const char* loc, f32 a, f32 b, f32 c, f32 d) const { set(get_location(loc), a, b, c, d); }
+    inline void set(const char* loc, v2 u) const                       { set(get_location(loc), u); }
+    inline void set(const char* loc, v3 u) const                       { set(get_location(loc), u); }
+    inline void set(const char* loc, v4 u) const                       { set(get_location(loc), u); }
+    inline void set(const char* loc, m4 m) const                       { set(get_location(loc), m); }
 };
 
-inline u32 CompileShader(const char* source, unsigned int type)
+inline u32
+compile_shader(const char* source, unsigned int type)
 {
     int success;
 
@@ -3275,7 +3291,8 @@ inline u32 CompileShader(const char* source, unsigned int type)
     return shader;
 }
 
-inline u32 LinkShaderProgram(u32 vertex_shader, u32 fragment_shader)
+inline u32
+link_shader_program(u32 vertex_shader, u32 fragment_shader)
 {
     int     success;
     char    info_log[512];
@@ -3300,13 +3317,14 @@ inline u32 LinkShaderProgram(u32 vertex_shader, u32 fragment_shader)
     return shader_program;
 }
 
-inline Shader LoadShaderFromMemory(const char *vs, const char *fs)
+inline Shader
+load_shader_from_memory(const char *vs, const char *fs)
 {
     Shader shader = {};
 
-    u32 vertex      = CompileShader(vs, GL_VERTEX_SHADER);
-    u32 fragment    = CompileShader(fs, GL_FRAGMENT_SHADER);
-    shader.program  = LinkShaderProgram(vertex, fragment);
+    u32 vertex      = compile_shader(vs, GL_VERTEX_SHADER);
+    u32 fragment    = compile_shader(fs, GL_FRAGMENT_SHADER);
+    shader.program  = link_shader_program(vertex, fragment);
 
     glUseProgram(shader.program);
 
@@ -3316,62 +3334,16 @@ inline Shader LoadShaderFromMemory(const char *vs, const char *fs)
     return shader;
 }
 
-inline Shader LoadShaderFromFile(const char *vs, const char *fs)
+inline Shader
+load_shader_from_file(const char *vs, const char *fs)
 {
-    char* vertex   = ReadFileAsCStr(vs);
-    char* fragment = ReadFileAsCStr(fs);
+    char* vertex   = file_read_str(vs);
+    char* fragment = file_read_str(fs);
 
-    Shader shader = LoadShaderFromMemory(vertex, fragment);
+    Shader shader = load_shader_from_memory(vertex, fragment);
 
     free(vertex);
     free(fragment);
-
-    return shader;
-}
-
-inline u32 LinkShaderProgramC(u32 compute_shader)
-{
-    int success;
-    char info_log[512];
-
-    u32 shader_program = glCreateProgram();
-
-    glAttachShader(shader_program, compute_shader);
-
-    glLinkProgram(shader_program);
-    glGetProgramiv(shader_program, GL_LINK_STATUS, &success);
-
-    if (!success)
-    {
-        glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-        puts(info_log);
-
-        exit(EXIT_FAILURE);
-    }
-
-    return shader_program;
-}
-
-inline Shader LoadComputeShaderFromMemory(const char* cs)
-{
-    Shader shader = {};
-
-    u32 compute = CompileShader(cs, GL_COMPUTE_SHADER);
-
-    shader.program = LinkShaderProgramC(compute);
-
-    glUseProgram(shader.program);
-    glDeleteShader(compute);
-
-    return shader;
-}
-
-inline Shader LoadComputeShaderFromFile(const char* cs)
-{
-    char*   compute = ReadFileAsCStr(cs);
-    Shader  shader  = LoadComputeShaderFromMemory(compute);
-
-    free(compute);
 
     return shader;
 }
@@ -3656,7 +3628,8 @@ struct Image
     u32*    pixels;
 };
 
-inline Image LoadImageFromFile(const char* path)
+inline Image
+load_image_from_file(const char* path)
 {
     Image   image       = {};
     i32     channels    = 0;
@@ -3677,7 +3650,8 @@ struct Texture
     int     height;
 };
 
-inline Texture CreateTexture(void *pixels, int width, int height, int is_smooth)
+inline Texture
+create_texture(void *pixels, int width, int height, int is_smooth)
 {
     assert(pixels);
 
@@ -3700,7 +3674,8 @@ inline Texture CreateTexture(void *pixels, int width, int height, int is_smooth)
     return texture;
 }
 
-inline void UpdateTexture(Texture* texture, void *pixels, int width, int height, int is_smooth)
+inline void
+update_texture(Texture* texture, void *pixels, int width, int height, int is_smooth)
 {
     texture->width = width;
     texture->height = height;
@@ -3717,7 +3692,8 @@ inline void UpdateTexture(Texture* texture, void *pixels, int width, int height,
 }
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-inline Texture LoadTextureFromFile(const char *texture_path, int is_smooth)
+inline Texture
+load_texture_from_file(const char *texture_path, int is_smooth)
 {
     Texture         texture     = {};
     i32             channels    = 0;
@@ -3745,7 +3721,8 @@ inline Texture LoadTextureFromFile(const char *texture_path, int is_smooth)
 #endif
 
 #ifndef ATS_MODERN_OPENGL
-inline void BindTexture(const Texture *texture)
+inline void
+bind_texture(const Texture* texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
@@ -3758,7 +3735,8 @@ inline void BindTexture(const Texture *texture)
 }
 #endif
 
-inline void DeleteTexture(Texture* texture)
+inline void
+delete_texture(Texture* texture)
 {
     glDeleteTextures(1, &texture->id);
     
@@ -3774,7 +3752,8 @@ inline void DeleteTexture(Texture* texture)
 int cube_list;
 int square_list;
 
-inline void gl_InitShapes(void)
+inline void
+gl_init_shapes(void)
 {
     square_list = glGenLists(1);
     cube_list   = glGenLists(1);
@@ -3863,9 +3842,12 @@ inline void gl_InitShapes(void)
     }
 }
 
-inline void gl_InitBitmap(void);
+inline void
+gl_init_bitmap(void);
 
-inline void gl_Init(void) {
+inline void
+gl_init(void)
+{
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glClearDepth(1.0f);
 
@@ -3883,11 +3865,12 @@ inline void gl_Init(void) {
 
     glEnable(GL_NORMALIZE);
 
-    gl_InitShapes();
-    gl_InitBitmap();
+    gl_init_shapes();
+    gl_init_bitmap();
 }
 
-inline void gl_RenderSquare(v3 pos, f32 rad, v4 color)
+inline void
+gl_render_square(v3 pos, f32 rad, v4 color)
 {
     glPushMatrix();
 
@@ -3900,7 +3883,8 @@ inline void gl_RenderSquare(v3 pos, f32 rad, v4 color)
     glPopMatrix();
 }
 
-inline void gl_RenderCube(v3 pos, f32 rad, v4 color)
+inline void
+gl_render_cube(v3 pos, f32 rad, v4 color)
 {
     glPushMatrix();
 
@@ -3913,7 +3897,8 @@ inline void gl_RenderCube(v3 pos, f32 rad, v4 color)
     glPopMatrix();
 }
 
-inline void gl_RenderCube(v3 pos, v3 rad, v4 color)
+inline void
+gl_render_cube(v3 pos, v3 rad, v4 color)
 {
     glPushMatrix();
 
@@ -3927,11 +3912,11 @@ inline void gl_RenderCube(v3 pos, v3 rad, v4 color)
     glPopMatrix();
 }
 
-inline void gl_RenderLine(v3 a, v3 b, v4 color)
+inline void
+gl_render_line(v3 a, v3 b, v4 color)
 {
     glColor4fv(color.array);
 
-    glLoadIdentity();
     glBegin(GL_LINES);
 
     glNormal3f(0.0f, 0.0f, 1.0f);
@@ -3941,9 +3926,11 @@ inline void gl_RenderLine(v3 a, v3 b, v4 color)
     glEnd();
 }
 
-inline void gl_RenderLineLoop2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count)
+inline void
+gl_render_line_loop(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count)
 {
-    glLoadIdentity();
+    glPushMatrix();
+
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad, rad, 1.0f);
     glRotatef(TO_DEG(rot), 0.0f, 0.0f, 1.0f);
@@ -3963,9 +3950,12 @@ inline void gl_RenderLineLoop2D(v3 pos, f32 rad, f32 rot, v4 color, const v2* po
     }
 
     glEnd();
+
+    glPopMatrix();
 }
 
-inline void gl_SetLightEmitter(int index, f32 bright, v3 p)
+inline void
+gl_set_light_emitter(int index, f32 bright, v3 p)
 {
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -3982,7 +3972,8 @@ inline void gl_SetLightEmitter(int index, f32 bright, v3 p)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_SetLightEmitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
+inline void
+gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
 {
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -4003,7 +3994,8 @@ inline void gl_SetLightEmitter(int index, v3 p, v3 color, f32 constant, f32 line
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_SetLightDirected(int index, f32 bright, v3 pos)
+inline void
+gl_set_light_directed(int index, f32 bright, v3 pos)
 {
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
@@ -4021,7 +4013,8 @@ inline void gl_SetLightDirected(int index, f32 bright, v3 pos)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_SetLightDirected(int index, v3 pos, v3 color)
+inline void
+gl_set_light_directed(int index, v3 pos, v3 color)
 {
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
@@ -4039,28 +4032,32 @@ inline void gl_SetLightDirected(int index, v3 pos, v3 color)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void gl_SetLightGlobalAmbient(v3 color)
+inline void
+gl_set_light_global_ambient(v3 color)
 {
     f32 v[4] = { color.r, color.g, color.b, 0 };
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-inline m4 gl_GetProjectionMatrix(void)
+inline m4
+gl_get_projection_matrix(void)
 {
     m4 projection;
     glGetFloatv(GL_PROJECTION_MATRIX, projection.array);
     return projection;
 }
 
-inline m4 gl_GetModelviewMatrix(void)
+inline m4
+gl_get_modelview_matrix(void)
 {
     m4 modelview;
     glGetFloatv(GL_MODELVIEW_MATRIX, modelview.array);
     return modelview;
 }
 
-inline v3 gl_GetWorldPosition(int x, int y)
+inline v3
+gl_get_world_position(int x, int y)
 {
     GLint viewport[4];
 
@@ -4080,7 +4077,7 @@ inline v3 gl_GetWorldPosition(int x, int y)
     glReadPixels(x, int(win_y), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &win_z);
  
     f64 result[3];
-    F4x4Unproject64(result, win_x, win_y, win_z, modelview, projection, viewport);
+    f4x4_unproject64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
     return V3(result[0], result[1], result[2]);
 }
@@ -4089,7 +4086,8 @@ int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) ((u64(N)) & (1ull << ((u64(Y)) * 8ull + (u64(X)))))
 
-inline void gl_InitBitmap(void)
+inline void
+gl_init_bitmap(void)
 {
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
@@ -4122,9 +4120,10 @@ inline void gl_InitBitmap(void)
     }
 }
 
-inline void gl_RenderAscii(u8 c, v3 pos, v2 scale)
+inline void
+gl_render_ascii(u8 c, v3 pos, v2 scale)
 {
-    m4 T = m4_Translate(pos) * m4_Scale(V3(scale, 1.0f));
+    m4 T = m4_translate(pos) * m4_scale(V3(scale, 1.0f));
 
     glPushMatrix();
 
@@ -4134,16 +4133,19 @@ inline void gl_RenderAscii(u8 c, v3 pos, v2 scale)
     glPopMatrix();
 }
 
-inline void gl_RenderString(const char *str, v3 pos, v2 scale, v4 color)
+inline void
+gl_render_string(const char *str, v3 pos, v2 scale, v4 color)
 {
     glColor4f(color.r, color.g, color.b, color.a);
 
-    for (int i = 0; str[i] != '\0'; i++) {
-        gl_RenderAscii(str[i], pos + V3(i * scale.x, 0, 0), scale);
+    for (int i = 0; str[i] != '\0'; i++)
+    {
+        gl_render_ascii(str[i], pos + V3(i * scale.x, 0, 0), scale);
     }
 }
 
-inline void gl_RenderStringFormat(v3 pos, v2 scale, v4 color, const char* fmt, ...)
+inline void
+gl_render_string_format(v3 pos, v2 scale, v4 color, const char* fmt, ...)
 {
     va_list list;
     char    buffer[256];
@@ -4151,7 +4153,7 @@ inline void gl_RenderStringFormat(v3 pos, v2 scale, v4 color, const char* fmt, .
     va_start(list, fmt);
 
     vsnprintf(buffer, 256, fmt, list);
-    gl_RenderString(buffer, pos, scale, color);
+    gl_render_string(buffer, pos, scale, color);
 
     va_end(list);
 }

@@ -785,8 +785,10 @@ static void* cs_read_file_to_memory(const char* path, int* size, void* mem_ctx)
 {
 	(void)mem_ctx;
 	void* data = 0;
-	FILE* fp = fopen(path, "rb");
+	FILE* fp = NULL; // fopen(path, "rb");
 	int sizeNum = 0;
+
+    fopen_s(&fp, path, "rb");
 
 	if (fp)
 	{

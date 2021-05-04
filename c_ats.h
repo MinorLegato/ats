@@ -2,7 +2,6 @@
 // defines that enables different parts of the library:
 // #define ATS_PLATFORM_GLFW
 // #define ATS_MODERN_OPENGL 
-// #define ATS_CUBE_ENGINE
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -215,8 +214,8 @@ union m4
     f32 e[16];
 };
 
-typedef struct quat_t quat_t;
-struct quat_t
+typedef struct Quat Quat;
+struct Quat
 {
     f32     x;
     f32     y;
@@ -852,7 +851,7 @@ m2_transpose(m2 m)
 inline m2
 m2_inverse(m2 m)
 {
-    f32 k = 1.0 / m2_det(m);
+    f32 k = 1.0f / m2_det(m);
 
     return (m2)
     {
@@ -959,7 +958,7 @@ m3_euler(f32 yaw, f32 pitch, f32 roll)
 }
 
 inline m3
-m3_from_quat(quat_t quat)
+m3_from_quat(Quat quat)
 {
     f32 a = quat.w;
 	f32 b = quat.x;
@@ -1209,7 +1208,7 @@ m4_look_at(v3 eye, v3 center, v3 up)
 }
 
 inline m4
-m4_from_quat(quat_t q)
+m4_from_quat(Quat q)
 {
     f32 a = q.w;
 	f32 b = q.x;
@@ -1276,20 +1275,20 @@ m4_invert(m4 m)
     };
 }
 
-// quat_t:
-inline quat_t
+// quat:
+inline Quat
 quat_identity(void)
 {
-    return (quat_t) { 0, 0, 0, 1 };
+    return (Quat) { 0, 0, 0, 1 };
 }
 
-inline quat_t
+inline Quat
 quat_make(f32 x, f32 y, f32 z, f32 angle)
 {
     f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
-    f32 s       = inv_len * sin(angle / 2.0f);
+    f32 s       = inv_len * sinf(angle / 2.0f);
 
-    return (quat_t)
+    return (Quat)
     {
         x * s,
         y * s,
@@ -1298,16 +1297,16 @@ quat_make(f32 x, f32 y, f32 z, f32 angle)
     };
 }
 
-inline quat_t
-quat_conj(quat_t q)
+inline Quat
+quat_conj(Quat q)
 {
-    return (quat_t) { -q.x, -q.y, -q.z, q.w };
+    return (Quat) { -q.x, -q.y, -q.z, q.w };
 }
 
-inline quat_t
-quat_mul(quat_t a, quat_t b)
+inline Quat
+quat_mul(Quat a, Quat b)
 {
-    return (quat_t)
+    return (Quat)
     {
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -1316,13 +1315,13 @@ quat_mul(quat_t a, quat_t b)
     };
 }
 
-inline quat_t
+inline Quat
 quat_rotate(v3 axis, f32 angle)
 {
     f32 s = sinf(0.5f * angle);
     v3  v = { s * axis.x, s * axis.y, s * axis.z };
 
-    return (quat_t) { v.x, v.y, v.z, cosf(0.5f * angle) };
+    return (Quat) { v.x, v.y, v.z, cosf(0.5f * angle) };
 }
 
 // --------------------- v2i ------------------------- // 
@@ -1421,15 +1420,15 @@ v3i_dist_sq(v3i a, v3i b)
 
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
-typedef struct circle_t circle_t;
-struct circle_t
+typedef struct Circle Circle;
+struct Circle
 {
     v3      pos;
     f32     rad;
 };
 
 inline b32
-circle_intersect(circle_t a, circle_t b)
+circle_intersect(Circle a, Circle b)
 {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
@@ -1439,7 +1438,7 @@ circle_intersect(circle_t a, circle_t b)
 };
 
 inline v2
-circle_get_intersect_vector(circle_t a, circle_t b)
+circle_get_intersect_vector(Circle a, Circle b)
 {
     v2  delta = { a.pos.x - b.pos.x, a.pos.y - b.pos.y };
     f32 depth = v2_len(delta) - (a.rad + b.rad);
@@ -1453,15 +1452,15 @@ circle_get_intersect_vector(circle_t a, circle_t b)
 
 // --------------------------------------- SHPERE ------------------------------------ //
 
-typedef struct sphere_t sphere_t;
-struct sphere_t
+typedef struct Sphere Sphere;
+struct Sphere
 {
     v3      pos;
     f32     rad;
 };
 
 inline b32
-sphere_intersect(sphere_t a, sphere_t b)
+sphere_intersect(Sphere a, Sphere b)
 {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
@@ -1473,7 +1472,7 @@ sphere_intersect(sphere_t a, sphere_t b)
 };
 
 inline v3
-sphere_get_intersect_vector(sphere_t a, sphere_t b)
+sphere_get_intersect_vector(Sphere a, Sphere b)
 {
     v3 delta  = { b.pos.x - a.pos.x, b.pos.y - a.pos.y, b.pos.z - a.pos.z };
     f32 depth = v3_len(delta) - (a.rad + b.rad);
@@ -1488,15 +1487,15 @@ sphere_get_intersect_vector(sphere_t a, sphere_t b)
 
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
-typedef struct rect_t rect_t;
-struct rect_t
+typedef struct Rect Rect;
+struct Rect
 {
     v2  min;
     v2  max;
 };
 
 inline b32
-rect_contains(rect_t rect, v2 pos)
+rect_contains(Rect rect, v2 pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1505,7 +1504,7 @@ rect_contains(rect_t rect, v2 pos)
 }
 
 inline b32
-rect_intersect(rect_t a, rect_t b)
+rect_intersect(Rect a, Rect b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1513,10 +1512,10 @@ rect_intersect(rect_t a, rect_t b)
     return true;
 }
 
-inline rect_t
-rect_get_overlap(rect_t a, rect_t b)
+inline Rect
+rect_get_overlap(Rect a, Rect b)
 {
-    return (rect_t)
+    return (Rect)
     {
         v2_max(a.min, b.min),
         v2_min(a.max, b.max),
@@ -1524,11 +1523,11 @@ rect_get_overlap(rect_t a, rect_t b)
 }
 
 inline v2
-rect_get_intersect_vector(rect_t a, rect_t b)
+rect_get_intersect_vector(Rect a, Rect b)
 {
-    rect_t  o   = rect_get_overlap(a, b);
-    f32     dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
-    f32     dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
+    Rect o = rect_get_overlap(a, b);
+    f32 dx = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
+    f32 dy = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
 
     return (v2)
     {
@@ -1537,10 +1536,10 @@ rect_get_intersect_vector(rect_t a, rect_t b)
     };
 }
 
-inline rect_t
-rect_move(rect_t rect, v2 offset)
+inline Rect
+rect_move(Rect rect, v2 offset)
 {
-    return (rect_t)
+    return (Rect)
     {
         rect.min.x + offset.x,
         rect.min.y + offset.y,
@@ -1551,15 +1550,15 @@ rect_move(rect_t rect, v2 offset)
 
 // ---------------------------------------- RECTANGLE - INT ------------------------------------- //
 
-typedef struct rect_int_t rect_int_t;
-struct rect_int_t
+typedef struct RectInt RectInt;
+struct RectInt
 {
     v2i  min;
     v2i  max;
 };
 
 inline b32
-rect_int_contains(rect_int_t rect, v2i pos)
+rect_int_contains(RectInt rect, v2i pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1568,7 +1567,7 @@ rect_int_contains(rect_int_t rect, v2i pos)
 }
 
 inline b32
-rect_int_intersect(rect_int_t a, rect_int_t b)
+rect_int_intersect(RectInt a, RectInt b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1576,10 +1575,10 @@ rect_int_intersect(rect_int_t a, rect_int_t b)
     return true;
 }
 
-inline rect_int_t
-rect_int_get_overlap(rect_int_t a, rect_int_t b)
+inline RectInt
+rect_int_get_overlap(RectInt a, RectInt b)
 {
-    return (rect_int_t)
+    return (RectInt)
     {
         v2i_max(a.min, b.min),
         v2i_min(a.max, b.max),
@@ -1587,11 +1586,11 @@ rect_int_get_overlap(rect_int_t a, rect_int_t b)
 }
 
 inline v2i
-rect_int_get_intersect_vector(rect_int_t a, rect_int_t b)
+rect_int_get_intersect_vector(RectInt a, RectInt b)
 {
-    rect_int_t  o   = rect_int_get_overlap(a, b);
-    f32     dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
-    f32     dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
+    RectInt o = rect_int_get_overlap(a, b);
+    f32 dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
+    f32 dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
 
     return (v2i)
     {
@@ -1600,10 +1599,10 @@ rect_int_get_intersect_vector(rect_int_t a, rect_int_t b)
     };
 }
 
-inline rect_int_t
-rect_int_move(rect_int_t rect, v2i offset)
+inline RectInt
+rect_int_move(RectInt rect, v2i offset)
 {
-    return (rect_int_t)
+    return (RectInt)
     {
         rect.min.x + offset.x,
         rect.min.y + offset.y,
@@ -1614,15 +1613,15 @@ rect_int_move(rect_int_t rect, v2i offset)
 
 // ----------------------------------------- BOX --------------------------------------- //
 
-typedef struct box_t box_t;
-struct box_t
+typedef struct Box Box;
+struct Box
 {
     v3  min;
     v3  max;
 };
 
 inline b32
-box_contains(box_t rect, v3 pos)
+box_contains(Box rect, v3 pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1632,7 +1631,7 @@ box_contains(box_t rect, v3 pos)
 }
 
 inline b32
-box_intersect(box_t a, box_t b)
+box_intersect(Box a, Box b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1641,10 +1640,10 @@ box_intersect(box_t a, box_t b)
     return true;
 }
 
-inline box_t
-box_get_overlap(box_t a, box_t b)
+inline Box
+box_get_overlap(Box a, Box b)
 {
-    return (box_t)
+    return (Box)
     {
         v3_max(a.min, b.min),
         v3_min(a.max, b.max),
@@ -1652,9 +1651,9 @@ box_get_overlap(box_t a, box_t b)
 }
 
 inline v3
-box_get_intersect_vector(box_t a, box_t b)
+box_get_intersect_vector(Box a, Box b)
 {
-    box_t o = box_get_overlap(a, b);
+    Box o = box_get_overlap(a, b);
     f32 dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
     f32 dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
     f32 dz  = 0.5f * (a.min.z + a.max.z) - 0.5f * (b.min.z + b.max.z);
@@ -1667,10 +1666,10 @@ box_get_intersect_vector(box_t a, box_t b)
     };
 }
 
-inline box_t
-box_move(box_t box, v3 offset)
+inline Box
+box_move(Box box, v3 offset)
 {
-    return (box_t)
+    return (Box)
     {
         box.min.x + offset.x,
         box.min.y + offset.y,
@@ -1684,8 +1683,8 @@ box_move(box_t box, v3 offset)
 
 // ----------------------------------------- FRUSTUM --------------------------------------- //
 
-typedef struct plane_t plane_t;
-struct plane_t
+typedef struct Plane Plane;
+struct Plane
 {
     f32     a;
     f32     b;
@@ -1693,8 +1692,8 @@ struct plane_t
     f32     d;
 };
 
-inline plane_t
-plane_normalize(plane_t plane)
+inline Plane
+plane_normalize(Plane plane)
 {
     f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
@@ -1706,16 +1705,16 @@ plane_normalize(plane_t plane)
     return plane;
 }
 
-typedef struct frustum_t frustum_t;
-struct frustum_t
+typedef struct Frustum Frustum;
+struct Frustum
 {
-    plane_t   plane[6];
+    Plane   plane[6];
 };
 
-inline frustum_t
-frustum_create(m4 m, bool normalize)
+inline Frustum
+frustum_create(m4 m, b32 normalize)
 {
-    frustum_t frustum = {0};
+    Frustum frustum = {0};
 
     // left clipping plane
     frustum.plane[0].a = m.e[3]  + m.e[0];
@@ -1767,7 +1766,7 @@ frustum_create(m4 m, bool normalize)
 }
 
 inline b32
-frustum_contains(frustum_t frustum, v3 pos)
+frustum_contains(Frustum frustum, v3 pos)
 {
     for(i32 i = 0; i < 6; i++)
     {
@@ -1779,7 +1778,7 @@ frustum_contains(frustum_t frustum, v3 pos)
 }
 
 inline b32
-frustum_intersect_sphere(frustum_t frustum, sphere_t sphere)
+frustum_intersect_sphere(Frustum frustum, Sphere sphere)
 {
     for(i32 i = 0; i < 6; i++)
     {
@@ -1792,7 +1791,7 @@ frustum_intersect_sphere(frustum_t frustum, sphere_t sphere)
 }
 
 inline b32
-frustum_intersect_box(frustum_t frustum, box_t box)
+frustum_intersect_box(Frustum frustum, Box box)
 {
     for (int i = 0; i < 6; i++)
     {
@@ -1829,7 +1828,7 @@ pack_color_u8(u8 r, u8 g, u8 b, u8 a)
 inline u32
 pack_color_f32(f32 r, f32 g, f32 b, f32 a)
 {
-    return pack_color_u8(255 * r, 255 * g, 255 * b, 255 * a);
+    return pack_color_u8((u8)(255 * r), (u8)(255 * g), (u8)(255 * b), (u8)(255 * a));
 }
 
 inline u32
@@ -1984,36 +1983,36 @@ alloc_validate(void)
 
 // ========================================= PRIORITY QUEUE =================================== //
 
-typedef struct queue_node_t queue_node_t;
-struct queue_node_t
+typedef struct QueueNode QueueNode;
+struct QueueNode
 {
     f32     weight;
     v2i     e;
 };
 
-typedef struct priority_queue_t priority_queue_t;
-struct priority_queue_t
+typedef struct PriorityQueue PriorityQueue;
+struct PriorityQueue
 {
-    i32             len;
-    queue_node_t*   array;
+    i32         len;
+    QueueNode*  array;
 };
 
 inline b32
-queue_empty(const priority_queue_t* queue)
+queue_empty(const PriorityQueue* queue)
 {
     return queue->len == 0;
 }
 
 inline void
-queue_clear(priority_queue_t* queue)
+queue_clear(PriorityQueue* queue)
 {
     queue->len = 0;
 }
 
 inline void
-queue_push(priority_queue_t* queue, v2i e, f32 weight)
+queue_push(PriorityQueue* queue, v2i e, f32 weight)
 {
-    queue_node_t node = { weight, e };
+    QueueNode node = { weight, e };
 
     int i = queue->len + 1;
     int j = i / 2;
@@ -2031,9 +2030,9 @@ queue_push(priority_queue_t* queue, v2i e, f32 weight)
 }
 
 inline f32
-queue_pop(v2i* out, priority_queue_t* queue)
+queue_pop(v2i* out, PriorityQueue* queue)
 {
-    queue_node_t data = queue->array[1];
+    QueueNode data = queue->array[1];
 
     queue->array[1] = queue->array[queue->len];
     queue->len--;
@@ -2542,8 +2541,8 @@ f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64
 
 // ==================================================================== GAMEPAD ===================================================== //
 
-typedef struct gamepad_buttons_t gamepad_buttons_t;
-union gamepad_buttons_t
+typedef struct GamepadButtons GamepadButtons;
+union GamepadButtons
 {
     struct
     {
@@ -2571,8 +2570,8 @@ union gamepad_buttons_t
     u32 data;
 };
 
-typedef struct gamepad_t gamepad_t;
-struct gamepad_t
+typedef struct Gamepad Gamepad;
+struct Gamepad
 {
     b32     active;
 
@@ -2582,9 +2581,9 @@ struct gamepad_t
     f32     LT;
     f32     RT;
 
-    gamepad_buttons_t  state;
-    gamepad_buttons_t  pressed;
-    gamepad_buttons_t  released;
+    GamepadButtons  state;
+    GamepadButtons  pressed;
+    GamepadButtons  released;
 };
 
 // =========================================================== MOUSE MODES ================================================= //
@@ -2651,7 +2650,7 @@ global struct
         b8      released[KEY_LAST + 1];
     } keyboard;
 
-    gamepad_t gamepad[JOYSTICK_LAST];
+    Gamepad gamepad[JOYSTICK_LAST];
 } platform;
 
 global struct
@@ -2727,8 +2726,8 @@ window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     (void)window;
 
-    platform.mouse.scroll.x = xoffset;
-    platform.mouse.scroll.y = yoffset;
+    platform.mouse.scroll.x = (f32)xoffset;
+    platform.mouse.scroll.y = (f32)yoffset;
 }
 
 internal void
@@ -2795,8 +2794,8 @@ platform_init(const char* title, int width, int height, int samples)
 
         glfwGetCursorPos(platform_internal.window, &x, &y);
 
-        platform.mouse.pos.x = x;
-        platform.mouse.pos.y = y;
+        platform.mouse.pos.x = (f32)x;
+        platform.mouse.pos.y = (f32)y;
     }
 
     // init connected controllers
@@ -2836,11 +2835,11 @@ platform_update(void)
         f64 x, y;
         glfwGetCursorPos(platform_internal.window, &x, &y);
 
-        platform.mouse.delta.x  = x - platform.mouse.pos.x;
-        platform.mouse.delta.y  = y - platform.mouse.pos.y;
+        platform.mouse.delta.x  = (f32)(x - platform.mouse.pos.x);
+        platform.mouse.delta.y  = (f32)(y - platform.mouse.pos.y);
 
-        platform.mouse.pos.x    = x;
-        platform.mouse.pos.y    = y;
+        platform.mouse.pos.x    = (f32)x;
+        platform.mouse.pos.y    = (f32)y;
 
         platform.mouse.scroll.x = 0;
         platform.mouse.scroll.y = 0;
@@ -2867,7 +2866,7 @@ platform_update(void)
         {
             if (platform.gamepad[i].active)
             {
-                gamepad_buttons_t old = platform.gamepad[i].state;
+                GamepadButtons old = platform.gamepad[i].state;
 
                 platform.gamepad[i].state.data = 0;
                 platform.gamepad[i].pressed.data = 0;
@@ -3067,8 +3066,8 @@ gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
 #define STBI_ONLY_PNG
 #include "dep/stb_image.h" 
 
-typedef struct image_t image_t;
-struct image_t
+typedef struct Image Image;
+struct Image
 {
     int width;
     int height;
@@ -3076,34 +3075,40 @@ struct image_t
     u32* pixels;
 };
 
-inline image_t
+inline Image
 image_load_from_file(const char* path)
 {
-    image_t image     = {0};
+    Image   image     = {0};
     i32     channels  = 0;
 
-    image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 0);
+    image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
     assert(image.pixels);
 
     return image;
 }
 
+inline u32
+image_get_pixel(Image* img, i32 x, i32 y)
+{
+    return img->pixels[y * img->width + x];
+}
+
 #endif
 
-typedef struct texture_t texture_t;
-struct texture_t
+typedef struct Texture Texture;
+struct Texture
 {
     u32     id;
     int     width;
     int     height;
 };
 
-inline texture_t
+inline Texture
 texture_create(void *pixels, int width, int height, int is_smooth)
 {
     assert(pixels);
 
-    texture_t texture = {0};
+    Texture texture = {0};
 
     texture.width = width;
     texture.height = height;
@@ -3123,7 +3128,7 @@ texture_create(void *pixels, int width, int height, int is_smooth)
 }
 
 inline void
-texture_update(texture_t* texture, void *pixels, int width, int height, int is_smooth)
+texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth)
 {
     texture->width = width;
     texture->height = height;
@@ -3140,14 +3145,14 @@ texture_update(texture_t* texture, void *pixels, int width, int height, int is_s
 }
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-inline texture_t
+inline Texture
 texture_load_from_file(const char *texture_path, int is_smooth)
 {
-    texture_t       texture     = {0};
+    Texture         texture     = {0};
     i32             channels    = 0;
     unsigned char*  pixels      = NULL;
 
-    pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 0);
+    pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
 
     assert(pixels);
 
@@ -3169,7 +3174,7 @@ texture_load_from_file(const char *texture_path, int is_smooth)
 #endif
 
 inline void
-texture_bind(const texture_t *texture)
+texture_bind(const Texture *texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
@@ -3184,7 +3189,7 @@ texture_bind(const texture_t *texture)
 }
 
 inline void
-texture_delete(texture_t* texture)
+texture_delete(Texture* texture)
 {
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
@@ -3270,21 +3275,20 @@ gl_get_world_position(int x, int y)
     f64     projection[16]  = {0};
 
     GLfloat  win_x, win_y, win_z;
-    GLdouble pos_x, pos_y, pos_z;
  
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
     glGetDoublev(GL_PROJECTION_MATRIX, projection);
     glGetIntegerv(GL_VIEWPORT, viewport);
  
-    win_x = (f64)(x);
-    win_y = (f64)(viewport[3]) - (f64)y;
+    win_x = (f32)(x);
+    win_y = (f32)(viewport[3]) - (f32)y;
 
     glReadPixels(x, (int)(win_y), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &win_z);
  
     f64 result[3];
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
-    return (v3) { result[0], result[1], result[2] };
+    return (v3) { (f32)result[0], (f32)result[1], (f32)result[2] };
 }
 
 // ======================================= FONT ====================================== //

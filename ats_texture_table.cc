@@ -13,7 +13,8 @@ static struct {
     u32     save_array[8];
 } str_arena;
 
-inline void reset_str_arena(void) {
+inline void reset_str_arena(void)
+{
     str_arena.idx = 0;
 }
 
