@@ -42,32 +42,6 @@ inline u32 allocate_str(u32 size) {
 
     if (new_idx >= arena->cap) {
         arena->cap = arena->cap? max(arena->cap << 1, new_idx) : max(2048, new_idx);
-        arena->buf = (char*)realloc(arena->buf, arena->cap);
-    }
-
-    memset(arena->buf + idx, 0, size + 1);
-    arena->idx = new_idx;
-
-    return idx;
-}
-
-inline u32 allocate_str(const char* str, u32 len) {
-    u32 idx = allocate_str(len);
-    memcpy(str_arena.buf + idx, str, len);
-
-    return idx;
-}
-
-struct Str {
-    u32 begin;
-    u32 end;
-
-    inline char operator[](u32 i) const {
-        return str_arena.buf[begin + i];
-    }
-
-    inline char& operator[](u32 i) {
-        return str_arena.buf[begin + i];
     }
 
     inline const char* data(void) const {

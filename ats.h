@@ -65,79 +65,151 @@ typedef uint16_t b16;
 typedef uint32_t b32;
 typedef uint64_t b64;
 
-union v2
+struct v2;
+struct v3;
+struct v4;
+
+struct v2i;
+struct v3i;
+struct v4i;
+
+struct v2
 {
-    struct { f32 x, y; };
-    f32 array[2];
+    f32     x;
+    f32     y;
+
+    f32&    operator[](i32 i)       { return (&x)[i]; }
+    f32     operator[](i32 i) const { return (&x)[i]; }
+
+    operator f32*       ()          { return &x; }
+    operator const f32* () const    { return &x; }
 };
 
-union v3
+struct v3
 {
-    struct { f32 x, y, z; };
-    struct { f32 r, g, b; };
-    struct { v2 xy; f32 _z; };
+    union
+    {
+        struct { f32 x, y, z; };
+        struct { f32 r, g, b; };
+        struct { v2 xy; };
+    };
 
-    f32 array[3];
+    f32&    operator[](i32 i)       { return (&x)[i]; }
+    f32     operator[](i32 i) const { return (&x)[i]; }
+
+    operator f32*       ()          { return &x; }
+    operator const f32* () const    { return &x; }
 };
 
-union v4
+struct v4
 {
-    struct { f32 x, y, z, w; };
-    struct { f32 r, g, b, a; };
-    struct { v3 xyz; f32 _w; };
-    struct { v3 rgb; f32 _a; };
+    union
+    {
+        struct { f32 x, y, z, w; };
+        struct { f32 r, g, b, a; };
+        struct { v3 xyz; };
+        struct { v3 rgb; };
+    };
 
-    f32 array[4];
+    inline f32&    operator[](i32 i)       { return (&x)[i]; }
+    inline f32     operator[](i32 i) const { return (&x)[i]; }
+
+    inline operator f32*       ()          { return &x; }
+    inline operator const f32* () const    { return &x; }
 };
 
-union Quat
+struct Quat
 {
-    struct { f32 x, y, z, w; };
+    f32     x;
+    f32     y;
+    f32     z;
+    f32     w;
 
-    f32 array[4];
+    f32&    operator[](i32 i)       { return (&x)[i]; }
+    f32     operator[](i32 i) const { return (&x)[i]; }
+
+    operator f32*       ()          { return &x; }
+    operator const f32* () const    { return &x; }
 };
 
-union m2
+struct m2
 {
-    struct { v2 x, y; };
+    v2      x;
+    v2      y;
 
-    f32 array[4];
+    f32& operator[](i32 i)       { return (&x.x)[i]; }
+    f32  operator[](i32 i) const { return (&x.x)[i]; }
+
+    operator f32*       ()          { return &x.x; }
+    operator const f32* () const    { return &x.x; }
 };
 
-union m3
+struct m3
 {
-    struct { v3 x, y, z; };
+    v3      x;
+    v3      y;
+    v3      z;
 
-    f32 array[9];
+    f32& operator[](i32 i)       { return (&x.x)[i]; }
+    f32  operator[](i32 i) const { return (&x.x)[i]; }
+
+    operator f32*       ()          { return &x.x; }
+    operator const f32* () const    { return &x.x; }
 };
 
-union m4
+struct m4
 {
-    struct { v4 x, y, z, w; };
+    v4      x;
+    v4      y;
+    v4      z;
+    v4      w;
 
-    f32 array[16];
+    f32& operator[](i32 i)       { return (&x.x)[i]; }
+    f32  operator[](i32 i) const { return (&x.x)[i]; }
+
+    operator f32*       ()          { return &x.x; }
+    operator const f32* () const    { return &x.x; }
 };
 
-union v2i
+struct v2i
 {
-    struct { i32 x, y; };
+    i32     x;
+    i32     y;
 
-    i32 array[2];
+    i32&    operator[](i32 i)       { return (&x)[i]; }
+    i32     operator[](i32 i) const { return (&x)[i]; }
+
+    operator i32*       ()          { return &x; }
+    operator const i32* () const    { return &x; }
 };
 
-union v3i
+struct v3i
 {
-    struct { i32 x, y, z; };
-    struct { v2i xy; i32 _z; };
+    union
+    {
+        struct { i32 x, y, z; };
+        struct { v2i xy; };
+    };
 
-    i32 array[3];
+    i32&    operator[](i32 i)       { return (&x)[i]; }
+    i32     operator[](i32 i) const { return (&x)[i]; }
+
+    operator i32*       ()          { return &x; }
+    operator const i32* () const    { return &x; }
 };
 
-union v4i
+struct v4i
 {
-    struct { i32 x, y, z, w; };
+    i32     x;
+    i32     y;
+    i32     z;
+    i32     w;
 
-    i32 array[4];
+    i32&    operator[](i32 i)       { return (&x)[i]; }
+    i32     operator[](i32 i) const { return (&x)[i]; }
+
+    operator i32*       ()          { return &x; }
+    operator const i32* () const    { return &x; }
 };
 
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
@@ -164,7 +236,7 @@ __rsqrt(f32 n)
 {
     f32 x2 = n * 0.5F;
     f32 y  = n;
-    int i  = *(long*)&y;           // evil f32ing point bit level hacking
+    int i  = *(long*)&y;           // evil floating point bit level hacking
 
     i = 0x5f3759df - (i >> 1);     // what the fuck? 
     y = *(f32*) &i;
@@ -270,17 +342,17 @@ struct PriorityQueue
     QueueNode*  array;
 };
 
-inline bool empty(const PriorityQueue* queue)
+inline bool queue_empty(const PriorityQueue* queue)
 {
     return queue->len == 0;
 }
 
-inline void clear(PriorityQueue* queue)
+inline void queue_clear(PriorityQueue* queue)
 {
     queue->len = 0;
 }
 
-inline void push(PriorityQueue* queue, v2i e, f32 weight)
+inline void queue_push(PriorityQueue* queue, v2i e, f32 weight)
 {
     QueueNode node = { weight, e };
 
@@ -299,7 +371,7 @@ inline void push(PriorityQueue* queue, v2i e, f32 weight)
     queue->len++;
 }
 
-inline v2i pop(PriorityQueue* queue)
+inline f32 queue_pop(v2i* pos, PriorityQueue* queue)
 {
     QueueNode data = queue->array[1];
 
@@ -322,7 +394,8 @@ inline v2i pop(PriorityQueue* queue)
         i = k;
     }
 
-    return data.e;
+    *pos = data.e;
+    return data.weight;
 }
 
 // ==================================================  MATHS ================================================== //
@@ -339,14 +412,29 @@ inline v2 V2(const f32* u)
     return { u[0], u[1] };
 }
 
-inline v2 V2(v3 a)
+inline v2 V2(v3 u)
 {
-    return { a.x, a.y };
+    return { x, y, 0 };
 }
 
-inline v2 V2(v2i a)
+inline v2::operator v4() const
 {
-    return { (f32)a.x, (f32)a.y };
+    return { x, y, 0, 0 };
+}
+
+inline v2::operator v2i() const
+{
+    return { i32(x), i32(y) };
+}
+
+inline v2::operator v3i() const
+{
+    return { i32(x), i32(y), 0 };
+}
+
+inline v2::operator v4i() const
+{
+    return { i32(x), i32(y), 0, 0 };
 }
 
 inline v2 operator-(v2 a)
@@ -573,6 +661,31 @@ inline v3 V3(f32 x, v2 a)
 inline v3 V3(v3i a)
 {
     return { f32(a.x), f32(a.y), f32(a.z) };
+}
+
+inline v3::operator v2() const
+{
+    return { x, y };
+}
+
+inline v3::operator v4() const
+{
+    return { x, y, z, 0 };
+}
+
+inline v3::operator v2i() const
+{
+    return { i32(x), i32(y) };
+}
+
+inline v3::operator v3i() const
+{
+    return { i32(x), i32(y), i32(z) };
+}
+
+inline v3::operator v4i() const
+{
+    return { i32(x), i32(y), i32(z), 0 };
 }
 
 inline v3 operator-(v3 a)
@@ -802,6 +915,31 @@ inline v4 V4(u32 color)
     return result;
 }
 
+inline v4::operator v2() const
+{
+    return { x, y };
+}
+
+inline v4::operator v3() const
+{
+    return { x, y, z };
+}
+
+inline v4::operator v2i() const
+{
+    return { i32(x), i32(y) };
+}
+
+inline v4::operator v3i() const
+{
+    return { i32(x), i32(y), i32(z) };
+}
+
+inline v4::operator v4i() const
+{
+    return { i32(x), i32(y), i32(z), i32(w) };
+}
+
 inline v4 operator-(v4 a)
 {
     return { -a.x, -a.y, -a.z, -a.w };
@@ -967,10 +1105,10 @@ inline m2 operator*(m2 a, m2 b)
 {
     return
     {
-        a.array[0] * b.array[0] + a.array[2] * b.array[1],
-        a.array[1] * b.array[0] + a.array[3] * b.array[1],
-        a.array[0] * b.array[2] + a.array[2] * b.array[3],
-        a.array[1] * b.array[2] + a.array[3] * b.array[3]
+        a[0] * b[0] + a[2] * b[1],
+        a[1] * b[0] + a[3] * b[1],
+        a[0] * b[2] + a[2] * b[3],
+        a[1] * b[2] + a[3] * b[3]
     };
 }
 
@@ -978,8 +1116,8 @@ inline v2 operator*(m2 R, v2 v)
 {
     return
     {
-        R.array[0] * v.x + R.array[2] * v.y,
-        R.array[1] * v.x + R.array[3] * v.y
+        R[0] * v.x + R[2] * v.y,
+        R[1] * v.x + R[3] * v.y
     };
 }
 
@@ -1051,17 +1189,17 @@ inline m3 operator*(m3 a, m3 b)
 {
     return
     {
-        a.array[0] * b.array[0] + a.array[3] * b.array[1]  + a.array[6] * b.array[2],
-        a.array[1] * b.array[0] + a.array[4] * b.array[1]  + a.array[7] * b.array[2],
-        a.array[2] * b.array[0] + a.array[5] * b.array[1]  + a.array[8] * b.array[2],
+        a[0] * b[0] + a[3] * b[1]  + a[6] * b[2],
+        a[1] * b[0] + a[4] * b[1]  + a[7] * b[2],
+        a[2] * b[0] + a[5] * b[1]  + a[8] * b[2],
 
-        a.array[0] * b.array[3] + a.array[3] * b.array[4]  + a.array[6] * b.array[5],
-        a.array[1] * b.array[3] + a.array[4] * b.array[4]  + a.array[7] * b.array[5],
-        a.array[2] * b.array[3] + a.array[5] * b.array[4]  + a.array[8] * b.array[5],
+        a[0] * b[3] + a[3] * b[4]  + a[6] * b[5],
+        a[1] * b[3] + a[4] * b[4]  + a[7] * b[5],
+        a[2] * b[3] + a[5] * b[4]  + a[8] * b[5],
 
-        a.array[0] * b.array[6] + a.array[3] * b.array[7]  + a.array[6] * b.array[8],
-        a.array[1] * b.array[6] + a.array[4] * b.array[7]  + a.array[7] * b.array[8],
-        a.array[2] * b.array[6] + a.array[5] * b.array[7]  + a.array[8] * b.array[8]
+        a[0] * b[6] + a[3] * b[7]  + a[6] * b[8],
+        a[1] * b[6] + a[4] * b[7]  + a[7] * b[8],
+        a[2] * b[6] + a[5] * b[7]  + a[8] * b[8]
     };
 }
 
@@ -1069,9 +1207,9 @@ inline v3 operator*(m3 M, v3 v)
 {
     return
     {
-        M.array[0] * v.array[0] + M.array[3] * v.array[1] + M.array[6] * v.array[2],
-        M.array[1] * v.array[0] + M.array[4] * v.array[1] + M.array[7] * v.array[2],
-        M.array[2] * v.array[0] + M.array[5] * v.array[1] + M.array[8] * v.array[2]
+        M[0] * v[0] + M[3] * v[1] + M[6] * v[2],
+        M[1] * v[0] + M[4] * v[1] + M[7] * v[2],
+        M[2] * v[0] + M[5] * v[1] + M[8] * v[2]
     };
 }
 
@@ -1170,25 +1308,25 @@ inline m4 operator*(m4 a, m4 b)
 {
     return
     {
-        a.array[0] * b.array[0]  + a.array[4] * b.array[1]  + a.array[8]  * b.array[2]  + a.array[12] * b.array[3],
-        a.array[1] * b.array[0]  + a.array[5] * b.array[1]  + a.array[9]  * b.array[2]  + a.array[13] * b.array[3],
-        a.array[2] * b.array[0]  + a.array[6] * b.array[1]  + a.array[10] * b.array[2]  + a.array[14] * b.array[3],
-        a.array[3] * b.array[0]  + a.array[7] * b.array[1]  + a.array[11] * b.array[2]  + a.array[15] * b.array[3],
+        a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3],
+        a[1] * b[0]  + a[5] * b[1]  + a[9]  * b[2]  + a[13] * b[3],
+        a[2] * b[0]  + a[6] * b[1]  + a[10] * b[2]  + a[14] * b[3],
+        a[3] * b[0]  + a[7] * b[1]  + a[11] * b[2]  + a[15] * b[3],
 
-        a.array[0] * b.array[4]  + a.array[4] * b.array[5]  + a.array[8]  * b.array[6]  + a.array[12] * b.array[7],
-        a.array[1] * b.array[4]  + a.array[5] * b.array[5]  + a.array[9]  * b.array[6]  + a.array[13] * b.array[7],
-        a.array[2] * b.array[4]  + a.array[6] * b.array[5]  + a.array[10] * b.array[6]  + a.array[14] * b.array[7],
-        a.array[3] * b.array[4]  + a.array[7] * b.array[5]  + a.array[11] * b.array[6]  + a.array[15] * b.array[7],
+        a[0] * b[4]  + a[4] * b[5]  + a[8]  * b[6]  + a[12] * b[7],
+        a[1] * b[4]  + a[5] * b[5]  + a[9]  * b[6]  + a[13] * b[7],
+        a[2] * b[4]  + a[6] * b[5]  + a[10] * b[6]  + a[14] * b[7],
+        a[3] * b[4]  + a[7] * b[5]  + a[11] * b[6]  + a[15] * b[7],
 
-        a.array[0] * b.array[8]  + a.array[4] * b.array[9]  + a.array[8]  * b.array[10] + a.array[12] * b.array[11],
-        a.array[1] * b.array[8]  + a.array[5] * b.array[9]  + a.array[9]  * b.array[10] + a.array[13] * b.array[11],
-        a.array[2] * b.array[8]  + a.array[6] * b.array[9]  + a.array[10] * b.array[10] + a.array[14] * b.array[11],
-        a.array[3] * b.array[8]  + a.array[7] * b.array[9]  + a.array[11] * b.array[10] + a.array[15] * b.array[11],
+        a[0] * b[8]  + a[4] * b[9]  + a[8]  * b[10] + a[12] * b[11],
+        a[1] * b[8]  + a[5] * b[9]  + a[9]  * b[10] + a[13] * b[11],
+        a[2] * b[8]  + a[6] * b[9]  + a[10] * b[10] + a[14] * b[11],
+        a[3] * b[8]  + a[7] * b[9]  + a[11] * b[10] + a[15] * b[11],
 
-        a.array[0] * b.array[12] + a.array[4] * b.array[13] + a.array[8]  * b.array[14] + a.array[12] * b.array[15],
-        a.array[1] * b.array[12] + a.array[5] * b.array[13] + a.array[9]  * b.array[14] + a.array[13] * b.array[15],
-        a.array[2] * b.array[12] + a.array[6] * b.array[13] + a.array[10] * b.array[14] + a.array[14] * b.array[15],
-        a.array[3] * b.array[12] + a.array[7] * b.array[13] + a.array[11] * b.array[14] + a.array[15] * b.array[15]
+        a[0] * b[12] + a[4] * b[13] + a[8]  * b[14] + a[12] * b[15],
+        a[1] * b[12] + a[5] * b[13] + a[9]  * b[14] + a[13] * b[15],
+        a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15],
+        a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15]
     };
 }
 
@@ -1196,10 +1334,10 @@ inline v4 operator*(m4 M, v4 v)
 {
     return
     {
-        M.array[0] * v.array[0] + M.array[4] * v.array[1] + M.array[8]  * v.array[2] + M.array[12] * v.array[3],
-        M.array[1] * v.array[0] + M.array[5] * v.array[1] + M.array[9]  * v.array[2] + M.array[13] * v.array[3],
-        M.array[2] * v.array[0] + M.array[6] * v.array[1] + M.array[10] * v.array[2] + M.array[14] * v.array[3],
-        M.array[3] * v.array[0] + M.array[7] * v.array[1] + M.array[11] * v.array[2] + M.array[15] * v.array[3]
+        M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3],
+        M[1] * v[0] + M[5] * v[1] + M[9]  * v[2] + M[13] * v[3],
+        M[2] * v[0] + M[6] * v[1] + M[10] * v[2] + M[14] * v[3],
+        M[3] * v[0] + M[7] * v[1] + M[11] * v[2] + M[15] * v[3]
     };
 }
 
@@ -1218,10 +1356,10 @@ inline m4 transpose(m4 N)
 {
     return
     {
-        N.array[0], N.array[4], N.array[8],  N.array[12],
-        N.array[1], N.array[5], N.array[9],  N.array[13],
-        N.array[2], N.array[6], N.array[10], N.array[14],
-        N.array[3], N.array[7], N.array[11], N.array[15]
+        N[0], N[4], N[8],  N[12],
+        N[1], N[5], N[9],  N[13],
+        N[2], N[6], N[10], N[14],
+        N[3], N[7], N[11], N[15]
     };
 }
 
@@ -1391,25 +1529,25 @@ inline m4 m4_look_at(v3 eye, v3 center, v3 up)
 
     m4 M;
 
-    M.array[0]  =  s.x;
-    M.array[1]  =  t.x;
-    M.array[2]  = -f.x;
-    M.array[3]  =   0.0f;
+    M[0]  =  s.x;
+    M[1]  =  t.x;
+    M[2]  = -f.x;
+    M[3]  =   0.0f;
 
-    M.array[4]  =  s.y;
-    M.array[5]  =  t.y;
-    M.array[6]  = -f.y;
-    M.array[7]  =   0.0f;
+    M[4]  =  s.y;
+    M[5]  =  t.y;
+    M[6]  = -f.y;
+    M[7]  =   0.0f;
 
-    M.array[8]  =  s.z;
-    M.array[9]  =  t.z;
-    M.array[10] = -f.z;
-    M.array[11] =   0.0f;
+    M[8]  =  s.z;
+    M[9]  =  t.z;
+    M[10] = -f.z;
+    M[11] =   0.0f;
 
-    M.array[12] = -(M.array[0] * eye.x + M.array[4] * eye.y + M.array[8]  * eye.z);
-    M.array[13] = -(M.array[1] * eye.x + M.array[5] * eye.y + M.array[9]  * eye.z);
-    M.array[14] = -(M.array[2] * eye.x + M.array[6] * eye.y + M.array[10] * eye.z);
-    M.array[15] = -(M.array[3] * eye.x + M.array[7] * eye.y + M.array[11] * eye.z - 1.0f);
+    M[12] = -(M[0] * eye.x + M[4] * eye.y + M[8]  * eye.z);
+    M[13] = -(M[1] * eye.x + M[5] * eye.y + M[9]  * eye.z);
+    M[14] = -(M[2] * eye.x + M[6] * eye.y + M[10] * eye.z);
+    M[15] = -(M[3] * eye.x + M[7] * eye.y + M[11] * eye.z - 1.0f);
 
     return M;
 }
@@ -1454,44 +1592,44 @@ inline m4 m4_invert(m4 M)
 {
     f32 s[6], c[6];
 
-    s[0] = M.array[0] * M.array[5] - M.array[4] * M.array[1];
-    s[1] = M.array[0] * M.array[6] - M.array[4] * M.array[2];
-    s[2] = M.array[0] * M.array[7] - M.array[4] * M.array[3];
-    s[3] = M.array[1] * M.array[6] - M.array[5] * M.array[2];
-    s[4] = M.array[1] * M.array[7] - M.array[5] * M.array[3];
-    s[5] = M.array[2] * M.array[7] - M.array[6] * M.array[3];
+    s[0] = M[0] * M[5] - M[4] * M[1];
+    s[1] = M[0] * M[6] - M[4] * M[2];
+    s[2] = M[0] * M[7] - M[4] * M[3];
+    s[3] = M[1] * M[6] - M[5] * M[2];
+    s[4] = M[1] * M[7] - M[5] * M[3];
+    s[5] = M[2] * M[7] - M[6] * M[3];
 
-    c[0] = M.array[8]  * M.array[13] - M.array[12] * M.array[9];
-    c[1] = M.array[8]  * M.array[14] - M.array[12] * M.array[10];
-    c[2] = M.array[8]  * M.array[15] - M.array[12] * M.array[11];
-    c[3] = M.array[9]  * M.array[14] - M.array[13] * M.array[10];
-    c[4] = M.array[9]  * M.array[15] - M.array[13] * M.array[11];
-    c[5] = M.array[10] * M.array[15] - M.array[14] * M.array[11];
+    c[0] = M[8]  * M[13] - M[12] * M[9];
+    c[1] = M[8]  * M[14] - M[12] * M[10];
+    c[2] = M[8]  * M[15] - M[12] * M[11];
+    c[3] = M[9]  * M[14] - M[13] * M[10];
+    c[4] = M[9]  * M[15] - M[13] * M[11];
+    c[5] = M[10] * M[15] - M[14] * M[11];
 
     // assumes it is invertible
     f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
     return
     {
-        ( M.array[5]  * c[5] - M.array[6]  * c[4] + M.array[7]  * c[3]) * idet,
-        (-M.array[1]  * c[5] + M.array[2]  * c[4] - M.array[3]  * c[3]) * idet,
-        ( M.array[13] * s[5] - M.array[14] * s[4] + M.array[15] * s[3]) * idet,
-        (-M.array[9]  * s[5] + M.array[10] * s[4] - M.array[11] * s[3]) * idet,
+        ( M[5]  * c[5] - M[6]  * c[4] + M[7]  * c[3]) * idet,
+        (-M[1]  * c[5] + M[2]  * c[4] - M[3]  * c[3]) * idet,
+        ( M[13] * s[5] - M[14] * s[4] + M[15] * s[3]) * idet,
+        (-M[9]  * s[5] + M[10] * s[4] - M[11] * s[3]) * idet,
 
-        (-M.array[4]  * c[5] + M.array[6]  * c[2] - M.array[7]  * c[1]) * idet,
-        ( M.array[0]  * c[5] - M.array[2]  * c[2] + M.array[3]  * c[1]) * idet,
-        (-M.array[12] * s[5] + M.array[14] * s[2] - M.array[15] * s[1]) * idet,
-        ( M.array[8]  * s[5] - M.array[10] * s[2] + M.array[11] * s[1]) * idet,
+        (-M[4]  * c[5] + M[6]  * c[2] - M[7]  * c[1]) * idet,
+        ( M[0]  * c[5] - M[2]  * c[2] + M[3]  * c[1]) * idet,
+        (-M[12] * s[5] + M[14] * s[2] - M[15] * s[1]) * idet,
+        ( M[8]  * s[5] - M[10] * s[2] + M[11] * s[1]) * idet,
 
-        ( M.array[4]  * c[4] - M.array[5]  * c[2] + M.array[7]  * c[0]) * idet,
-        (-M.array[0]  * c[4] + M.array[1]  * c[2] - M.array[3]  * c[0]) * idet,
-        ( M.array[12] * s[4] - M.array[13] * s[2] + M.array[15] * s[0]) * idet,
-        (-M.array[8]  * s[4] + M.array[9]  * s[2] - M.array[11] * s[0]) * idet,
+        ( M[4]  * c[4] - M[5]  * c[2] + M[7]  * c[0]) * idet,
+        (-M[0]  * c[4] + M[1]  * c[2] - M[3]  * c[0]) * idet,
+        ( M[12] * s[4] - M[13] * s[2] + M[15] * s[0]) * idet,
+        (-M[8]  * s[4] + M[9]  * s[2] - M[11] * s[0]) * idet,
 
-        (-M.array[4]  * c[3] + M.array[5]  * c[1] - M.array[6]  * c[0]) * idet,
-        ( M.array[0]  * c[3] - M.array[1]  * c[1] + M.array[2]  * c[0]) * idet,
-        (-M.array[12] * s[3] + M.array[13] * s[1] - M.array[14] * s[0]) * idet,
-        ( M.array[8]  * s[3] - M.array[9]  * s[1] + M.array[10] * s[0]) * idet,
+        (-M[4]  * c[3] + M[5]  * c[1] - M[6]  * c[0]) * idet,
+        ( M[0]  * c[3] - M[1]  * c[1] + M[2]  * c[0]) * idet,
+        (-M[12] * s[3] + M[13] * s[1] - M[14] * s[0]) * idet,
+        ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet,
     };
 }
 
@@ -1559,6 +1697,31 @@ inline v2i V2i(v2 a)
 inline v2i V2i(v3 a)
 {
     return { i32(a.x), i32(a.y) };
+}
+
+inline v2i::operator v2() const
+{
+    return { f32(x), f32(y) };
+}
+
+inline v2i::operator v3() const
+{
+    return { f32(x), f32(y), 0 };
+}
+
+inline v2i::operator v4() const
+{
+    return { f32(x), f32(y), 0, 0 };
+}
+
+inline v2i::operator v3i() const
+{
+    return { x, y, 0 };
+}
+
+inline v2i::operator v4i() const
+{
+    return { x, y, 0, 0 };
 }
 
 inline v2i operator-(v2i a)
@@ -1679,6 +1842,31 @@ inline v3i V3i(v2i a, i32 z)
     return { a.x, a.y, z };
 }
 
+inline v3i::operator v2() const
+{
+    return { f32(x), f32(y) };
+}
+
+inline v3i::operator v3() const
+{
+    return { f32(x), f32(y), f32(z) };
+}
+
+inline v3i::operator v4() const
+{
+    return { f32(x), f32(y), f32(z), 0 };
+}
+
+inline v3i::operator v2i() const
+{
+    return { x, y };
+}
+
+inline v3i::operator v4i() const
+{
+    return { x, y, z, 0 };
+}
+
 inline v3i operator+(v3i a, v3i b)
 {
     return { a.x + b.x, a.y + b.y, a.z + b.z };
@@ -1744,6 +1932,31 @@ inline i32 dist_sq(v3i a, v3i b)
 inline v4i V4i(i32 x, i32 y, i32 z, i32 w)
 {
     return { x, y, z, w };
+}
+
+inline v4i::operator v2() const
+{
+    return { f32(x), f32(y) };
+}
+
+inline v4i::operator v3() const
+{
+    return { f32(x), f32(y), f32(z) };
+}
+
+inline v4i::operator v4() const
+{
+    return { f32(x), f32(y), f32(z), f32(w) };
+}
+
+inline v4i::operator v2i() const
+{
+    return { x, y };
+}
+
+inline v4i::operator v3i() const
+{
+    return { x, y, z };
 }
 
 inline v4i operator+(v4i a, v4i b)
@@ -2332,6 +2545,81 @@ inline u32 hash_v4i(v4i k)
 
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
 }
+
+// ========================================== ARENA ALLOCATOR ================================== //
+
+#ifdef ATS_ARENA_ALLOCATOR
+
+#ifndef ATS_ALLOC_STACK_SIZE
+#define ATS_ALLOC_STACK_SIZE  (16)
+#endif
+
+#ifndef ATS_ALLOC_BUFFER_SIZE
+#define ATS_ALLOC_BUFFER_SIZE (GB)
+#endif
+
+global u32 alloc_index    = 0;
+global u32 alloc_max      = 0;
+global u32 alloc_top      = 0;
+global u32 alloc_lock     = false;
+
+global u32 alloc_stack    [ATS_ALLOC_STACK_SIZE];
+global u8  alloc_buffer   [ATS_ALLOC_BUFFER_SIZE];
+
+#define alloc_type(T)           (T*)alloc_size(sizeof (T))
+#define alloc_array(T, count)   (T*)alloc_size((count) * sizeof (T))
+
+internal void*
+alloc_size(u32 byte_size)
+{
+    byte_size = ALIGN_UP(byte_size, 16);
+
+    assert((alloc_index + byte_size) < ATS_ALLOC_BUFFER_SIZE && !alloc_lock);
+
+    void* memory    = alloc_buffer + alloc_index;
+    alloc_index     += byte_size;
+    alloc_max       = max(alloc_max, alloc_index);
+
+    memset(memory, 0, byte_size);
+
+    return memory;
+}
+
+internal void*
+alloc_begin(void)
+{
+    alloc_lock = true;
+    return alloc_buffer + alloc_index;
+}
+
+internal void
+alloc_end(u32 byte_size)
+{
+    alloc_index += ALIGN_UP(byte_size, 16);
+    alloc_lock = false;
+}
+
+internal void
+alloc_save(void)
+{
+    assert(alloc_top < ATS_ALLOC_STACK_SIZE);
+    alloc_stack[alloc_top++] = alloc_index;
+}
+
+internal void
+alloc_restore(void)
+{
+    assert(alloc_top > 0);
+    alloc_index = alloc_stack[--alloc_top];
+}
+
+internal void
+alloc_validate(void)
+{
+    assert(alloc_top == 0);
+}
+
+#endif // ATS_ARENA_ALLOCATOR
 
 // ==================================== FILES ==================================== //
 
@@ -3250,10 +3538,10 @@ struct Shader
     inline void set(u32 loc, f32 a, f32 b) const               { use(); glUniform2f(loc, a, b); }
     inline void set(u32 loc, f32 a, f32 b, f32 c) const        { use(); glUniform3f(loc, a, b, c); }
     inline void set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { use(); glUniform4f(loc, a, b, c, d); }
-    inline void set(u32 loc, v2 u) const                       { use(); glUniform2fv(loc, 1, u.array); }
-    inline void set(u32 loc, v3 u) const                       { use(); glUniform3fv(loc, 1, u.array); }
-    inline void set(u32 loc, v4 u) const                       { use(); glUniform4fv(loc, 1, u.array); }
-    inline void set(u32 loc, m4 m) const                       { use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.array); }
+    inline void set(u32 loc, v2 u) const                       { use(); glUniform2fv(loc, 1, u); }
+    inline void set(u32 loc, v3 u) const                       { use(); glUniform3fv(loc, 1, u); }
+    inline void set(u32 loc, v4 u) const                       { use(); glUniform4fv(loc, 1, u); }
+    inline void set(u32 loc, m4 m) const                       { use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m); }
 
     inline void set(const char* loc, int n) const                      { set(get_location(loc), n); }
     inline void set(const char* loc, f32 n) const                      { set(get_location(loc), n); }
@@ -3874,7 +4162,7 @@ gl_render_square(v3 pos, f32 rad, v4 color)
 {
     glPushMatrix();
 
-    glColor4fv(color.array);
+    glColor4fv(color);
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad, rad, 1.0f);
 
@@ -3888,7 +4176,7 @@ gl_render_cube(v3 pos, f32 rad, v4 color)
 {
     glPushMatrix();
 
-    glColor4fv(color.array);
+    glColor4fv(color);
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad, rad, rad);
 
@@ -3902,7 +4190,7 @@ gl_render_cube(v3 pos, v3 rad, v4 color)
 {
     glPushMatrix();
 
-    glColor4fv(color.array);
+    glColor4fv(color);
 
     glTranslatef(pos.x, pos.y, pos.z);
     glScalef(rad.x, rad.y, rad.z);
@@ -3915,7 +4203,7 @@ gl_render_cube(v3 pos, v3 rad, v4 color)
 inline void
 gl_render_line(v3 a, v3 b, v4 color)
 {
-    glColor4fv(color.array);
+    glColor4fv(color);
 
     glBegin(GL_LINES);
 
@@ -4044,7 +4332,7 @@ inline m4
 gl_get_projection_matrix(void)
 {
     m4 projection;
-    glGetFloatv(GL_PROJECTION_MATRIX, projection.array);
+    glGetFloatv(GL_PROJECTION_MATRIX, projection);
     return projection;
 }
 
@@ -4052,7 +4340,7 @@ inline m4
 gl_get_modelview_matrix(void)
 {
     m4 modelview;
-    glGetFloatv(GL_MODELVIEW_MATRIX, modelview.array);
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
     return modelview;
 }
 
@@ -4127,16 +4415,16 @@ gl_render_ascii(u8 c, v3 pos, v2 scale)
 
     glPushMatrix();
 
-    glMultMatrixf(T.array);
+    glMultMatrixf(T);
     glCallList(bitmap_display_list[c]);
 
     glPopMatrix();
 }
 
 inline void
-gl_render_string(const char *str, v3 pos, v2 scale, v4 color)
+gl_render_string(const char *str, v3 pos, v2 scale, u32 color)
 {
-    glColor4f(color.r, color.g, color.b, color.a);
+    glColor4ubv((u8*)&color);
 
     for (int i = 0; str[i] != '\0'; i++)
     {
@@ -4145,7 +4433,7 @@ gl_render_string(const char *str, v3 pos, v2 scale, v4 color)
 }
 
 inline void
-gl_render_string_format(v3 pos, v2 scale, v4 color, const char* fmt, ...)
+gl_render_string_format(v3 pos, v2 scale, u32 color, const char* fmt, ...)
 {
     va_list list;
     char    buffer[256];

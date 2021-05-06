@@ -46,6 +46,8 @@
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
+#define defer(start, end) for (int i##__LINE__ = ((start), 0); !i##__LINE__; (i##__LINE__++, (end)))
+
 // ================================================== TYPES ================================================= //
 
 typedef float f32;
@@ -1550,15 +1552,15 @@ rect_move(Rect rect, v2 offset)
 
 // ---------------------------------------- RECTANGLE - INT ------------------------------------- //
 
-typedef struct RectInt RectInt;
-struct RectInt
+typedef struct RectI32 RectI32;
+struct RectI32
 {
     v2i  min;
     v2i  max;
 };
 
 inline b32
-rect_int_contains(RectInt rect, v2i pos)
+rect_int_contains(RectI32 rect, v2i pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1567,7 +1569,7 @@ rect_int_contains(RectInt rect, v2i pos)
 }
 
 inline b32
-rect_int_intersect(RectInt a, RectInt b)
+rect_int_intersect(RectI32 a, RectI32 b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1575,10 +1577,10 @@ rect_int_intersect(RectInt a, RectInt b)
     return true;
 }
 
-inline RectInt
-rect_int_get_overlap(RectInt a, RectInt b)
+inline RectI32
+rect_int_get_overlap(RectI32 a, RectI32 b)
 {
-    return (RectInt)
+    return (RectI32)
     {
         v2i_max(a.min, b.min),
         v2i_min(a.max, b.max),
@@ -1586,9 +1588,9 @@ rect_int_get_overlap(RectInt a, RectInt b)
 }
 
 inline v2i
-rect_int_get_intersect_vector(RectInt a, RectInt b)
+rect_int_get_intersect_vector(RectI32 a, RectI32 b)
 {
-    RectInt o = rect_int_get_overlap(a, b);
+    RectI32 o = rect_int_get_overlap(a, b);
     f32 dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
     f32 dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
 
@@ -1599,10 +1601,10 @@ rect_int_get_intersect_vector(RectInt a, RectInt b)
     };
 }
 
-inline RectInt
-rect_int_move(RectInt rect, v2i offset)
+inline RectI32
+rect_int_move(RectI32 rect, v2i offset)
 {
-    return (RectInt)
+    return (RectI32)
     {
         rect.min.x + offset.x,
         rect.min.y + offset.y,
@@ -3223,7 +3225,7 @@ gl_init(void)
 }
 
 inline void
-gl_set_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z)
+gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z)
 {
     f32 pos[4]  = { x, y, z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -3241,12 +3243,53 @@ gl_set_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z)
 }
 
 inline void
-gl_set_light_directed(int index, f32 bright, f32 x, f32 y, f32 z)
+gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z)
 {
     f32 d       = (f32)(1.0f / sqrt(x * x + y * y + z * z));
     f32 dir[4]  = { x * d, y * d, z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4]    = { bright, bright, bright, 0.0f };
+    u32 light   = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, dir);
+    glLightfv(light, GL_DIFFUSE,  c);
+    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_SPECULAR, zero);
+
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+inline void
+gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
+{
+    f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4]    = { color.r, color.g, color.b, 0.0f };
+    u32 light   = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, pos);
+    glLightfv(light, GL_DIFFUSE,  c);
+    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_SPECULAR, zero);
+    
+    glLightf(light, GL_CONSTANT_ATTENUATION,    constant);
+    glLightf(light, GL_LINEAR_ATTENUATION,      linear);
+    glLightf(light, GL_QUADRATIC_ATTENUATION,   quadratic);
+
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+inline void
+gl_set_light_directed(int index, v3 pos, v3 color)
+{
+    f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
+    f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4]    = { color.r, color.g, color.b, 0.0f };
     u32 light   = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, dir);
