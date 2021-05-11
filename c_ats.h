@@ -1560,7 +1560,7 @@ struct RectI32
 };
 
 inline b32
-rect_int_contains(RectI32 rect, v2i pos)
+recti_contains(RectI32 rect, v2i pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1569,7 +1569,7 @@ rect_int_contains(RectI32 rect, v2i pos)
 }
 
 inline b32
-rect_int_intersect(RectI32 a, RectI32 b)
+recti_intersect(RectI32 a, RectI32 b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1578,7 +1578,7 @@ rect_int_intersect(RectI32 a, RectI32 b)
 }
 
 inline RectI32
-rect_int_get_overlap(RectI32 a, RectI32 b)
+recti_get_overlap(RectI32 a, RectI32 b)
 {
     return (RectI32)
     {
@@ -1588,11 +1588,12 @@ rect_int_get_overlap(RectI32 a, RectI32 b)
 }
 
 inline v2i
-rect_int_get_intersect_vector(RectI32 a, RectI32 b)
+recti_get_intersect_vector(RectI32 a, RectI32 b)
 {
-    RectI32 o = rect_int_get_overlap(a, b);
-    f32 dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
-    f32 dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
+    RectI32 o = recti_get_overlap(a, b);
+
+    i32 dx  = (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2;
+    i32 dy  = (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2;
 
     return (v2i)
     {
@@ -1602,7 +1603,7 @@ rect_int_get_intersect_vector(RectI32 a, RectI32 b)
 }
 
 inline RectI32
-rect_int_move(RectI32 rect, v2i offset)
+recti_move(RectI32 rect, v2i offset)
 {
     return (RectI32)
     {
@@ -1623,11 +1624,11 @@ struct Box
 };
 
 inline b32
-box_contains(Box rect, v3 pos)
+box_contains(Box box, v3 pos)
 {
-    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-    if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
+    if (pos.x < box.min.x || pos.x > box.max.x) return false;
+    if (pos.y < box.min.y || pos.y > box.max.y) return false;
+    if (pos.z < box.min.z || pos.z > box.max.z) return false;
 
     return true;
 }
@@ -1672,6 +1673,77 @@ inline Box
 box_move(Box box, v3 offset)
 {
     return (Box)
+    {
+        box.min.x + offset.x,
+        box.min.y + offset.y,
+        box.min.z + offset.z,
+
+        box.max.x + offset.x,
+        box.max.y + offset.y,
+        box.max.z + offset.z,
+    };
+}
+
+// ----------------------------------------- BOX - INT --------------------------------------- //
+
+typedef struct BoxI32 BoxI32;
+struct BoxI32
+{
+    v3  min;
+    v3  max;
+};
+
+inline b32
+boxi_contains(BoxI32 box, v3 pos)
+{
+    if (pos.x < box.min.x || pos.x > box.max.x) return false;
+    if (pos.y < box.min.y || pos.y > box.max.y) return false;
+    if (pos.z < box.min.z || pos.z > box.max.z) return false;
+
+    return true;
+}
+
+inline b32
+boxi_intersect(BoxI32 a, BoxI32 b)
+{
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+    if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
+
+    return true;
+}
+
+inline BoxI32
+boxi_get_overlap(BoxI32 a, BoxI32 b)
+{
+    return (BoxI32)
+    {
+        v3_max(a.min, b.min),
+        v3_min(a.max, b.max),
+    };
+}
+
+inline v3i
+boxi_get_intersect_vector(BoxI32 a, BoxI32 b)
+{
+    BoxI32 o = boxi_get_overlap(a, b);
+
+    i32 dx  = (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2;
+    i32 dy  = (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2;
+    i32 dz  = (a.min.z + a.max.z) / 2 - (b.min.z + b.max.z) / 2;
+
+    return (v3i)
+    {
+        sign(dx) * (o.max.x - o.min.x),
+        sign(dy) * (o.max.y - o.min.y),
+        sign(dz) * (o.max.z - o.min.z),
+    };
+}
+
+inline BoxI32
+boxi_move(BoxI32 box, v3 offset)
+{
+    return (BoxI32)
     {
         box.min.x + offset.x,
         box.min.y + offset.y,
@@ -1869,6 +1941,20 @@ inline f32
 rand_f32(u32* state, f32 min, f32 max)
 {
     return min + ((f32)rand_u32(state) / (f32)0xFFFFFFFF) * (max - min); 
+}
+
+inline v2
+rand_unit_v2(u32* state)
+{
+    v2 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
+    return v2_norm(out);
+}
+
+inline v3
+rand_unit_v3(u32* state)
+{
+    v3 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
+    return v3_norm(out);
 }
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
