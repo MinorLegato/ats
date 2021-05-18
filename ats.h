@@ -45,6 +45,8 @@
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
+#define defer(start, end) for (int i##__LINE__ = ((start), 0); !i##__LINE__; (i##__LINE__++, (end)))
+
 // ================================================== TYPES ================================================= //
 
 typedef float f32;
@@ -65,57 +67,39 @@ typedef uint16_t b16;
 typedef uint32_t b32;
 typedef uint64_t b64;
 
-struct v2;
-struct v3;
-struct v4;
-
-struct v2i;
-struct v3i;
-struct v4i;
-
-struct v2
+union v2
 {
-    f32     x;
-    f32     y;
+    struct { f32 x, y; };
 
-    f32&    operator[](i32 i)       { return (&x)[i]; }
-    f32     operator[](i32 i) const { return (&x)[i]; }
+    f32 e[2];
 
-    operator f32*       ()          { return &x; }
-    operator const f32* () const    { return &x; }
+    f32  operator[](i32 index) const { return e[index]; }
+    f32& operator[](i32 index)       { return e[index]; }
 };
 
-struct v3
+union v3
 {
-    union
-    {
-        struct { f32 x, y, z; };
-        struct { f32 r, g, b; };
-        struct { v2 xy; };
-    };
+    struct { f32 x, y, z; };
+    struct { f32 r, g, b; };
+    struct { v2 xy; };
 
-    f32&    operator[](i32 i)       { return (&x)[i]; }
-    f32     operator[](i32 i) const { return (&x)[i]; }
+    f32 e[3];
 
-    operator f32*       ()          { return &x; }
-    operator const f32* () const    { return &x; }
+    f32  operator[](i32 index) const { return e[index]; }
+    f32& operator[](i32 index)       { return e[index]; }
 };
 
-struct v4
+union v4
 {
-    union
-    {
-        struct { f32 x, y, z, w; };
-        struct { f32 r, g, b, a; };
-        struct { v3 xyz; };
-        struct { v3 rgb; };
-    };
+    struct { f32 x, y, z, w; };
+    struct { f32 r, g, b, a; };
+    struct { v3 xyz; };
+    struct { v3 rgb; };
 
-    inline f32&    operator[](i32 i)       { return (&x)[i]; }
-    inline f32     operator[](i32 i) const { return (&x)[i]; }
+    f32 e[4];
 
-    inline operator f32*       ()          { return &x; }
-    inline operator const f32* () const    { return &x; }
+    f32  operator[](i32 index) const { return e[index]; }
+    f32& operator[](i32 index)       { return e[index]; }
 };
 
 struct Quat
@@ -124,92 +108,70 @@ struct Quat
     f32     y;
     f32     z;
     f32     w;
-
-    f32&    operator[](i32 i)       { return (&x)[i]; }
-    f32     operator[](i32 i) const { return (&x)[i]; }
-
-    operator f32*       ()          { return &x; }
-    operator const f32* () const    { return &x; }
 };
 
-struct m2
+union m2
 {
-    v2      x;
-    v2      y;
+    struct { v2 x, y; };
 
-    f32& operator[](i32 i)       { return (&x.x)[i]; }
-    f32  operator[](i32 i) const { return (&x.x)[i]; }
+    f32 e[4];
 
-    operator f32*       ()          { return &x.x; }
-    operator const f32* () const    { return &x.x; }
+    f32  operator[](i32 index) const { return e[index]; }
+    f32& operator[](i32 index)       { return e[index]; }
 };
 
-struct m3
+union m3
 {
-    v3      x;
-    v3      y;
-    v3      z;
+    struct { v3 x, y, z; };
 
-    f32& operator[](i32 i)       { return (&x.x)[i]; }
-    f32  operator[](i32 i) const { return (&x.x)[i]; }
+    f32 e[9];
 
-    operator f32*       ()          { return &x.x; }
-    operator const f32* () const    { return &x.x; }
+    f32  operator[](i32 index) const { return e[index]; }
+    f32& operator[](i32 index)       { return e[index]; }
 };
 
-struct m4
+union m4
 {
-    v4      x;
-    v4      y;
-    v4      z;
-    v4      w;
+    struct { v4 x, y, z, w; };
 
-    f32& operator[](i32 i)       { return (&x.x)[i]; }
-    f32  operator[](i32 i) const { return (&x.x)[i]; }
+    f32 e[16];
 
-    operator f32*       ()          { return &x.x; }
-    operator const f32* () const    { return &x.x; }
+    f32  operator[](i32 index) const { return e[index]; }
+    f32& operator[](i32 index)       { return e[index]; }
 };
 
-struct v2i
+union v2i
 {
-    i32     x;
-    i32     y;
+    struct { i32 x, y; };
 
-    i32&    operator[](i32 i)       { return (&x)[i]; }
-    i32     operator[](i32 i) const { return (&x)[i]; }
+    i32 e[2];
 
-    operator i32*       ()          { return &x; }
-    operator const i32* () const    { return &x; }
+    i32  operator[](i32 index) const { return e[index]; }
+    i32& operator[](i32 index)       { return e[index]; }
 };
 
-struct v3i
+union v3i
 {
-    union
-    {
-        struct { i32 x, y, z; };
-        struct { v2i xy; };
-    };
+    struct { i32 x, y, z; };
+    struct { v2i xy; };
 
-    i32&    operator[](i32 i)       { return (&x)[i]; }
-    i32     operator[](i32 i) const { return (&x)[i]; }
+    i32 e[3];
 
-    operator i32*       ()          { return &x; }
-    operator const i32* () const    { return &x; }
+    i32  operator[](i32 index) const { return e[index]; }
+    i32& operator[](i32 index)       { return e[index]; }
 };
 
-struct v4i
+union v4i
 {
-    i32     x;
-    i32     y;
-    i32     z;
-    i32     w;
+    struct { i32 x, y, z, w; };
+    struct { i32 r, g, b, a; };
+    struct { v3i xyz; };
+    struct { v3i rgb; };
 
-    i32&    operator[](i32 i)       { return (&x)[i]; }
-    i32     operator[](i32 i) const { return (&x)[i]; }
+    i32 e[4];
 
-    operator i32*       ()          { return &x; }
-    operator const i32* () const    { return &x; }
+    i32  operator[](i32 index) const { return e[index]; }
+    i32& operator[](i32 index)       { return e[index]; }
 };
 
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
@@ -245,22 +207,6 @@ __rsqrt(f32 n)
     return y;
 }
 
-template <typename T>
-inline T square(T n)
-{
-    return n * n;
-}
-
-inline f32 lerp(f32 a, f32 b, f32 t)
-{
-    return a + t * (b - a);
-}
-
-inline f32 unlerp(f32 a, f32 b, f32 t)
-{
-    return (t - a) / (b - a);
-}
-
 inline f32 angle_dist(f32 a, f32 b)
 {
     f32 max = 2.0f * PI;
@@ -282,121 +228,19 @@ inline f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d)
 #undef min
 #undef max
 
-template <typename T, typename U>
-inline T min(T a, U b)
-{
-    return a < b? a : b;
-}
+#define min(a, b)   ((a) < (b)? (a) : (b))
+#define max(a, b)   ((a) > (b)? (a) : (b))
 
-template <typename T, typename U>
-inline T max(T a, U b)
-{
-    return a > b? a : b;
-}
+#define clamp_min(n, lo)    ((n) < (lo)? (lo) : (n))
+#define clamp_max(n, hi)    ((n) > (hi)? (hi) : (n))
+#define clamp(n, lo, hi)    clamp_min(clamp_max(n, (hi)), (lo))
 
-template <typename T, typename U, typename V>
-inline T clamp(T n, U min, V max)
-{
-    if (n < min) return min;
-    if (n > max) return max;
+#define sign(n)             ((n) < 0? -1 : 1)
+#define sign_or_zero(n)     ((n) < 0? -1 : ((n) > 0? 1 : 0))
 
-    return n;
-}
-
-template <typename T, typename U>
-inline T clamp_min(T n, U min)
-{
-    return n < min? min : n;
-}
-
-template <typename T, typename U>
-inline T clamp_max(T n, U max)
-{
-    return n > max? max : n;
-}
-
-template <typename T>
-inline T sign(T n)
-{
-    return n < 0? -1 : 1;
-}
-
-template <typename T>
-inline T sign_or_zero(T n)
-{
-    if (n < 0) return -1;
-    if (n > 0) return +1;
-
-    return 0;
-}
-
-struct QueueNode
-{
-    f32     weight;
-    v2i     e;
-};
-
-struct PriorityQueue
-{
-    i32         len;
-    QueueNode*  array;
-};
-
-inline bool queue_empty(const PriorityQueue* queue)
-{
-    return queue->len == 0;
-}
-
-inline void queue_clear(PriorityQueue* queue)
-{
-    queue->len = 0;
-}
-
-inline void queue_push(PriorityQueue* queue, v2i e, f32 weight)
-{
-    QueueNode node = { weight, e };
-
-    int i = queue->len + 1;
-    int j = i / 2;
-
-    while (i > 1 && queue->array[j].weight > node.weight)
-    {
-        queue->array[i] = queue->array[j];
-
-        i = j;
-        j = j / 2;
-    }
-
-    queue->array[i] = node;
-    queue->len++;
-}
-
-inline f32 queue_pop(v2i* pos, PriorityQueue* queue)
-{
-    QueueNode data = queue->array[1];
-
-    queue->array[1] = queue->array[queue->len];
-    queue->len--;
-
-    int i = 1;
-    while (i != queue->len + 1)
-    {
-        int k = queue->len + 1;
-        int j = 2 * i;
-
-        if (j <= queue->len && queue->array[j].weight < queue->array[k].weight)
-            k = j;
-
-        if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight)
-            k = j + 1;
-
-        queue->array[i] = queue->array[k];
-        i = k;
-    }
-
-    *pos = data.e;
-    return data.weight;
-}
+#define square(n)       ((n) * (n))
+#define lerp(a, b, t)   ((a) + (t) * ((b) - (a)))
+#define unlerp(a, b, t) (((t) - (a)) / ((b) - (a)))
 
 // ==================================================  MATHS ================================================== //
 
@@ -414,27 +258,7 @@ inline v2 V2(const f32* u)
 
 inline v2 V2(v3 u)
 {
-    return { x, y, 0 };
-}
-
-inline v2::operator v4() const
-{
-    return { x, y, 0, 0 };
-}
-
-inline v2::operator v2i() const
-{
-    return { i32(x), i32(y) };
-}
-
-inline v2::operator v3i() const
-{
-    return { i32(x), i32(y), 0 };
-}
-
-inline v2::operator v4i() const
-{
-    return { i32(x), i32(y), 0, 0 };
+    return { u.x, u.y };
 }
 
 inline v2 operator-(v2 a)
@@ -502,50 +326,50 @@ inline v2 operator/=(v2& a, f32 s)
     return a;
 }
 
-inline f32 det(v2 a, v2 b)
+inline f32 v2_det(v2 a, v2 b)
 {
     return a.x * b.y - a.y * b.x;
 }
 
-inline f32 dot(v2 a, v2 b)
+inline f32 v2_dot(v2 a, v2 b)
 {
     return a.x * b.x + a.y * b.y;
 }
 
-inline f32 len_sq(v2 v)
+inline f32 v2_len_sq(v2 v)
 {
-    return dot(v, v);
+    return v2_dot(v, v);
 }
 
-inline f32 len(v2 v)
+inline f32 v2_len(v2 v)
 {
-    return sqrt(dot(v, v));
+    return sqrt(v2_dot(v, v));
 }
 
-inline f32 dist_sq(v2 a, v2 b)
+inline f32 v2_dist_sq(v2 a, v2 b)
 {
-    return len_sq(b - a);
+    return v2_len_sq(b - a);
 }
 
-inline f32 dist(v2 a, v2 b)
+inline f32 v2_dist(v2 a, v2 b)
 {
-    return sqrt(dist_sq(a, b));
+    return sqrt(v2_dist_sq(a, b));
 }
 
-inline v2 proj(v2 a, v2 b)
+inline v2 v2_proj(v2 a, v2 b)
 {
-    f32 d = dot(b, b);
+    f32 d = v2_dot(b, b);
     if (d == 0) return {};
 
-    return (dot(a, b) / d) * b;
+    return (v2_dot(a, b) / d) * b;
 }
 
-inline v2 norm(v2 v)
+inline v2 v2_norm(v2 v)
 {
-    return v * rsqrt(dot(v, v));
+    return v * rsqrt(v2_dot(v, v));
 }
 
-inline v2 min(v2 a, v2 b)
+inline v2 v2_min(v2 a, v2 b)
 {
     return
     {
@@ -554,7 +378,7 @@ inline v2 min(v2 a, v2 b)
     };
 }
 
-inline v2 max(v2 a, v2 b)
+inline v2 v2_max(v2 a, v2 b)
 {
     return
     {
@@ -563,12 +387,12 @@ inline v2 max(v2 a, v2 b)
     };
 }
 
-inline v2 lerp(v2 a, v2 b, f32 t)
+inline v2 v2_lerp(v2 a, v2 b, f32 t)
 {
     return a + t * (b - a);
 }
 
-inline f32 get_angle(v2 a, v2 b)
+inline f32 v2_get_angle(v2 a, v2 b)
 {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
@@ -576,52 +400,33 @@ inline f32 get_angle(v2 a, v2 b)
     return atan2f(det, dot);
 }
 
-inline v2 spline(f32 f, v2 a, v2 b, v2 c, v2 d)
+inline v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d)
 {
     f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 circle_intersect(v2 p0, f32 r0, v2 p1, f32 r1)
-{
-    f32 dx = p1.x - p0.x;
-    f32 dy = p1.y - p0.y;
-
-    f32 r = r0 + r1;
-
-    return (dx * dx + dy * dy) < (r * r);
-}
-
-inline b32 segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad)
+inline b32 v2_segment_is_intersecting_circle(v2 start, v2 end, v2 pos, f32 rad)
 {
     v2 a = start - pos;
     v2 b = end - pos;
 
-    if (dot(a, a) > dot(b, b)) return false;
+    if (v2_dot(a, a) > v2_dot(b, b)) return false;
 
     v2 seg = end - start;
     v2 cir = pos - start;
 
-    f32 dot_sc = dot(seg, cir);
+    f32 dot_sc = v2_dot(seg, cir);
 
     if (dot_sc < 0.0f) return false;
 
-    seg = (dot_sc / dot(seg, seg)) * seg - cir;
+    seg = (dot_sc / v2_dot(seg, seg)) * seg - cir;
 
-    return dot(seg, seg) < (rad * rad);
+    return v2_dot(seg, seg) < (rad * rad);
 }
 
-inline m2 outer_product(v2 a, v2 b)
-{
-    return
-    {
-        a.x * b.x, a.y * b.x,
-        a.x * b.y, a.y * b.y,
-    };
-}
-
-inline v2 square(v2 a)
+inline v2 v2_square(v2 a)
 {
     return { a.x * a.x, a.y * a.y };
 }
@@ -663,30 +468,17 @@ inline v3 V3(v3i a)
     return { f32(a.x), f32(a.y), f32(a.z) };
 }
 
-inline v3::operator v2() const
+inline v3 V3(u32 color)
 {
-    return { x, y };
+    v3 result = {};
+
+    result.r = ((color & 0x000000FF) >> 0)  / 256.0f;
+    result.g = ((color & 0x0000FF00) >> 8)  / 256.0f;
+    result.b = ((color & 0x00FF0000) >> 16) / 256.0f;
+
+    return result;
 }
 
-inline v3::operator v4() const
-{
-    return { x, y, z, 0 };
-}
-
-inline v3::operator v2i() const
-{
-    return { i32(x), i32(y) };
-}
-
-inline v3::operator v3i() const
-{
-    return { i32(x), i32(y), i32(z) };
-}
-
-inline v3::operator v4i() const
-{
-    return { i32(x), i32(y), i32(z), 0 };
-}
 
 inline v3 operator-(v3 a)
 {
@@ -753,45 +545,45 @@ inline v3 operator/=(v3& a, f32 s)
     return a;
 }
 
-inline f32 dot(v3 a, v3 b)
+inline f32 v3_dot(v3 a, v3 b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-inline f32 len_sq(v3 v)
+inline f32 v3_len_sq(v3 v)
 {
-    return dot(v, v);
+    return v3_dot(v, v);
 }
 
-inline f32 len(v3 v)
+inline f32 v3_len(v3 v)
 {
-    return sqrt(dot(v, v));
+    return sqrt(v3_dot(v, v));
 }
 
-inline f32 dist_sq(v3 a, v3 b)
+inline f32 v3_dist_sq(v3 a, v3 b)
 {
-    return len_sq(b - a);
+    return v3_len_sq(b - a);
 }
 
-inline f32 dist(v3 a, v3 b)
+inline f32 v3_dist(v3 a, v3 b)
 {
-    return sqrt(dist_sq(a, b));
+    return sqrt(v3_dist_sq(a, b));
 }
 
-inline v3 proj(v3 a, v3 b)
+inline v3 v3_proj(v3 a, v3 b)
 {
-    f32 d = dot(b, b);
+    f32 d = v3_dot(b, b);
     if (d == 0) return {};
 
-    return (dot(a, b) / d) * b;
+    return (v3_dot(a, b) / d) * b;
 }
 
-inline v3 norm(v3 v)
+inline v3 v3_norm(v3 v)
 {
-    return v * rsqrt(dot(v, v));
+    return v * rsqrt(v3_dot(v, v));
 }
 
-inline v3 min(v3 a, v3 b)
+inline v3 v3_min(v3 a, v3 b)
 {
     return
     {
@@ -801,7 +593,7 @@ inline v3 min(v3 a, v3 b)
     };
 }
 
-inline v3 max(v3 a, v3 b)
+inline v3 v3_max(v3 a, v3 b)
 {
     return
     {
@@ -811,12 +603,12 @@ inline v3 max(v3 a, v3 b)
     };
 }
 
-inline v3 lerp(v3 a, v3 b, f32 t)
+inline v3 v3_lerp(v3 a, v3 b, f32 t)
 {
     return a + t * (b - a);
 }
 
-inline v3 cross(v3 a, v3 b)
+inline v3 v3_cross(v3 a, v3 b)
 {
     return
     {
@@ -826,21 +618,21 @@ inline v3 cross(v3 a, v3 b)
     };
 }
 
-inline v3 spline(f32 f, v3 a, v3 b, v3 c, v3 d)
+inline v3 v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d)
 {
     f32 i = 1.0f - f;
 
     return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
 
-inline b32 raycast_triangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* result)
+inline b32 v3_raycast_triangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* result)
 {
     const f32 EPSILON = 0.0000001;
 
     v3  edge1   = vert1 - vert0;
     v3  edge2   = vert2 - vert0;
-    v3  pvec    = cross(dir, edge2);
-    f32 det     = dot(edge1, pvec);
+    v3  pvec    = v3_cross(dir, edge2);
+    f32 det     = v3_dot(edge1, pvec);
 
     if (det > -EPSILON && det < EPSILON)
         return false;
@@ -848,18 +640,18 @@ inline b32 raycast_triangle(v3 orig, v3 dir, v3 vert0, v3 vert1, v3 vert2, v3* r
     f32 inv_det = 1.0f / det;
     v3  tvec    = orig - vert0;
 
-    result->x   = dot(tvec, pvec) * inv_det;
+    result->x   = v3_dot(tvec, pvec) * inv_det;
 
     if (result->x < 0.0f || result->x > 1.0f)
         return false;
 
-    v3 qvec     = cross(tvec, edge1);
-    result->y   = dot(dir, qvec) * inv_det;
+    v3 qvec     = v3_cross(tvec, edge1);
+    result->y   = v3_dot(dir, qvec) * inv_det;
 
     if (result->y < 0.0f || result->x + result->y > 1.0f)
         return false;
 
-    result->z   = dot(edge2, qvec) * inv_det;
+    result->z   = v3_dot(edge2, qvec) * inv_det;
 
     v3 intersection = vert0 + result->x * edge2 + result->y * edge1;
 
@@ -913,31 +705,6 @@ inline v4 V4(u32 color)
     result.a = ((color & 0xFF000000) >> 24) / 256.0f;
 
     return result;
-}
-
-inline v4::operator v2() const
-{
-    return { x, y };
-}
-
-inline v4::operator v3() const
-{
-    return { x, y, z };
-}
-
-inline v4::operator v2i() const
-{
-    return { i32(x), i32(y) };
-}
-
-inline v4::operator v3i() const
-{
-    return { i32(x), i32(y), i32(z) };
-}
-
-inline v4::operator v4i() const
-{
-    return { i32(x), i32(y), i32(z), i32(w) };
 }
 
 inline v4 operator-(v4 a)
@@ -1005,37 +772,37 @@ inline v4 operator/=(v4& a, f32 s)
     return a;
 }
 
-inline f32 dot(v4 a, v4 b)
+inline f32 v4_dot(v4 a, v4 b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline f32 len_sq(v4 v)
+inline f32 v4_len_sq(v4 v)
 {
-    return dot(v, v);
+    return v4_dot(v, v);
 }
 
-inline f32 len(v4 v)
+inline f32 v4_len(v4 v)
 {
-    return sqrt(dot(v, v));
+    return sqrt(v4_dot(v, v));
 }
 
-inline f32 dist_sq(v4 a, v4 b)
+inline f32 v4_dist_sq(v4 a, v4 b)
 {
-    return len_sq(b - a);
+    return v4_len_sq(b - a);
 }
 
-inline f32 dist(v4 a, v4 b)
+inline f32 v4_dist(v4 a, v4 b)
 {
-    return sqrt(dist_sq(a, b));
+    return sqrt(v4_dist_sq(a, b));
 }
 
-inline v4 norm(v4 v)
+inline v4 v4_norm(v4 v)
 {
-    return v * rsqrt(dot(v, v));
+    return v * rsqrt(v4_dot(v, v));
 }
 
-inline v4 min(v4 a, v4 b)
+inline v4 v4_min(v4 a, v4 b)
 {
     return
     {
@@ -1046,7 +813,7 @@ inline v4 min(v4 a, v4 b)
     };
 }
 
-inline v4 max(v4 a, v4 b)
+inline v4 v4_max(v4 a, v4 b)
 {
     return
     {
@@ -1057,12 +824,12 @@ inline v4 max(v4 a, v4 b)
     };
 }
 
-inline v4 lerp(v4 a, v4 b, f32 t)
+inline v4 v4_lerp(v4 a, v4 b, f32 t)
 {
     return a + t * (b - a);
 }
 
-inline v4 cross(v4 a, v4 b)
+inline v4 v4_cross(v4 a, v4 b)
 {
     return
     {
@@ -1073,7 +840,7 @@ inline v4 cross(v4 a, v4 b)
     };
 }
 
-inline v4 spline(f32 f, v4 a, v4 b, v4 c, v4 d)
+inline v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d)
 {
     f32 i = 1.0f - f;
 
@@ -1144,12 +911,12 @@ inline m2 m2_scale(f32 sx, f32 sy)
     return { sx, 0.0f, 0.0f, sy };
 }
 
-inline f32 det(m2 m)
+inline f32 m2_det(m2 m)
 {
     return m.x.x * m.y.y - m.x.y * m.y.x;
 }
 
-inline m2 transpose(m2 m)
+inline m2 m2_transpose(m2 m)
 {
     return
     {
@@ -1158,30 +925,15 @@ inline m2 transpose(m2 m)
     };
 }
 
-inline m2 inverse(m2 m)
+inline m2 m2_inverse(m2 m)
 {
-    f32 d = det(m);
+    f32 d = m2_det(m);
 
     return (1.0 / d) * m2
     {
          m.y.y, -m.y.x,
         -m.x.y,  m.x.x
     };
-}
-
-inline void polar_decomp(m2 m, m2* R, m2* S)
-{
-    f32 x = m.x.x + m.y.y;
-    f32 y = m.y.x - m.x.y;
-    f32 scale = rsqrt(x * x + y * y);
-    f32 c = x * scale, s = y * scale;
-
-    R->x.x = c;
-    R->x.y = -s;
-    R->y.x = s;
-    R->y.y = c;
-
-    *S = transpose(*R) * m;
 }
 
 // m3:
@@ -1352,7 +1104,7 @@ inline m4 m4_identity(void)
     };
 }
 
-inline m4 transpose(m4 N)
+inline m4 m4_transpose(m4 N)
 {
     return
     {
@@ -1414,7 +1166,7 @@ inline m4 m4_rotate_x(f32 angle)
     };
 }
 
-inline m4 m4_Rotate_y(f32 angle)
+inline m4 m4_rotate_y(f32 angle)
 {
     f32 s = sinf(angle);
     f32 c = cosf(angle);
@@ -1428,7 +1180,7 @@ inline m4 m4_Rotate_y(f32 angle)
     };
 }
 
-inline m4 m4_Rotate_z(f32 angle)
+inline m4 m4_rotate_z(f32 angle)
 {
     f32 s = sinf(angle);
     f32 c = cosf(angle);
@@ -1523,9 +1275,9 @@ inline m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
 
 inline m4 m4_look_at(v3 eye, v3 center, v3 up)
 {
-    v3 f = norm(center - eye);
-    v3 s = norm(cross(f, up));
-    v3 t = cross(s, f);
+    v3 f = v3_norm(center - eye);
+    v3 s = v3_norm(v3_cross(f, up));
+    v3 t = v3_cross(s, f);
 
     m4 M;
 
@@ -1699,31 +1451,6 @@ inline v2i V2i(v3 a)
     return { i32(a.x), i32(a.y) };
 }
 
-inline v2i::operator v2() const
-{
-    return { f32(x), f32(y) };
-}
-
-inline v2i::operator v3() const
-{
-    return { f32(x), f32(y), 0 };
-}
-
-inline v2i::operator v4() const
-{
-    return { f32(x), f32(y), 0, 0 };
-}
-
-inline v2i::operator v3i() const
-{
-    return { x, y, 0 };
-}
-
-inline v2i::operator v4i() const
-{
-    return { x, y, 0, 0 };
-}
-
 inline v2i operator-(v2i a)
 {
     return { -a.x, -a.y };
@@ -1784,13 +1511,13 @@ inline v2i operator-=(v2i& a, v2i b)
     return a = a - b;
 }
 
-inline i32 dist_sq(v2i a, v2i b)
+inline i32 v2i_dist_sq(v2i a, v2i b)
 {
     v2i d = a - b;
     return d.x * d.x + d.y * d.y;
 }
 
-inline i32 manhattan(v2i a, v2i b)
+inline i32 v2i_manhattan(v2i a, v2i b)
 {
     i32 dx = abs(a.x - b.x);
     i32 dy = abs(a.y - b.y);
@@ -1798,7 +1525,7 @@ inline i32 manhattan(v2i a, v2i b)
     return dx + dy;
 }
 
-inline v2i clamp(v2i a, i32 min, i32 max)
+inline v2i v2i_clamp(v2i a, i32 min, i32 max)
 {
     return
     {
@@ -1807,7 +1534,7 @@ inline v2i clamp(v2i a, i32 min, i32 max)
     };
 }
 
-inline v2i min(v2i a, v2i b)
+inline v2i v2i_min(v2i a, v2i b)
 {
     return
     {
@@ -1816,7 +1543,7 @@ inline v2i min(v2i a, v2i b)
     };
 }
 
-inline v2i max(v2i a, v2i b)
+inline v2i v2i_max(v2i a, v2i b)
 {
     return
     {
@@ -1840,31 +1567,6 @@ inline v3i V3i(v3 a)
 inline v3i V3i(v2i a, i32 z)
 {
     return { a.x, a.y, z };
-}
-
-inline v3i::operator v2() const
-{
-    return { f32(x), f32(y) };
-}
-
-inline v3i::operator v3() const
-{
-    return { f32(x), f32(y), f32(z) };
-}
-
-inline v3i::operator v4() const
-{
-    return { f32(x), f32(y), f32(z), 0 };
-}
-
-inline v3i::operator v2i() const
-{
-    return { x, y };
-}
-
-inline v3i::operator v4i() const
-{
-    return { x, y, z, 0 };
 }
 
 inline v3i operator+(v3i a, v3i b)
@@ -1912,7 +1614,7 @@ inline bool operator!=(v3i a, v3i b)
     return (a.x != b.x) || (a.y != b.y) || (a.z != b.z);
 }
 
-inline i32 manhattan(v3i a, v3i b)
+inline i32 v3i_manhattan(v3i a, v3i b)
 {
     i32 dx = abs(a.x - b.x);
     i32 dy = abs(a.y - b.y);
@@ -1921,42 +1623,38 @@ inline i32 manhattan(v3i a, v3i b)
     return dx + dy + dz;
 }
 
-inline i32 dist_sq(v3i a, v3i b)
+inline i32 v3i_dist_sq(v3i a, v3i b)
 {
     v3i d = a - b;
     return d.x * d.x + d.y * d.y + d.z * d.z;
 }
+
+inline v3i v3i_min(v3i a, v3i b)
+{
+    return
+    {
+        a.x < b.x? a.x : b.x,
+        a.y < b.y? a.y : b.y,
+        a.z < b.z? a.z : b.z,
+    };
+}
+
+inline v3i v3i_max(v3i a, v3i b)
+{
+    return
+    {
+        a.x > b.x? a.x : b.x,
+        a.y > b.y? a.y : b.y,
+        a.z > b.z? a.z : b.z,
+    };
+}
+
 
 // --------------------- v4i ------------------------- // 
 
 inline v4i V4i(i32 x, i32 y, i32 z, i32 w)
 {
     return { x, y, z, w };
-}
-
-inline v4i::operator v2() const
-{
-    return { f32(x), f32(y) };
-}
-
-inline v4i::operator v3() const
-{
-    return { f32(x), f32(y), f32(z) };
-}
-
-inline v4i::operator v4() const
-{
-    return { f32(x), f32(y), f32(z), f32(w) };
-}
-
-inline v4i::operator v2i() const
-{
-    return { x, y };
-}
-
-inline v4i::operator v3i() const
-{
-    return { x, y, z };
 }
 
 inline v4i operator+(v4i a, v4i b)
@@ -1999,7 +1697,7 @@ struct Circle
     f32     rad;
 };
 
-inline b32 intersect(Circle a, Circle b)
+inline b32 circle_intersect(Circle a, Circle b)
 {
     v2  d   = b.pos - a.pos;
     f32 rt  = a.rad + b.rad;
@@ -2007,10 +1705,10 @@ inline b32 intersect(Circle a, Circle b)
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v2 get_intersect_vector(Circle a, Circle b)
+inline v2 circle_get_intersect_vector(Circle a, Circle b)
 {
     v2  delta   = b.pos - a.pos;
-    f32 depth   = len(delta) - (a.rad + b.rad);
+    f32 depth   = v2_len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -2023,7 +1721,7 @@ struct Sphere
     f32     rad;
 };
 
-inline b32 intersect(Sphere a, Sphere b)
+inline b32 sphere_intersect(Sphere a, Sphere b)
 {
     v3  d   = b.pos - a.pos;
     f32 rt  = a.rad + b.rad;
@@ -2031,10 +1729,10 @@ inline b32 intersect(Sphere a, Sphere b)
     return d.x * d.x + d.y * d.y < rt * rt;
 };
 
-inline v3 get_intersect_vector(Sphere a, Sphere b)
+inline v3 sphere_get_intersect_vector(Sphere a, Sphere b)
 {
     v3  delta   = b.pos - a.pos;
-    f32 depth   = len(delta) - (a.rad + b.rad);
+    f32 depth   = v3_len(delta) - (a.rad + b.rad);
     
     return depth * delta;
 }
@@ -2047,7 +1745,7 @@ struct Rect
     v2  max;
 };
 
-inline b32 contains(Rect rect, v2 pos)
+inline b32 rect_contains(Rect rect, v2 pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -2055,7 +1753,7 @@ inline b32 contains(Rect rect, v2 pos)
     return true;
 }
 
-inline b32 intersect(Rect a, Rect b)
+inline b32 rct_intersect(Rect a, Rect b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -2063,24 +1761,24 @@ inline b32 intersect(Rect a, Rect b)
     return true;
 }
 
-inline Rect get_overlap(Rect a, Rect b)
+inline Rect rect_get_overlap(Rect a, Rect b)
 {
     return
     {
-        max(a.min, b.min),
-        min(a.max, b.max)
+        v2_max(a.min, b.min),
+        v2_min(a.max, b.max)
     };
 }
 
-inline v2 get_intersect_vector(Rect a, Rect b)
+inline v2 rect_get_intersect_vector(Rect a, Rect b)
 {
-    Rect o      = get_overlap(a, b);
+    Rect o      = rect_get_overlap(a, b);
     v2   delta  = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return V2(sign(delta.x), sign(delta.y)) * (o.max - o.min);
 }
 
-inline Rect move(Rect rect, v2 offset)
+inline Rect rect_move(Rect rect, v2 offset)
 {
     return
     {
@@ -2091,13 +1789,13 @@ inline Rect move(Rect rect, v2 offset)
 
 // ------------------------------------- RECTANGLE - I32 ------------------------------------- //
 
-struct RectInt
+struct RectI32
 {
     v2i min;
     v2i max;
 };
 
-inline b32 contains(RectInt rect, v2i pos)
+inline b32 rect_contains(RectI32 rect, v2i pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -2105,7 +1803,7 @@ inline b32 contains(RectInt rect, v2i pos)
     return true;
 }
 
-inline b32 intersect(RectInt a, RectInt b)
+inline b32 rect_intersect(RectI32 a, RectI32 b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -2113,22 +1811,22 @@ inline b32 intersect(RectInt a, RectInt b)
     return true;
 }
 
-inline RectInt get_overlap(RectInt a, RectInt b)
+inline RectI32 rect_get_overlap(RectI32 a, RectI32 b)
 {
-    return {
-        max(a.min, b.min),
-        min(a.max, b.max)
+    return
+    {
+        v2i_max(a.min, b.min),
+        v2i_min(a.max, b.max)
     };
 }
 
-inline v2i get_intersect_vector(RectInt a, RectInt b)
+inline v2i rect_get_intersect_vector(RectI32 a, RectI32 b)
 {
-    RectInt o      = get_overlap(a, b);
+    RectI32 o      = rect_get_overlap(a, b);
     v2i     delta  = (a.min + a.max) / 2 - (b.min + b.max) / 2;
 
     return V2i(sign(delta.x), sign(delta.y)) * (o.max - o.min);
 }
-
 
 // ----------------------------------------- BOX --------------------------------------- //
 
@@ -2138,7 +1836,7 @@ struct Box
     v3  max;
 };
 
-inline b32 contains(Box rect, v3 pos)
+inline b32 box_contains(Box rect, v3 pos)
 {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -2147,7 +1845,7 @@ inline b32 contains(Box rect, v3 pos)
     return true;
 }
 
-inline b32 intersect(Box a, Box b)
+inline b32 box_intersect(Box a, Box b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -2156,23 +1854,24 @@ inline b32 intersect(Box a, Box b)
     return true;
 }
 
-inline Box get_overlap(Box a, Box b)
+inline Box box_get_overlap(Box a, Box b)
 {
-    return {
-        max(a.min, b.min),
-        min(a.max, b.max)
+    return
+    {
+        v3_max(a.min, b.min),
+        v3_min(a.max, b.max)
     };
 }
 
-inline v3 get_intersect_vector(Box a, Box b)
+inline v3 box_get_intersect_vector(Box a, Box b)
 {
-    Box o       = get_overlap(a, b);
+    Box o       = box_get_overlap(a, b);
     v3  delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return V3(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
 }
 
-inline Box move(Box box, v3 offset)
+inline Box box_move(Box box, v3 offset)
 {
     return
     {
@@ -2180,6 +1879,60 @@ inline Box move(Box box, v3 offset)
         box.max + offset,
     };
 }
+
+// ----------------------------------------- BOX --------------------------------------- //
+
+struct BoxI32
+{
+    v3i     min;
+    v3i     max;
+};
+
+inline b32 box_contains(BoxI32 rect, v3 pos)
+{
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+    if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
+
+    return true;
+}
+
+inline b32 box_intersect(BoxI32 a, BoxI32 b)
+{
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+    if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
+
+    return true;
+}
+
+inline BoxI32 box_get_overlap(BoxI32 a, BoxI32 b)
+{
+    return
+    {
+        v3i_max(a.min, b.min),
+        v3i_min(a.max, b.max),
+    };
+}
+
+inline v3i box_get_intersect_vector(BoxI32 a, BoxI32 b)
+{
+    BoxI32  o       = box_get_overlap(a, b);
+    v3i     delta   = (a.min + a.max) / 2 - (b.min + b.max) / 2;
+
+    return V3i(sign(delta.x), sign(delta.y), sign(delta.z)) * (o.max - o.min);
+}
+
+inline BoxI32 move(BoxI32 box, v3i offset)
+{
+    return
+    {
+        box.min + offset,
+        box.max + offset,
+    };
+}
+
+// ----------------------------------------- PLANE --------------------------------------- //
 
 struct Plane
 {
@@ -2189,7 +1942,7 @@ struct Plane
     f32     d;
 };
 
-inline Plane norm(Plane plane)
+inline Plane plane_norm(Plane plane)
 {
     f32 imag = rsqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
@@ -2206,7 +1959,7 @@ struct Frustum
     Plane   plane[6];
 };
 
-inline Frustum create_frustum(m4 combo_matrix, bool normalize = true)
+inline Frustum frustum_create(m4 combo_matrix, bool normalize = true)
 {
     Frustum frustum = {};
 
@@ -2248,18 +2001,18 @@ inline Frustum create_frustum(m4 combo_matrix, bool normalize = true)
 
     // Normalize the plane equations, if requested
     if (normalize == true) {
-        frustum.plane[0] = norm(frustum.plane[0]);
-        frustum.plane[1] = norm(frustum.plane[1]);
-        frustum.plane[2] = norm(frustum.plane[2]);
-        frustum.plane[3] = norm(frustum.plane[3]);
-        frustum.plane[4] = norm(frustum.plane[4]);
-        frustum.plane[5] = norm(frustum.plane[5]);
+        frustum.plane[0] = plane_norm(frustum.plane[0]);
+        frustum.plane[1] = plane_norm(frustum.plane[1]);
+        frustum.plane[2] = plane_norm(frustum.plane[2]);
+        frustum.plane[3] = plane_norm(frustum.plane[3]);
+        frustum.plane[4] = plane_norm(frustum.plane[4]);
+        frustum.plane[5] = plane_norm(frustum.plane[5]);
     }
     
     return frustum;
 }
 
-inline bool contains(Frustum frustum, v3 pos)
+inline bool frustum_contains(Frustum frustum, v3 pos)
 {
     for (i32 i = 0; i < 6; i++)
     {
@@ -2270,7 +2023,7 @@ inline bool contains(Frustum frustum, v3 pos)
 	return true;
 }
 
-inline bool intersect(Frustum frustum, Sphere sphere)
+inline bool frustum_intersect(Frustum frustum, Sphere sphere)
 {
     for (i32 i = 0; i < 6; i++)
     {
@@ -2281,7 +2034,7 @@ inline bool intersect(Frustum frustum, Sphere sphere)
 	return true;
 }
 
-inline bool intersect(Frustum frustum, Box box)
+inline bool frustum_intersect(Frustum frustum, Box box)
 {
     for (int i = 0; i < 6; i++ )
     {
@@ -2354,77 +2107,6 @@ inline u32 get_alpha(u32 color)
     return (color & 0xff000000) >> 8;
 }
 
-// ============================================== RANDOM GENERATOR =========================================== //
-// random number generator: xorshf96
-
-struct RndGen
-{
-    u32     x;
-    u32     y;
-    u32     z;
-};
-
-inline u32 next_random(RndGen* g)
-{
-    g->x ^= g->x << 16;
-    g->x ^= g->x >> 5;
-    g->x ^= g->x << 1;
-
-    u32 t = g->x;
-
-    g->x = g->y;
-    g->y = g->z;
-    g->z = t ^ g->x ^ g->y;
-
-    return g->z;
-}
-
-thread_local RndGen default_rnd_gen = { 123456789u, 362436069u, 521288629u };
-
-inline void rand_seed(u32 x, u32 y, u32 z)
-{
-    assert(x && y && z);
-
-    default_rnd_gen.x = x;
-    default_rnd_gen.y = y;
-    default_rnd_gen.z = z;
-}
-
-inline i32 rand_i32(i32 min, i32 max)
-{
-    return min + next_random(&default_rnd_gen) % (max - min);
-}
-
-inline f32 rand_f32(f32 min, f32 max)
-{
-    return min + ((f32)next_random(&default_rnd_gen) / (f32)0xFFFFFFFF) * (max - min); 
-}
-
-inline v2 rand_v2(void)
-{
-    return norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
-}
-
-inline v3 RandV3(void)
-{
-    return norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
-}
-
-inline v2 rand_v2(f32 min, f32 max)
-{
-    return rand_f32(min, max) * rand_v2();
-}
-
-inline v3 rand_v3(f32 min, f32 max)
-{
-    return rand_f32(min, max) * RandV3();
-}
-
-inline Quat rand_quat(void)
-{
-    return quat_make(rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-PI, PI));
-}
-
 // =================================== XORSHIFT32 ============================================= //
 
 inline u32 rand_u32(u32* state)
@@ -2450,12 +2132,12 @@ inline f32 rand_f32(u32* state, f32 min, f32 max)
 
 inline v2 rand_v2(u32* state)
 {
-    return norm(V2(rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
+    return v2_norm(V2(rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
 }
 
 inline v3 rand_v3(u32* state)
 {
-    return norm(V3(rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
+    return v3_norm(V3(rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
 }
 
 inline v2 rand_v2(u32* state, f32 min, f32 max)
@@ -2471,6 +2153,56 @@ inline v3 rand_v3(u32* state, f32 min, f32 max)
 inline Quat rand_quat(u32* state)
 {
     return quat_make(rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -1.0f, 1.0f), rand_f32(state, -PI, PI));
+}
+
+// =========================================== DEFAULT RANDOM GENERATOR ===================================== //
+
+thread_local u32 default_rnd_gen = 0xdeadbeef;
+
+inline void rand_seed(u32 seed)
+{
+    assert(seed);
+    default_rnd_gen = seed;
+}
+
+inline u32 rand_u32(void)
+{
+    return rand_u32(&default_rnd_gen);
+}
+
+inline i32 rand_i32(i32 min, i32 max)
+{
+    return min + rand_u32() % (max - min);
+}
+
+inline f32 rand_f32(f32 min, f32 max)
+{
+    return min + ((f32)rand_u32() / (f32)0xFFFFFFFF) * (max - min); 
+}
+
+inline v2 rand_v2(void)
+{
+    return v2_norm(V2(rand_f32(-1, 1), rand_f32(-1, 1)));
+}
+
+inline v3 rand_v3(void)
+{
+    return v3_norm(V3(rand_f32(-1, 1), rand_f32(-1, 1), rand_f32(-1, 1)));
+}
+
+inline v2 rand_v2(f32 min, f32 max)
+{
+    return rand_f32(min, max) * rand_v2();
+}
+
+inline v3 rand_v3(f32 min, f32 max)
+{
+    return rand_f32(min, max) * rand_v3();
+}
+
+inline Quat rand_quat(void)
+{
+    return quat_make(rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-1.0f, 1.0f), rand_f32(-PI, PI));
 }
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
@@ -2544,6 +2276,76 @@ inline u32 hash_v4i(v4i k)
     u32 d = hash_i32(k.w);
 
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
+}
+
+// ========================================== PRIORITY-QUEUE ================================== //
+
+struct QueueNode
+{
+    f32     weight;
+    v2i     e;
+};
+
+struct PriorityQueue
+{
+    i32         len;
+    QueueNode*  array;
+};
+
+inline bool queue_empty(const PriorityQueue* queue)
+{
+    return queue->len == 0;
+}
+
+inline void queue_clear(PriorityQueue* queue)
+{
+    queue->len = 0;
+}
+
+inline void queue_push(PriorityQueue* queue, v2i e, f32 weight)
+{
+    QueueNode node = { weight, e };
+
+    int i = queue->len + 1;
+    int j = i / 2;
+
+    while (i > 1 && queue->array[j].weight > node.weight)
+    {
+        queue->array[i] = queue->array[j];
+
+        i = j;
+        j = j / 2;
+    }
+
+    queue->array[i] = node;
+    queue->len++;
+}
+
+inline f32 queue_pop(v2i* pos, PriorityQueue* queue)
+{
+    QueueNode data = queue->array[1];
+
+    queue->array[1] = queue->array[queue->len];
+    queue->len--;
+
+    int i = 1;
+    while (i != queue->len + 1)
+    {
+        int k = queue->len + 1;
+        int j = 2 * i;
+
+        if (j <= queue->len && queue->array[j].weight < queue->array[k].weight)
+            k = j;
+
+        if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight)
+            k = j + 1;
+
+        queue->array[i] = queue->array[k];
+        i = k;
+    }
+
+    *pos = data.e;
+    return data.weight;
 }
 
 // ========================================== ARENA ALLOCATOR ================================== //
@@ -3514,7 +3316,7 @@ platform_update(void)
 // =================================================== TIMER STUFF =================================================== //
 
 inline f64
-get_time(void)
+timer_get_current(void)
 {
     return glfwGetTime();
 }
@@ -3555,7 +3357,7 @@ struct Shader
 };
 
 inline u32
-compile_shader(const char* source, unsigned int type)
+shader_compile(const char* source, unsigned int type)
 {
     int success;
 
@@ -3580,7 +3382,7 @@ compile_shader(const char* source, unsigned int type)
 }
 
 inline u32
-link_shader_program(u32 vertex_shader, u32 fragment_shader)
+shader_link_program(u32 vertex_shader, u32 fragment_shader)
 {
     int     success;
     char    info_log[512];
@@ -3606,13 +3408,13 @@ link_shader_program(u32 vertex_shader, u32 fragment_shader)
 }
 
 inline Shader
-load_shader_from_memory(const char *vs, const char *fs)
+shader_load_from_memory(const char *vs, const char *fs)
 {
     Shader shader = {};
 
-    u32 vertex      = compile_shader(vs, GL_VERTEX_SHADER);
-    u32 fragment    = compile_shader(fs, GL_FRAGMENT_SHADER);
-    shader.program  = link_shader_program(vertex, fragment);
+    u32 vertex      = shader_compile(vs, GL_VERTEX_SHADER);
+    u32 fragment    = shader_compile(fs, GL_FRAGMENT_SHADER);
+    shader.program  = shader_link_program(vertex, fragment);
 
     glUseProgram(shader.program);
 
@@ -3623,12 +3425,12 @@ load_shader_from_memory(const char *vs, const char *fs)
 }
 
 inline Shader
-load_shader_from_file(const char *vs, const char *fs)
+shader_load_from_file(const char *vs, const char *fs)
 {
     char* vertex   = file_read_str(vs);
     char* fragment = file_read_str(fs);
 
-    Shader shader = load_shader_from_memory(vertex, fragment);
+    Shader shader = shader_load_from_memory(vertex, fragment);
 
     free(vertex);
     free(fragment);
@@ -3917,7 +3719,7 @@ struct Image
 };
 
 inline Image
-load_image_from_file(const char* path)
+image_load_from_file(const char* path)
 {
     Image   image       = {};
     i32     channels    = 0;
@@ -3939,7 +3741,7 @@ struct Texture
 };
 
 inline Texture
-create_texture(void *pixels, int width, int height, int is_smooth)
+texture_create(void *pixels, int width, int height, int is_smooth)
 {
     assert(pixels);
 
@@ -3963,7 +3765,7 @@ create_texture(void *pixels, int width, int height, int is_smooth)
 }
 
 inline void
-update_texture(Texture* texture, void *pixels, int width, int height, int is_smooth)
+texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth)
 {
     texture->width = width;
     texture->height = height;
@@ -3981,7 +3783,7 @@ update_texture(Texture* texture, void *pixels, int width, int height, int is_smo
 
 #ifdef STB_IMAGE_IMPLEMENTATION
 inline Texture
-load_texture_from_file(const char *texture_path, int is_smooth)
+texture_load_from_file(const char *texture_path, int is_smooth)
 {
     Texture         texture     = {};
     i32             channels    = 0;
@@ -4010,7 +3812,7 @@ load_texture_from_file(const char *texture_path, int is_smooth)
 
 #ifndef ATS_MODERN_OPENGL
 inline void
-bind_texture(const Texture* texture)
+texture_bind(const Texture* texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
@@ -4024,7 +3826,7 @@ bind_texture(const Texture* texture)
 #endif
 
 inline void
-delete_texture(Texture* texture)
+texture_delete(Texture* texture)
 {
     glDeleteTextures(1, &texture->id);
     
@@ -4036,102 +3838,6 @@ delete_texture(Texture* texture)
 // ============================================ RENDER (LEGACY OPENGL) ============================================ //
 
 #if defined(ATS_PLATFORM_GLFW) && !defined(ATS_MODERN_OPENGL)
-
-int cube_list;
-int square_list;
-
-inline void
-gl_init_shapes(void)
-{
-    square_list = glGenLists(1);
-    cube_list   = glGenLists(1);
-
-    {
-        glNewList(square_list, GL_COMPILE);
-
-        glBegin(GL_TRIANGLES);
-
-        glNormal3f(0.0f, 0.0f, 1.0f);
-
-        glVertex3f(-1.0f, -1.0f, 0.0f);
-        glVertex3f(+1.0f, +1.0f, 0.0f);
-        glVertex3f(+1.0f, -1.0f, 0.0f);
-        glVertex3f(+1.0f, +1.0f, 0.0f);
-        glVertex3f(-1.0f, -1.0f, 0.0f);
-        glVertex3f(-1.0f, +1.0f, 0.0f);
-
-        glEnd();
-
-        glEndList();
-    }
-
-    {
-        glNewList(cube_list, GL_COMPILE);
-
-        glBegin(GL_TRIANGLES);
-
-        glNormal3f(0.0f, 0.0f, -1.0f);
-
-        glVertex3f(-1.0f, -1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, -1.0f);
-        glVertex3f(+1.0f, -1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, -1.0f);
-        glVertex3f(-1.0f, -1.0f, -1.0f);
-        glVertex3f(-1.0f, +1.0f, -1.0f);
-
-        glNormal3f(0.0f, 0.0f, 1.0f);
-
-        glVertex3f(-1.0f, -1.0f, +1.0f);
-        glVertex3f(+1.0f, -1.0f, +1.0f);
-        glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(-1.0f, +1.0f, +1.0f);
-        glVertex3f(-1.0f, -1.0f, +1.0f);
-
-        glNormal3f(-1.0f, 0.0f, 0.0f);
-
-        glVertex3f(-1.0f, +1.0f, +1.0f);
-        glVertex3f(-1.0f, +1.0f, -1.0f);
-        glVertex3f(-1.0f, -1.0f, -1.0f);
-        glVertex3f(-1.0f, -1.0f, -1.0f);
-        glVertex3f(-1.0f, -1.0f, +1.0f);
-        glVertex3f(-1.0f, +1.0f, +1.0f);
-        
-        glNormal3f(1.0f, 0.0f, 0.0f);
-
-        glVertex3f(+1.0f, -1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(+1.0f, -1.0f, +1.0f);
-        glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(+1.0f, -1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, -1.0f);
-
-        glNormal3f(0.0f, -1.0f, 0.0f);
-
-        glVertex3f(-1.0f, -1.0f, -1.0f);
-        glVertex3f(+1.0f, -1.0f, -1.0f);
-        glVertex3f(+1.0f, -1.0f, +1.0f);
-        glVertex3f(+1.0f, -1.0f, +1.0f);
-        glVertex3f(-1.0f, -1.0f, +1.0f);
-        glVertex3f(-1.0f, -1.0f, -1.0f);
-
-        glNormal3f(0.0f, 1.0f, 0.0f);
-
-        glVertex3f(-1.0f, +1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(+1.0f, +1.0f, -1.0f);
-        glVertex3f(+1.0f, +1.0f, +1.0f);
-        glVertex3f(-1.0f, +1.0f, -1.0f);
-        glVertex3f(-1.0f, +1.0f, +1.0f);
-
-        glEnd();
-
-        glEndList();
-    }
-}
-
-inline void
-gl_init_bitmap(void);
 
 inline void
 gl_init(void)
@@ -4152,94 +3858,6 @@ gl_init(void)
     glEnable(GL_ALPHA_TEST);
 
     glEnable(GL_NORMALIZE);
-
-    gl_init_shapes();
-    gl_init_bitmap();
-}
-
-inline void
-gl_render_square(v3 pos, f32 rad, v4 color)
-{
-    glPushMatrix();
-
-    glColor4fv(color);
-    glTranslatef(pos.x, pos.y, pos.z);
-    glScalef(rad, rad, 1.0f);
-
-    glCallList(square_list);
-
-    glPopMatrix();
-}
-
-inline void
-gl_render_cube(v3 pos, f32 rad, v4 color)
-{
-    glPushMatrix();
-
-    glColor4fv(color);
-    glTranslatef(pos.x, pos.y, pos.z);
-    glScalef(rad, rad, rad);
-
-    glCallList(cube_list);
-
-    glPopMatrix();
-}
-
-inline void
-gl_render_cube(v3 pos, v3 rad, v4 color)
-{
-    glPushMatrix();
-
-    glColor4fv(color);
-
-    glTranslatef(pos.x, pos.y, pos.z);
-    glScalef(rad.x, rad.y, rad.z);
-
-    glCallList(cube_list);
-
-    glPopMatrix();
-}
-
-inline void
-gl_render_line(v3 a, v3 b, v4 color)
-{
-    glColor4fv(color);
-
-    glBegin(GL_LINES);
-
-    glNormal3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(a.x, a.y, a.z);
-    glVertex3f(b.x, b.y, b.z);
-
-    glEnd();
-}
-
-inline void
-gl_render_line_loop(v3 pos, f32 rad, f32 rot, v4 color, const v2* point_array, int point_count)
-{
-    glPushMatrix();
-
-    glTranslatef(pos.x, pos.y, pos.z);
-    glScalef(rad, rad, 1.0f);
-    glRotatef(TO_DEG(rot), 0.0f, 0.0f, 1.0f);
-
-    glColor4f(color.r, color.g, color.b, color.a);
-
-    glBegin(GL_LINE_LOOP);
-
-    glNormal3f(0.0f, 0.0f, 1.0f);
-
-    for (int i = 0; i < point_count; ++i) {
-        v2 a = point_array[i];
-        v2 b = point_array[(i + 1) & (point_count - 1)];
-
-        glVertex3f(a.x, a.y, 0.0f);
-        glVertex3f(b.x, b.y, 0.0f);
-    }
-
-    glEnd();
-
-    glPopMatrix();
 }
 
 inline void
@@ -4320,19 +3938,11 @@ gl_set_light_directed(int index, v3 pos, v3 color)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void
-gl_set_light_global_ambient(v3 color)
-{
-    f32 v[4] = { color.r, color.g, color.b, 0 };
-
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
-}
-
 inline m4
 gl_get_projection_matrix(void)
 {
     m4 projection;
-    glGetFloatv(GL_PROJECTION_MATRIX, projection);
+    glGetFloatv(GL_PROJECTION_MATRIX, projection.e);
     return projection;
 }
 
@@ -4340,8 +3950,16 @@ inline m4
 gl_get_modelview_matrix(void)
 {
     m4 modelview;
-    glGetFloatv(GL_MODELVIEW_MATRIX, modelview);
+    glGetFloatv(GL_MODELVIEW_MATRIX, modelview.e);
     return modelview;
+}
+
+inline void
+gl_set_light_global_ambient(v3 color)
+{
+    f32 v[4] = { color.r, color.g, color.b, 0 };
+
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
 inline v3
@@ -4415,7 +4033,7 @@ gl_render_ascii(u8 c, v3 pos, v2 scale)
 
     glPushMatrix();
 
-    glMultMatrixf(T);
+    glMultMatrixf(T.e);
     glCallList(bitmap_display_list[c]);
 
     glPopMatrix();

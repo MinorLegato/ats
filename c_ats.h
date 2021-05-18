@@ -46,7 +46,12 @@
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
-#define defer(start, end) for (int i##__LINE__ = ((start), 0); !i##__LINE__; (i##__LINE__++, (end)))
+#define join_token(a, b)    a##b
+#define macro_var(a)        join_token(a, __LINE__)
+
+#define defer(start, end) for (int macro_var(i) = ((start), 0); \
+                               !macro_var(i); \
+                               (macro_var(i)++, (end)))
 
 // ================================================== TYPES ================================================= //
 
@@ -102,7 +107,6 @@ union v3
         f32     b;
     };
 
-    
     f32 e[3];
 };
 
@@ -270,10 +274,6 @@ __rsqrt(f32 n)
 	return y;
 }
 
-#define square(n)       ((n) * (n))
-#define lerp(a, b, t)   ((a) + (t) * ((b) - (a)))
-#define unlerp(a, b, t) (((t) - (a)) / ((b) - (a)))
-
 inline f32
 shortest_angle_distance(f32 a, f32 b)
 {
@@ -308,6 +308,10 @@ spline(f32 f, f32 a, f32 b, f32 c, f32 d)
 
 #define sign(n)             ((n) < 0? -1 : 1)
 #define sign_or_zero(n)     ((n) < 0? -1 : ((n) > 0? 1 : 0))
+
+#define square(n)       ((n) * (n))
+#define lerp(a, b, t)   ((a) + (t) * ((b) - (a)))
+#define unlerp(a, b, t) (((t) - (a)) / ((b) - (a)))
 
 // ==================================================  MATHS ================================================== //
 
@@ -3179,6 +3183,12 @@ inline u32
 image_get_pixel(Image* img, i32 x, i32 y)
 {
     return img->pixels[y * img->width + x];
+}
+
+inline void
+image_set_pixel(Image* img, i32 x, i32 y, u32 pixel)
+{
+    img->pixels[y * img->width + x] = pixel;
 }
 
 #endif
