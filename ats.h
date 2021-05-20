@@ -16,10 +16,6 @@
 #include "dep/glad/glad.h"
 #endif
 
-#define internal        static
-#define local_persist   static
-#define global          static
-
 #define KB (1024)
 #define MB (1024 * KB)
 #define GB (1024 * MB)
@@ -45,7 +41,12 @@
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
-#define defer(start, end) for (int i##__LINE__ = ((start), 0); !i##__LINE__; (i##__LINE__++, (end)))
+#define join_token(a, b)    a##b
+#define macro_var(a)        join_token(a, __LINE__)
+
+#define defer(start, end) for (int macro_var(i) = ((start), 0); \
+                               !macro_var(i); \
+                               (macro_var(i)++, (end)))
 
 // ================================================== TYPES ================================================= //
 
@@ -173,6 +174,10 @@ union v4i
     i32  operator[](i32 index) const { return e[index]; }
     i32& operator[](i32 index)       { return e[index]; }
 };
+
+#define v2_cast(type, u) (type) { .x = (u).x, .y = (u).y })
+#define v3_cast(type, u) (type) { .x = (u).x, .y = (u).y, .z = (u).z })
+#define v4_cast(type, u) (type) { .x = (u).x, .y = (u).y, .z = (u).z, .w = (u).w })
 
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
 
@@ -2360,19 +2365,18 @@ inline f32 queue_pop(v2i* pos, PriorityQueue* queue)
 #define ATS_ALLOC_BUFFER_SIZE (GB)
 #endif
 
-global u32 alloc_index    = 0;
-global u32 alloc_max      = 0;
-global u32 alloc_top      = 0;
-global u32 alloc_lock     = false;
+static u32 alloc_index    = 0;
+static u32 alloc_max      = 0;
+static u32 alloc_top      = 0;
+static u32 alloc_lock     = false;
 
-global u32 alloc_stack    [ATS_ALLOC_STACK_SIZE];
-global u8  alloc_buffer   [ATS_ALLOC_BUFFER_SIZE];
+static u32 alloc_stack    [ATS_ALLOC_STACK_SIZE];
+static u8  alloc_buffer   [ATS_ALLOC_BUFFER_SIZE];
 
 #define alloc_type(T)           (T*)alloc_size(sizeof (T))
 #define alloc_array(T, count)   (T*)alloc_size((count) * sizeof (T))
 
-internal void*
-alloc_size(u32 byte_size)
+void* alloc_size(u32 byte_size)
 {
     byte_size = ALIGN_UP(byte_size, 16);
 
@@ -2387,36 +2391,31 @@ alloc_size(u32 byte_size)
     return memory;
 }
 
-internal void*
-alloc_begin(void)
+void* alloc_begin(void)
 {
     alloc_lock = true;
     return alloc_buffer + alloc_index;
 }
 
-internal void
-alloc_end(u32 byte_size)
+void alloc_end(u32 byte_size)
 {
     alloc_index += ALIGN_UP(byte_size, 16);
     alloc_lock = false;
 }
 
-internal void
-alloc_save(void)
+void alloc_save(void)
 {
     assert(alloc_top < ATS_ALLOC_STACK_SIZE);
     alloc_stack[alloc_top++] = alloc_index;
 }
 
-internal void
-alloc_restore(void)
+void alloc_restore(void)
 {
     assert(alloc_top > 0);
     alloc_index = alloc_stack[--alloc_top];
 }
 
-internal void
-alloc_validate(void)
+void alloc_validate(void)
 {
     assert(alloc_top == 0);
 }
@@ -3025,16 +3024,15 @@ struct Platform
     }
 };
 
-global Platform platform;
+static Platform platform;
 
-global struct
+static struct
 {
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-internal void
-window_key_callback(GLFWwindow*, int key, int, int action, int)
+void window_key_callback(GLFWwindow*, int key, int, int action, int)
 {
     switch (action)
     {
@@ -3063,15 +3061,13 @@ window_key_callback(GLFWwindow*, int key, int, int action, int)
     }
 }
 
-internal void
-window_char_callback(GLFWwindow* window, unsigned int codepoint)
+static void window_char_callback(GLFWwindow* window, unsigned int codepoint)
 {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-internal void
-window_mouse_button_callback(GLFWwindow*, int button, int action, int)
+static void window_mouse_button_callback(GLFWwindow*, int button, int action, int)
 {
     switch (action)
     {
@@ -3094,15 +3090,13 @@ window_mouse_button_callback(GLFWwindow*, int button, int action, int)
     }
 }
 
-internal void
-window_scroll_callback(GLFWwindow*, f64 xoffset, f64 yoffset)
+static void window_scroll_callback(GLFWwindow*, f64 xoffset, f64 yoffset)
 {
     platform.mouse.scroll.x = xoffset;
     platform.mouse.scroll.y = yoffset;
 }
 
-internal void
-window_joystick_callback(int joy, int event)
+static void window_joystick_callback(int joy, int event)
 {
     if (event == GLFW_CONNECTED)
     {
@@ -3114,8 +3108,7 @@ window_joystick_callback(int joy, int event)
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
 }
 
-void
-platform_init(const char* title, int width, int height, int samples)
+void platform_init(const char* title, int width, int height, int samples)
 {
     glfwInit();
 
@@ -3181,8 +3174,7 @@ platform_init(const char* title, int width, int height, int samples)
     glfwSwapBuffers(platform_internal.window);
 }
 
-void
-platform_update(void)
+void platform_update(void)
 {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
@@ -3315,8 +3307,7 @@ platform_update(void)
 
 // =================================================== TIMER STUFF =================================================== //
 
-inline f64
-timer_get_current(void)
+f64 timer_get_current(void)
 {
     return glfwGetTime();
 }
@@ -3356,8 +3347,7 @@ struct Shader
     inline void set(const char* loc, m4 m) const                       { set(get_location(loc), m); }
 };
 
-inline u32
-shader_compile(const char* source, unsigned int type)
+static u32 shader_compile(const char* source, unsigned int type)
 {
     int success;
 
@@ -3381,8 +3371,7 @@ shader_compile(const char* source, unsigned int type)
     return shader;
 }
 
-inline u32
-shader_link_program(u32 vertex_shader, u32 fragment_shader)
+static u32 shader_link_program(u32 vertex_shader, u32 fragment_shader)
 {
     int     success;
     char    info_log[512];
@@ -3407,8 +3396,7 @@ shader_link_program(u32 vertex_shader, u32 fragment_shader)
     return shader_program;
 }
 
-inline Shader
-shader_load_from_memory(const char *vs, const char *fs)
+static Shader shader_load_from_memory(const char *vs, const char *fs)
 {
     Shader shader = {};
 
@@ -3424,8 +3412,7 @@ shader_load_from_memory(const char *vs, const char *fs)
     return shader;
 }
 
-inline Shader
-shader_load_from_file(const char *vs, const char *fs)
+static Shader shader_load_from_file(const char *vs, const char *fs)
 {
     char* vertex   = file_read_str(vs);
     char* fragment = file_read_str(fs);
@@ -3444,7 +3431,7 @@ shader_load_from_file(const char *vs, const char *fs)
 
 #define BITMAP_COUNT    (256)
 
-global const u64 bitascii[BITMAP_COUNT] = {
+static const u64 bitascii[BITMAP_COUNT] = {
     0x0000000000000000,
     0x7e8199bd81a5817e,
     0x7effe7c3ffdbff7e,
@@ -3712,43 +3699,50 @@ global const u64 bitascii[BITMAP_COUNT] = {
 
 struct Image
 {
-    int     width;
-    int     height;
+    int  width   = 0;
+    int  height  = 0;
+    u32* pixels  = nullptr;
 
-    u32*    pixels;
+    inline u32 get_pixel(i32 x, i32 y) const
+    {
+        return pixels[y * width + x];
+    }
+
+    inline void set_pixel(i32 x, i32 y, u32 color)
+    {
+        pixels[y * width + x] = color;
+    }
+
+    static Image load_from_file(const char* path)
+    {
+        Image   image       = {};
+        i32     channels    = 0;
+
+        image.pixels        = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
+
+        assert(image.pixels);
+
+        return image;
+    }
 };
-
-inline Image
-image_load_from_file(const char* path)
-{
-    Image   image       = {};
-    i32     channels    = 0;
-
-    image.pixels        = (u32*)stbi_load(path, &image.width, &image.height, &channels, 0);
-
-    assert(image.pixels);
-
-    return image;
-}
 
 #endif
 
 struct Texture
 {
-    u32     id;
-    int     width;
-    int     height;
+    u32     id      = 0;
+    i32     width   = 0;
+    i32     height  = 0;
 };
 
-inline Texture
-texture_create(void *pixels, int width, int height, int is_smooth)
+Texture texture_create(void *pixels, int width, int height, int is_smooth)
 {
     assert(pixels);
 
-    Texture texture = {0};
+    Texture texture = {};
 
-    texture.width = width;
-    texture.height = height;
+    texture.width   = width;
+    texture.height  = height;
 
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
@@ -3764,8 +3758,7 @@ texture_create(void *pixels, int width, int height, int is_smooth)
     return texture;
 }
 
-inline void
-texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth)
+void texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth)
 {
     texture->width = width;
     texture->height = height;
@@ -3782,8 +3775,7 @@ texture_update(Texture* texture, void *pixels, int width, int height, int is_smo
 }
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-inline Texture
-texture_load_from_file(const char *texture_path, int is_smooth)
+Texture texture_load_from_file(const char *texture_path, int is_smooth)
 {
     Texture         texture     = {};
     i32             channels    = 0;
@@ -3811,8 +3803,7 @@ texture_load_from_file(const char *texture_path, int is_smooth)
 #endif
 
 #ifndef ATS_MODERN_OPENGL
-inline void
-texture_bind(const Texture* texture)
+void texture_bind(const Texture* texture)
 {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
@@ -3825,8 +3816,7 @@ texture_bind(const Texture* texture)
 }
 #endif
 
-inline void
-texture_delete(Texture* texture)
+void texture_delete(Texture* texture)
 {
     glDeleteTextures(1, &texture->id);
     
@@ -3839,8 +3829,7 @@ texture_delete(Texture* texture)
 
 #if defined(ATS_PLATFORM_GLFW) && !defined(ATS_MODERN_OPENGL)
 
-inline void
-gl_init(void)
+void gl_init(void)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glClearDepth(1.0f);
@@ -3860,8 +3849,7 @@ gl_init(void)
     glEnable(GL_NORMALIZE);
 }
 
-inline void
-gl_set_light_emitter(int index, f32 bright, v3 p)
+void gl_set_light_emitter(int index, f32 bright, v3 p)
 {
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -3878,8 +3866,7 @@ gl_set_light_emitter(int index, f32 bright, v3 p)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void
-gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
+void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
 {
     f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -3900,8 +3887,7 @@ gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 qu
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void
-gl_set_light_directed(int index, f32 bright, v3 pos)
+void gl_set_light_directed(int index, f32 bright, v3 pos)
 {
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
@@ -3919,8 +3905,7 @@ gl_set_light_directed(int index, f32 bright, v3 pos)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline void
-gl_set_light_directed(int index, v3 pos, v3 color)
+void gl_set_light_directed(int index, v3 pos, v3 color)
 {
     f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
@@ -3938,32 +3923,28 @@ gl_set_light_directed(int index, v3 pos, v3 color)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-inline m4
-gl_get_projection_matrix(void)
+m4 gl_get_projection_matrix(void)
 {
     m4 projection;
     glGetFloatv(GL_PROJECTION_MATRIX, projection.e);
     return projection;
 }
 
-inline m4
-gl_get_modelview_matrix(void)
+m4 gl_get_modelview_matrix(void)
 {
     m4 modelview;
     glGetFloatv(GL_MODELVIEW_MATRIX, modelview.e);
     return modelview;
 }
 
-inline void
-gl_set_light_global_ambient(v3 color)
+void gl_set_light_global_ambient(v3 color)
 {
     f32 v[4] = { color.r, color.g, color.b, 0 };
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-inline v3
-gl_get_world_position(int x, int y)
+v3 gl_get_world_position(int x, int y)
 {
     GLint viewport[4];
 
@@ -3988,12 +3969,11 @@ gl_get_world_position(int x, int y)
     return V3(result[0], result[1], result[2]);
 }
 
-int bitmap_display_list[BITMAP_COUNT];
+static int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) ((u64(N)) & (1ull << ((u64(Y)) * 8ull + (u64(X)))))
 
-inline void
-gl_init_bitmap(void)
+void gl_init_bitmap(void)
 {
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
@@ -4026,8 +4006,7 @@ gl_init_bitmap(void)
     }
 }
 
-inline void
-gl_render_ascii(u8 c, v3 pos, v2 scale)
+void gl_render_ascii(u8 c, v3 pos, v2 scale)
 {
     m4 T = m4_translate(pos) * m4_scale(V3(scale, 1.0f));
 
@@ -4039,8 +4018,7 @@ gl_render_ascii(u8 c, v3 pos, v2 scale)
     glPopMatrix();
 }
 
-inline void
-gl_render_string(const char *str, v3 pos, v2 scale, u32 color)
+void gl_render_string(const char *str, v3 pos, v2 scale, u32 color)
 {
     glColor4ubv((u8*)&color);
 
@@ -4050,8 +4028,7 @@ gl_render_string(const char *str, v3 pos, v2 scale, u32 color)
     }
 }
 
-inline void
-gl_render_string_format(v3 pos, v2 scale, u32 color, const char* fmt, ...)
+void gl_render_string_format(v3 pos, v2 scale, u32 color, const char* fmt, ...)
 {
     va_list list;
     char    buffer[256];
