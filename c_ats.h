@@ -74,10 +74,8 @@ typedef uint32_t b32;
 typedef uint64_t b64;
 
 typedef union v2 v2;
-union v2
-{
-    struct
-    {
+union v2 {
+    struct {
         f32     x;
         f32     y;
     };
@@ -86,22 +84,18 @@ union v2
 };
 
 typedef union v3 v3;
-union v3
-{
-    struct
-    {
+union v3 {
+    struct {
         f32     x;
         f32     y;
         f32     z;
     };
 
-    struct
-    {
+    struct {
         v2 xy;
     };
 
-    struct
-    {
+    struct {
         f32     r;
         f32     g;
         f32     b;
@@ -111,28 +105,23 @@ union v3
 };
 
 typedef union v4 v4;
-union v4
-{
-    struct
-    {
+union v4 {
+    struct {
         f32     x;
         f32     y;
         f32     z;
         f32     w;
     };
 
-    struct
-    {
+    struct {
         v2 xy;
     };
 
-    struct
-    {
+    struct {
         v3 xyz;
     };
 
-    struct
-    {
+    struct {
         f32     r;
         f32     g;
         f32     b;
@@ -143,10 +132,8 @@ union v4
 };
 
 typedef union v2i v2i;
-union v2i
-{
-    struct
-    {
+union v2i {
+    struct {
         i32     x;
         i32     y;
     };
@@ -155,10 +142,8 @@ union v2i
 };
 
 typedef union v3i v3i;
-union v3i
-{
-    struct
-    {
+union v3i {
+    struct {
         i32     x;
         i32     y;
         i32     z;
@@ -168,10 +153,8 @@ union v3i
 };
 
 typedef union v4i v4i;
-union v4i
-{
-    struct
-    {
+union v4i {
+    struct {
         i32     x;
         i32     y;
         i32     z;
@@ -182,10 +165,8 @@ union v4i
 };
 
 typedef union m2 m2;
-union m2
-{
-    struct
-    {
+union m2 {
+    struct {
         v2  x;
         v2  y;
     };
@@ -194,10 +175,8 @@ union m2
 };
 
 typedef union m3 m3;
-union m3
-{
-    struct
-    {
+union m3 {
+    struct {
         v3  x;
         v3  y;
         v3  z;
@@ -207,10 +186,8 @@ union m3
 };
 
 typedef union m4 m4;
-union m4
-{
-    struct
-    {
+union m4 {
+    struct {
         v4  x;
         v4  y;
         v4  z;
@@ -221,8 +198,7 @@ union m4
 };
 
 typedef struct Quat Quat;
-struct Quat
-{
+struct Quat {
     f32     x;
     f32     y;
     f32     z;
@@ -246,8 +222,7 @@ struct Quat
 #define sqrt    __sqrt
 #define rsqrt   __rsqrt
 
-internal f32 __sqrt(f32 n)
-{
+internal f32 __sqrt(f32 n) {
     f32 x = n * 0.5f;
     f32 y = n;
     int i = *(int*)&y;
@@ -259,11 +234,10 @@ internal f32 __sqrt(f32 n)
     return n * y;
 }
 
-internal f32 __rsqrt(f32 n)
-{
-	f32 x2 = n * 0.5F;
+internal f32 __rsqrt(f32 n) {
+	f32 x2 = n * 0.5f;
 	f32 y  = n;
-	int i  = *(long*)&y;           // evil f32ing point bit level hacking
+	int i  = *(long*)&y;           // evil floating point bit level hacking
 
 	i = 0x5f3759df - (i >> 1);     // what the fuck? 
 	y = *(f32*) &i;
@@ -272,21 +246,18 @@ internal f32 __rsqrt(f32 n)
 	return y;
 }
 
-internal f32 shortest_angle_distance(f32 a, f32 b)
-{
+internal f32 shortest_angle_distance(f32 a, f32 b) {
     f32 max = 2.0f * PI;
     f32 da  = fmodf(b - a, max);
 
     return fmodf(2.0f * da, max) - da;
 }
 
-internal f32 lerp_angle(f32 a, f32 b, f32 t)
-{
+internal f32 lerp_angle(f32 a, f32 b, f32 t) {
     return a + shortest_angle_distance(a, b) * t;
 }
 
-internal f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d)
-{
+internal f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
 	f32 i = 1.0f - f;
 	return ((d * f + c * i) * f + (c * f + b * i) * i) * f + ((c * f + b * i) * f + (b * f + a * i) * i) * i;
 }
@@ -312,122 +283,101 @@ internal f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d)
 
 // ---------------------- v2 ---------------------- //
 
-internal v2 v2_from_array(const f32* a)
-{
+internal v2 v2_from_array(const f32* a) {
     return (v2) { a[0], a[1] };
 }
 
-internal v2 v2_neg(v2 a)
-{
+internal v2 v2_neg(v2 a) {
     return (v2) { -a.x, -a.y };
 }
 
-internal v2 v2_add(v2 a, v2 b)
-{
+internal v2 v2_add(v2 a, v2 b) {
     return (v2) { a.x + b.x, a.y + b.y };
 }
 
-internal v2 v2_sub(v2 a, v2 b)
-{
+internal v2 v2_sub(v2 a, v2 b) {
     return (v2) { a.x - b.x, a.y - b.y };
 }
 
-internal v2 v2_mul(v2 a, v2 b)
-{
+internal v2 v2_mul(v2 a, v2 b){
     return (v2) { a.x * b.x, a.y * b.y };
 }
 
-internal v2 v2_scale(v2 a, f32 s)
-{
+internal v2 v2_scale(v2 a, f32 s) {
     return (v2) { a.x * s, a.y * s };
 }
 
-internal f32 v2_dot(v2 a, v2 b)
-{
+internal f32 v2_dot(v2 a, v2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-internal f32 v2_det(v2 a, v2 b)
-{
+internal f32 v2_det(v2 a, v2 b) {
     return a.x * b.y - a.y * b.x;
 }
 
-internal f32 v2_len_sq(v2 v)
-{
+internal f32 v2_len_sq(v2 v) {
     return v2_dot(v, v);
 }
 
-internal f32 v2_len(v2 v)
-{
+internal f32 v2_len(v2 v) {
     return sqrt(v2_dot(v, v));
 }
 
-internal f32 v2_dist_sq(v2 a, v2 b)
-{
+internal f32 v2_dist_sq(v2 a, v2 b) {
     f32 dx = a.x - b.x;
     f32 dy = a.y - b.y;
 
     return dx * dx + dy * dy;
 }
 
-internal f32 v2_dist(v2 a, v2 b)
-{
+internal f32 v2_dist(v2 a, v2 b) {
     return sqrt(v2_dist_sq(a, b));
 }
 
-internal v2 v2_proj(v2 a, v2 b)
-{
+internal v2 v2_proj(v2 a, v2 b) {
     f32 k = v2_dot(a, a) / v2_dot(b, b);
+
     return (v2) { k * b.x, k * b.y };
 }
 
-internal v2 v2_norm(const v2 v)
-{
+internal v2 v2_norm(const v2 v) {
     f32 k = rsqrt(v2_dot(v, v));
+
     return (v2) { k * v.x, k * v.y };
 }
 
-internal v2 v2_min(v2 a, v2 b)
-{
-    return (v2)
-    {
+internal v2 v2_min(v2 a, v2 b) {
+    return (v2) {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
     };
 }
 
-internal v2 v2_max(v2 a, v2 b)
-{
-    return (v2)
-    {
+internal v2 v2_max(v2 a, v2 b) {
+    return (v2) {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
     };
 }
 
-internal v2 v2_lerp(v2 a, v2 b, f32 t)
-{
-    return (v2)
-    {
+internal v2 v2_lerp(v2 a, v2 b, f32 t) {
+    return (v2) {
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
     };
 }
 
-internal f32 v2_get_angle(v2 a, v2 b)
-{
+internal f32 v2_get_angle(v2 a, v2 b) {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
     
     return atan2f(det, dot);
 }
 
-internal v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d)
-{
+internal v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
 	f32 i = 1.0f - f;
 
-    return (v2)
-    {
+    return (v2) {
         ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
         ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
     };
@@ -435,13 +385,11 @@ internal v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d)
 
 // ----------------------------- v3 ----------------------------- //
 
-internal v3 v3_from_array(const f32* a)
-{
+internal v3 v3_from_array(const f32* a) {
     return (v3) { a[0], a[1], a[2] };
 }
 
-internal v3 v3_from_packed_color(u32 color)
-{
+internal v3 v3_from_packed_color(u32 color) {
     return (v3)
     {
         ((color & 0x000000ff) >> 0)  / 256.0f,
@@ -450,48 +398,39 @@ internal v3 v3_from_packed_color(u32 color)
     };
 }
 
-internal v3 v3_neg(v3 a)
-{
+internal v3 v3_neg(v3 a) {
     return (v3) { -a.x, -a.y, -a.z };
 }
 
-internal v3 v3_add(v3 a, v3 b)
-{
+internal v3 v3_add(v3 a, v3 b) {
     return (v3) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
-internal v3 v3_sub(v3 a, v3 b)
-{
+internal v3 v3_sub(v3 a, v3 b) {
     return (v3) { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
-internal v3 v3_mul(v3 a, v3 b)
-{
+internal v3 v3_mul(v3 a, v3 b) {
     return (v3) { a.x * b.x, a.y * b.y, a.z * b.z };
 }
 
-internal v3 v3_scale(v3 a, f32 s)
-{
+internal v3 v3_scale(v3 a, f32 s) {
     return (v3) { a.x * s, a.y * s, a.z * s };
 }
 
-internal f32 v3_dot(v3 a, v3 b)
-{
+internal f32 v3_dot(v3 a, v3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-internal f32 v3_len_sq(v3 v)
-{
+internal f32 v3_len_sq(v3 v) {
     return v3_dot(v, v);
 }
 
-internal f32 v3_len(v3 v)
-{
+internal f32 v3_len(v3 v) {
     return sqrt(v3_dot(v, v));
 }
 
-internal f32 v3_dist_sq(v3 a, v3 b)
-{
+internal f32 v3_dist_sq(v3 a, v3 b) {
     f32 dx = a.x - b.x;
     f32 dy = a.y - b.y;
     f32 dz = a.z - b.z;
@@ -499,81 +438,66 @@ internal f32 v3_dist_sq(v3 a, v3 b)
     return dx * dx + dy * dy + dz * dz;
 }
 
-internal f32 v3_dist(v3 a, v3 b)
-{
+internal f32 v3_dist(v3 a, v3 b) {
     return sqrt(v3_dist_sq(a, b));
 }
 
-internal v3 v3_proj(v3 a, v3 b)
-{
+internal v3 v3_proj(v3 a, v3 b) {
     f32 k = v3_dot(a, b) / v3_dot(b, b);
 
-    return (v3)
-    {
+    return (v3) {
         k * b.x,
         k * b.y,
         k * b.z,
     };
 }
 
-internal v3 v3_norm(v3 v)
-{
+internal v3 v3_norm(v3 v) {
     f32 k = rsqrt(v3_dot(v, v));
 
-    return (v3)
-    {
+    return (v3) {
         k * v.x,
         k * v.y,
         k * v.z,
     };
 }
 
-internal v3 v3_min(v3 a, v3 b)
-{
-    return (v3)
-    {
+internal v3 v3_min(v3 a, v3 b) {
+    return (v3) {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
         a.z < b.z? a.z : b.z,
     };
 }
 
-internal v3 v3_max(v3 a, v3 b)
-{
-    return (v3)
-    {
+internal v3 v3_max(v3 a, v3 b) {
+    return (v3) {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
         a.z > b.z? a.z : b.z,
     };
 }
 
-internal v3 v3_lerp(v3 a, v3 b, f32 t)
-{
-    return (v3)
-    {
+internal v3 v3_lerp(v3 a, v3 b, f32 t) {
+    return (v3) {
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
         a.z + t * (b.z - a.z),
     };
 }
 
-internal v3 v3_cross(v3 a, v3 b)
-{
-    return (v3)
-    {
+internal v3 v3_cross(v3 a, v3 b) {
+    return (v3) {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x,
     };
 }
 
-internal v3 v3_spline(f32 f, const v3 a, const v3 b, const v3 c, const v3 d)
-{
+internal v3 v3_spline(f32 f, const v3 a, const v3 b, const v3 c, const v3 d) {
 	f32 i = 1.0f - f;
 
-    return (v3)
-    {
+    return (v3) {
         ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
         ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
         ((d.z * f + c.z * i) * f + (c.z * f + b.z * i) * i) * f + ((c.z * f + b.z * i) * f + (b.z * f + a.z * i) * i) * i,
@@ -582,15 +506,12 @@ internal v3 v3_spline(f32 f, const v3 a, const v3 b, const v3 c, const v3 d)
 
 // ----------------------------- v4 ---------------------------- //
 
-internal v4 v4_from_array(const f32* a)
-{
+internal v4 v4_from_array(const f32* a) {
     return (v4) { a[0], a[1], a[2], a[3] };
 }
 
-internal v4 v4_from_packed_color(u32 color)
-{
-    return (v4)
-    {
+internal v4 v4_from_packed_color(u32 color) {
+    return (v4) {
         ((color & 0x000000ff) >> 0)  / 256.0f,
         ((color & 0x0000ff00) >> 8)  / 256.0f,
         ((color & 0x00ff0000) >> 16) / 256.0f,
@@ -598,48 +519,39 @@ internal v4 v4_from_packed_color(u32 color)
     };
 }
 
-internal v4 v4_neg(v4 a)
-{
+internal v4 v4_neg(v4 a) {
     return (v4) { -a.x, -a.y, -a.z, -a.w };
 }
 
-internal v4 v4_add(v4 a, v4 b)
-{
+internal v4 v4_add(v4 a, v4 b) {
     return (v4) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
-internal v4 v4_sub(v4 a, v4 b)
-{
+internal v4 v4_sub(v4 a, v4 b) {
     return (v4) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 
-internal v4 v4_mul(v4 a, v4 b)
-{
+internal v4 v4_mul(v4 a, v4 b) {
     return (v4) { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w };
 }
 
-internal v4 v4_scale(v4 a, f32 s)
-{
+internal v4 v4_scale(v4 a, f32 s) {
     return (v4) { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
-internal f32 v4_dot(v4 a, v4 b)
-{
+internal f32 v4_dot(v4 a, v4 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-internal f32 v4_len_sq(v4 v)
-{
+internal f32 v4_len_sq(v4 v) {
     return v4_dot(v, v);
 }
 
-internal f32 v4_len(v4 v)
-{
+internal f32 v4_len(v4 v) {
     return sqrt(v4_dot(v, v));
 }
 
-internal f32 v4_dist_sq(const v4 a, const v4 b)
-{
+internal f32 v4_dist_sq(const v4 a, const v4 b) {
     f32 dx = b.x - a.x;
     f32 dy = b.y - a.y;
     f32 dz = b.z - a.z;
@@ -648,17 +560,14 @@ internal f32 v4_dist_sq(const v4 a, const v4 b)
     return dx * dx + dy * dy + dz * dz + dw * dw;
 }
 
-internal f32 v4_dist(v4 a, v4 b)
-{
+internal f32 v4_dist(v4 a, v4 b) {
     return sqrt(v4_dist_sq(a, b));
 }
 
-internal v4 v4_norm(v4 v)
-{
+internal v4 v4_norm(v4 v) {
     f32 k = rsqrt(v4_dot(v, v));
 
-    return (v4)
-    {
+    return (v4) {
         k * v.x,
         k * v.y,
         k * v.z,
@@ -666,10 +575,8 @@ internal v4 v4_norm(v4 v)
     };
 }
 
-internal v4 v4_min(v4 a, v4 b)
-{
-    return (v4)
-    {
+internal v4 v4_min(v4 a, v4 b) {
+    return (v4) {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
         a.z < b.z? a.z : b.z,
@@ -677,10 +584,8 @@ internal v4 v4_min(v4 a, v4 b)
     };
 }
 
-internal v4 v4_max(v4 a, v4 b)
-{
-    return (v4)
-    {
+internal v4 v4_max(v4 a, v4 b) {
+    return (v4) {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
         a.z > b.z? a.z : b.z,
@@ -688,10 +593,8 @@ internal v4 v4_max(v4 a, v4 b)
     };
 }
 
-internal v4 v4_lerp(v4 a, v4 b, f32 t)
-{
-    return (v4)
-    {
+internal v4 v4_lerp(v4 a, v4 b, f32 t) {
+    return (v4) {
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
         a.z + t * (b.z - a.z),
@@ -699,12 +602,10 @@ internal v4 v4_lerp(v4 a, v4 b, f32 t)
     };
 }
 
-internal v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d)
-{
+internal v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
 	f32 i = 1.0f - f;
 
-    return (v4)
-    {
+    return (v4) {
         ((d.x * f + c.x * i) * f + (c.x * f + b.x * i) * i) * f + ((c.x * f + b.x * i) * f + (b.x * f + a.x * i) * i) * i,
         ((d.y * f + c.y * i) * f + (c.y * f + b.y * i) * i) * f + ((c.y * f + b.y * i) * f + (b.y * f + a.y * i) * i) * i,
         ((d.z * f + c.z * i) * f + (c.z * f + b.z * i) * i) * f + ((c.z * f + b.z * i) * f + (b.z * f + a.z * i) * i) * i,
@@ -713,10 +614,8 @@ internal v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d)
 }
 
 // m2:
-internal m2 m2_mul(m2 a, m2 b)
-{
-    return (m2)
-    {
+internal m2 m2_mul(m2 a, m2 b) {
+    return (m2) {
         a.e[0] * b.e[0] + a.e[2] * b.e[1],
         a.e[1] * b.e[0] + a.e[3] * b.e[1],
         a.e[0] * b.e[2] + a.e[2] * b.e[3],
@@ -724,74 +623,59 @@ internal m2 m2_mul(m2 a, m2 b)
     };
 }
 
-internal v2 m2_mulv(m2 m, v2 v)
-{
-    return (v2)
-    {
+internal v2 m2_mulv(m2 m, v2 v) {
+    return (v2) {
         m.e[0] * v.x + m.e[2] * v.y,
         m.e[1] * v.x + m.e[3] * v.y,
     };
 }
 
-internal m2 m2_identity(void)
-{
-    return (m2)
-    {
+internal m2 m2_identity(void) {
+    return (m2) {
         1.0f, 0.0f,
         0.0f, 1.0f
     };
 }
 
-internal m2 m2_rotate_cs(f32 c, f32 s)
-{
-    return (m2)
-    {
+internal m2 m2_rotate_cs(f32 c, f32 s) {
+    return (m2) {
          c, s,
         -s, c,
     };
 }
 
-internal m2 m2_rotate(f32 angle)
-{
+internal m2 m2_rotate(f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
-    return (m2)
-    {
+    return (m2) {
          c,  s,
         -s,  c,
     };
 }
 
-internal m2 m2_scale(f32 sx, f32 sy)
-{
-    return (m2)
-    {
+internal m2 m2_scale(f32 sx, f32 sy) {
+    return (m2) {
         sx, 0,
         0,  sy,
     };
 }
 
-internal f32 m2_det(m2 m)
-{
+internal f32 m2_det(m2 m) {
     return m.e[0] * m.e[2] - m.e[1] * m.e[3];
 }
 
-internal m2 m2_transpose(m2 m)
-{
-    return (m2)
-    {
+internal m2 m2_transpose(m2 m) {
+    return (m2) {
         m.e[0], m.e[2],
         m.e[1], m.e[3],
     };
 }
 
-internal m2 m2_inverse(m2 m)
-{
+internal m2 m2_inverse(m2 m) {
     f32 k = 1.0f / m2_det(m);
 
-    return (m2)
-    {
+    return (m2) {
          k * m.e[3],
         -k * m.e[2],
         -k * m.e[1],
@@ -800,10 +684,8 @@ internal m2 m2_inverse(m2 m)
 }
 
 // m3:
-internal m3 m3_mul(m3 a, m3 b)
-{
-    return (m3)
-    {
+internal m3 m3_mul(m3 a, m3 b) {
+    return (m3) {
         a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
         a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
         a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
@@ -818,38 +700,32 @@ internal m3 m3_mul(m3 a, m3 b)
     };
 }
 
-internal v3 m3_mulv(m3 m, v3 v)
-{
-    return (v3)
-    {
+internal v3 m3_mulv(m3 m, v3 v) {
+    return (v3) {
         m.e[0] * v.x + m.e[3] * v.y + m.e[6] * v.z,
         m.e[1] * v.x + m.e[4] * v.y + m.e[7] * v.z,
         m.e[2] * v.x + m.e[5] * v.y + m.e[8] * v.z,
     };
 }
 
-internal m3 m3_identity(void)
-{
-    return (m3)
-    {
-        1,  0,  0,
-        0,  1,  0,
-        0,  0,  1,
+internal m3 m3_identity(void) {
+    return (m3) {
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1,
     };
 }
 
-internal m3 m3_rotate(v3 axis, f32 angle)
-{
-    f32 c       = cosf(angle);
-    f32 s       = sinf(angle);
+internal m3 m3_rotate(v3 axis, f32 angle) {
+    f32 c = cosf(angle);
+    f32 s = sinf(angle);
 
-    f32 k       = 1.0f - c;
+    f32 k = 1.0f - c;
 
-    v3  sa      = { s * axis.x, s * axis.y, s * axis.z };
-    v3  omca    = { k * axis.x, k * axis.y, k * axis.z };
+    v3  sa = { s * axis.x, s * axis.y, s * axis.z };
+    v3  omca = { k * axis.x, k * axis.y, k * axis.z };
 
-    return (m3)
-    {
+    return (m3) {
         omca.x * axis.x + c,
         omca.x * axis.y - sa.z,
         omca.x * axis.z + sa.y,
@@ -864,8 +740,7 @@ internal m3 m3_rotate(v3 axis, f32 angle)
     };
 }
 
-internal m3 m3_euler(f32 yaw, f32 pitch, f32 roll)
-{
+internal m3 m3_euler(f32 yaw, f32 pitch, f32 roll) {
     f32 cy = cosf(yaw);
     f32 sy = sinf(yaw);
     f32 cp = cosf(pitch);
@@ -873,8 +748,7 @@ internal m3 m3_euler(f32 yaw, f32 pitch, f32 roll)
     f32 cr = cosf(roll);
     f32 sr = sinf(roll);
 
-    return (m3)
-    {
+    return (m3) {
         cy * cp,
         sy * cp,
         -sp,
@@ -889,8 +763,7 @@ internal m3 m3_euler(f32 yaw, f32 pitch, f32 roll)
     };
 }
 
-internal m3 m3_from_quat(Quat quat)
-{
+internal m3 m3_from_quat(Quat quat) {
     f32 a = quat.w;
 	f32 b = quat.x;
 	f32 c = quat.y;
@@ -901,8 +774,7 @@ internal m3 m3_from_quat(Quat quat)
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return (m3)
-    {
+    return (m3) {
         a2 + b2 - c2 - d2,
         2  * (b * c + a * d),
         2  * (b * d - a * c),
@@ -918,10 +790,13 @@ internal m3 m3_from_quat(Quat quat)
 }
 
 // m4:
-internal m4 m4_mul(m4 a, m4 b)
-{
-    return (m4)
-    {
+internal m4_copy_to_array(f32* out, m4 m) {
+    for (u32 i = 0; i < ARRAY_COUNT(m.e); ++i)
+        out[i] = m.e[i];
+}
+
+internal m4 m4_mul(m4 a, m4 b) {
+    return (m4) {
         a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
         a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
         a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
@@ -944,10 +819,8 @@ internal m4 m4_mul(m4 a, m4 b)
     };
 }
 
-internal v4 m4_mulv(m4 m, v4 v)
-{
-    return (v4)
-    {
+internal v4 m4_mulv(m4 m, v4 v) {
+    return (v4) {
         v.x + m.e[4] * v.y + m.e[8]  * v.z + m.e[12] * v.w,
         v.x + m.e[5] * v.y + m.e[9]  * v.z + m.e[13] * v.w,
         v.x + m.e[6] * v.y + m.e[10] * v.z + m.e[14] * v.w,
@@ -955,10 +828,8 @@ internal v4 m4_mulv(m4 m, v4 v)
     };
 }
 
-internal m4 m4_identity(void)
-{
-    return (m4)
-    {
+internal m4 m4_identity(void) {
+    return (m4) {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
@@ -966,10 +837,8 @@ internal m4 m4_identity(void)
     };
 }
 
-internal m4 m4_transpose(m4 m)
-{
-    return (m4)
-    {
+internal m4 m4_transpose(m4 m) {
+    return (m4) {
         m.e[0], m.e[4], m.e[8],  m.e[12],
         m.e[1], m.e[5], m.e[9],  m.e[13],
         m.e[2], m.e[6], m.e[10], m.e[14],
@@ -977,10 +846,8 @@ internal m4 m4_transpose(m4 m)
     };
 }
 
-internal m4 m4_translate(f32 x, f32 y, f32 z)
-{
-    return (m4)
-    {
+internal m4 m4_translate(f32 x, f32 y, f32 z) {
+    return (m4) {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
@@ -988,10 +855,8 @@ internal m4 m4_translate(f32 x, f32 y, f32 z)
     };
 }
 
-internal m4 m4_scale(f32 x, f32 y, f32 z)
-{
-    return (m4)
-    {
+internal m4 m4_scale(f32 x, f32 y, f32 z) {
+    return (m4) {
         x, 0, 0, 0,
         0, y, 0, 0,
         0, 0, z, 0,
@@ -999,13 +864,11 @@ internal m4 m4_scale(f32 x, f32 y, f32 z)
     };
 }
 
-internal m4 m4_rotate_x(f32 angle)
-{
+internal m4 m4_rotate_x(f32 angle) {
     f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
-    return (m4)
-    {
+    return (m4) {
         1,  0, 0, 0,
         0,  c, s, 0,
         0, -s, c, 0,
@@ -1013,13 +876,11 @@ internal m4 m4_rotate_x(f32 angle)
     };
 }
 
-internal m4 m4_rotate_y(f32 angle)
-{
+internal m4 m4_rotate_y(f32 angle) {
     f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
-    return (m4)
-    {
+    return (m4) {
          c, 0, s, 0,
          0, 1, 0, 0,
         -s, 0, c, 0,
@@ -1027,13 +888,11 @@ internal m4 m4_rotate_y(f32 angle)
     };
 }
 
-internal m4 m4_rotate_z(f32 angle)
-{
+internal m4 m4_rotate_z(f32 angle) {
 	f32 s = sinf(angle);
 	f32 c = cosf(angle);
 
-    return (m4)
-    {
+    return (m4) {
          c, s, 0, 0,
         -s, c, 0, 0,
          0, 0, 1, 0,
@@ -1041,16 +900,14 @@ internal m4 m4_rotate_z(f32 angle)
     };
 }
 
-internal m4 m4_rotate(v3 axis, f32 angle)
-{
-    f32 cosv        = cosf(angle);
-    f32 sinv        = sinf(angle);
-    f32 inv_cosv    = 1.0f - cosv;
-    v3 sa           = { axis.x * sinv,      axis.y * sinv,      axis.z * sinv };
-    v3 omca         = { axis.x * inv_cosv,  axis.y * inv_cosv,  axis.z * inv_cosv };
+internal m4 m4_rotate(v3 axis, f32 angle) {
+    f32 cosv = cosf(angle);
+    f32 sinv = sinf(angle);
+    f32 inv_cosv = 1.0f - cosv;
+    v3 sa = { axis.x * sinv,      axis.y * sinv,      axis.z * sinv };
+    v3 omca = { axis.x * inv_cosv,  axis.y * inv_cosv,  axis.z * inv_cosv };
 
-    return (m4)
-    {
+    return (m4) {
         omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
         omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
         omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
@@ -1058,10 +915,8 @@ internal m4 m4_rotate(v3 axis, f32 angle)
     };
 }
 
-internal m4 m4_frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
-{
-    return (m4)
-    {
+internal m4 m4_frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+    return (m4) {
         2 * n / (r - l),    0,                  0,                      0,
         0,                  2 * n / (t - b),    0,                      0,
         (r + l) / (r - l),  (t + b) / (t - b),  -(f + n) / (f - n),     -1,
@@ -1069,10 +924,8 @@ internal m4 m4_frustum(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
     };
 }
 
-internal m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
-{
-    return (m4)
-    {
+internal m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+    return (m4) {
         2 / (r - l),            0,                      0,                      0,
         0,                      2 / (t - b),            0,                      0,
         0,                      0,                      -2 / (f - n),           0,
@@ -1080,12 +933,10 @@ internal m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
     };
 }
 
-internal m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
-{
+internal m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     f32 a = 1.0f / tanf(y_fov / 2.0f);
 
-    return (m4)
-    {
+    return (m4) {
         a / aspect,     0,      0,                          0,
         0,              a,      0,                          0,
         0,              0,      -((f + n) / (f - n)),       -1,
@@ -1093,8 +944,7 @@ internal m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
     };
 }
 
-internal m4 m4_look_at(v3 eye, v3 center, v3 up)
-{
+internal m4 m4_look_at(v3 eye, v3 center, v3 up) {
     v3 f = v3_norm((v3) { center.x - eye.x, center.y - eye.y, center.z - eye.z });
     v3 s = v3_norm(v3_cross(f, up));
     v3 t = v3_cross(s, f);
@@ -1124,8 +974,7 @@ internal m4 m4_look_at(v3 eye, v3 center, v3 up)
     return m;
 }
 
-internal m4 m4_from_quat(Quat q)
-{
+internal m4 m4_from_quat(Quat q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1136,8 +985,7 @@ internal m4 m4_from_quat(Quat q)
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return (m4)
-    {
+    return (m4) {
         a2 + b2 - c2 - d2,      2  * (b * c + a * d),   2  * (b * d - a * c),   0,
         2  * (b * c - a * d),   a2 - b2 + c2 - d2,      2  * (c * d + a * b),   0,
         2  * (b * d + a * c),   2  * (c * d - a * b),   a2 - b2 - c2 + d2,      0,
@@ -1145,8 +993,7 @@ internal m4 m4_from_quat(Quat q)
     };
 }
 
-internal m4 m4_invert(m4 m)
-{
+internal m4 m4_invert(m4 m) {
 	f32 s[6], c[6];
 
 	s[0] = m.e[0] * m.e[5] - m.e[4] * m.e[1];
@@ -1166,8 +1013,7 @@ internal m4 m4_invert(m4 m)
 	// assumes it is invertible
 	f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-    return (m4)
-    {
+    return (m4) {
         ( m.e[5]  * c[5] - m.e[6]  * c[4] + m.e[7]  * c[3]) * idet,
         (-m.e[1]  * c[5] + m.e[2]  * c[4] - m.e[3]  * c[3]) * idet,
         ( m.e[13] * s[5] - m.e[14] * s[4] + m.e[15] * s[3]) * idet,
@@ -1191,18 +1037,15 @@ internal m4 m4_invert(m4 m)
 }
 
 // quat:
-internal Quat quat_identity(void)
-{
+internal Quat quat_identity(void) {
     return (Quat) { 0, 0, 0, 1 };
 }
 
-internal Quat quat_make(f32 x, f32 y, f32 z, f32 angle)
-{
+internal Quat quat_make(f32 x, f32 y, f32 z, f32 angle) {
     f32 inv_len = rsqrt((x * x) + (y * y) + (z * z));
-    f32 s       = inv_len * sinf(angle / 2.0f);
+    f32 s = inv_len * sinf(angle / 2.0f);
 
-    return (Quat)
-    {
+    return (Quat) {
         x * s,
         y * s,
         z * s,
@@ -1210,15 +1053,12 @@ internal Quat quat_make(f32 x, f32 y, f32 z, f32 angle)
     };
 }
 
-internal Quat quat_conj(Quat q)
-{
+internal Quat quat_conj(Quat q) {
     return (Quat) { -q.x, -q.y, -q.z, q.w };
 }
 
-internal Quat quat_mul(Quat a, Quat b)
-{
-    return (Quat)
-    {
+internal Quat quat_mul(Quat a, Quat b) {
+    return (Quat) {
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
         a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
@@ -1226,8 +1066,7 @@ internal Quat quat_mul(Quat a, Quat b)
     };
 }
 
-internal Quat quat_rotate(v3 axis, f32 angle)
-{
+internal Quat quat_rotate(v3 axis, f32 angle) {
     f32 s = sinf(0.5f * angle);
     v3  v = { s * axis.x, s * axis.y, s * axis.z };
 
@@ -1236,59 +1075,48 @@ internal Quat quat_rotate(v3 axis, f32 angle)
 
 // --------------------- v2i ------------------------- // 
 
-internal v2i v2i_add(v2i a, v2i b)
-{
+internal v2i v2i_add(v2i a, v2i b) {
     return (v2i) { a.x + b.x, a.y + b.y };
 }
 
-internal v2i v2i_sub(v2i a, v2i b)
-{
+internal v2i v2i_sub(v2i a, v2i b) {
     return (v2i) { a.x - b.x, a.y - b.y };
 }
 
-internal b32 v2i_equal(v2i a, v2i b)
-{
+internal b32 v2i_equal(v2i a, v2i b) {
     return a.x == b.x && a.y == b.y;
 }
 
-internal i32 v2i_dist_sq(v2i a, v2i b)
-{
+internal i32 v2i_dist_sq(v2i a, v2i b) {
     i32 dx = a.x - b.x;
     i32 dy = a.y - b.y;
 
     return dx * dx + dy * dy;
 }
 
-internal i32 v2i_manhattan(v2i a, v2i b)
-{
+internal i32 v2i_manhattan(v2i a, v2i b) {
     i32 dx = abs(a.x - b.x);
     i32 dy = abs(a.y - b.y);
 
     return dx + dy;
 }
 
-internal v2i v2i_clamp(v2i a, i32 min, i32 max)
-{
-    return (v2i)
-    {
+internal v2i v2i_clamp(v2i a, i32 min, i32 max) {
+    return (v2i) {
         clamp(a.x, min, max),
         clamp(a.y, min, max),
     };
 }
 
-internal v2i v2i_min(v2i a, v2i b)
-{
-    return (v2i)
-    {
+internal v2i v2i_min(v2i a, v2i b) {
+    return (v2i) {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
     };
 }
 
-internal v2i v2i_max(v2i a, v2i b)
-{
-    return (v2i)
-    {
+internal v2i v2i_max(v2i a, v2i b) {
+    return (v2i) {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
     };
@@ -1296,18 +1124,15 @@ internal v2i v2i_max(v2i a, v2i b)
 
 // --------------------- v3i ------------------------- // 
 
-internal v3i v3i_add(v3i a, v3i b)
-{
+internal v3i v3i_add(v3i a, v3i b) {
     return (v3i) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
-internal v3i v3i_sub(v3i a, v3i b)
-{
+internal v3i v3i_sub(v3i a, v3i b) {
     return (v3i) { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
-internal i32 v3i_dist_sq(v3i a, v3i b)
-{
+internal i32 v3i_dist_sq(v3i a, v3i b) {
     i32 dx = a.x - b.x;
     i32 dy = a.y - b.y;
     i32 dz = a.z - b.z;
@@ -1315,19 +1140,33 @@ internal i32 v3i_dist_sq(v3i a, v3i b)
     return dx * dx + dy * dy + dz * dz;
 }
 
+internal v3i v3i_max(v3i a, v3i b) {
+    return (v3i) {
+        a.x < b.x? a.x : b.x,
+        a.y < b.y? a.y : b.y,
+        a.z < b.z? a.z : b.z,
+    };
+}
+
+internal v3i v3i_min(v3i a, v3i b) {
+    return (v3i) {
+        a.x > b.x? a.x : b.x,
+        a.y > b.y? a.y : b.y,
+        a.z > b.z? a.z : b.z,
+    };
+}
+
 // =================================================== SHAPES =============================================== //
 
 // ---------------------------------------- CIRCLE -------------------------------------- //
 
 typedef struct Circle Circle;
-struct Circle
-{
-    v3      pos;
-    f32     rad;
+struct Circle {
+    v3 pos;
+    f32 rad;
 };
 
-internal b32 circle_intersect(Circle a, Circle b)
-{
+internal b32 circle_intersect(Circle a, Circle b) {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
     f32 rt  = a.rad + b.rad;
@@ -1335,13 +1174,11 @@ internal b32 circle_intersect(Circle a, Circle b)
     return dx * dx + dy * dy < rt * rt;
 };
 
-internal v2 circle_get_intersect_vector(Circle a, Circle b)
-{
+internal v2 circle_get_intersect_vector(Circle a, Circle b) {
     v2  delta = { a.pos.x - b.pos.x, a.pos.y - b.pos.y };
     f32 depth = v2_len(delta) - (a.rad + b.rad);
     
-    return (v2)
-    {
+    return (v2) {
         depth * delta.x,
         depth * delta.y,
     };
@@ -1350,14 +1187,12 @@ internal v2 circle_get_intersect_vector(Circle a, Circle b)
 // --------------------------------------- SHPERE ------------------------------------ //
 
 typedef struct Sphere Sphere;
-struct Sphere
-{
-    v3      pos;
-    f32     rad;
+struct Sphere {
+    v3 pos;
+    f32 rad;
 };
 
-internal b32 sphere_intersect(Sphere a, Sphere b)
-{
+internal b32 sphere_intersect(Sphere a, Sphere b) {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
     f32 dz  = b.pos.z - a.pos.z;
@@ -1367,13 +1202,11 @@ internal b32 sphere_intersect(Sphere a, Sphere b)
     return dx * dx + dy * dy < rt * rt;
 };
 
-internal v3 sphere_get_intersect_vector(Sphere a, Sphere b)
-{
+internal v3 sphere_get_intersect_vector(Sphere a, Sphere b) {
     v3 delta  = { b.pos.x - a.pos.x, b.pos.y - a.pos.y, b.pos.z - a.pos.z };
     f32 depth = v3_len(delta) - (a.rad + b.rad);
     
-    return (v3)
-    {
+    return (v3) {
         depth * delta.x,
         depth * delta.y,
         depth * delta.z,
@@ -1383,54 +1216,45 @@ internal v3 sphere_get_intersect_vector(Sphere a, Sphere b)
 // ---------------------------------------- RECTANGLE ------------------------------------- //
 
 typedef struct Rect Rect;
-struct Rect
-{
+struct Rect {
     v2  min;
     v2  max;
 };
 
-internal b32 rect_contains(Rect rect, v2 pos)
-{
+internal b32 rect_contains(Rect rect, v2 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
 
     return true;
 }
 
-internal b32 rect_intersect(Rect a, Rect b)
-{
+internal b32 rect_intersect(Rect a, Rect b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
     return true;
 }
 
-internal Rect rect_get_overlap(Rect a, Rect b)
-{
-    return (Rect)
-    {
+internal Rect rect_get_overlap(Rect a, Rect b) {
+    return (Rect) {
         v2_max(a.min, b.min),
         v2_min(a.max, b.max),
     };
 }
 
-internal v2 rect_get_intersect_vector(Rect a, Rect b)
-{
+internal v2 rect_get_intersect_vector(Rect a, Rect b) {
     Rect o = rect_get_overlap(a, b);
     f32 dx = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
     f32 dy = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
 
-    return (v2)
-    {
+    return (v2) {
         sign(dx) * (o.max.x - o.min.x),
         sign(dy) * (o.max.y - o.min.y),
     };
 }
 
-internal Rect rect_move(Rect rect, v2 offset)
-{
-    return (Rect)
-    {
+internal Rect rect_move(Rect rect, v2 offset) {
+    return (Rect) {
         rect.min.x + offset.x,
         rect.min.y + offset.y,
         rect.max.x + offset.x,
@@ -1441,55 +1265,46 @@ internal Rect rect_move(Rect rect, v2 offset)
 // ---------------------------------------- RECTANGLE - INT ------------------------------------- //
 
 typedef struct RectI32 RectI32;
-struct RectI32
-{
+struct RectI32 {
     v2i  min;
     v2i  max;
 };
 
-internal b32 recti_contains(RectI32 rect, v2i pos)
-{
+internal b32 recti_contains(RectI32 rect, v2i pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
 
     return true;
 }
 
-internal b32 recti_intersect(RectI32 a, RectI32 b)
-{
+internal b32 recti_intersect(RectI32 a, RectI32 b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
     return true;
 }
 
-internal RectI32 recti_get_overlap(RectI32 a, RectI32 b)
-{
-    return (RectI32)
-    {
+internal RectI32 recti_get_overlap(RectI32 a, RectI32 b) {
+    return (RectI32) {
         v2i_max(a.min, b.min),
         v2i_min(a.max, b.max),
     };
 }
 
-internal v2i recti_get_intersect_vector(RectI32 a, RectI32 b)
-{
+internal v2i recti_get_intersect_vector(RectI32 a, RectI32 b) {
     RectI32 o = recti_get_overlap(a, b);
 
     i32 dx  = (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2;
     i32 dy  = (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2;
 
-    return (v2i)
-    {
+    return (v2i) {
         sign(dx) * (o.max.x - o.min.x),
         sign(dy) * (o.max.y - o.min.y),
     };
 }
 
-internal RectI32 recti_move(RectI32 rect, v2i offset)
-{
-    return (RectI32)
-    {
+internal RectI32 recti_move(RectI32 rect, v2i offset) {
+    return (RectI32) {
         rect.min.x + offset.x,
         rect.min.y + offset.y,
         rect.max.x + offset.x,
@@ -1500,14 +1315,12 @@ internal RectI32 recti_move(RectI32 rect, v2i offset)
 // ----------------------------------------- BOX --------------------------------------- //
 
 typedef struct Box Box;
-struct Box
-{
+struct Box {
     v3  min;
     v3  max;
 };
 
-internal b32 box_contains(Box box, v3 pos)
-{
+internal b32 box_contains(Box box, v3 pos) {
     if (pos.x < box.min.x || pos.x > box.max.x) return false;
     if (pos.y < box.min.y || pos.y > box.max.y) return false;
     if (pos.z < box.min.z || pos.z > box.max.z) return false;
@@ -1515,8 +1328,7 @@ internal b32 box_contains(Box box, v3 pos)
     return true;
 }
 
-internal b32 box_intersect(Box a, Box b)
-{
+internal b32 box_intersect(Box a, Box b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
@@ -1524,34 +1336,28 @@ internal b32 box_intersect(Box a, Box b)
     return true;
 }
 
-internal Box box_get_overlap(Box a, Box b)
-{
-    return (Box)
-    {
+internal Box box_get_overlap(Box a, Box b) {
+    return (Box) {
         v3_max(a.min, b.min),
         v3_min(a.max, b.max),
     };
 }
 
-internal v3 box_get_intersect_vector(Box a, Box b)
-{
+internal v3 box_get_intersect_vector(Box a, Box b) {
     Box o = box_get_overlap(a, b);
     f32 dx  = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
     f32 dy  = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
     f32 dz  = 0.5f * (a.min.z + a.max.z) - 0.5f * (b.min.z + b.max.z);
 
-    return (v3)
-    {
+    return (v3) {
         sign(dx) * (o.max.x - o.min.x),
         sign(dy) * (o.max.y - o.min.y),
         sign(dz) * (o.max.z - o.min.z),
     };
 }
 
-internal Box box_move(Box box, v3 offset)
-{
-    return (Box)
-    {
+internal Box box_move(Box box, v3 offset) {
+    return (Box) {
         box.min.x + offset.x,
         box.min.y + offset.y,
         box.min.z + offset.z,
@@ -1565,14 +1371,12 @@ internal Box box_move(Box box, v3 offset)
 // ----------------------------------------- BOX - INT --------------------------------------- //
 
 typedef struct BoxI32 BoxI32;
-struct BoxI32
-{
-    v3  min;
-    v3  max;
+struct BoxI32 {
+    v3i  min;
+    v3i  max;
 };
 
-internal b32 boxi_contains(BoxI32 box, v3 pos)
-{
+internal b32 boxi_contains(BoxI32 box, v3i pos) {
     if (pos.x < box.min.x || pos.x > box.max.x) return false;
     if (pos.y < box.min.y || pos.y > box.max.y) return false;
     if (pos.z < box.min.z || pos.z > box.max.z) return false;
@@ -1580,8 +1384,7 @@ internal b32 boxi_contains(BoxI32 box, v3 pos)
     return true;
 }
 
-internal b32 boxi_intersect(BoxI32 a, BoxI32 b)
-{
+internal b32 boxi_intersect(BoxI32 a, BoxI32 b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
@@ -1589,35 +1392,29 @@ internal b32 boxi_intersect(BoxI32 a, BoxI32 b)
     return true;
 }
 
-internal BoxI32 boxi_get_overlap(BoxI32 a, BoxI32 b)
-{
-    return (BoxI32)
-    {
-        v3_max(a.min, b.min),
-        v3_min(a.max, b.max),
+internal BoxI32 boxi_get_overlap(BoxI32 a, BoxI32 b) {
+    return (BoxI32) {
+        v3i_max(a.min, b.min),
+        v3i_min(a.max, b.max),
     };
 }
 
-internal v3i boxi_get_intersect_vector(BoxI32 a, BoxI32 b)
-{
+internal v3i boxi_get_intersect_vector(BoxI32 a, BoxI32 b) {
     BoxI32 o = boxi_get_overlap(a, b);
 
     i32 dx  = (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2;
     i32 dy  = (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2;
     i32 dz  = (a.min.z + a.max.z) / 2 - (b.min.z + b.max.z) / 2;
 
-    return (v3i)
-    {
+    return (v3i) {
         sign(dx) * (o.max.x - o.min.x),
         sign(dy) * (o.max.y - o.min.y),
         sign(dz) * (o.max.z - o.min.z),
     };
 }
 
-internal BoxI32 boxi_move(BoxI32 box, v3 offset)
-{
-    return (BoxI32)
-    {
+internal BoxI32 boxi_move(BoxI32 box, v3i offset) {
+    return (BoxI32) {
         box.min.x + offset.x,
         box.min.y + offset.y,
         box.min.z + offset.z,
@@ -1631,16 +1428,14 @@ internal BoxI32 boxi_move(BoxI32 box, v3 offset)
 // ----------------------------------------- FRUSTUM --------------------------------------- //
 
 typedef struct Plane Plane;
-struct Plane
-{
-    f32     a;
-    f32     b;
-    f32     c;
-    f32     d;
+struct Plane {
+    f32 a;
+    f32 b;
+    f32 c;
+    f32 d;
 };
 
-internal Plane plane_normalize(Plane plane)
-{
+internal Plane plane_normalize(Plane plane) {
     f32 mag = sqrt(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
     plane.a = plane.a / mag;
@@ -1652,13 +1447,11 @@ internal Plane plane_normalize(Plane plane)
 }
 
 typedef struct Frustum Frustum;
-struct Frustum
-{
+struct Frustum {
     Plane   plane[6];
 };
 
-internal Frustum frustum_create(m4 m, b32 normalize)
-{
+internal Frustum frustum_create(m4 m, b32 normalize) {
     Frustum frustum = {0};
 
     // left clipping plane
@@ -1697,8 +1490,7 @@ internal Frustum frustum_create(m4 m, b32 normalize)
     frustum.plane[5].c = m.e[11] - m.e[10];
     frustum.plane[5].d = m.e[15] - m.e[14];
 
-    if (normalize)
-    {
+    if (normalize) {
         frustum.plane[0] = plane_normalize(frustum.plane[0]);
         frustum.plane[1] = plane_normalize(frustum.plane[1]);
         frustum.plane[2] = plane_normalize(frustum.plane[2]);
@@ -1710,10 +1502,8 @@ internal Frustum frustum_create(m4 m, b32 normalize)
     return frustum;
 }
 
-internal b32 frustum_contains(Frustum frustum, v3 pos)
-{
-    for(i32 i = 0; i < 6; i++)
-    {
+internal b32 frustum_contains(Frustum frustum, v3 pos) {
+    for(i32 i = 0; i < 6; i++) {
 		if (frustum.plane[i].a * pos.x + frustum.plane[i].b * pos.y + frustum.plane[i].c * pos.z + frustum.plane[i].d <= 0)
 			return false;
 	}
@@ -1721,10 +1511,8 @@ internal b32 frustum_contains(Frustum frustum, v3 pos)
 	return true;
 }
 
-internal b32 frustum_intersect_sphere(Frustum frustum, Sphere sphere)
-{
-    for(i32 i = 0; i < 6; i++)
-    {
+internal b32 frustum_intersect_sphere(Frustum frustum, Sphere sphere) {
+    for(i32 i = 0; i < 6; i++) {
 		if(frustum.plane[i].a * sphere.pos.x + frustum.plane[i].b * sphere.pos.y + frustum.plane[i].c * sphere.pos.z + frustum.plane[i].d <= -sphere.rad) {
 			return false;
 		}
@@ -1733,10 +1521,8 @@ internal b32 frustum_intersect_sphere(Frustum frustum, Sphere sphere)
 	return true;
 }
 
-internal b32 frustum_intersect_box(Frustum frustum, Box box)
-{
-    for (int i = 0; i < 6; i++)
-    {
+internal b32 frustum_intersect_box(Frustum frustum, Box box) {
+    for (int i = 0; i < 6; i++) {
 		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
 		if (frustum.plane[i].a * box.max.x + frustum.plane[i].b * box.min.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
 		if (frustum.plane[i].a * box.min.x + frustum.plane[i].b * box.max.y + frustum.plane[i].c * box.min.z + frustum.plane[i].d > 0) continue;
@@ -1754,8 +1540,7 @@ internal b32 frustum_intersect_box(Frustum frustum, Box box)
 
 // ================================================= COLOR PACKING =========================================== //
 
-internal u32 pack_color_u8(u8 r, u8 g, u8 b, u8 a)
-{
+internal u32 pack_color_u8(u8 r, u8 g, u8 b, u8 a) {
     u32 color = 0;
 
     color |= (u32)(r) << 0;
@@ -1766,25 +1551,21 @@ internal u32 pack_color_u8(u8 r, u8 g, u8 b, u8 a)
     return color;
 }
 
-internal u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a)
-{
+internal u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a) {
     return pack_color_u8((u8)(255 * r), (u8)(255 * g), (u8)(255 * b), (u8)(255 * a));
 }
 
-internal u32 pack_color_v4(v4 color)
-{
+internal u32 pack_color_v4(v4 color) {
     return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
-internal u32 pack_color_v3(v3 color)
-{
+internal u32 pack_color_v3(v3 color) {
     return pack_color_f32(color.r, color.g, color.b, 1.0);
 }
 
 // =================================== XORSHIFT32 ============================================= //
 
-internal u32 rand_u32(u32* state)
-{
+internal u32 rand_u32(u32* state) {
 	u32 x = *state;
 
 	x ^= x << 13;
@@ -1794,32 +1575,27 @@ internal u32 rand_u32(u32* state)
 	return *state = x;
 }
 
-internal i32 rand_i32(u32* state, i32 min, i32 max)
-{
+internal i32 rand_i32(u32* state, i32 min, i32 max) {
     return min + rand_u32(state) % (max - min);
 }
 
-internal f32 rand_f32(u32* state, f32 min, f32 max)
-{
+internal f32 rand_f32(u32* state, f32 min, f32 max) {
     return min + ((f32)rand_u32(state) / (f32)0xFFFFFFFF) * (max - min); 
 }
 
-internal v2 rand_unit_v2(u32* state)
-{
+internal v2 rand_unit_v2(u32* state) {
     v2 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
     return v2_norm(out);
 }
 
-internal v3 rand_unit_v3(u32* state)
-{
+internal v3 rand_unit_v3(u32* state) {
     v3 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
     return v3_norm(out);
 }
 
 // ============================ RANDOM(HASH) FUNCTION ======================= //
 
-internal u32 hash_u32(u32 a)
-{
+internal u32 hash_u32(u32 a) {
     a = (a ^ 61) ^ (a >> 16);
     a = a + (a << 3);
     a = a ^ (a >> 4);
@@ -1829,8 +1605,7 @@ internal u32 hash_u32(u32 a)
     return a;
 }
 
-internal u32 hash_str(const char* str)
-{
+internal u32 hash_str(const char* str) {
     u32 hash = 0;
 
     while (*str)
@@ -1839,10 +1614,9 @@ internal u32 hash_str(const char* str)
     return hash + (hash >> 16);
 }
 
-internal u32 hash_mem(const void* ptr, u32 size)
-{
-    const u8*   m       = ptr; 
-    u32         hash    = 0;
+internal u32 hash_mem(const void* ptr, u32 size) {
+    const u8* m = ptr; 
+    u32 hash = 0;
 
     for (u32 i = 0; i < size; ++i)
         hash = (hash << 7) + (hash >> 25) + m[i];
@@ -1873,9 +1647,7 @@ global u8  alloc_buffer   [ATS_ALLOC_BUFFER_SIZE];
 #define alloc_type(T)           (T*)alloc_size(sizeof (T))
 #define alloc_array(T, count)   (T*)alloc_size((count) * sizeof (T))
 
-internal void*
-alloc_size(u32 byte_size)
-{
+internal void* alloc_size(u32 byte_size) {
     byte_size = ALIGN_UP(byte_size, 16);
 
     assert((alloc_index + byte_size) < ATS_ALLOC_BUFFER_SIZE && !alloc_lock);
@@ -1889,37 +1661,27 @@ alloc_size(u32 byte_size)
     return memory;
 }
 
-internal void*
-alloc_begin(void)
-{
+internal void* alloc_begin(void) {
     alloc_lock = true;
     return alloc_buffer + alloc_index;
 }
 
-internal void
-alloc_end(u32 byte_size)
-{
+internal void alloc_end(u32 byte_size) {
     alloc_index += ALIGN_UP(byte_size, 16);
     alloc_lock = false;
 }
 
-internal void
-alloc_save(void)
-{
+internal void alloc_save(void) {
     assert(alloc_top < ATS_ALLOC_STACK_SIZE);
     alloc_stack[alloc_top++] = alloc_index;
 }
 
-internal void
-alloc_restore(void)
-{
+internal void alloc_restore(void) {
     assert(alloc_top > 0);
     alloc_index = alloc_stack[--alloc_top];
 }
 
-internal void
-alloc_validate(void)
-{
+internal void alloc_validate(void) {
     assert(alloc_top == 0);
 }
 
@@ -1928,38 +1690,32 @@ alloc_validate(void)
 // ========================================= PRIORITY QUEUE =================================== //
 
 typedef struct QueueNode QueueNode;
-struct QueueNode
-{
-    f32     weight;
-    v2i     e;
+struct QueueNode {
+    f32 weight;
+    v2i e;
 };
 
 typedef struct PriorityQueue PriorityQueue;
-struct PriorityQueue
-{
+struct PriorityQueue {
     i32         len;
     QueueNode*  array;
 };
 
-internal b32 queue_empty(const PriorityQueue* queue)
-{
+internal b32 queue_empty(const PriorityQueue* queue) {
     return queue->len == 0;
 }
 
-internal void queue_clear(PriorityQueue* queue)
-{
+internal void queue_clear(PriorityQueue* queue) {
     queue->len = 0;
 }
 
-internal void queue_push(PriorityQueue* queue, v2i e, f32 weight)
-{
+internal void queue_push(PriorityQueue* queue, v2i e, f32 weight) {
     QueueNode node = { weight, e };
 
     int i = queue->len + 1;
     int j = i / 2;
 
-    while (i > 1 && queue->array[j].weight > node.weight)
-    {
+    while (i > 1 && queue->array[j].weight > node.weight) {
         queue->array[i] = queue->array[j];
 
         i = j;
@@ -1970,8 +1726,7 @@ internal void queue_push(PriorityQueue* queue, v2i e, f32 weight)
     queue->len++;
 }
 
-internal f32 queue_pop(v2i* out, PriorityQueue* queue)
-{
+internal f32 queue_pop(v2i* out, PriorityQueue* queue) {
     QueueNode data = queue->array[1];
 
     queue->array[1] = queue->array[queue->len];
@@ -1999,8 +1754,7 @@ internal f32 queue_pop(v2i* out, PriorityQueue* queue)
 
 // ==================================== FILES ==================================== //
 
-internal size_t file_get_size(FILE* fp)
-{
+internal size_t file_get_size(FILE* fp) {
     fseek(fp, 0L, SEEK_END);
     size_t size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
@@ -2008,22 +1762,18 @@ internal size_t file_get_size(FILE* fp)
     return size;
 }
 
-internal char* file_read_str(const char* file_name)
-{
+internal char* file_read_str(const char* file_name) {
     FILE *fp      = NULL;
     char *buffer  = NULL;
     
-    if (fopen_s(&fp, file_name, "rb") == 0)
-    {
+    if (fopen_s(&fp, file_name, "rb") == 0) {
         size_t size = file_get_size(fp);
         buffer = (char*)malloc(size + 1);
 
-        if (buffer)
-        {
+        if (buffer) {
             buffer[size] = 0;
 
-            if (fread(buffer, 1, size, fp) == 0)
-            {
+            if (fread(buffer, 1, size, fp) == 0) {
                 free(buffer);
                 buffer = 0;
             }
@@ -2035,12 +1785,10 @@ internal char* file_read_str(const char* file_name)
     return buffer;
 }
 
-internal b32 file_write_str(const char* file_name, const char* buffer)
-{
+internal b32 file_write_str(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "w") == 0)
-    {
+    if (fopen_s(&fp, file_name, "w") == 0) {
         size_t size = strlen(buffer);
         size_t n = fwrite(buffer, 1, size, fp);
         fclose(fp);
@@ -2050,14 +1798,12 @@ internal b32 file_write_str(const char* file_name, const char* buffer)
     return false;
 }
 
-internal b32 file_append_str(const char* file_name, const char* buffer)
-{
+internal b32 file_append_str(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "a") == 0)
-    {
+    if (fopen_s(&fp, file_name, "a") == 0) {
         size_t size = strlen(buffer);
-        size_t n    = fwrite(buffer, 1, size, fp);
+        size_t n = fwrite(buffer, 1, size, fp);
 
         fclose(fp);
         return n == size;
@@ -2066,12 +1812,10 @@ internal b32 file_append_str(const char* file_name, const char* buffer)
     return false;
 }
 
-internal b32 file_read_bin(const char* file_name, void* buffer, size_t size)
-{
+internal b32 file_read_bin(const char* file_name, void* buffer, size_t size) {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "rb") == 0)
-    {
+    if (fopen_s(&fp, file_name, "rb") == 0) {
         fread(buffer, size, 1, fp);
         fclose(fp);
 
@@ -2081,12 +1825,10 @@ internal b32 file_read_bin(const char* file_name, void* buffer, size_t size)
     return false;
 } 
 
-internal b32 file_write_bin(const char* file_name, const void* buffer, size_t size)
-{
+internal b32 file_write_bin(const char* file_name, const void* buffer, size_t size) {
     FILE *fp = NULL;
 
-    if (fopen_s(&fp, file_name, "wb") == 0)
-    {
+    if (fopen_s(&fp, file_name, "wb") == 0) {
         fwrite(buffer, size, 1, fp);
         fclose(fp);
         return 1;
@@ -2097,8 +1839,7 @@ internal b32 file_write_bin(const char* file_name, const void* buffer, size_t si
 
 // ====================================================================================================== //
 
-internal void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b)
-{
+internal void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
     f64 M[16];
 
     M[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
@@ -2142,8 +1883,7 @@ internal void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b)
     R[15] = M[15];
 }
 
-internal void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v)
-{
+internal void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
     f64 r[4];
 
 	r[0] = M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3];
@@ -2157,8 +1897,7 @@ internal void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v)
     out[3] = r[3];
 }
 
-internal void f4x4_invert_64(f64* T, const f64* M)
-{
+internal void f4x4_invert_64(f64* T, const f64* M) {
 	f64 s[6], c[6];
 
 	s[0] = M[0] * M[5] - M[4] * M[1];
@@ -2199,8 +1938,7 @@ internal void f4x4_invert_64(f64* T, const f64* M)
 	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-internal b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport)
-{
+internal b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
     f64 fTempo[8];
 
     fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
@@ -2229,8 +1967,7 @@ internal b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* mod
     return true;
 }
 
-internal b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport)
-{
+internal b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
     f64 m[16], A[16];
     f64 in[4], out[4];
 
@@ -2470,11 +2207,9 @@ internal b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* m
 
 // ==================================================================== GAMEPAD ===================================================== //
 
-typedef struct GamepadButtons GamepadButtons;
-union GamepadButtons
-{
-    struct
-    {
+typedef union GamepadButtons GamepadButtons;
+union GamepadButtons {
+    struct {
         u32 X : 1;
         u32 A : 1;
         u32 B : 1;
@@ -2500,25 +2235,23 @@ union GamepadButtons
 };
 
 typedef struct Gamepad Gamepad;
-struct Gamepad
-{
-    b32     active;
+struct Gamepad {
+    b32 active;
 
-    v2      LS;
-    v2      RS;
+    v2 LS;
+    v2 RS;
 
-    f32     LT;
-    f32     RT;
+    f32 LT;
+    f32 RT;
 
-    GamepadButtons  state;
-    GamepadButtons  pressed;
-    GamepadButtons  released;
+    GamepadButtons state;
+    GamepadButtons pressed;
+    GamepadButtons released;
 };
 
 // =========================================================== MOUSE MODES ================================================= //
 
-enum
-{
+enum {
     MOUSE_NORMAL,
     MOUSE_HIDDEN,
     MOUSE_DISABLED
@@ -2526,66 +2259,61 @@ enum
 
 // ===========================================================  PLATFORM =================================================== //
 
-global struct
-{
-    b32     close;
+global struct {
+    b32 close;
 
-    i32     width;
-    i32     height;
-    f32     aspect_ratio;
+    i32 width;
+    i32 height;
+    f32 aspect_ratio;
 
-    HWND    native;
+    HWND native;
 
-    b32     fullscreen;
-    b32     _fullscreen_state_last_update;
+    b32 fullscreen;
+    b32 _fullscreen_state_last_update;
 
-    struct
-    {
-        f64     total;
-        f64     delta;
+    struct {
+        f64 total;
+        f64 delta;
     } time;
 
-    struct
-    {
-        u32     mode;
+    struct {
+        u32 mode;
 
-        b32     is_down     : 1;
-        b32     is_pressed  : 1;
-        b32     is_released : 1;
+        b32 is_down     : 1;
+        b32 is_pressed  : 1;
+        b32 is_released : 1;
 
-        v2      pos;
-        v2      delta;
-        v2      scroll;
+        v2 pos;
+        v2 delta;
+        v2 scroll;
 
-        b8      state[MOUSE_BUTTON_LAST + 1];
-        b8      pressed[MOUSE_BUTTON_LAST + 1];
-        b8      released[MOUSE_BUTTON_LAST + 1];
+        b8 state[MOUSE_BUTTON_LAST + 1];
+        b8 pressed[MOUSE_BUTTON_LAST + 1];
+        b8 released[MOUSE_BUTTON_LAST + 1];
     } mouse;
 
-    struct
-    {
-        i32     key;
-        i32     ascii;
+    struct {
+        i32 key;
+        i32 ascii;
 
-        b32     is_down     : 1;
-        b32     is_pressed  : 1;
-        b32     is_repeat   : 1;
-        b32     is_released : 1;
-        b32     is_ascii    : 1;
+        b32 is_down     : 1;
+        b32 is_pressed  : 1;
+        b32 is_repeat   : 1;
+        b32 is_released : 1;
+        b32 is_ascii    : 1;
     
-        b8      state[KEY_LAST + 1];
-        b8      pressed[KEY_LAST + 1];
-        b8      repeat[KEY_LAST + 1];
-        b8      released[KEY_LAST + 1];
+        b8 state[KEY_LAST + 1];
+        b8 pressed[KEY_LAST + 1];
+        b8 repeat[KEY_LAST + 1];
+        b8 released[KEY_LAST + 1];
     } keyboard;
 
     Gamepad gamepad[JOYSTICK_LAST];
 } platform;
 
-global struct
-{
-    GLFWwindow*     window;
-    GLFWmonitor*    monitor;
+global struct {
+    GLFWwindow* window;
+    GLFWmonitor* monitor;
 } platform_internal;
 
 internal void window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
@@ -2619,58 +2347,50 @@ internal void window_key_callback(GLFWwindow* window, int key, int a, int action
     }
 }
 
-internal void window_char_callback(GLFWwindow* window, unsigned int codepoint)
-{
+internal void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-internal void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
-{
+internal void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
     (void)window;
     (void)a;
 
-    switch (action)
-    {
-        case GLFW_PRESS:
+    switch (action) {
+        case GLFW_PRESS: {
             platform.mouse.is_down = 1;
             platform.mouse.is_pressed = 1;
             platform.mouse.state[button] = 1;
             platform.mouse.pressed[button] = 1;
-            break;
-        case GLFW_RELEASE:
+        } break;
+        case GLFW_RELEASE: {
             platform.mouse.is_down = 0;
             platform.mouse.is_released = 1;
             platform.mouse.state[button] = 0;
             platform.mouse.released[button] = 1;
-            break;
+        } break;
     }
 }
 
-internal void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+internal void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     (void)window;
 
     platform.mouse.scroll.x = (f32)xoffset;
     platform.mouse.scroll.y = (f32)yoffset;
 }
 
-internal void window_joystick_callback(int joy, int event)
-{
-    if (event == GLFW_CONNECTED)
-    {
+internal void window_joystick_callback(int joy, int event) {
+    if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
         platform.gamepad[joy].active = 1;
     }
 
-    if (event == GLFW_DISCONNECTED)
-    {
+    if (event == GLFW_DISCONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     }
 }
 
-internal void platform_init(const char* title, int width, int height, int samples)
-{
+internal void platform_init(const char* title, int width, int height, int samples) {
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -2722,8 +2442,7 @@ internal void platform_init(const char* title, int width, int height, int sample
     }
 
     // init connected controllers
-    for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i)
-    {
+    for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
         if (glfwJoystickPresent(i))
             platform.gamepad[i].active = 1;
     }
@@ -2737,8 +2456,7 @@ internal void platform_init(const char* title, int width, int height, int sample
     glfwPollEvents();
 }
 
-internal void platform_update(void)
-{
+internal void platform_update(void) {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
@@ -2766,17 +2484,16 @@ internal void platform_update(void)
         platform.mouse.scroll.x = 0;
         platform.mouse.scroll.y = 0;
 
-        switch (platform.mouse.mode)
-        {
-            case MOUSE_NORMAL:
+        switch (platform.mouse.mode) {
+            case MOUSE_NORMAL: {
                 glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                break;
-            case MOUSE_HIDDEN:
+            } break;
+            case MOUSE_HIDDEN: {
                 glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-                break;
-            case MOUSE_DISABLED:
+            } break;
+            case MOUSE_DISABLED: {
                 glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                break;
+            } break;
         }
     }
 
@@ -2784,10 +2501,8 @@ internal void platform_update(void)
     {
         GLFWgamepadstate state;
 
-        for (int i = 0; i < JOYSTICK_LAST; ++i)
-        {
-            if (platform.gamepad[i].active)
-            {
+        for (int i = 0; i < JOYSTICK_LAST; ++i) {
+            if (platform.gamepad[i].active) {
                 GamepadButtons old = platform.gamepad[i].state;
 
                 platform.gamepad[i].state.data = 0;
@@ -2831,8 +2546,7 @@ internal void platform_update(void)
         }
     }
 
-    if (platform.fullscreen != platform._fullscreen_state_last_update)
-    {
+    if (platform.fullscreen != platform._fullscreen_state_last_update) {
         const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
 
         if (platform.fullscreen)
@@ -2864,8 +2578,7 @@ internal void platform_update(void)
 
 // =================================================== TIMER STUFF =================================================== //
 
-internal f64 timer_get_current(void)
-{
+internal f64 timer_get_current(void) {
     return glfwGetTime();
 }
 
@@ -2875,19 +2588,17 @@ internal f64 timer_get_current(void)
 
 #ifdef ATS_MODERN_OPENGL
 
-internal u32 shader_compile(const char* source, unsigned int type)
-{
-    int     success;
-    char    info_log[512];
-    u32     shader = glCreateShader(type);
+internal u32 shader_compile(const char* source, unsigned int type) {
+    int success = 0;
+    char info_log[512] = {0};
+    u32 shader = glCreateShader(type);
 
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
 
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
-    if (!success)
-    {
+    if (!success) {
         glGetShaderInfoLog(shader, 512, NULL, info_log);
         puts(info_log);
         exit(EXIT_FAILURE);
@@ -2896,10 +2607,9 @@ internal u32 shader_compile(const char* source, unsigned int type)
     return shader;
 }
 
-internal u32 shader_link_program(u32 vertex_shader, u32 fragment_shader)
-{
-    int     success;
-    char    info_log[512];
+internal u32 shader_link_program(u32 vertex_shader, u32 fragment_shader) {
+    int success = 0;
+    char info_log[512] = {0};
 
     u32 shader = glCreateProgram();
 
@@ -2910,8 +2620,7 @@ internal u32 shader_link_program(u32 vertex_shader, u32 fragment_shader)
 
     glGetProgramiv(shader, GL_LINK_STATUS, &success);
 
-    if (!success)
-    {
+    if (!success) {
         glGetProgramInfoLog(shader, 512, NULL, info_log);
         puts(info_log);
         exit(EXIT_FAILURE);
@@ -2920,11 +2629,10 @@ internal u32 shader_link_program(u32 vertex_shader, u32 fragment_shader)
     return shader;
 }
 
-internal u32 shader_load_from_memory(const char *vs, const char *fs)
-{
-    u32 vertex      = shader_compile(vs, GL_VERTEX_SHADER);
-    u32 fragment    = shader_compile(fs, GL_FRAGMENT_SHADER);
-    u32 program     = shader_link_program(vertex, fragment);
+internal u32 shader_load_from_memory(const char *vs, const char *fs) {
+    u32 vertex = shader_compile(vs, GL_VERTEX_SHADER);
+    u32 fragment = shader_compile(fs, GL_FRAGMENT_SHADER);
+    u32 program = shader_link_program(vertex, fragment);
 
     glUseProgram(program);
 
@@ -2934,8 +2642,7 @@ internal u32 shader_load_from_memory(const char *vs, const char *fs)
     return program;
 }
 
-internal u32 shader_load_from_file(const char *vs, const char *fs)
-{
+internal u32 shader_load_from_file(const char *vs, const char *fs) {
     char* vs_content = file_read_str(vs);
     char* fs_content = file_read_str(fs);
 
@@ -2947,11 +2654,10 @@ internal u32 shader_load_from_file(const char *vs, const char *fs)
     return program;
 }
 
-internal v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
-{
-    GLint   viewport[4]     = {0};
-    f64     modelview[16]   = {0};
-    f64     projection[16]  = {0};
+internal v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
+    GLint viewport[4] = {0};
+    f64 modelview[16] = {0};
+    f64 projection[16] = {0};
 
     GLfloat  win_x, win_y, win_z;
     GLdouble pos_x, pos_y, pos_z;
@@ -2976,25 +2682,21 @@ internal v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelvie
 
 // ======================================= TEXTURES ======================================== //
 
-#if defined(ATS_PLATFORM_GLFW)
-
 #ifdef STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
 #include "dep/stb_image.h" 
 
 typedef struct Image Image;
-struct Image
-{
+struct Image {
     int width;
     int height;
 
     u32* pixels;
 };
 
-internal Image image_load_from_file(const char* path)
-{
-    Image   image     = {0};
-    i32     channels  = 0;
+internal Image image_load_from_file(const char* path) {
+    Image image = {0};
+    i32 channels = 0;
 
     image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
     assert(image.pixels);
@@ -3002,28 +2704,26 @@ internal Image image_load_from_file(const char* path)
     return image;
 }
 
-internal u32 image_get_pixel(Image* img, i32 x, i32 y)
-{
+internal u32 image_get_pixel(Image* img, i32 x, i32 y) {
     return img->pixels[y * img->width + x];
 }
 
-internal void image_set_pixel(Image* img, i32 x, i32 y, u32 pixel)
-{
+internal void image_set_pixel(Image* img, i32 x, i32 y, u32 pixel) {
     img->pixels[y * img->width + x] = pixel;
 }
 
 #endif
 
+#if defined(ATS_PLATFORM_GLFW)
+
 typedef struct Texture Texture;
-struct Texture
-{
+struct Texture {
     u32     id;
     int     width;
     int     height;
 };
 
-internal Texture texture_create(void *pixels, int width, int height, int is_smooth)
-{
+internal Texture texture_create(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
     Texture texture = {0};
@@ -3045,8 +2745,7 @@ internal Texture texture_create(void *pixels, int width, int height, int is_smoo
     return texture;
 }
 
-internal void texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth)
-{
+internal void texture_update(Texture* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width = width;
     texture->height = height;
 
@@ -3062,11 +2761,10 @@ internal void texture_update(Texture* texture, void *pixels, int width, int heig
 }
 
 #ifdef STB_IMAGE_IMPLEMENTATION
-internal Texture texture_load_from_file(const char *texture_path, int is_smooth)
-{
-    Texture         texture     = {0};
-    i32             channels    = 0;
-    unsigned char*  pixels      = NULL;
+internal Texture texture_load_from_file(const char *texture_path, int is_smooth) {
+    Texture texture = {0};
+    i32 channels = 0;
+    unsigned char* pixels = NULL;
 
     pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
 
@@ -3089,8 +2787,7 @@ internal Texture texture_load_from_file(const char *texture_path, int is_smooth)
 }
 #endif
 
-internal void texture_bind(const Texture *texture)
-{
+internal void texture_bind(const Texture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
     glMatrixMode(GL_TEXTURE);
@@ -3103,8 +2800,7 @@ internal void texture_bind(const Texture *texture)
 #endif
 }
 
-internal void texture_delete(Texture* texture)
-{
+internal void texture_delete(Texture* texture) {
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
 }
@@ -3115,8 +2811,7 @@ internal void texture_delete(Texture* texture)
 
 #if defined(ATS_PLATFORM_GLFW) && !defined(ATS_MODERN_OPENGL)
 
-internal void gl_init(void)
-{
+internal void gl_init(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glClearDepth(1.0f);
 
@@ -3135,12 +2830,11 @@ internal void gl_init(void)
     glEnable(GL_NORMALIZE);
 }
 
-internal void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z)
-{
-    f32 pos[4]  = { x, y, z, 1.0f };
+internal void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z) {
+    f32 pos[4] = { x, y, z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    f32 c[4]    = { bright, bright, bright, 0.0f };
-    u32 light   = GL_LIGHT0 + index;
+    f32 c[4] = { bright, bright, bright, 0.0f };
+    u32 light = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, pos);
     glLightfv(light, GL_DIFFUSE,  c);
@@ -3152,13 +2846,12 @@ internal void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f
     glEnable(GL_COLOR_MATERIAL);
 }
 
-internal void gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z)
-{
-    f32 d       = (f32)(1.0f / sqrt(x * x + y * y + z * z));
-    f32 dir[4]  = { x * d, y * d, z * d, 0.0f };
+internal void gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
+    f32 d = (f32)(1.0f / sqrt(x * x + y * y + z * z));
+    f32 dir[4] = { x * d, y * d, z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    f32 c[4]    = { bright, bright, bright, 0.0f };
-    u32 light   = GL_LIGHT0 + index;
+    f32 c[4] = { bright, bright, bright, 0.0f };
+    u32 light = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, dir);
     glLightfv(light, GL_DIFFUSE,  c);
@@ -3170,12 +2863,11 @@ internal void gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, 
     glEnable(GL_COLOR_MATERIAL);
 }
 
-internal void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
-{
-    f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
+internal void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
+    f32 pos[4] = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    f32 c[4]    = { color.r, color.g, color.b, 0.0f };
-    u32 light   = GL_LIGHT0 + index;
+    f32 c[4] = { color.r, color.g, color.b, 0.0f };
+    u32 light = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, pos);
     glLightfv(light, GL_DIFFUSE,  c);
@@ -3193,11 +2885,11 @@ internal void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 
 
 internal void gl_set_light_directed(int index, v3 pos, v3 color)
 {
-    f32 d       = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
-    f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
+    f32 d = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
+    f32 dir[4] = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    f32 c[4]    = { color.r, color.g, color.b, 0.0f };
-    u32 light   = GL_LIGHT0 + index;
+    f32 c[4] = { color.r, color.g, color.b, 0.0f };
+    u32 light = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, dir);
     glLightfv(light, GL_DIFFUSE,  c);
@@ -3209,20 +2901,18 @@ internal void gl_set_light_directed(int index, v3 pos, v3 color)
     glEnable(GL_COLOR_MATERIAL);
 }
 
-internal void gl_set_light_global_ambient(f32 r, f32 g, f32 b)
-{
+internal void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
     f32 v[4] = { r, g, b, 0 };
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-internal v3 gl_get_world_position(int x, int y)
-{
-    GLint   viewport[4]     = {0};
-    f64     modelview[16]   = {0};
-    f64     projection[16]  = {0};
+internal v3 gl_get_world_position(int x, int y) {
+    GLint viewport[4] = {0};
+    f64 modelview[16] = {0};
+    f64 projection[16] = {0};
 
-    GLfloat  win_x, win_y, win_z;
+    GLfloat win_x, win_y, win_z;
  
     glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
     glGetDoublev(GL_PROJECTION_MATRIX, projection);
@@ -3243,8 +2933,7 @@ internal v3 gl_get_world_position(int x, int y)
 
 #define BITMAP_COUNT (256)
 
-global const u64 bitascii[BITMAP_COUNT] =
-{
+global const u64 bitascii[BITMAP_COUNT] = {
     0x0000000000000000,
     0x7e8199bd81a5817e,
     0x7effe7c3ffdbff7e,
@@ -3503,15 +3192,12 @@ global const u64 bitascii[BITMAP_COUNT] =
     0x007e424242427e00
 };
 
-
 int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) (((u64)(N)) & (1ull << (((u64)(Y)) * 8ull + ((u64)(X)))))
 
-internal void gl_init_bitmap(void)
-{
-    for (int i = 0; i < BITMAP_COUNT; ++i)
-    {
+internal void gl_init_bitmap(void) {
+    for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
 
         glNewList(bitmap_display_list[i], GL_COMPILE);
@@ -3522,14 +3208,12 @@ internal void gl_init_bitmap(void)
 
         f32 scale = 1.0f / 8.0f;
 
-        for (int j = 0; j < 8; ++j)
-        {
+        for (int j = 0; j < 8; ++j) {
             for (int i = 0; i < 8; ++i) {
                 f32 x   = i * scale;
                 f32 y   = j * scale;
 
-                if (BITMAP_GETBIT(c, i, j))
-                {
+                if (BITMAP_GETBIT(c, i, j)) {
                     glVertex3f(x - 0,       y + scale,  0.0f);
                     glVertex3f(x + scale,   y + scale,  0.0f);
                     glVertex3f(x + scale,   y - 0,      0.0f);
@@ -3544,10 +3228,9 @@ internal void gl_init_bitmap(void)
     }
 }
 
-internal void gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
-{
-    m4 t  = m4_translate(x, y, z);
-    m4 s  = m4_scale(sx, sy, 1);
+internal void gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
+    m4 t = m4_translate(x, y, z);
+    m4 s = m4_scale(sx, sy, 1);
     m4 ts = m4_mul(t, s);
 
     glPushMatrix();
@@ -3558,20 +3241,17 @@ internal void gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
     glPopMatrix();
 }
 
-internal void gl_render_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color)
-{
+internal void gl_render_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
     glColor4ubv((u8*)&color);
 
-    for (int i = 0; str[i] != '\0'; i++)
-    {
+    for (int i = 0; str[i] != '\0'; i++) {
         gl_render_ascii(str[i], x + i * sx, y, z, sx, sy);
     }
 }
 
-internal void gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...)
-{
+internal void gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
     va_list list;
-    char    buffer[256];
+    char buffer[256];
 
     va_start(list, fmt);
 

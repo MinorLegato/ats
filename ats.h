@@ -71,11 +71,7 @@ typedef uint64_t b64;
 union v2
 {
     struct { f32 x, y; };
-
     f32 e[2];
-
-    f32  operator[](i32 index) const { return e[index]; }
-    f32& operator[](i32 index)       { return e[index]; }
 };
 
 union v3
@@ -85,9 +81,6 @@ union v3
     struct { v2 xy; };
 
     f32 e[3];
-
-    f32  operator[](i32 index) const { return e[index]; }
-    f32& operator[](i32 index)       { return e[index]; }
 };
 
 union v4
@@ -98,9 +91,6 @@ union v4
     struct { v3 rgb; };
 
     f32 e[4];
-
-    f32  operator[](i32 index) const { return e[index]; }
-    f32& operator[](i32 index)       { return e[index]; }
 };
 
 struct Quat
@@ -116,9 +106,6 @@ union m2
     struct { v2 x, y; };
 
     f32 e[4];
-
-    f32  operator[](i32 index) const { return e[index]; }
-    f32& operator[](i32 index)       { return e[index]; }
 };
 
 union m3
@@ -126,9 +113,6 @@ union m3
     struct { v3 x, y, z; };
 
     f32 e[9];
-
-    f32  operator[](i32 index) const { return e[index]; }
-    f32& operator[](i32 index)       { return e[index]; }
 };
 
 union m4
@@ -136,9 +120,6 @@ union m4
     struct { v4 x, y, z, w; };
 
     f32 e[16];
-
-    f32  operator[](i32 index) const { return e[index]; }
-    f32& operator[](i32 index)       { return e[index]; }
 };
 
 union v2i
@@ -146,9 +127,6 @@ union v2i
     struct { i32 x, y; };
 
     i32 e[2];
-
-    i32  operator[](i32 index) const { return e[index]; }
-    i32& operator[](i32 index)       { return e[index]; }
 };
 
 union v3i
@@ -157,9 +135,6 @@ union v3i
     struct { v2i xy; };
 
     i32 e[3];
-
-    i32  operator[](i32 index) const { return e[index]; }
-    i32& operator[](i32 index)       { return e[index]; }
 };
 
 union v4i
@@ -170,14 +145,7 @@ union v4i
     struct { v3i rgb; };
 
     i32 e[4];
-
-    i32  operator[](i32 index) const { return e[index]; }
-    i32& operator[](i32 index)       { return e[index]; }
 };
-
-#define v2_cast(type, u) (type) { .x = (u).x, .y = (u).y })
-#define v3_cast(type, u) (type) { .x = (u).x, .y = (u).y, .z = (u).z })
-#define v4_cast(type, u) (type) { .x = (u).x, .y = (u).y, .z = (u).z, .w = (u).w })
 
 // --------------------------------------------- FUNCTIONS ---------------------------------------- //
 
@@ -877,10 +845,10 @@ inline m2 operator*(m2 a, m2 b)
 {
     return
     {
-        a[0] * b[0] + a[2] * b[1],
-        a[1] * b[0] + a[3] * b[1],
-        a[0] * b[2] + a[2] * b[3],
-        a[1] * b[2] + a[3] * b[3]
+        a.e[0] * b.e[0] + a.e[2] * b.e[1],
+        a.e[1] * b.e[0] + a.e[3] * b.e[1],
+        a.e[0] * b.e[2] + a.e[2] * b.e[3],
+        a.e[1] * b.e[2] + a.e[3] * b.e[3]
     };
 }
 
@@ -888,8 +856,8 @@ inline v2 operator*(m2 R, v2 v)
 {
     return
     {
-        R[0] * v.x + R[2] * v.y,
-        R[1] * v.x + R[3] * v.y
+        R.e[0] * v.x + R.e[2] * v.y,
+        R.e[1] * v.x + R.e[3] * v.y
     };
 }
 
@@ -946,17 +914,17 @@ inline m3 operator*(m3 a, m3 b)
 {
     return
     {
-        a[0] * b[0] + a[3] * b[1]  + a[6] * b[2],
-        a[1] * b[0] + a[4] * b[1]  + a[7] * b[2],
-        a[2] * b[0] + a[5] * b[1]  + a[8] * b[2],
+        a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
+        a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
+        a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
 
-        a[0] * b[3] + a[3] * b[4]  + a[6] * b[5],
-        a[1] * b[3] + a[4] * b[4]  + a[7] * b[5],
-        a[2] * b[3] + a[5] * b[4]  + a[8] * b[5],
+        a.e[0] * b.e[3] + a.e[3] * b.e[4]  + a.e[6] * b.e[5],
+        a.e[1] * b.e[3] + a.e[4] * b.e[4]  + a.e[7] * b.e[5],
+        a.e[2] * b.e[3] + a.e[5] * b.e[4]  + a.e[8] * b.e[5],
 
-        a[0] * b[6] + a[3] * b[7]  + a[6] * b[8],
-        a[1] * b[6] + a[4] * b[7]  + a[7] * b[8],
-        a[2] * b[6] + a[5] * b[7]  + a[8] * b[8]
+        a.e[0] * b.e[6] + a.e[3] * b.e[7]  + a.e[6] * b.e[8],
+        a.e[1] * b.e[6] + a.e[4] * b.e[7]  + a.e[7] * b.e[8],
+        a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8]
     };
 }
 
@@ -964,9 +932,9 @@ inline v3 operator*(m3 M, v3 v)
 {
     return
     {
-        M[0] * v[0] + M[3] * v[1] + M[6] * v[2],
-        M[1] * v[0] + M[4] * v[1] + M[7] * v[2],
-        M[2] * v[0] + M[5] * v[1] + M[8] * v[2]
+        M.e[0] * v.e[0] + M.e[3] * v.e[1] + M.e[6] * v.e[2],
+        M.e[1] * v.e[0] + M.e[4] * v.e[1] + M.e[7] * v.e[2],
+        M.e[2] * v.e[0] + M.e[5] * v.e[1] + M.e[8] * v.e[2]
     };
 }
 
@@ -1065,36 +1033,36 @@ inline m4 operator*(m4 a, m4 b)
 {
     return
     {
-        a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3],
-        a[1] * b[0]  + a[5] * b[1]  + a[9]  * b[2]  + a[13] * b[3],
-        a[2] * b[0]  + a[6] * b[1]  + a[10] * b[2]  + a[14] * b[3],
-        a[3] * b[0]  + a[7] * b[1]  + a[11] * b[2]  + a[15] * b[3],
+        a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
+        a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
+        a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
+        a.e[3] * b.e[0]  + a.e[7] * b.e[1]  + a.e[11] * b.e[2]  + a.e[15] * b.e[3],
 
-        a[0] * b[4]  + a[4] * b[5]  + a[8]  * b[6]  + a[12] * b[7],
-        a[1] * b[4]  + a[5] * b[5]  + a[9]  * b[6]  + a[13] * b[7],
-        a[2] * b[4]  + a[6] * b[5]  + a[10] * b[6]  + a[14] * b[7],
-        a[3] * b[4]  + a[7] * b[5]  + a[11] * b[6]  + a[15] * b[7],
+        a.e[0] * b.e[4]  + a.e[4] * b.e[5]  + a.e[8]  * b.e[6]  + a.e[12] * b.e[7],
+        a.e[1] * b.e[4]  + a.e[5] * b.e[5]  + a.e[9]  * b.e[6]  + a.e[13] * b.e[7],
+        a.e[2] * b.e[4]  + a.e[6] * b.e[5]  + a.e[10] * b.e[6]  + a.e[14] * b.e[7],
+        a.e[3] * b.e[4]  + a.e[7] * b.e[5]  + a.e[11] * b.e[6]  + a.e[15] * b.e[7],
 
-        a[0] * b[8]  + a[4] * b[9]  + a[8]  * b[10] + a[12] * b[11],
-        a[1] * b[8]  + a[5] * b[9]  + a[9]  * b[10] + a[13] * b[11],
-        a[2] * b[8]  + a[6] * b[9]  + a[10] * b[10] + a[14] * b[11],
-        a[3] * b[8]  + a[7] * b[9]  + a[11] * b[10] + a[15] * b[11],
+        a.e[0] * b.e[8]  + a.e[4] * b.e[9]  + a.e[8]  * b.e[10] + a.e[12] * b.e[11],
+        a.e[1] * b.e[8]  + a.e[5] * b.e[9]  + a.e[9]  * b.e[10] + a.e[13] * b.e[11],
+        a.e[2] * b.e[8]  + a.e[6] * b.e[9]  + a.e[10] * b.e[10] + a.e[14] * b.e[11],
+        a.e[3] * b.e[8]  + a.e[7] * b.e[9]  + a.e[11] * b.e[10] + a.e[15] * b.e[11],
 
-        a[0] * b[12] + a[4] * b[13] + a[8]  * b[14] + a[12] * b[15],
-        a[1] * b[12] + a[5] * b[13] + a[9]  * b[14] + a[13] * b[15],
-        a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15],
-        a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15]
+        a.e[0] * b.e[12] + a.e[4] * b.e[13] + a.e[8]  * b.e[14] + a.e[12] * b.e[15],
+        a.e[1] * b.e[12] + a.e[5] * b.e[13] + a.e[9]  * b.e[14] + a.e[13] * b.e[15],
+        a.e[2] * b.e[12] + a.e[6] * b.e[13] + a.e[10] * b.e[14] + a.e[14] * b.e[15],
+        a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]
     };
 }
 
-inline v4 operator*(m4 M, v4 v)
+inline v4 operator*(m4 m, v4 v)
 {
     return
     {
-        M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3],
-        M[1] * v[0] + M[5] * v[1] + M[9]  * v[2] + M[13] * v[3],
-        M[2] * v[0] + M[6] * v[1] + M[10] * v[2] + M[14] * v[3],
-        M[3] * v[0] + M[7] * v[1] + M[11] * v[2] + M[15] * v[3]
+        m.e[0] * v.e[0] + m.e[4] * v.e[1] + m.e[8]  * v.e[2] + m.e[12] * v.e[3],
+        m.e[1] * v.e[0] + m.e[5] * v.e[1] + m.e[9]  * v.e[2] + m.e[13] * v.e[3],
+        m.e[2] * v.e[0] + m.e[6] * v.e[1] + m.e[10] * v.e[2] + m.e[14] * v.e[3],
+        m.e[3] * v.e[0] + m.e[7] * v.e[1] + m.e[11] * v.e[2] + m.e[15] * v.e[3]
     };
 }
 
@@ -1109,14 +1077,14 @@ inline m4 m4_identity(void)
     };
 }
 
-inline m4 m4_transpose(m4 N)
+inline m4 m4_transpose(m4 m)
 {
     return
     {
-        N[0], N[4], N[8],  N[12],
-        N[1], N[5], N[9],  N[13],
-        N[2], N[6], N[10], N[14],
-        N[3], N[7], N[11], N[15]
+        m.e[0], m.e[4], m.e[8],  m.e[12],
+        m.e[1], m.e[5], m.e[9],  m.e[13],
+        m.e[2], m.e[6], m.e[10], m.e[14],
+        m.e[3], m.e[7], m.e[11], m.e[15]
     };
 }
 
@@ -1200,26 +1168,18 @@ inline m4 m4_rotate_z(f32 angle)
 
 inline m4 m4_rotate(v3 axis, f32 angle)
 {
-    f32 sa[3];
-    f32 omca[3];
-
     f32 cosv = cosf(angle);
     f32 sinv = sinf(angle);
     f32 inv_cosv = 1.0f - cosv;
 
-    sa[0] = axis.x * sinv;
-    sa[1] = axis.y * sinv;
-    sa[2] = axis.z * sinv;
-
-    omca[0] = axis.x * inv_cosv;
-    omca[1] = axis.y * inv_cosv;
-    omca[2] = axis.z * inv_cosv;
+    v3 sa = axis * sinv;
+    v3 omca = axis * inv_cosv;
 
     return
     {
-        omca[0] * axis.x + cosv,   omca[0] * axis.y - sa[0],  omca[0] * axis.z + sa[1],  0.0f,
-        omca[1] * axis.x + sa[2],  omca[1] * axis.y + cosv,   omca[1] * axis.z - sa[0],  0.0f,
-        omca[2] * axis.x - sa[1],  omca[2] * axis.y + sa[0],  omca[2] * axis.z + cosv,   0.0f,
+        omca.x * axis.x + cosv, omca.x * axis.y - sa.x, omca.x * axis.z + sa.y, 0.0f,
+        omca.y * axis.x + sa.z, omca.y * axis.y + cosv, omca.y * axis.z - sa.x, 0.0f,
+        omca.z * axis.x - sa.y, omca.z * axis.y + sa.x, omca.z * axis.z + cosv, 0.0f,
         0.0f,   0.0f,   0.0f,   1.0f
     };
 }
@@ -1284,29 +1244,29 @@ inline m4 m4_look_at(v3 eye, v3 center, v3 up)
     v3 s = v3_norm(v3_cross(f, up));
     v3 t = v3_cross(s, f);
 
-    m4 M;
+    m4 m;
 
-    M[0]  =  s.x;
-    M[1]  =  t.x;
-    M[2]  = -f.x;
-    M[3]  =   0.0f;
+    m.e[0]  =  s.x;
+    m.e[1]  =  t.x;
+    m.e[2]  = -f.x;
+    m.e[3]  =   0.0f;
 
-    M[4]  =  s.y;
-    M[5]  =  t.y;
-    M[6]  = -f.y;
-    M[7]  =   0.0f;
+    m.e[4]  =  s.y;
+    m.e[5]  =  t.y;
+    m.e[6]  = -f.y;
+    m.e[7]  =   0.0f;
 
-    M[8]  =  s.z;
-    M[9]  =  t.z;
-    M[10] = -f.z;
-    M[11] =   0.0f;
+    m.e[8]  =  s.z;
+    m.e[9]  =  t.z;
+    m.e[10] = -f.z;
+    m.e[11] =   0.0f;
 
-    M[12] = -(M[0] * eye.x + M[4] * eye.y + M[8]  * eye.z);
-    M[13] = -(M[1] * eye.x + M[5] * eye.y + M[9]  * eye.z);
-    M[14] = -(M[2] * eye.x + M[6] * eye.y + M[10] * eye.z);
-    M[15] = -(M[3] * eye.x + M[7] * eye.y + M[11] * eye.z - 1.0f);
+    m.e[12] = -(m.e[0] * eye.x + m.e[4] * eye.y + m.e[8]  * eye.z);
+    m.e[13] = -(m.e[1] * eye.x + m.e[5] * eye.y + m.e[9]  * eye.z);
+    m.e[14] = -(m.e[2] * eye.x + m.e[6] * eye.y + m.e[10] * eye.z);
+    m.e[15] = -(m.e[3] * eye.x + m.e[7] * eye.y + m.e[11] * eye.z - 1.0f);
 
-    return M;
+    return m;
 }
 
 inline m4 m4_from_quat(Quat q)
@@ -1345,48 +1305,48 @@ inline m4 m4_from_quat(Quat q)
     };
 }
 
-inline m4 m4_invert(m4 M)
+inline m4 m4_invert(m4 m)
 {
     f32 s[6], c[6];
 
-    s[0] = M[0] * M[5] - M[4] * M[1];
-    s[1] = M[0] * M[6] - M[4] * M[2];
-    s[2] = M[0] * M[7] - M[4] * M[3];
-    s[3] = M[1] * M[6] - M[5] * M[2];
-    s[4] = M[1] * M[7] - M[5] * M[3];
-    s[5] = M[2] * M[7] - M[6] * M[3];
+    s[0] = m.e[0] * m.e[5] - m.e[4] * m.e[1];
+    s[1] = m.e[0] * m.e[6] - m.e[4] * m.e[2];
+    s[2] = m.e[0] * m.e[7] - m.e[4] * m.e[3];
+    s[3] = m.e[1] * m.e[6] - m.e[5] * m.e[2];
+    s[4] = m.e[1] * m.e[7] - m.e[5] * m.e[3];
+    s[5] = m.e[2] * m.e[7] - m.e[6] * m.e[3];
 
-    c[0] = M[8]  * M[13] - M[12] * M[9];
-    c[1] = M[8]  * M[14] - M[12] * M[10];
-    c[2] = M[8]  * M[15] - M[12] * M[11];
-    c[3] = M[9]  * M[14] - M[13] * M[10];
-    c[4] = M[9]  * M[15] - M[13] * M[11];
-    c[5] = M[10] * M[15] - M[14] * M[11];
+    c[0] = m.e[8]  * m.e[13] - m.e[12] * m.e[9];
+    c[1] = m.e[8]  * m.e[14] - m.e[12] * m.e[10];
+    c[2] = m.e[8]  * m.e[15] - m.e[12] * m.e[11];
+    c[3] = m.e[9]  * m.e[14] - m.e[13] * m.e[10];
+    c[4] = m.e[9]  * m.e[15] - m.e[13] * m.e[11];
+    c[5] = m.e[10] * m.e[15] - m.e[14] * m.e[11];
 
     // assumes it is invertible
     f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
     return
     {
-        ( M[5]  * c[5] - M[6]  * c[4] + M[7]  * c[3]) * idet,
-        (-M[1]  * c[5] + M[2]  * c[4] - M[3]  * c[3]) * idet,
-        ( M[13] * s[5] - M[14] * s[4] + M[15] * s[3]) * idet,
-        (-M[9]  * s[5] + M[10] * s[4] - M[11] * s[3]) * idet,
+        ( m.e[5]  * c[5] - m.e[6]  * c[4] + m.e[7]  * c[3]) * idet,
+        (-m.e[1]  * c[5] + m.e[2]  * c[4] - m.e[3]  * c[3]) * idet,
+        ( m.e[13] * s[5] - m.e[14] * s[4] + m.e[15] * s[3]) * idet,
+        (-m.e[9]  * s[5] + m.e[10] * s[4] - m.e[11] * s[3]) * idet,
 
-        (-M[4]  * c[5] + M[6]  * c[2] - M[7]  * c[1]) * idet,
-        ( M[0]  * c[5] - M[2]  * c[2] + M[3]  * c[1]) * idet,
-        (-M[12] * s[5] + M[14] * s[2] - M[15] * s[1]) * idet,
-        ( M[8]  * s[5] - M[10] * s[2] + M[11] * s[1]) * idet,
+        (-m.e[4]  * c[5] + m.e[6]  * c[2] - m.e[7]  * c[1]) * idet,
+        ( m.e[0]  * c[5] - m.e[2]  * c[2] + m.e[3]  * c[1]) * idet,
+        (-m.e[12] * s[5] + m.e[14] * s[2] - m.e[15] * s[1]) * idet,
+        ( m.e[8]  * s[5] - m.e[10] * s[2] + m.e[11] * s[1]) * idet,
 
-        ( M[4]  * c[4] - M[5]  * c[2] + M[7]  * c[0]) * idet,
-        (-M[0]  * c[4] + M[1]  * c[2] - M[3]  * c[0]) * idet,
-        ( M[12] * s[4] - M[13] * s[2] + M[15] * s[0]) * idet,
-        (-M[8]  * s[4] + M[9]  * s[2] - M[11] * s[0]) * idet,
+        ( m.e[4]  * c[4] - m.e[5]  * c[2] + m.e[7]  * c[0]) * idet,
+        (-m.e[0]  * c[4] + m.e[1]  * c[2] - m.e[3]  * c[0]) * idet,
+        ( m.e[12] * s[4] - m.e[13] * s[2] + m.e[15] * s[0]) * idet,
+        (-m.e[8]  * s[4] + m.e[9]  * s[2] - m.e[11] * s[0]) * idet,
 
-        (-M[4]  * c[3] + M[5]  * c[1] - M[6]  * c[0]) * idet,
-        ( M[0]  * c[3] - M[1]  * c[1] + M[2]  * c[0]) * idet,
-        (-M[12] * s[3] + M[13] * s[1] - M[14] * s[0]) * idet,
-        ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet,
+        (-m.e[4]  * c[3] + m.e[5]  * c[1] - m.e[6]  * c[0]) * idet,
+        ( m.e[0]  * c[3] - m.e[1]  * c[1] + m.e[2]  * c[0]) * idet,
+        (-m.e[12] * s[3] + m.e[13] * s[1] - m.e[14] * s[0]) * idet,
+        ( m.e[8]  * s[3] - m.e[9]  * s[1] + m.e[10] * s[0]) * idet,
     };
 }
 
@@ -1758,7 +1718,7 @@ inline b32 rect_contains(Rect rect, v2 pos)
     return true;
 }
 
-inline b32 rct_intersect(Rect a, Rect b)
+inline b32 rect_intersect(Rect a, Rect b)
 {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -2077,39 +2037,19 @@ inline u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a)
     return pack_color_u8(255 * r, 255 * g, 255 * b, 255 * a);
 }
 
-inline u32 pack_color(v4 color)
+inline u32 pack_color_v4(v4 color)
 {
     return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
-inline u32 pack_color(const f32 color[4])
+inline u32 pack_color_4fv(const f32 color[4])
 {
     return pack_color_f32(color[0], color[1], color[2], color[3]);
 }
 
-inline u32 pack_color(v3 color, f32 a = 1.0)
+inline u32 pack_color_v3(v3 color, f32 a = 1.0)
 {
     return pack_color_f32(color.r, color.g, color.b, a);
-}
-
-inline u32 get_red(u32 color)
-{
-    return color & 0xff;
-}
-
-inline u32 get_green(u32 color)
-{
-    return (color & 0xff00) >> 8;
-}
-
-inline u32 get_blue(u32 color)
-{
-    return (color & 0xff0000) >> 16;
-}
-
-inline u32 get_alpha(u32 color)
-{
-    return (color & 0xff000000) >> 8;
 }
 
 // =================================== XORSHIFT32 ============================================= //
@@ -3712,19 +3652,19 @@ struct Image
     {
         pixels[y * width + x] = color;
     }
-
-    static Image load_from_file(const char* path)
-    {
-        Image   image       = {};
-        i32     channels    = 0;
-
-        image.pixels        = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
-
-        assert(image.pixels);
-
-        return image;
-    }
 };
+
+Image image_load_from_file(const char* path)
+{
+    Image   image       = {};
+    i32     channels    = 0;
+
+    image.pixels        = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
+
+    assert(image.pixels);
+
+    return image;
+}
 
 #endif
 
