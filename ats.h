@@ -3271,10 +3271,10 @@ struct Shader
     inline void set(u32 loc, f32 a, f32 b) const               { use(); glUniform2f(loc, a, b); }
     inline void set(u32 loc, f32 a, f32 b, f32 c) const        { use(); glUniform3f(loc, a, b, c); }
     inline void set(u32 loc, f32 a, f32 b, f32 c, f32 d) const { use(); glUniform4f(loc, a, b, c, d); }
-    inline void set(u32 loc, v2 u) const                       { use(); glUniform2fv(loc, 1, u); }
-    inline void set(u32 loc, v3 u) const                       { use(); glUniform3fv(loc, 1, u); }
-    inline void set(u32 loc, v4 u) const                       { use(); glUniform4fv(loc, 1, u); }
-    inline void set(u32 loc, m4 m) const                       { use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m); }
+    inline void set(u32 loc, v2 u) const                       { use(); glUniform2fv(loc, 1, u.e); }
+    inline void set(u32 loc, v3 u) const                       { use(); glUniform3fv(loc, 1, u.e); }
+    inline void set(u32 loc, v4 u) const                       { use(); glUniform4fv(loc, 1, u.e); }
+    inline void set(u32 loc, m4 m) const                       { use(); glUniformMatrix4fv(loc, 1, GL_FALSE, m.e); }
 
     inline void set(const char* loc, int n) const                      { set(get_location(loc), n); }
     inline void set(const char* loc, f32 n) const                      { set(get_location(loc), n); }
