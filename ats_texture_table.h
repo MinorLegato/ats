@@ -4,50 +4,55 @@
 
 typedef struct TextureID TextureID;
 struct TextureID {
-    u16         index;
+    u16 index;
 };
 
 typedef struct TextureEntry TextureEntry;
 struct TextureEntry {
-    b32         in_use;
-    u32         hash;
+    b32 in_use;
+    u32 hash;
 
-    RectI32     rect;
-    char        name[64];
+    RectI32 rect;
+
+    char name[64];
 };
 
-global TextureEntry texture_table[TEXTURE_TABLE_SIZE] = { [0] = { .in_use = true } };
+typedef struct TextureTable TextureTable;
+struct TextureTable {
+    Image image;
+    TextureEntry array[TEXTURE_TABLE_SIZE];
+};
 
-internal RectI32 texture_get_rect(TextureID id) {
-    return texture_table[id.index].rect;
+internal RectI32 tt_get_rect(TextureTable* table, TextureID id) {
+    return table->array[id.index].rect;
 }
 
-internal void texture_add_entry(const char* name, RectI32 rect) {
-    u32 hash  = hash_str(name);
+internal void tt_add_entry(TextureTable* table, const char* name, RectI32 rect) {
+    u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
-    while (texture_table[index].in_use) {
-        if ((texture_table[index].hash == hash) && (strcmp(texture_table[index].name, name) == 0))
+    while (table->array[index].in_use) {
+        if ((table->array[index].hash == hash) && (strcmp(table->array[index].name, name) == 0))
             assert(true);
 
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
 
-    TextureEntry* entry = &texture_table[index];
+    TextureEntry* entry = &table->array[index];
     
-    entry->in_use   = true;
-    entry->rect     = rect;
-    entry->hash     = hash;
+    entry->in_use = true;
+    entry->rect = rect;
+    entry->hash = hash;
 
     strcpy_s(entry->name, 64, name);
 }
 
-internal TextureID texture_get(const char* name) {
+internal TextureID tt_get_id(TextureTable* table, const char* name) {
     u32 hash  = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
-    while (texture_table[index].in_use) {
-        if ((texture_table[index].hash == hash) && (strcmp(texture_table[index].name, name) == 0))
+    while (table->array[index].in_use) {
+        if ((table->array[index].hash == hash) && (strcmp(table->array[index].name, name) == 0))
             return (TextureID) { .index = index };
 
         index = (index + 1) % TEXTURE_TABLE_SIZE;
@@ -57,7 +62,6 @@ internal TextureID texture_get(const char* name) {
 
     return (TextureID) { .index = 0 };
 }
-
 
 internal void cstr_concat(char* out, const char* a, const char* b) {
     while (*a) *out++ = *a++;
@@ -89,14 +93,22 @@ internal int cmp_image_data(const void* va, const void* vb) {
 }
 
 internal b32 recti_contains_image(RectI32 rect, Image image) {
-    i32 rect_width  = rect.max.x - rect.min.x;
+    i32 rect_width = rect.max.x - rect.min.x;
     i32 rect_height = rect.max.y - rect.min.y;
 
     return image.width <= rect_width && image.height <= rect_height; 
 }
 
-internal Texture load_texture_atlas(const char* dir_path) {
-    Texture result = {0};
+internal TextureTable tt_load_from_dir(const char* dir_path) {
+    TextureTable table = {
+        .image = {
+            .width  = 1024,
+            .height = 1024,
+            .pixels = alloc_array(u32, 1024 * 1024),
+        },
+
+        .array = { [0] = { .in_use = true } }
+    };
 
     defer(alloc_save(), alloc_restore()) {
         u32 image_count = 0;
@@ -126,12 +138,6 @@ internal Texture load_texture_atlas(const char* dir_path) {
             }
         }
 
-        Image atlas = {
-            .width = 1024,
-            .height = 1024,
-            .pixels = alloc_array(u32, atlas.width * atlas.height),
-        };
-
         qsort(image_array, image_count, sizeof (ImageData), cmp_image_data);
 
         u32         rect_count   = 0;
@@ -140,7 +146,7 @@ internal Texture load_texture_atlas(const char* dir_path) {
         defer(rect_array = alloc_begin(), alloc_end(0)) {
             rect_array[rect_count++] = (RectI32) {
                 .min    = { 0, 0 },
-                .max    = { atlas.width, atlas.height },
+                .max    = { table.image.width, table.image.height },
             };
 
             for (u32 i = 0; i < image_count; ++i) {
@@ -157,14 +163,14 @@ internal Texture load_texture_atlas(const char* dir_path) {
                 v2i size = { data->image.width, data->image.height };
                 v2i offset = rect.min;
 
-                texture_add_entry(data->name, (RectI32) {
+                tt_add_entry(&table, data->name, (RectI32) {
                     .min = { offset.x, offset.y },
                     .max = { offset.x + size.x, offset.y + size.y },
                 });
 
                 for (i32 y = 0; y < data->image.height; ++y) {
                     for (i32 x = 0; x < data->image.width; ++x) {
-                        image_set_pixel(&atlas, x + offset.x, y + offset.y, image_get_pixel(&data->image, x, y));
+                        image_set_pixel(&table.image, x + offset.x, y + offset.y, image_get_pixel(&data->image, x, y));
                     }
                 }
 
@@ -179,10 +185,8 @@ internal Texture load_texture_atlas(const char* dir_path) {
                 free(data->image.pixels);
             }
         }
-
-        result = texture_create(atlas.pixels, atlas.width, atlas.height, false);
     }
 
-    return result;
-};
+    return table;
+}
 
