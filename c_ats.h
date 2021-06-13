@@ -2883,8 +2883,7 @@ internal void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 
     glEnable(GL_COLOR_MATERIAL);
 }
 
-internal void gl_set_light_directed(int index, v3 pos, v3 color)
-{
+internal void gl_set_light_directed(int index, v3 pos, v3 color) {
     f32 d = (f32)(1.0f / sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4] = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
