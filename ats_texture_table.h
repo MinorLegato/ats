@@ -23,11 +23,11 @@ struct TextureTable {
     TextureEntry array[TEXTURE_TABLE_SIZE];
 };
 
-internal RectI32 tt_get_rect(TextureTable* table, TextureID id) {
+static RectI32 tt_get_rect(TextureTable* table, TextureID id) {
     return table->array[id.index].rect;
 }
 
-internal void tt_add_entry(TextureTable* table, const char* name, RectI32 rect) {
+static void tt_add_entry(TextureTable* table, const char* name, RectI32 rect) {
     u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
@@ -47,7 +47,7 @@ internal void tt_add_entry(TextureTable* table, const char* name, RectI32 rect) 
     strcpy_s(entry->name, 64, name);
 }
 
-internal TextureID tt_get_id(TextureTable* table, const char* name) {
+static TextureID tt_get_id(TextureTable* table, const char* name) {
     u32 hash  = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
@@ -63,13 +63,13 @@ internal TextureID tt_get_id(TextureTable* table, const char* name) {
     return (TextureID) { .index = 0 };
 }
 
-internal void cstr_concat(char* out, const char* a, const char* b) {
+static void cstr_concat(char* out, const char* a, const char* b) {
     while (*a) *out++ = *a++;
     while (*b) *out++ = *b++;
     *(out) = '\0';
 }
 
-internal void cstr_copy_no_file_extension(char* out, char* str) {
+static void cstr_copy_no_file_extension(char* out, char* str) {
     int i = strlen(str) - 1;
     while (i && str[i] != '.') i--;
     memcpy(out, str, i);
@@ -82,7 +82,7 @@ struct ImageData {
     char name[256];
 };
 
-internal int cmp_image_data(const void* va, const void* vb) {
+static int cmp_image_data(const void* va, const void* vb) {
     ImageData* a = (ImageData*)va;
     ImageData* b = (ImageData*)vb;
 
@@ -92,14 +92,14 @@ internal int cmp_image_data(const void* va, const void* vb) {
     return b->image.width - a->image.width;
 }
 
-internal b32 recti_contains_image(RectI32 rect, Image image) {
+static b32 recti_contains_image(RectI32 rect, Image image) {
     i32 rect_width = rect.max.x - rect.min.x;
     i32 rect_height = rect.max.y - rect.min.y;
 
     return image.width <= rect_width && image.height <= rect_height; 
 }
 
-internal TextureTable tt_load_from_dir(const char* dir_path) {
+static TextureTable tt_load_from_dir(const char* dir_path) {
     TextureTable table = {
         .image = {
             .width  = 1024,
@@ -160,8 +160,8 @@ internal TextureTable tt_load_from_dir(const char* dir_path) {
                 RectI32 rect = rect_array[j];
                 rect_array[j] = rect_array[--rect_count];
 
-                v2i size = { data->image.width, data->image.height };
-                v2i offset = rect.min;
+                Vec2i size = { data->image.width, data->image.height };
+                Vec2i offset = rect.min;
 
                 tt_add_entry(&table, data->name, (RectI32) {
                     .min = { offset.x, offset.y },

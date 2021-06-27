@@ -11,8 +11,7 @@
 #endif
 
 typedef struct AudioEntry AudioEntry;
-struct AudioEntry
-{
+struct AudioEntry {
     b32 in_use;
     
     cs_loaded_sound_t loaded;
@@ -21,15 +20,13 @@ struct AudioEntry
     char name[64];
 };
 
-global struct
-{
+static struct {
     cs_context_t* context;
 } audio;
 
-global AudioEntry audio_table[AUDIO_TABLE_SIZE];
+static AudioEntry audio_table[AUDIO_TABLE_SIZE];
 
-internal void audio_init(void)
-{
+static void audio_init(void) {
     audio.context = cs_make_context(platform.native, 44100, 16 * 4096, 1024, NULL);
     
     cs_spawn_mix_thread(audio.context);
@@ -39,25 +36,21 @@ internal void audio_init(void)
 #define audio_get(name) audio_get_internal(name, AUDIO_PATH name ".wav")
 
 typedef struct AudioID AudioID;
-struct AudioID
-{
+struct AudioID {
     u16 index;
 };
 
-internal b32 audio_is_valid(AudioID id)
-{
+static b32 audio_is_valid(AudioID id) {
     return id.index != 0;
 }
 
-internal AudioID audio_get_internal(const char* name, const char* path)
-{
+static AudioID audio_get_internal(const char* name, const char* path) {
     u32 hash    = hash_str(name);
     u16 index   = hash & (AUDIO_TABLE_SIZE - 1);
     
     if (index == 0) index++;
     
-    while (audio_table[index].in_use)
-    {
+    while (audio_table[index].in_use) {
         if (strcmp(audio_table[index].name, name) == 0)
             return (AudioID) {index };
         
@@ -77,14 +70,12 @@ internal AudioID audio_get_internal(const char* name, const char* path)
     return (AudioID) { index };
 }
 
-internal void audio_pause(b32 pause)
-{
+static void audio_pause(b32 pause) {
     cs_lock(audio.context);
     
     cs_playing_sound_t* playing = cs_get_playing(audio.context);
     
-    while (playing)
-    {
+    while (playing) {
         cs_pause_sound(playing, pause);
         playing = playing->next;
     }
@@ -92,24 +83,20 @@ internal void audio_pause(b32 pause)
     cs_unlock(audio.context);
 }
 
-internal void audio_kill_all(void)
-{
+static void audio_kill_all(void) {
     cs_stop_all_sounds(audio.context);
 }
 
-internal AudioEntry* audio_get_entry(AudioID id)
-{
+static AudioEntry* audio_get_entry(AudioID id) {
     if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
 
     return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-internal void audio_play(AudioID id, f32 volume)
-{
+static void audio_play(AudioID id, f32 volume) {
     AudioEntry* entry = audio_get_entry(id);
 
-    if (entry)
-    {
+    if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
         
         if (!playing) return;
@@ -120,12 +107,10 @@ internal void audio_play(AudioID id, f32 volume)
     }
 }
 
-internal cs_playing_sound_t* audio_play_looped(AudioID id, f32 volume)
-{
+static cs_playing_sound_t* audio_play_looped(AudioID id, f32 volume) {
     AudioEntry* entry = audio_get_entry(id);
 
-    if (entry)
-    {
+    if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
         
         if (!playing)
@@ -144,17 +129,15 @@ internal cs_playing_sound_t* audio_play_looped(AudioID id, f32 volume)
     return NULL;
 }
 
-internal void audio_play_music(AudioID id, f32 volume)
-{
-    local_persist cs_playing_sound_t* playing = NULL;
+static void audio_play_music(AudioID id, f32 volume) {
+    static cs_playing_sound_t* playing = NULL;
     
     if (playing && cs_is_active(playing))
         cs_stop_sound(playing);
     
     AudioEntry* entry = audio_get_entry(id);
 
-    if (entry)
-    {
+    if (entry) {
         playing = cs_play_sound(audio.context, entry->playing);
         
         if (!playing) return;
@@ -168,8 +151,7 @@ internal void audio_play_music(AudioID id, f32 volume)
     }
 }
 
-internal void audio_play_from_source(AudioID id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance)
-{
+static void audio_play_from_source(AudioID id, Vec3 pos, Vec3 dir, Vec3 source, f32 volume, f32 max_distance) {
     f32 sound_distance  = v3_dist(pos, source);
     f32 final_volume    = volume * max(1 - sound_distance / max_distance, 0);
 
@@ -177,10 +159,8 @@ internal void audio_play_from_source(AudioID id, v3 pos, v3 dir, v3 source, f32 
 
     AudioEntry* entry = audio_get_entry(id);
 
-    if (entry)
-    {
-        v2 source_dir =
-        {
+    if (entry) {
+        Vec2 source_dir = {
             source.x - pos.x,
             source.y - pos.y,
         };

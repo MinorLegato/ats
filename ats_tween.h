@@ -1,149 +1,149 @@
 #pragma once
 
-internal f32 sine_ease_in(f32 t);
-internal f32 sine_ease_out(f32 t);
-internal f32 sine_ease_in_out(f32 t);
+static f32 sine_ease_in(f32 t);
+static f32 sine_ease_out(f32 t);
+static f32 sine_ease_in_out(f32 t);
 
-internal f32 quad_ease_in(f32 t);
-internal f32 quad_ease_out(f32 t);
-internal f32 quad_ease_in_out(f32 t);
+static f32 quad_ease_in(f32 t);
+static f32 quad_ease_out(f32 t);
+static f32 quad_ease_in_out(f32 t);
 
-internal f32 cubic_ease_in(f32 t);
-internal f32 cubic_ease_out(f32 t);
-internal f32 cubic_ease_in_out(f32 t);
+static f32 cubic_ease_in(f32 t);
+static f32 cubic_ease_out(f32 t);
+static f32 cubic_ease_in_out(f32 t);
 
-internal f32 quart_ease_in(f32 t);
-internal f32 quart_ease_out(f32 t);
-internal f32 quart_ease_in_out(f32 t);
+static f32 quart_ease_in(f32 t);
+static f32 quart_ease_out(f32 t);
+static f32 quart_ease_in_out(f32 t);
 
-internal f32 quint_ease_in(f32 t);
-internal f32 quint_ease_out(f32 t);
-internal f32 quint_ease_in_out(f32 t);
+static f32 quint_ease_in(f32 t);
+static f32 quint_ease_out(f32 t);
+static f32 quint_ease_in_out(f32 t);
 
-internal f32 expo_ease_in(f32 t);
-internal f32 expo_ease_out(f32 t);
-internal f32 expo_ease_in_out(f32 t);
+static f32 expo_ease_in(f32 t);
+static f32 expo_ease_out(f32 t);
+static f32 expo_ease_in_out(f32 t);
 
-internal f32 circ_ease_in(f32 t);
-internal f32 circ_ease_out(f32 t);
-internal f32 circ_ease_in_out(f32 t);
+static f32 circ_ease_in(f32 t);
+static f32 circ_ease_out(f32 t);
+static f32 circ_ease_in_out(f32 t);
 
-internal f32 back_ease_in(f32 t);
-internal f32 back_ease_out(f32 t);
-internal f32 back_ease_in_out(f32 t);
+static f32 back_ease_in(f32 t);
+static f32 back_ease_out(f32 t);
+static f32 back_ease_in_out(f32 t);
 
-internal f32 elastic_ease_in(f32 t);
-internal f32 elastic_ease_out(f32 t);
-internal f32 elastic_ease_in_out(f32 t);
+static f32 elastic_ease_in(f32 t);
+static f32 elastic_ease_out(f32 t);
+static f32 elastic_ease_in_out(f32 t);
 
-internal f32 bounce_ease_in(f32 t);
-internal f32 bounce_ease_out(f32 t);
-internal f32 bounce_ease_in_out(f32 t);
+static f32 bounce_ease_in(f32 t);
+static f32 bounce_ease_out(f32 t);
+static f32 bounce_ease_in_out(f32 t);
 
 // IMPL:
 
-internal f32 sine_ease_in(f32 t) {
+static f32 sine_ease_in(f32 t) {
     return 1 - cosf((t * PI) / 2);
 }
 
-internal f32 sine_ease_out(f32 t) {
+static f32 sine_ease_out(f32 t) {
     return sinf((t * PI) / 2);
 }
 
-internal f32 sine_ease_in_out(f32 t) {
+static f32 sine_ease_in_out(f32 t) {
     return -0.5 * (cosf(PI * t) - 1);
 }
 
-internal f32 quad_ease_in(f32 t) {
+static f32 quad_ease_in(f32 t) {
     return t * t;
 }
 
-internal f32 quad_ease_out(f32 t) {
+static f32 quad_ease_out(f32 t) {
     return 1 - (1 - t) * (1 - t);
 }
 
-internal f32 quad_ease_in_out(f32 t) {
+static f32 quad_ease_in_out(f32 t) {
     f32 k = -2 * t + 2;
     return (t < 0.5)? (2 * t * t) : (1 - 0.5 * k * k);
 }
 
-internal f32 cubic_ease_in(f32 t) {
+static f32 cubic_ease_in(f32 t) {
     return t * t * t;
 }
 
-internal f32 cubic_ease_out(f32 t) {
+static f32 cubic_ease_out(f32 t) {
     f32 k = 1 - t;
     return 1 - k * k * k;
 }
 
-internal f32 cubic_ease_in_out(f32 t) {
+static f32 cubic_ease_in_out(f32 t) {
     f32 k = -2 * t + 2;
     return (t < 0.5)? (4 * t * t * t) : (1 - 0.5 * k * k * k);
 }
 
-internal f32 quart_ease_in(f32 t) {
+static f32 quart_ease_in(f32 t) {
     return t * t * t * t;
 }
 
-internal f32 quart_ease_out(f32 t) {
+static f32 quart_ease_out(f32 t) {
     f32 k = 1 - t; 
     return 1 - k * k * k * k;
 }
 
-internal f32 quart_ease_in_out(f32 t) {
+static f32 quart_ease_in_out(f32 t) {
     f32 k = -2 * t + 2;
     return (t < 0.5)? (8 * t * t * t * t) : (1 - 0.5 * k * k * k * k);
 }
 
-internal f32 quint_ease_in(f32 t) {
+static f32 quint_ease_in(f32 t) {
     return t * t * t * t * t;
 }
 
-internal f32 quint_ease_out(f32 t) {
+static f32 quint_ease_out(f32 t) {
     f32 k = 1 - t;
     return 1 - k * k * k * k * k;
 }
 
-internal f32 quint_ease_in_out(f32 t) {
+static f32 quint_ease_in_out(f32 t) {
     f32 k = -2 * t + 2;
     return (t < 0.5)? (16 * t * t * t * t * t) : (1 - 0.5 * k * k * k * k * k);
 }
 
-internal f32 expo_ease_in(f32 t) {
+static f32 expo_ease_in(f32 t) {
     return (t == 0)? 0 : powf(2, 10 * t - 10);
 }
 
-internal f32 expo_ease_out(f32 t) {
+static f32 expo_ease_out(f32 t) {
     return (t == 1)? 1 : (1 - powf(2, -10 * t));
 }
 
-internal f32 expo_ease_in_out(f32 t) {
+static f32 expo_ease_in_out(f32 t) {
     return (t == 0)? 0 : (t == 1)? 1 : t < 0.5? powf(2, 20 * t - 10) / 2 : (2 - powf(2, -20 * t + 10)) / 2;
 }
 
-internal f32 circ_ease_in(f32 t) {
+static f32 circ_ease_in(f32 t) {
     return 1 - sqrt(1 - (t * t));
 }
 
-internal f32 circ_ease_out(f32 t) {
+static f32 circ_ease_out(f32 t) {
     return sqrt(1 - (t - 1) * (t - 1));
 }
 
-internal f32 circ_ease_in_out(f32 t) {
+static f32 circ_ease_in_out(f32 t) {
     f32 k = 2 * t;
     f32 l = -2 * t + 2;
 
     return (t < 0.5)? 0.5 * (1 - sqrt(1 - k * k)) : 0.5 * (sqrt(1 - l * l) + 1);
 }
 
-internal f32 back_ease_in(f32 t) {
+static f32 back_ease_in(f32 t) {
     f32 c1 = 1.70158;
     f32 c3 = c1 + 1;
 
     return c3 * t * t * t - c1 * t * t;
 }
 
-internal f32 back_ease_out(f32 t) {
+static f32 back_ease_out(f32 t) {
     f32 c1  = 1.70158;
     f32 c3  = c1 + 1;
     f32 k   = t - 1;
@@ -151,7 +151,7 @@ internal f32 back_ease_out(f32 t) {
     return 1 + c3 * k * k * k + c1 * k * k;
 }
 
-internal f32 back_ease_in_out(f32 t) {
+static f32 back_ease_in_out(f32 t) {
     f32 c1 = 1.70158;
     f32 c2 = c1 * 1.525;
 
@@ -160,7 +160,7 @@ internal f32 back_ease_in_out(f32 t) {
         0.5 * (pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2);
 }
 
-internal f32 elastic_ease_in(f32 t) {
+static f32 elastic_ease_in(f32 t) {
     f32 c4 = (2 * PI) / 3;
 
     return (t == 0)?
@@ -170,7 +170,7 @@ internal f32 elastic_ease_in(f32 t) {
         -powf(2, 10 * t - 10) * sinf((t * 10 - 10.75) * c4);
 }
 
-internal f32 elastic_ease_out(f32 t) {
+static f32 elastic_ease_out(f32 t) {
     f32 c4 = (2 * PI) / 3;
 
     return t == 0?
@@ -180,7 +180,7 @@ internal f32 elastic_ease_out(f32 t) {
         powf(2, -10 * t) * sinf((t * 10 - 0.75) * c4) + 1;
 }
 
-internal f32 elastic_ease_in_out(f32 t) {
+static f32 elastic_ease_in_out(f32 t) {
     f32 c5 = (2 * PI) / 4.5;
 
     return t == 0?
@@ -192,11 +192,11 @@ internal f32 elastic_ease_in_out(f32 t) {
         +0.5 * (powf(2, -20 * t + 10) * sinf((20 * t - 11.125) * c5)) + 1;
 }
 
-internal f32 bounce_ease_in(f32 t) {
+static f32 bounce_ease_in(f32 t) {
     return 1 - bounce_ease_out(t);
 }
 
-internal f32 bounce_ease_out(f32 t) {
+static f32 bounce_ease_out(f32 t) {
     f32 n1 = 7.5625;
     f32 d1 = 2.75;
 
@@ -214,7 +214,7 @@ internal f32 bounce_ease_out(f32 t) {
     }
 }
 
-internal f32 bounce_ease_in_out(f32 t) {
+static f32 bounce_ease_in_out(f32 t) {
     return t < 0.5?
     0.5 * (1 - bounce_ease_out(1 - 2 * t)) :
     0.5 * (1 + bounce_ease_out(2 * t - 1));

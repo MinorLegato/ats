@@ -216,7 +216,7 @@ inline v2 V2(v3 u) {
 }
 
 inline v2 V2(v2i u) {
-    return { (f32)u.x, (u32)u.y };
+    return { (f32)u.x, (f32)u.y };
 }
 
 inline v2 operator-(v2 a) {
@@ -1903,7 +1903,7 @@ inline u32 hash_v2i(v2i k) {
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
-inline u32 hash_v3i(v3i& k) {
+inline u32 hash_v3i(v3i k) {
     u32 a = hash_i32(k.x);
     u32 b = hash_i32(k.y);
     u32 c = hash_i32(k.z);

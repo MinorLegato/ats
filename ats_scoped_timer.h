@@ -15,26 +15,26 @@ struct TimerEntry {
     f32     stop;
 };
 
-global const char* timer_name[TIMER_COUNT] = {
+static const char* timer_name[TIMER_COUNT] = {
 #define TIMER_TYPE(name) #name,
     TIMER_TYPES
 #undef TIMER_TYPE
 };
 
-global TimerEntry timer_table[TIMER_COUNT];
+static TimerEntry timer_table[TIMER_COUNT];
 
 #define timer_scope(name) defer(timer_start(TIMER_##name), timer_stop(TIMER_##name))
 
-internal void timer_start(TimerType type) {
+static void timer_start(TimerType type) {
     timer_table[type].in_use = true;
     timer_table[type].start  = timer_get_current();
 }
 
-internal void timer_stop(TimerType type) {
+static void timer_stop(TimerType type) {
     timer_table[type].stop = timer_get_current();
 }
 
-internal void timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
+static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
     i32 y = 0;
     for (i32 i = 0; i < TIMER_COUNT; ++i) {
         TimerEntry e = timer_table[i];
