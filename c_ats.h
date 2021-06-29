@@ -816,10 +816,10 @@ static Mat4 m4_mul(Mat4 a, Mat4 b) {
 
 static Vec4 m4_mulv(Mat4 m, Vec4 v) {
     return (Vec4) {
-        v.x + m.e[4] * v.y + m.e[8]  * v.z + m.e[12] * v.w,
-        v.x + m.e[5] * v.y + m.e[9]  * v.z + m.e[13] * v.w,
-        v.x + m.e[6] * v.y + m.e[10] * v.z + m.e[14] * v.w,
-        v.x + m.e[7] * v.y + m.e[11] * v.z + m.e[15] * v.w,
+        m.e[0] * v.x + m.e[4] * v.y + m.e[8]  * v.z + m.e[12] * v.w,
+        m.e[1] * v.x + m.e[5] * v.y + m.e[9]  * v.z + m.e[13] * v.w,
+        m.e[2] * v.x + m.e[6] * v.y + m.e[10] * v.z + m.e[14] * v.w,
+        m.e[3] * v.x + m.e[7] * v.y + m.e[11] * v.z + m.e[15] * v.w,
     };
 }
 
