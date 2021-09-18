@@ -12,7 +12,7 @@ extern platform_t platform;
 extern void platform_init(const char* title, int width, int height, int samples);
 extern void platform_update(void);
 
-extern f64 timer_get_current(void);
+extern double timer_get_current(void);
 
 // ===================================================== KEYS =================================================== //
 
@@ -206,39 +206,39 @@ extern f64 timer_get_current(void);
 typedef union gamepad_buttons_t gamepad_buttons_t;
 union gamepad_buttons_t {
     struct {
-        u32 X : 1;
-        u32 A : 1;
-        u32 B : 1;
-        u32 Y : 1;
+        uint32_t X : 1;
+        uint32_t A : 1;
+        uint32_t B : 1;
+        uint32_t Y : 1;
 
-        u32 LB : 1;
-        u32 RB : 1;
-        u32 LT : 1;
-        u32 RT : 1;
+        uint32_t LB : 1;
+        uint32_t RB : 1;
+        uint32_t LT : 1;
+        uint32_t RT : 1;
         
-        u32 select : 1;
-        u32 start : 1;
-        u32 LS : 1;
-        u32 RS : 1;
+        uint32_t select : 1;
+        uint32_t start : 1;
+        uint32_t LS : 1;
+        uint32_t RS : 1;
 
-        u32 UP : 1;
-        u32 RIGHT : 1;
-        u32 DOWN : 1;
-        u32 LEFT : 1;
+        uint32_t UP : 1;
+        uint32_t RIGHT : 1;
+        uint32_t DOWN : 1;
+        uint32_t LEFT : 1;
     } button;
 
-    u32 data;
+    uint32_t data;
 };
 
 typedef struct gamepad_t gamepad_t;
 struct gamepad_t {
-    b32 active;
+    bool active;
 
     vec2_t LS;
     vec2_t RS;
 
-    f32 LT;
-    f32 RT;
+    float LT;
+    float RT;
 
     gamepad_buttons_t down;
     gamepad_buttons_t pressed;
@@ -253,52 +253,52 @@ enum {
 
 typedef struct platform_t platform_t;
 struct platform_t {
-    b32 close;
+    bool close;
 
-    i32 width;
-    i32 height;
-    f32 aspect_ratio;
+    int width;
+    int height;
+    float aspect_ratio;
 
     void* native;
 
-    b32 fullscreen;
-    b32 _fullscreen_state_last_update;
+    bool fullscreen;
+    bool _fullscreen_state_last_update;
 
     struct {
-        f64 total;
-        f64 delta;
+        double total;
+        double delta;
     } time;
 
     struct {
-        u32 mode;
+        uint32_t mode;
 
-        b32 is_down     : 1;
-        b32 is_pressed  : 1;
-        b32 is_released : 1;
+        uint32_t is_down     : 1;
+        uint32_t is_pressed  : 1;
+        uint32_t is_released : 1;
 
         vec2_t pos;
         vec2_t delta;
         vec2_t scroll;
 
-        b8 down[MOUSE_BUTTON_LAST + 1];
-        b8 pressed[MOUSE_BUTTON_LAST + 1];
-        b8 released[MOUSE_BUTTON_LAST + 1];
+        bool down[MOUSE_BUTTON_LAST + 1];
+        bool pressed[MOUSE_BUTTON_LAST + 1];
+        bool released[MOUSE_BUTTON_LAST + 1];
     } mouse;
 
     struct {
-        i32 key;
-        i32 ascii;
+        int key;
+        int ascii;
 
-        b32 is_down     : 1;
-        b32 is_pressed  : 1;
-        b32 is_repeat   : 1;
-        b32 is_released : 1;
-        b32 is_ascii    : 1;
+        uint32_t is_down     : 1;
+        uint32_t is_pressed  : 1;
+        uint32_t is_repeat   : 1;
+        uint32_t is_released : 1;
+        uint32_t is_ascii    : 1;
     
-        b8 down[KEY_LAST + 1];
-        b8 pressed[KEY_LAST + 1];
-        b8 repeat[KEY_LAST + 1];
-        b8 released[KEY_LAST + 1];
+        bool down[KEY_LAST + 1];
+        bool pressed[KEY_LAST + 1];
+        bool repeat[KEY_LAST + 1];
+        bool released[KEY_LAST + 1];
     } keyboard;
 
     gamepad_t gamepad[JOYSTICK_LAST];
@@ -391,8 +391,8 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
 static void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     (void)window;
 
-    platform.mouse.scroll.x = (f32)xoffset;
-    platform.mouse.scroll.y = (f32)yoffset;
+    platform.mouse.scroll.x = (float)xoffset;
+    platform.mouse.scroll.y = (float)yoffset;
 }
 
 static void window_joystick_callback(int joy, int event) {
@@ -448,13 +448,13 @@ extern void platform_init(const char* title, int width, int height, int samples)
 
     // init mouse:
     {
-        f64 x = 0.0;
-        f64 y = 0.0;
+        double x = 0.0;
+        double y = 0.0;
 
         glfwGetCursorPos(platform_internal.window, &x, &y);
 
-        platform.mouse.pos.x = (f32)x;
-        platform.mouse.pos.y = (f32)y;
+        platform.mouse.pos.x = (float)x;
+        platform.mouse.pos.y = (float)y;
     }
 
     // init connected controllers
@@ -488,14 +488,14 @@ extern void platform_update(void) {
 
     // update mouse:
     {
-        f64 x, y;
+        double x, y;
         glfwGetCursorPos(platform_internal.window, &x, &y);
 
-        platform.mouse.delta.x  = (f32)(x - platform.mouse.pos.x);
-        platform.mouse.delta.y  = (f32)(y - platform.mouse.pos.y);
+        platform.mouse.delta.x  = (float)(x - platform.mouse.pos.x);
+        platform.mouse.delta.y  = (float)(y - platform.mouse.pos.y);
 
-        platform.mouse.pos.x    = (f32)x;
-        platform.mouse.pos.y    = (f32)y;
+        platform.mouse.pos.x    = (float)x;
+        platform.mouse.pos.y    = (float)y;
 
         platform.mouse.scroll.x = 0;
         platform.mouse.scroll.y = 0;
@@ -574,7 +574,7 @@ extern void platform_update(void) {
     platform._fullscreen_state_last_update = platform.fullscreen;
 
     glfwGetWindowSize(platform_internal.window, &platform.width, &platform.height);
-    platform.aspect_ratio = (f32)platform.width / (f32)platform.height;
+    platform.aspect_ratio = (float)platform.width / (float)platform.height;
 
     glViewport(0, 0, platform.width, platform.height);
 
@@ -592,7 +592,7 @@ extern void platform_update(void) {
     platform.time.total += platform.time.delta;
 }
 
-extern f64 timer_get_current(void) {
+extern double timer_get_current(void) {
     return glfwGetTime();
 }
 

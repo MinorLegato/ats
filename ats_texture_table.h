@@ -16,12 +16,12 @@ extern texture_id_t     tt_get_id(texture_table_t* table, const char* name);
 extern texture_table_t  tt_load_from_dir(const char* dir_path, memory_arena_t* ma);
 
 struct texture_id_t {
-    u16 index;
+    uint16_t index;
 };
 
 struct texture_entry_t {
-    b32 in_use;
-    u32 hash;
+    bool in_use;
+    uint32_t hash;
 
     rect2_t rect;
 
@@ -44,8 +44,8 @@ extern rect2_t tt_get_rect(texture_table_t* table, texture_id_t id) {
 }
 
 extern void tt_add_entry(texture_table_t* table, const char* name, rect2_t rect) {
-    u32 hash = hash_str(name);
-    u16 index = hash % TEXTURE_TABLE_SIZE;
+    uint32_t hash = hash_str(name);
+    uint16_t index = hash % TEXTURE_TABLE_SIZE;
 
     while (table->array[index].in_use) {
         if ((table->array[index].hash == hash) && (strcmp(table->array[index].name, name) == 0))
@@ -70,8 +70,8 @@ extern void tt_add_entry(texture_table_t* table, const char* name, rect2_t rect)
 }
 
 extern texture_id_t tt_get_id(texture_table_t* table, const char* name) {
-    u32 hash  = hash_str(name);
-    u16 index = hash % TEXTURE_TABLE_SIZE;
+    uint32_t hash  = hash_str(name);
+    uint16_t index = hash % TEXTURE_TABLE_SIZE;
 
     while (table->array[index].in_use) {
         if ((table->array[index].hash == hash) && (strcmp(table->array[index].name, name) == 0)) {
@@ -117,15 +117,15 @@ static int cmp_image_data(const void* va, const void* vb) {
     return b->image.width - a->image.width;
 }
 
-extern b32 rect_contains_image(rect2_t rect, image_t image) {
-    i32 rect_width  = rect.max.x - rect.min.x;
-    i32 rect_height = rect.max.y - rect.min.y;
+extern bool rect_contains_image(rect2_t rect, image_t image) {
+    int32_t rect_width  = rect.max.x - rect.min.x;
+    int32_t rect_height = rect.max.y - rect.min.y;
 
     return image.width <= rect_width && image.height <= rect_height; 
 }
 
-static image_data_t* tt__load_png_files_in_directory(u32* out_image_count, const char* dir_path, memory_arena_t* ma) {
-    u32             image_count = 0;
+static image_data_t* tt__load_png_files_in_directory(uint32_t* out_image_count, const char* dir_path, memory_arena_t* ma) {
+    uint32_t        image_count = 0;
     image_data_t*   image_array = NULL;
 
     // get all .png files in directory:
@@ -159,18 +159,18 @@ static image_data_t* tt__load_png_files_in_directory(u32* out_image_count, const
 }
 
 extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma) {
-    texture_table_t table = { { 2048, 2048, ma_array(ma, u32, 2048 * 2048) } };
+    texture_table_t table = { { 2048, 2048, ma_array(ma, uint32_t, 2048 * 2048) } };
     table.array[0].in_use = true;
 
-    for (u32 i = 0; i < 2048 * 2048; ++i) {
+    for (uint32_t i = 0; i < 2048 * 2048; ++i) {
         table.image.pixels[i] = 0xff000000;
     }
 
     defer(ma_save(ma), ma_restore(ma)) {
-        u32 image_count = 0;
+        uint32_t image_count = 0;
         image_data_t* image_array = tt__load_png_files_in_directory(&image_count, dir_path, ma);
 
-        u32       rect_count   = 0;
+        uint32_t       rect_count   = 0;
         rect2_t*  rect_array   = NULL;
 
         defer(rect_array = (rect2_t*)ma_begin(ma), ma_end(ma, 0)) {
@@ -178,10 +178,10 @@ extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma
                 v2(0, 0),
                 v2(table.image.width, table.image.height));
 
-            for (u32 i = 0; i < image_count; ++i) {
+            for (uint32_t i = 0; i < image_count; ++i) {
                 image_data_t* data = &image_array[i];
 
-                u32 j = 0;
+                uint32_t j = 0;
                 for (j = 0; j < rect_count; ++j) {
                     if (rect_contains_image(rect_array[j], data->image)) {
                         break;
@@ -198,8 +198,8 @@ extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma
                         v2(offset.x + 1, offset.y + 1),
                         v2(offset.x + size.x - 1, offset.y + size.y - 1)));
 
-                for (i32 y = 0; y < data->image.height; ++y) {
-                    for (i32 x = 0; x < data->image.width; ++x) {
+                for (int y = 0; y < data->image.height; ++y) {
+                    for (int x = 0; x < data->image.width; ++x) {
                         image_set_pixel(&table.image, x + offset.x + 1, y + offset.y + 1, image_get_pixel(&data->image, x, y));
                     }
                 }
