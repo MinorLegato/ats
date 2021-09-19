@@ -10,39 +10,41 @@
 #define AUDIO_PATH "assets/sounds/"
 #endif
 
-typedef struct audio_entry_t {
-    bool in_use;
+typedef struct audio_entry_t audio_entry_t;
+struct audio_entry_t {
+    b32 in_use;
     
     cs_loaded_sound_t loaded;
     cs_play_sound_def_t playing;
     
     char name[64];
-} audio_entry_t;
+};
 
 static struct {
     cs_context_t* context;
 } audio;
 
-typedef struct audio_id_t {
-    uint16_t index;
-} audio_id_t;
+typedef struct audio_id_t audio_id_t;
+struct audio_id_t {
+    u16 index;
+};
 
 static audio_entry_t audio_table[AUDIO_TABLE_SIZE];
 
 static void audio_init(void) {
-    audio.context = cs_make_context(platform.native, 44100, 16 * 4096, 1024, NULL);
+    audio.context = cs_make_context(platform.native, 44100, 8 * 4096, 1024, NULL);
     
     cs_spawn_mix_thread(audio.context);
     cs_thread_sleep_delay(audio.context, 16);
 }
 
-static bool audio_is_valid(audio_id_t id) {
+static b32 audio_is_valid(audio_id_t id) {
     return id.index != 0;
 }
 
 static audio_id_t audio_get(const char* name) {
-    uint32_t hash  = hash_str(name);
-    uint16_t index = hash & (AUDIO_TABLE_SIZE - 1);
+    u32 hash  = hash_str(name);
+    u16 index = hash & (AUDIO_TABLE_SIZE - 1);
     
     if (index == 0) index++;
     
@@ -60,8 +62,8 @@ static audio_id_t audio_get(const char* name) {
     static char path[1024];
 
     {
-        uint32_t path_index = 0;
-        uint32_t name_index = 0;
+        u32 path_index = 0;
+        u32 name_index = 0;
 
         while (AUDIO_PATH[path_index])  path[path_index]    = AUDIO_PATH[path_index++];
         while (name[name_index])        path[path_index++]  = name[name_index++];
@@ -89,7 +91,7 @@ static audio_id_t audio_get(const char* name) {
     return id;
 }
 
-static void audio_pause(bool pause) {
+static void audio_pause(b32 pause) {
     cs_lock(audio.context);
     
     cs_playing_sound_t* playing = cs_get_playing(audio.context);
@@ -112,7 +114,7 @@ static audio_entry_t* audio_get_entry(audio_id_t id) {
     return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-static void audio_play(audio_id_t id, float volume) {
+static void audio_play(audio_id_t id, f32 volume) {
     audio_entry_t* entry = audio_get_entry(id);
 
     if (entry) {
@@ -126,7 +128,7 @@ static void audio_play(audio_id_t id, float volume) {
     }
 }
 
-static cs_playing_sound_t* audio_play_looped(audio_id_t id, float volume) {
+static cs_playing_sound_t* audio_play_looped(audio_id_t id, f32 volume) {
     audio_entry_t* entry = audio_get_entry(id);
 
     if (entry) {
@@ -148,7 +150,7 @@ static cs_playing_sound_t* audio_play_looped(audio_id_t id, float volume) {
     return NULL;
 }
 
-static void audio_play_music(audio_id_t id, float volume) {
+static void audio_play_music(audio_id_t id, f32 volume) {
     static cs_playing_sound_t* playing = NULL;
     
     if (playing && cs_is_active(playing))
@@ -170,9 +172,9 @@ static void audio_play_music(audio_id_t id, float volume) {
     }
 }
 
-static void audio_play_from_source(audio_id_t id, vec3_t pos, vec3_t dir, vec3_t source, float volume, float max_distance) {
-    float sound_distance  = v3_dist(pos, source);
-    float final_volume    = volume * max(1 - sound_distance / max_distance, 0);
+static void audio_play_from_source(audio_id_t id, vec3_t pos, vec3_t dir, vec3_t source, f32 volume, f32 max_distance) {
+    f32 sound_distance  = v3_dist(pos, source);
+    f32 final_volume    = volume * max(1 - sound_distance / max_distance, 0);
 
     if (final_volume <= 0) return;
 
@@ -186,7 +188,7 @@ static void audio_play_from_source(audio_id_t id, vec3_t pos, vec3_t dir, vec3_t
 
         source_dir = v2_norm(source_dir);
 
-        float pan = v2_get_angle(dir.xy, source_dir) / PI;
+        f32 pan = v2_get_angle(dir.xy, source_dir) / PI;
 
         if (pan > +0.5f) pan = 1.0f - pan;
         if (pan < -0.5f) pan =-1.0f - pan;
