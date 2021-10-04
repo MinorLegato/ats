@@ -14,6 +14,21 @@ extern void platform_update(void);
 
 extern f64 timer_get_current(void);
 
+#ifdef ATS_OGL33
+
+#define GLSL_SHADER(shader) "#version 330 core\n" #shader
+
+typedef struct gl_shader_t {
+    u32     id;
+} gl_shader_t;
+
+extern gl_shader_t gl_shader_load_from_memory(const char *vs, const char *fs);
+extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
+
+extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview);
+
+#endif
+
 // ===================================================== KEYS =================================================== //
 
 #define KEY_UNKNOWN            -1
@@ -596,5 +611,99 @@ extern f64 timer_get_current(void) {
     return glfwGetTime();
 }
 
-#endif
+#ifdef ATS_OGL33
+
+static u32 gl_shader_compile(const char* source, unsigned int type) {
+    int success = 0;
+    char info_log[512] = {0};
+    u32 shader = glCreateShader(type);
+
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, NULL, info_log);
+        puts(info_log);
+        exit(EXIT_FAILURE);
+    }
+
+    return shader;
+}
+
+static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
+    int success = 0;
+    char info_log[512] = {0};
+
+    u32 shader = glCreateProgram();
+
+    glAttachShader(shader, vertex_shader);
+    glAttachShader(shader, fragment_shader);
+
+    glLinkProgram(shader);
+
+    glGetProgramiv(shader, GL_LINK_STATUS, &success);
+
+    if (!success) {
+        glGetProgramInfoLog(shader, 512, NULL, info_log);
+        puts(info_log);
+        exit(EXIT_FAILURE);
+    }
+
+    return shader;
+}
+
+extern gl_shader_t gl_shader_load_from_memory(const char *vs, const char *fs) {
+    u32 vertex   = gl_shader_compile(vs, GL_VERTEX_SHADER);
+    u32 fragment = gl_shader_compile(fs, GL_FRAGMENT_SHADER);
+    u32 program  = gl_shader_link_program(vertex, fragment);
+
+    glUseProgram(program);
+
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+
+    return (gl_shader_t) { .id = program };
+}
+
+extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma) {
+    ma_save(ma);
+
+    char* vs_content = file_read_str(vs, ma);
+    char* fs_content = file_read_str(fs, ma);
+
+    gl_shader_t program = gl_shader_load_from_memory(vs_content, fs_content);
+
+    ma_restore(ma);
+
+    return program;
+}
+
+extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview) {
+    GLint viewport[4] = {0};
+    f64 modelview[16] = {0};
+    f64 projection[16] = {0};
+
+    GLfloat  win_x, win_y, win_z;
+    GLdouble pos_x, pos_y, pos_z;
+ 
+    for (i32 i = 0; i < 16; ++i) projection[i]  = in_projection.e[i];
+    for (i32 i = 0; i < 16; ++i) modelview[i]   = in_modelview.e[i];
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+ 
+    win_x = (f64)(x);
+    win_y = (f64)(viewport[3]) - (f64)y;
+
+    glReadPixels(x, (int)(win_y), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &win_z);
+ 
+    f64 result[3];
+    f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
+ 
+    return v3(result[0], result[1], result[2]);
+}
+
+#endif // ATS_OGL33
+#endif // ATS_IMPL
 

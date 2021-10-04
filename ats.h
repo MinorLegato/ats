@@ -135,6 +135,7 @@ union vec4_t {
     struct { f32 x, y, z, w; };
     struct { f32 r, g, b, a; };
     struct { vec3_t rgb; };
+    struct { vec3_t xyz; };
 
     f32 e[4];
 };
