@@ -10,24 +10,22 @@
 #define AUDIO_PATH "assets/sounds/"
 #endif
 
-typedef struct audio_entry_t audio_entry_t;
-struct audio_entry_t {
+typedef struct audio_entry_t {
     b32 in_use;
     
     cs_loaded_sound_t loaded;
     cs_play_sound_def_t playing;
     
     char name[64];
-};
+} audio_entry_t;
 
 static struct {
     cs_context_t* context;
 } audio;
 
-typedef struct audio_id_t audio_id_t;
-struct audio_id_t {
+typedef struct audio_id_t {
     u16 index;
-};
+} audio_id_t;
 
 static audio_entry_t audio_table[AUDIO_TABLE_SIZE];
 
@@ -84,7 +82,7 @@ static audio_id_t audio_get(const char* name) {
     entry->playing = cs_make_def(&entry->loaded);
 
     if (cs_error_reason) {
-        puts(cs_error_reason);
+        printf("%s ---- path: %s\n", cs_error_reason, path);
     }
 
     audio_id_t id = { index };
