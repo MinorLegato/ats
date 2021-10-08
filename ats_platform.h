@@ -6,6 +6,8 @@
 
 // ====================================================== API =================================================== //
 
+// platform layer:
+
 typedef struct platform_t   platform_t;
 extern platform_t platform;
 
@@ -14,12 +16,27 @@ extern void platform_update(void);
 
 extern f64 timer_get_current(void);
 
+// gl helper types/functions:
+
+typedef struct gl_texture_t gl_texture_t;
+struct gl_texture_t {
+    u32     id;
+    int     width;
+    int     height;
+};
+
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern void         gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
+extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern void         gl_texture_bind(const gl_texture_t *texture);
+extern void         gl_texture_delete(gl_texture_t* texture);
+
 #ifdef ATS_OGL33
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
 typedef struct gl_shader_t {
-    u32     id;
+    u32 id;
 } gl_shader_t;
 
 extern gl_shader_t gl_shader_load_from_memory(const char *vs, const char *fs);
@@ -609,6 +626,82 @@ extern void platform_update(void) {
 
 extern f64 timer_get_current(void) {
     return glfwGetTime();
+}
+
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+    assert(pixels);
+
+    gl_texture_t texture = {0};
+
+    texture.width = width;
+    texture.height = height;
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    
+#ifdef ATS_OGL33
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+
+    return texture;
+}
+
+extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
+    texture->width = width;
+    texture->height = height;
+
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+#ifdef ATS_OGL33
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+}
+
+extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth) {
+    gl_texture_t texture = ATS_ZERO_INIT;
+    i32 channels = 0;
+
+    unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
+
+    assert(pixels);
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+
+#ifdef ATS_OGL33
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+    stbi_image_free(pixels);
+
+    return texture;
+}
+
+#ifndef ATS_OGL33
+extern void gl_texture_bind(const gl_texture_t *texture) {
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+
+    glMatrixMode(GL_TEXTURE);
+
+    glLoadIdentity();
+    glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
+}
+#endif
+
+extern void gl_texture_delete(gl_texture_t* texture) {
+    glDeleteTextures(1, &texture->id);
+    memset(texture, 0, sizeof *texture);
 }
 
 #ifdef ATS_OGL33

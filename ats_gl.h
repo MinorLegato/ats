@@ -1,18 +1,5 @@
 #pragma once
 
-typedef struct gl_texture_t gl_texture_t;
-struct gl_texture_t {
-    u32     id;
-    int     width;
-    int     height;
-};
-
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern void         gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
-extern void         gl_texture_bind(const gl_texture_t *texture);
-extern void         gl_texture_delete(gl_texture_t* texture);
-
 extern void     gl_init(void);
 
 extern void     gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z);
@@ -27,82 +14,10 @@ extern void     gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy);
 extern void     gl_render_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color);
 extern void     gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...);
 
-#ifdef __cplusplus
-extern void gl_render_string_format(vec3_t pos, vec2_t scale, u32 color, const char* fmt, ...) {
-    va_list list;
-    va_start(list, fmt);
-    gl_render_string_format(pos.x, pos.y, pos.z, scale.x, scale.y, color, fmt, list);
-    va_end(list);
-}
-#endif
-
 // =============================================================================================== //
 // ======================================= IMPLEMENTATION ======================================== //
 // =============================================================================================== //
 #ifdef ATS_IMPL
-
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
-    assert(pixels);
-
-    gl_texture_t texture = {0};
-
-    texture.width = width;
-    texture.height = height;
-
-    glGenTextures(1, &texture.id);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-
-    return texture;
-}
-
-extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
-    texture->width = width;
-    texture->height = height;
-
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-}
-
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth) {
-    gl_texture_t texture = ATS_ZERO_INIT;
-    i32 channels = 0;
-
-    unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
-
-    assert(pixels);
-
-    glGenTextures(1, &texture.id);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
-
-    stbi_image_free(pixels);
-
-    return texture;
-}
-
-extern void gl_texture_bind(const gl_texture_t *texture) {
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-
-    glMatrixMode(GL_TEXTURE);
-
-    glLoadIdentity();
-    glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
-}
-
-extern void gl_texture_delete(gl_texture_t* texture) {
-    glDeleteTextures(1, &texture->id);
-    memset(texture, 0, sizeof *texture);
-}
 
 extern void gl_init(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
