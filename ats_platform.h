@@ -51,6 +51,8 @@ typedef struct gl_shader_desc_t {
 extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc);
 extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
 
+extern void gl_shader_use(const gl_shader_t* shader);
+
 extern void gl_shader_uniform_i32(const gl_shader_t* shader, u32 uniform_index, i32 u);
 extern void gl_shader_uniform_f32(const gl_shader_t* shader, u32 uniform_index, f32 u);
 extern void gl_shader_uniform_v2(const gl_shader_t* shader, u32 uniform_index, vec2_t u);
@@ -825,6 +827,10 @@ extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memo
     ma_restore(ma);
 
     return program;
+}
+
+extern void gl_shader_use(const gl_shader_t* shader) {
+    glUseProgram(shader->id);
 }
 
 extern void gl_shader_uniform_i32(const gl_shader_t* shader, u32 uniform_index, i32 i) {
