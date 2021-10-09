@@ -6,7 +6,7 @@
 
 // ====================================================== API =================================================== //
 
-// platform layer:
+// ------------------- platform layer ------------------------ //
 
 typedef struct platform_t   platform_t;
 extern platform_t platform;
@@ -16,18 +16,18 @@ extern void platform_update(void);
 
 extern f64 timer_get_current(void);
 
-// gl helper types/functions:
+// ---------------- gl helper types/functions ---------------- //
 
 typedef struct gl_texture_t gl_texture_t;
 struct gl_texture_t {
-    u32     id;
-    int     width;
-    int     height;
+    u32 id;
+    int width;
+    int height;
 };
 
 extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern void         gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
 extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern void         gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
 extern void         gl_texture_bind(const gl_texture_t *texture);
 extern void         gl_texture_delete(gl_texture_t* texture);
 
@@ -39,10 +39,35 @@ typedef struct gl_shader_t {
     u32 id;
 } gl_shader_t;
 
-extern gl_shader_t gl_shader_load_from_memory(const char *vs, const char *fs);
+typedef struct gl_shader_desc_t {
+    const char* vs;
+    const char* fs;
+} gl_shader_desc_t;
+
+extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc);
 extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
 
 extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview);
+
+typedef struct gl_array_t {
+    u32 vao;
+    u32 vbo;
+} gl_array_t;
+
+typedef struct gl_layout_t {
+    u32 size;
+    u32 type;
+    b32 normalize;
+    u32 stride;
+    u32 offset;
+} gl_layout_t;
+
+typedef struct gl_array_desc_t {
+    gl_layout_t layout[32];
+} gl_array_desc_t;
+
+extern gl_array_t gl_array_create(const gl_array_desc_t* desc);
+extern void       gl_array_data(gl_array_t array, const void* data, u32 size);
 
 #endif
 
@@ -637,6 +662,7 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
     texture.height = height;
 
     glGenTextures(1, &texture.id);
+
     glBindTexture(GL_TEXTURE_2D, texture.id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
@@ -646,6 +672,31 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
 #ifdef ATS_OGL33
     glGenerateMipmap(GL_TEXTURE_2D);
 #endif
+
+    return texture;
+}
+
+extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth) {
+    gl_texture_t texture = ATS_ZERO_INIT;
+    i32 channels = 0;
+
+    unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
+
+    assert(pixels);
+
+    glGenTextures(1, &texture.id);
+
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+
+#ifdef ATS_OGL33
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+
+    stbi_image_free(pixels);
 
     return texture;
 }
@@ -663,29 +714,6 @@ extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, in
 #ifdef ATS_OGL33
     glGenerateMipmap(GL_TEXTURE_2D);
 #endif
-}
-
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth) {
-    gl_texture_t texture = ATS_ZERO_INIT;
-    i32 channels = 0;
-
-    unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
-
-    assert(pixels);
-
-    glGenTextures(1, &texture.id);
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
-
-#ifdef ATS_OGL33
-    glGenerateMipmap(GL_TEXTURE_2D);
-#endif
-    stbi_image_free(pixels);
-
-    return texture;
 }
 
 #ifndef ATS_OGL33
@@ -747,9 +775,9 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
     return shader;
 }
 
-extern gl_shader_t gl_shader_load_from_memory(const char *vs, const char *fs) {
-    u32 vertex   = gl_shader_compile(vs, GL_VERTEX_SHADER);
-    u32 fragment = gl_shader_compile(fs, GL_FRAGMENT_SHADER);
+extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
+    u32 vertex   = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
+    u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
     u32 program  = gl_shader_link_program(vertex, fragment);
 
     glUseProgram(program);
@@ -766,7 +794,10 @@ extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memo
     char* vs_content = file_read_str(vs, ma);
     char* fs_content = file_read_str(fs, ma);
 
-    gl_shader_t program = gl_shader_load_from_memory(vs_content, fs_content);
+    gl_shader_t program = gl_shader_create(&(gl_shader_desc_t) {
+        .vs = vs_content,
+        .fs = fs_content,
+    });
 
     ma_restore(ma);
 
@@ -795,6 +826,33 @@ extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t i
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
     return v3(result[0], result[1], result[2]);
+}
+
+extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
+    u32 vao = 0;
+    u32 vbo = 0;
+    
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    for (u32 i = 0; i < ARRAY_COUNT(desc->layout); ++i) {
+        const gl_layout_t* layout = &desc->layout[i];
+
+        if (layout->size) {
+            glEnableVertexAttribArray(i);
+            glVertexAttribPointer(i, layout->size, layout->type, layout->normalize, layout->stride, (void*)(u64)layout->offset);
+        }
+    }
+
+    return (gl_array_t) { .vao = vao, .vbo = vbo };
+}
+
+extern void gl_array_data(gl_array_t array, const void* data, u32 size) {
+    glBindBuffer(GL_ARRAY_BUFFER, array.vbo);
+    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
 #endif // ATS_OGL33
