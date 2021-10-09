@@ -37,15 +37,28 @@ extern void         gl_texture_delete(gl_texture_t* texture);
 
 typedef struct gl_shader_t {
     u32 id;
+
+    u32 uniforms[16];
 } gl_shader_t;
 
 typedef struct gl_shader_desc_t {
     const char* vs;
     const char* fs;
+
+    const char* uniforms[16];
 } gl_shader_desc_t;
 
 extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc);
 extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
+
+extern void gl_shader_uniform_i32(const gl_shader_t* shader, u32 uniform_index, i32 u);
+extern void gl_shader_uniform_f32(const gl_shader_t* shader, u32 uniform_index, f32 u);
+extern void gl_shader_uniform_v2(const gl_shader_t* shader, u32 uniform_index, vec2_t u);
+extern void gl_shader_uniform_v3(const gl_shader_t* shader, u32 uniform_index, vec3_t u);
+extern void gl_shader_uniform_v4(const gl_shader_t* shader, u32 uniform_index, vec4_t u);
+extern void gl_shader_uniform_m2(const gl_shader_t* shader, u32 uniform_index, mat2_t m);
+extern void gl_shader_uniform_m3(const gl_shader_t* shader, u32 uniform_index, mat3_t m);
+extern void gl_shader_uniform_m4(const gl_shader_t* shader, u32 uniform_index, mat4_t m);
 
 extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview);
 
@@ -785,7 +798,17 @@ extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
-    return (gl_shader_t) { .id = program };
+    gl_shader_t shader = { .id = program };
+
+    for (u32 i = 0; i < ARRAY_COUNT(desc->uniforms); ++i) {
+        const char* uniform = desc->uniforms[i];
+
+        if (uniform) {
+            shader.uniforms[i] = glGetUniformLocation(program, uniform);
+        }
+    }
+
+    return shader;
 }
 
 extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma) {
@@ -802,6 +825,38 @@ extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memo
     ma_restore(ma);
 
     return program;
+}
+
+extern void gl_shader_uniform_i32(const gl_shader_t* shader, u32 uniform_index, i32 i) {
+    glUniform1i(shader->uniforms[uniform_index], i);
+}
+
+extern void gl_shader_uniform_f32(const gl_shader_t* shader, u32 uniform_index, f32 f) {
+    glUniform1f(shader->uniforms[uniform_index], f);
+}
+
+extern void gl_shader_uniform_v2(const gl_shader_t* shader, u32 uniform_index, vec2_t u) {
+    glUniform2f(shader->uniforms[uniform_index], u.x, u.y);
+}
+
+extern void gl_shader_uniform_v3(const gl_shader_t* shader, u32 uniform_index, vec3_t u) {
+    glUniform3f(shader->uniforms[uniform_index], u.x, u.y, u.z);
+}
+
+extern void gl_shader_uniform_v4(const gl_shader_t* shader, u32 uniform_index, vec4_t u) {
+    glUniform4f(shader->uniforms[uniform_index], u.x, u.y, u.z, u.w);
+}
+
+extern void gl_shader_uniform_m2(const gl_shader_t* shader, u32 uniform_index, mat2_t m) {
+    glUniformMatrix2fv(shader->uniforms[uniform_index], 1, GL_FALSE, m.e);
+}
+
+extern void gl_shader_uniform_m3(const gl_shader_t* shader, u32 uniform_index, mat3_t m) {
+    glUniformMatrix3fv(shader->uniforms[uniform_index], 1, GL_FALSE, m.e);
+}
+
+extern void gl_shader_uniform_m4(const gl_shader_t* shader, u32 uniform_index, mat4_t m) {
+    glUniformMatrix4fv(shader->uniforms[uniform_index], 1, GL_FALSE, m.e);
 }
 
 extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview) {
