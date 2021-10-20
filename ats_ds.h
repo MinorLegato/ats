@@ -46,7 +46,7 @@ struct array_t {
     ~array_t() { destroy(); }
 };
 
-template <typename key_t, typename value_t, u32 INIT_SIZE = 256>
+template <typename key_t, typename value_t, u32 INIT_SIZE = 512>
 struct hash_table_t {
     struct entry_t {
         u32 used;
@@ -65,7 +65,7 @@ struct hash_table_t {
     u32         next   = 0;
     entry_t*    array  = nullptr;
 
-    void put(const key_t& key, const value_t& value) {
+    inline void put(const key_t& key, const value_t& value) {
         if (next >= cap) { _grow(); }
 
         u32 hash    = hash_mem(&key, sizeof (key));
@@ -94,7 +94,7 @@ struct hash_table_t {
         }
     }
 
-    value_t get(const key_t& key) const {
+    inline value_t get(const key_t& key) const {
         u32 hash    = hash_mem(&key, sizeof (key));
         u32 index   = hash % (cap >> 1);
 
@@ -107,19 +107,17 @@ struct hash_table_t {
         return e->is_entry(hash, key)? e->value : value_t {};
     }
 
-    void destroy(void) {
+    inline void destroy(void) {
         free(array);
     }
 
-    void _grow(void) {
+    inline void _grow(void) {
         u32      old_cap    = cap;
         entry_t* old_array  = array;
 
         cap   = cap? (cap << 1) : INIT_SIZE;
         next  = cap >> 1;
         array = (entry_t*)calloc(1, cap * sizeof (entry_t));
-
-        printf("%d\n", cap);
 
         if (old_array) {
             for (u32 i = 0; i < old_cap; ++i) {
