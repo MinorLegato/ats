@@ -55,11 +55,15 @@ struct hash_table_t {
 
         key_t   key;
         value_t value;
+
+        inline b32 is_entry(u32 h, const key_t& k) const {
+            return hash == h && (memcmp(&key, &k, sizeof (key_t)) == 0);
+        }
     };
-    
-    u32         cap     = 0;
+   
+    u32         cap    = 0;
     u32         next   = 0;
-    entry_t*    array   = nullptr;
+    entry_t*    array  = nullptr;
 
     void put(const key_t& key, const value_t& value) {
         if (next >= cap) { _grow(); }
@@ -68,13 +72,12 @@ struct hash_table_t {
         u32 index   = hash % (cap >> 1);
 
         entry_t* e  = &array[index];
-        b32 has_key = false;
 
-        while (e->used && e->next && (hash != e->hash) && (has_key = (memcmp(&e->key, &key, sizeof (key_t)) != 0))) {
+        while (e->next && !e->is_entry(hash, key)) {
             e = &array[e->next];
         }
 
-        if (!e->used || !has_key) {
+        if (e->is_entry(hash, key)) {
             e->used  = true;
             e->hash  = hash;
             e->key   = key;
@@ -96,13 +99,12 @@ struct hash_table_t {
         u32 index   = hash % (cap >> 1);
 
         entry_t* e  = &array[index];
-        b32 has_key = false;
 
-        while (e->next && (hash != e->hash) && (has_key = (memcmp(&e->key, &key, sizeof (key_t)) != 0))) {
+        while (e->next && !e->is_entry(hash, key)) {
             e = &array[e->next];
         }
 
-        return (has_key || memcmp(&e->key, &key, sizeof (key_t)) == 0)? e->value : (value_t {});
+        return e->is_entry(hash, key)? e->value : value_t {};
     }
 
     void destroy(void) {
@@ -113,8 +115,9 @@ struct hash_table_t {
         u32      old_cap    = cap;
         entry_t* old_array  = array;
 
-        cap    = cap? (2 * cap) : INIT_SIZE;
-        array  = (entry_t*)calloc(1, cap * sizeof (entry_t));
+        cap   = cap? (cap << 1) : INIT_SIZE;
+        next  = cap >> 1;
+        array = (entry_t*)calloc(1, cap * sizeof (entry_t));
 
         printf("%d\n", cap);
 
@@ -129,8 +132,6 @@ struct hash_table_t {
 
             free(old_array);
         }
-
-        next = cap >> 1;
     }
     
     ~hash_table_t() { destroy(); }
