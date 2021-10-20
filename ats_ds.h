@@ -1,3 +1,4 @@
+#pragma once
 
 template <typename type_t, u32 INIT_SIZE = 32>
 struct array_t {
@@ -38,17 +39,101 @@ struct array_t {
         cap     = 0;
         len     = 0;
         array   = nullptr;
+
+        puts("array destroy");
     }
 
     ~array_t() { destroy(); }
 };
 
-template <typename key_t, typename value_t>
+template <typename key_t, typename value_t, u32 INIT_SIZE = 256>
 struct hash_table_t {
     struct entry_t {
+        u32 used;
+        u32 hash;
+        u32 next;
+
         key_t   key;
         value_t value;
     };
+    
+    u32         cap     = 0;
+    u32         next   = 0;
+    entry_t*    array   = nullptr;
+
+    void put(const key_t& key, const value_t& value) {
+        if (next >= cap) { _grow(); }
+
+        u32 hash    = hash_mem(&key, sizeof (key));
+        u32 index   = hash % (cap >> 1);
+
+        entry_t* e  = &array[index];
+        b32 has_key = false;
+
+        while (e->used && e->next && (hash != e->hash) && (has_key = (memcmp(&e->key, &key, sizeof (key_t)) != 0))) {
+            e = &array[e->next];
+        }
+
+        if (!e->used || !has_key) {
+            e->used  = true;
+            e->hash  = hash;
+            e->key   = key;
+            e->value = value;
+        } else {
+            entry_t* n = &array[next++];
+
+            n->used  = true;
+            n->hash  = hash;
+            n->key   = key;
+            n->value = value;
+
+            e->next = next - 1;
+        }
+    }
+
+    value_t get(const key_t& key) const {
+        u32 hash    = hash_mem(&key, sizeof (key));
+        u32 index   = hash % (cap >> 1);
+
+        entry_t* e  = &array[index];
+        b32 has_key = false;
+
+        while (e->next && (hash != e->hash) && (has_key = (memcmp(&e->key, &key, sizeof (key_t)) != 0))) {
+            e = &array[e->next];
+        }
+
+        return (has_key || memcmp(&e->key, &key, sizeof (key_t)) == 0)? e->value : (value_t {});
+    }
+
+    void destroy(void) {
+        free(array);
+    }
+
+    void _grow(void) {
+        u32      old_cap    = cap;
+        entry_t* old_array  = array;
+
+        cap    = cap? (2 * cap) : INIT_SIZE;
+        array  = (entry_t*)calloc(1, cap * sizeof (entry_t));
+
+        printf("%d\n", cap);
+
+        if (old_array) {
+            for (u32 i = 0; i < old_cap; ++i) {
+                entry_t* e = &old_array[i];
+
+                if (e->used) {
+                    put(e->key, e->value);
+                }
+            }
+
+            free(old_array);
+        }
+
+        next = cap >> 1;
+    }
+    
+    ~hash_table_t() { destroy(); }
 };
 
 template <typename type_t, typename weight_t = f32>
@@ -117,5 +202,4 @@ struct priority_queue_t {
         return data.w;
     }
 };
-
 
