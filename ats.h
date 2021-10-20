@@ -2,6 +2,8 @@
 
 #include <math.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <float.h>
 
 // ======================================== API-MACROS ======================================= //
 
@@ -31,7 +33,8 @@
 
 #define ARRAY_COUNT(array) (sizeof (array) / sizeof ((array)[0]))
 
-#define join_token(a, b)    a##b
+#define join_helper(a, b)   a##b
+#define join_token(a, b)    join_helper(a, b)
 #define macro_var(a)        join_token(a, __LINE__)
 
 #define defer(start, end) for (int macro_var(i) = ((start), 0); !macro_var(i); (macro_var(i)++, (end)))
@@ -46,9 +49,9 @@
     for (i32 x = rect.min.x; x <= rect.max.x; ++x)
 
 #ifndef __cplusplus
-#define ATS_ZERO_INIT {0}
+#define ATS_INIT_ZERO {0}
 #else
-#define ATS_ZERO_INIT {}
+#define ATS_INIT_ZERO {}
 #endif
 
 #define LERP(a, b, t)       ((a) + (t) * ((b) - (a)))
@@ -110,8 +113,10 @@ typedef struct memory_arena_t memory_arena_t;
 
 typedef struct image_t image_t;
 
+#if 0
 typedef struct queue_node_t     queue_node_t;
 typedef struct priority_queue_t priority_queue_t;
+#endif
 
 // =========================================== TYPES ========================================= //
 
@@ -251,6 +256,7 @@ struct image_t {
     u32* pixels;
 };
 
+#if 0
 struct queue_node_t {
     f32 weight;
     vec2i_t e;
@@ -260,6 +266,7 @@ struct priority_queue_t {
     u32 len;
     queue_node_t* array;
 };
+#endif
 
 // ======================================== API-FUNCTIONS ======================================= //
 
@@ -486,6 +493,12 @@ static vec3i_t min(vec3i_t a, vec3i_t b) { return v3i_min(a, b); }
 static vec4i_t min(vec4i_t a, vec4i_t b) { return v4i_min(a, b); }
 #endif
 
+// ----------- equal ------------ //
+
+static b32 v2i_equal(vec2i_t a, vec2i_t b);
+static b32 v3i_equal(vec3i_t a, vec3i_t b);
+static b32 v4i_equal(vec4i_t a, vec4i_t b);
+
 // ---------------- max ----------------- //
 
 static vec2_t v2_max(vec2_t a, vec2_t b);
@@ -668,10 +681,12 @@ static u32 pack_color_v3(vec3_t color);
 
 // ---------------------- priority queue --------------------- //
 
+#if 0
 static b32  queue_empty(const priority_queue_t* queue);
 static void queue_clear(priority_queue_t* queue);
 static void queue_push(priority_queue_t* queue, vec2i_t e, f32 weight);
 static f32  queue_pop(vec2i_t* out, priority_queue_t* queue);
+#endif
 
 // -------------------- f64 matrix funcs ------------------- //
 
@@ -710,36 +725,43 @@ extern image_t  image_load_from_file(const char* path);
 extern u32      image_get_pixel(image_t* img, i32 x, i32 y);
 extern void     image_set_pixel(image_t* img, i32 x, i32 y, u32 pixel);
 
-
 // ----------------------------- C / C++ specific stuff ------------------------------- //
+
 #ifndef __cplusplus
+#define ctor(type_t, ...) ((type_t) { __VA_ARGS__ })
+#else
+#define ctor(type_t, ...) (type_t { __VA_ARGS__ })
+#endif
 
-#define v2(...) (vec2_t) { __VA_ARGS__ }
-#define v3(...) (vec3_t) { __VA_ARGS__ }
-#define v4(...) (vec4_t) { __VA_ARGS__ }
+#define m2(...)     ctor(mat2_t, __VA_ARGS__)
+#define m3(...)     ctor(mat3_t, __VA_ARGS__)
+#define m4(...)     ctor(mat4_t, __VA_ARGS__)
 
-#define v2i(...) (vec2i_t) { __VA_ARGS__ }
-#define v3i(...) (vec3i_t) { __VA_ARGS__ }
-#define v4i(...) (vec4i_t) { __VA_ARGS__ }
+#define quat(...)   ctor(quat_t, __VA_ARGS__)
 
-#define m2(...) (mat2_t) { __VA_ARGS__ }
-#define m3(...) (mat3_t) { __VA_ARGS__ }
-#define m4(...) (mat4_t) { __VA_ARGS__ }
+#define circle(...) ctor(circle_t,  __VA_ARGS__)
 
-#define color(...) (color_t) { __VA_ARGS__ }
-#define quat(...) (quat_t) { __VA_ARGS__ }
+#define rect2(...)  ctor(rect2_t, __VA_ARGS__)
+#define rect3(...)  ctor(rect3_t, __VA_ARGS__)
 
-#define circle(...) (circle_t) { __VA_ARGS__ }
+#define rect2i(...) ctor(rect2i_t, __VA_ARGS__)
+#define rect3i(...) ctor(rect3i_t, __VA_ARGS__)
 
-#define rect2(...) (rect2_t) { __VA_ARGS__ }
-#define rect3(...) (rect3_t) { __VA_ARGS__ }
+#ifndef __cplusplus // --------- c stuff-----------------//
 
-#define rect2i(...) (rect2i_t) { __VA_ARGS__ }
-#define rect3i(...) (rect3i_t) { __VA_ARGS__ }
+#define v2(...)  ctor(vec2_t, __VA_ARGS__)
+#define v3(...)  ctor(vec3_t, __VA_ARGS__)
+#define v4(...)  ctor(vec4_t, __VA_ARGS__)
 
-#define v2_cast(vec_type, u) (vec_type) { (u).x, (u).y }
-#define v3_cast(vec_type, u) (vec_type) { (u).x, (u).y, (u).z }
-#define v4_cast(vec_type, u) (vec_type) { (u).x, (u).y, (u).z, (u).w }
+#define v2i(...) ctor(vec2i_t, __VA_ARGS__)
+#define v3i(...) ctor(vec3i_t, __VA_ARGS__)
+#define v4i(...) ctor(vec4i_t, __VA_ARGS__)
+
+#define color(...)  ctor(color_t, __VA_ARGS__)
+
+#define v2_cast(vec_t, u) ctor(vec_t, (u).x, (u).y)
+#define v3_cast(vec_t, u) ctor(vec_t, (u).x, (u).y, (u).z)
+#define v4_cast(vec_t, u) ctor(vec_t, (u).x, (u).y, (u).z, (u).w)
 
 #else // ------ c++ stuff ---------- //
 
@@ -762,23 +784,18 @@ static vec3_t v3(vec4_t u)                      { return v3(u.x, u.y, u.z); }
 static vec3_t v3(vec2i_t u, f32 z = 0)          { return v3(u.x, u.y, z); }
 static vec3_t v3(vec3i_t u)                     { return v3(u.x, u.y, u.z); }
 static vec3_t v3(vec4i_t u)                     { return v3(u.x, u.y, u.z); }
-static vec3_t v3(u32 color)                     { return v3_from_packed_color(color); }
-static vec3_t v3(const f32* a)                  { return v3_from_array(a); }
 
 // ------------ v4 ----------- //
 static vec4_t v4(f32 x, f32 y, f32 z, f32 w)    { return { x, y, z, w }; }
 static vec4_t v4(f32 n)                         { return { n, n, n, n }; }
 static vec4_t v4(vec3_t u, f32 w = 0)           { return v4(u.x, u.y, u.z, w); }
 static vec4_t v4(vec4i_t u)                     { return v4(u.x, u.y, u.z, u.w); }
-static vec4_t v4(u32 color)                     { return v4_from_packed_color(color); }
-static vec4_t v4(const f32* a)                  { return v4_from_array(a); }
 
 // ------------ v2i ----------- //
 static vec2i_t v2i(i32 x, i32 y)                { return { x, y }; }
 static vec2i_t v2i(i32 n)                       { return { n, n }; }
 static vec2i_t v2i(vec2_t u)                    { return v2i(u.x, u.y); }
 static vec2i_t v2i(vec3_t u)                    { return v2i(u.x, u.y); }
-static vec2i_t v2i(const i32* a)                { return v2i_from_array(a); }
 
 // ------------ v3i ----------- //
 static vec3i_t v3i(i32 x, i32 y, i32 z)         { return { x, y, z }; }
@@ -786,18 +803,17 @@ static vec3i_t v3i(i32 n)                       { return { n, n, n }; }
 static vec3i_t v3i(vec2_t u, f32 z = 0)         { return v3i(u.x, u.y, z); }
 static vec3i_t v3i(vec3_t u)                    { return v3i(u.x, u.y, u.z); }
 static vec3i_t v3i(vec4_t u)                    { return v3i(u.x, u.y, u.z); }
-static vec3i_t v3i(const i32* a)                { return v3i_from_array(a); }
 
 // ------------ v4i ----------- //
 static vec4i_t v4i(i32 x, i32 y, i32 z, i32 w)  { return { x, y, z, w }; }
 static vec4i_t v4i(i32 n)                       { return { n, n, n, n }; }
-static vec4i_t v4i(const i32* a)                { return v4i_from_array(a); }
 
 // ------------ color ----------- //
 static color_t color(u8 r, u8 g, u8 b, u8 a)    { return { r, g, b, a }; }
 static color_t color(vec3_t u, u8 a = 255)      { return color(255 * u.r, 255 * u.g, 255 * u.b, a); }
 static color_t color(vec4_t u)                  { return color(255 * u.r, 255 * u.g, 255 * u.b, 255 * u.a); }
 
+#if 0
 // ------------ quat ----------- //
 static quat_t  quat(f32 x, f32 y, f32 z, f32 w) { return { x, y, z, w }; }
 
@@ -857,14 +873,7 @@ static mat4_t m4(vec4_t x, vec4_t y, vec4_t z, vec4_t w) {
         w.x, w.y, w.z, w.w,
     };
 }
-
-#define circle(...) (circle_t { __VA_ARGS__ })
-
-#define rect2(...)  (rect2_t { __VA_ARGS__ })
-#define rect3(...)  (rect3_t { __VA_ARGS__ })
-
-#define rect2i(...) (rect2i_t { __VA_ARGS__ })
-#define rect3i(...) (rect3i_t { __VA_ARGS__ })
+#endif
 
 // ---------------------- operator overloading --------------------- //
 
@@ -1531,6 +1540,20 @@ static vec4i_t v4i_min(vec4i_t a, vec4i_t b) {
         a.w < b.w? a.w : b.w);
 }
 
+// ----------- equal ------------ //
+
+static b32 v2i_equal(vec2i_t a, vec2i_t b) {
+    return a.x == b.x && a.y == b.y;
+}
+
+static b32 v3i_equal(vec3i_t a, vec3i_t b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+static b32 v4i_equal(vec4i_t a, vec4i_t b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+}
+
 // ---------------- max ----------------- //
 
 static vec2_t v2_max(vec2_t a, vec2_t b) {
@@ -2076,11 +2099,6 @@ static vec3_t rand_v3(u32* state, f32 min, f32 max) {
 
 // ----------------------- hash ------------------------- //
 
-#define HASH_PRIME0 3323784421u
-#define HASH_PRIME1 1449091801u
-#define HASH_PRIME2 4280703257u
-#define HASH_PRIME3 1609059329u
-
 static u32 hash_u32(u32 a) {
     a = (a ^ 61) ^ (a >> 16);
     a = a + (a << 3);
@@ -2116,6 +2134,11 @@ static u32 hash_mem(const void* ptr, u32 size) {
 
     return hash + (hash >> 16);
 }
+
+#define HASH_PRIME0 3323784421u
+#define HASH_PRIME1 1449091801u
+#define HASH_PRIME2 4280703257u
+#define HASH_PRIME3 1609059329u
 
 static u32 hash_v2i(vec2i_t k) {
     u32 a = hash_i32(k.x);
@@ -2168,6 +2191,7 @@ static u32 pack_color_v3(vec3_t color) {
 
 // ---------------------- priority queue --------------------- //
 
+#if 0
 static b32 queue_empty(const priority_queue_t* queue) {
     return queue->len == 0;
 }
@@ -2218,6 +2242,8 @@ static f32 queue_pop(vec2i_t* out, priority_queue_t* queue) {
     *out = data.e;
     return data.weight;
 }
+#endif
+
 // -------------------- f64 matrix funcs ------------------- //
 
 static void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
@@ -2387,7 +2413,7 @@ static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
 // ---------------------- arena allocator ------------------------ //
 
 extern memory_arena_t ma_create(u8* buffer, u32 size) {
-    memory_arena_t ma = ATS_ZERO_INIT;
+    memory_arena_t ma = ATS_INIT_ZERO;
 
     ma.cap    = size;
     ma.buffer = buffer;
@@ -2544,5 +2570,66 @@ extern void image_set_pixel(image_t* img, i32 x, i32 y, u32 pixel) {
     img->pixels[y * img->width + x] = pixel;
 }
 
-#endif
+// ========================================= DYNAMIC BUFFER/ARRAY ==================================== //
+
+#ifndef __cplusplus
+
+extern void _buf_free(void* buffer) {
+    free(_buf_header(buffer));
+}
+
+extern void* _buf_create(u32 element_size, u32 cap) {
+    buf_header_t* header = malloc(sizeof (buf_header_t) + cap * element_size);
+
+    header->len = 0;
+    header->cap = cap;
+
+    return header + 1;
+}
+
+extern void* _buf_grow(void* buffer, u32 element_size) {
+    if (buffer) {
+        buf_header_t* header = _buf_header(buffer);
+
+        if ((header->len + 1) >= header->cap) {
+            header->cap = header->cap << 1;
+            buf_header_t* new_header = realloc(header, sizeof (buf_header_t) + header->cap * element_size);
+            header = new_header;
+        }
+
+        return header + 1;
+    } else {
+        buf_header_t* header = malloc(sizeof (buf_header_t) + BUF_INIT_SIZE * element_size);
+
+        header->len = 0;
+        header->cap = BUF_INIT_SIZE;
+
+        return header + 1;
+    }
+}
+
+extern void* _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
+    if (buffer) {
+        buf_header_t* header = _buf_header(buffer);
+
+        if (new_cap >= header->cap) {
+            header->cap = new_cap;
+            buf_header_t* new_header = realloc(header, sizeof (buf_header_t) + header->cap * element_size);
+            header = new_header;
+        }
+
+        return header + 1;
+    } else {
+        buf_header_t* header = malloc(sizeof (buf_header_t) + new_cap * element_size);
+
+        header->len = 0;
+        header->cap = new_cap;
+
+        return header + 1;
+    }
+}
+
+#endif // __cplusplus
+
+#endif // ATS_IMPL
 

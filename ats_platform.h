@@ -72,9 +72,9 @@ typedef struct gl_array_t {
 typedef struct gl_layout_t {
     u32 size;
     u32 type;
-    b32 normalize;
     u32 stride;
     u32 offset;
+    b32 normalize;
 } gl_layout_t;
 
 typedef struct gl_array_desc_t {
@@ -692,7 +692,7 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
 }
 
 extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth) {
-    gl_texture_t texture = ATS_ZERO_INIT;
+    gl_texture_t texture = ATS_INIT_ZERO;
     i32 channels = 0;
 
     unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
@@ -731,16 +731,15 @@ extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, in
 #endif
 }
 
-#ifndef ATS_OGL33
 extern void gl_texture_bind(const gl_texture_t *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
+#ifndef ATS_OGL33
     glMatrixMode(GL_TEXTURE);
-
     glLoadIdentity();
     glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
-}
 #endif
+}
 
 extern void gl_texture_delete(gl_texture_t* texture) {
     glDeleteTextures(1, &texture->id);
@@ -800,7 +799,8 @@ extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
-    gl_shader_t shader = { .id = program };
+    gl_shader_t shader = ATS_INIT_ZERO;
+    shader.id = program;
 
     for (u32 i = 0; i < ARRAY_COUNT(desc->uniforms); ++i) {
         const char* uniform = desc->uniforms[i];
@@ -819,10 +819,12 @@ extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memo
     char* vs_content = file_read_str(vs, ma);
     char* fs_content = file_read_str(fs, ma);
 
-    gl_shader_t program = gl_shader_create(&(gl_shader_desc_t) {
-        .vs = vs_content,
-        .fs = fs_content,
-    });
+    gl_shader_desc_t desc = ATS_INIT_ZERO;
+
+    desc.vs = vs_content;
+    desc.fs = fs_content;
+
+    gl_shader_t program = gl_shader_create(&desc);
 
     ma_restore(ma);
 
@@ -886,7 +888,7 @@ extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t i
     f64 result[3];
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
-    return v3(result[0], result[1], result[2]);
+    return v3((f32)result[0], (f32)result[1], (f32)result[2]);
 }
 
 extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
@@ -908,7 +910,12 @@ extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
         }
     }
 
-    return (gl_array_t) { .vao = vao, .vbo = vbo };
+    gl_array_t result = ATS_INIT_ZERO;
+
+    result.vao = vao;
+    result.vbo = vbo;
+
+    return result;
 }
 
 extern void gl_array_data(gl_array_t array, const void* data, u32 size) {
