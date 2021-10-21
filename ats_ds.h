@@ -159,9 +159,9 @@ struct hash_table_t {
         }
     };
    
-    u32      cap    = 0;
-    u32      count  = 0;
-    entry_t* array  = nullptr;
+    u32 cap = 0;
+    u32 count = 0;
+    entry_t* array = nullptr;
 
     inline void put(const key_t& key, const value_t& value) {
         if (count + 1 >= cap) { _grow(); }
@@ -212,6 +212,11 @@ struct hash_table_t {
         entry_t* e = _get_entry(hash, key);
 
         if (e && (e->state == USED)) { e->state = DELETED; }
+    }
+
+    inline void clear(void) {
+        count = 0;
+        memset(array, 0, cap * sizeof (entry_t));
     }
 
     inline void destroy(void) {
