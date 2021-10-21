@@ -171,14 +171,28 @@ struct hash_table_t {
         u32 hash = hash_bytes(&key, sizeof (key_t), 0xdeadbeef);
         entry_t* e = _get_entry(hash, key);
 
-        if (e) {
-            if (e->state == NONE) { count++; }
+        if (e->state == NONE) { count++; }
 
-            e->state    = USED;
-            e->hash     = hash;
-            e->key      = key;
-            e->value    = value;
-        }
+        e->state    = USED;
+        e->hash     = hash;
+        e->key      = key;
+        e->value    = value;
+    }
+
+    inline value_t* put_ptr(const key_t& key) {
+        if (count + 1 >= cap) { _grow(); }
+
+        u32 hash = hash_bytes(&key, sizeof (key_t), 0xdeadbeef);
+        entry_t* e = _get_entry(hash, key);
+
+        if (e->state == NONE)       { count++; }
+        if (e->state == DELETED)    { e->value = {}; }
+
+        e->state    = USED;
+        e->hash     = hash;
+        e->key      = key;
+
+        return &e->value;
     }
 
     inline value_t get(const key_t& key) const {
@@ -186,6 +200,13 @@ struct hash_table_t {
         entry_t* e = _get_entry(hash, key);
 
         return (e && e->state == USED)? e->value : value_t {};
+    }
+
+    inline value_t* get_ptr(const key_t& key) const {
+        u32 hash = hash_bytes(&key, sizeof (key_t), 0xdeadbeef);
+        entry_t* e = _get_entry(hash, key);
+
+        return (e && e->state == USED)? &e->value : nullptr;
     }
 
     inline void del(const key_t& key) {
