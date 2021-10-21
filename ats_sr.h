@@ -187,10 +187,10 @@ static void sr_init(void) {
 
     gl_array_desc_t array_desc = ATS_INIT_ZERO;
 
-    array_desc.layout[0] = { 3, GL_FLOAT, sizeof (sr_vertex_t), offsetof(sr_vertex_t, pos) },
-    array_desc.layout[1] = { 3, GL_FLOAT, sizeof (sr_vertex_t), offsetof(sr_vertex_t, normal), true },
-    array_desc.layout[2] = { 2, GL_FLOAT, sizeof (sr_vertex_t), offsetof(sr_vertex_t, uv) },
-    array_desc.layout[3] = { 4, GL_UNSIGNED_BYTE, sizeof (sr_vertex_t), offsetof(sr_vertex_t, color), true },
+    array_desc.layout[0] = ctor(gl_layout_t, 3, GL_FLOAT, sizeof (sr_vertex_t), offsetof(sr_vertex_t, pos)),
+    array_desc.layout[1] = ctor(gl_layout_t, 3, GL_FLOAT, sizeof (sr_vertex_t), offsetof(sr_vertex_t, normal), true),
+    array_desc.layout[2] = ctor(gl_layout_t, 2, GL_FLOAT, sizeof (sr_vertex_t), offsetof(sr_vertex_t, uv)),
+    array_desc.layout[3] = ctor(gl_layout_t, 4, GL_UNSIGNED_BYTE, sizeof (sr_vertex_t), offsetof(sr_vertex_t, color), true),
 
     sr_array = gl_array_create(&array_desc);
 
