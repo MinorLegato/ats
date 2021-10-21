@@ -308,6 +308,8 @@ struct priority_queue_t {
 
 #endif
 
+// yanked from https://github.com/nothings/stb/blob/master/stb_ds.h
+
 #define STBDS_SIZE_T_BITS           ((sizeof (size_t)) * 8)
 #define STBDS_ROTATE_LEFT(val, n)   (((val) << (n)) | ((val) >> (STBDS_SIZE_T_BITS - (n))))
 #define STBDS_ROTATE_RIGHT(val, n)  (((val) >> (n)) | ((val) << (STBDS_SIZE_T_BITS - (n))))
