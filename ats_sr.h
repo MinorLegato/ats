@@ -12,7 +12,8 @@ typedef struct sr_vertex_t {
 
 typedef struct sr_range_t {
     gl_shader_t shader;
-    gl_texture_t texture;
+    
+    u32 type;
 
     u32 index;
     u32 count;
@@ -60,13 +61,13 @@ static gl_shader_t sr_ui_texture_shader;
 static gl_shader_t sr_ui_text_shader;
 
 static gl_array_t   sr_array;
-static u32          sr_triangle_count;
-static u32          sr_primitive_type;
 static sr_vertex_t  sr_current_vertex;
 
 static u32          sr_vertex_count;
 static sr_vertex_t  sr_vertex_array[1024 * 1024];
 
+static b32          sr_depth_test = false;
+static sr_range_t   sr_current_range;
 static u32          sr_range_count;
 static sr_range_t   sr_range_array[1024 * 1024];
 
@@ -290,22 +291,26 @@ static void sr_init(void) {
         sr_texture_shader   = gl_shader_create(&sr_texture_shader_desc);
         sr_shader           = gl_shader_create(&sr_shader_desc);
 
-        sr_uniforms.pvm                 = gl_shader_location(sr_shader, "pvm");
-        sr_uniforms.view_pos            = gl_shader_location(sr_shader, "view_pos");
+        {
+            gl_shader_use(sr_shader);
+            
+            sr_uniforms.pvm = gl_shader_location(sr_shader, "pvm");
+            sr_uniforms.view_pos = gl_shader_location(sr_shader, "view_pos");
 
-        char buffer[256];
+            char buffer[256];
 
-        for (u32 i = 0; i < SR_MAX_POINT_LIGHTS; ++i) {
-            sr_point_light_uniform_t* light = &sr_lights[i];
+            for (u32 i = 0; i < SR_MAX_POINT_LIGHTS; ++i) {
+                sr_point_light_uniform_t* light = &sr_lights[i];
 
-            sprintf(buffer, "light[%d].range", i);     light->range     = gl_shader_location(sr_shader, buffer);
-            sprintf(buffer, "light[%d].pos", i);       light->pos       = gl_shader_location(sr_shader, buffer);
-            sprintf(buffer, "light[%d].ambient", i);   light->ambient   = gl_shader_location(sr_shader, buffer);
-            sprintf(buffer, "light[%d].diffuse", i);   light->diffuse   = gl_shader_location(sr_shader, buffer);
-            sprintf(buffer, "light[%d].specular", i);  light->specular  = gl_shader_location(sr_shader, buffer);
-            sprintf(buffer, "light[%d].constant", i);  light->constant  = gl_shader_location(sr_shader, buffer);
-            sprintf(buffer, "light[%d].linear", i);    light->linear    = gl_shader_location(sr_shader, buffer);
-            sprintf(buffer, "light[%d].quadratic", i); light->quadratic = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].range", i);     light->range     = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].pos", i);       light->pos       = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].ambient", i);   light->ambient   = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].diffuse", i);   light->diffuse   = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].specular", i);  light->specular  = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].constant", i);  light->constant  = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].linear", i);    light->linear    = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].quadratic", i); light->quadratic = gl_shader_location(sr_shader, buffer);
+            }
         }
     }
 
@@ -323,11 +328,7 @@ static void sr_init(void) {
         .layout[3] = { .size = 4, .type = GL_UNSIGNED_BYTE, .stride = sizeof (sr_vertex_t), .offset = offsetof(sr_vertex_t, color), .normalize = true },
     });
 
-    gl_array_data(sr_array, NULL, ARRAY_COUNT(sr_vertex_array));
-}
-
-static void sr_end_frame(void) {
-    //
+    gl_array_data(sr_array, NULL, sizeof (sr_vertex_t) * ARRAY_COUNT(sr_vertex_array));
 }
 
 static void sr_color(u32 color) {
@@ -379,26 +380,41 @@ static void sr_set_texture(gl_texture_t texture) {
     gl_texture_bind(&texture);
 }
 
-static void sr_begin(u32 primitive_type, gl_shader_t shader) {
-    gl_shader_use(shader);
 
-    sr_primitive_type = primitive_type;
-    sr_vertex_count = 0;
+static void sr_begin(u32 primitive_type, gl_shader_t shader) {
+    sr_current_range = (sr_range_t) {
+        .shader     = shader,
+        .type       = primitive_type,
+        .index      = sr_vertex_count,
+    };
 }
 
 static void sr_end(void) {
-    sr_triangle_count += sr_vertex_count / 3;
-
-    gl_array_data(sr_array, sr_vertex_array, sizeof (sr_vertex_t) * sr_vertex_count);
-    glDrawArrays(sr_primitive_type, 0, sr_vertex_count);
+    sr_current_range.count = sr_vertex_count - sr_current_range.index;
+    sr_range_array[sr_range_count++] = sr_current_range;
 }
 
 static void sr_begin_frame(void) {
-    // setup text shader uniforms:
-    {
-        gl_shader_use(sr_ui_text_shader);
-        gl_uniform_m4(gl_shader_location(sr_ui_text_shader, "pvm"), m4_ortho(0, platform.width, platform.height, 0, -1, 1));
+    gl_shader_use(sr_ui_text_shader);
+    gl_uniform_m4(gl_shader_location(sr_ui_text_shader, "pvm"), m4_ortho(0, platform.width, platform.height, 0, -1, 1));
+}
+
+static void sr_end_frame(void) {
+    gl_array_data(sr_array, sr_vertex_array, sizeof (sr_vertex_t) * sr_vertex_count);
+
+    glEnable(GL_DEPTH_TEST);
+
+    for (u32 i = 0; i < sr_range_count; ++i) {
+        const sr_range_t* range = &sr_range_array[i];
+
+        gl_shader_use(range->shader);
+        glDrawArrays(range->type, range->index, range->count);
     }
+
+    sr_vertex_count = 0;
+    sr_range_count = 0;
+
+    sr_disable_all_lights();
 }
 
 static void sr_billboard(rect2_t tex_rect, vec3_t pos, vec2_t rad, vec3_t normal, u32 color, vec3_t right, vec3_t up) {
