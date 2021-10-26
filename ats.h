@@ -2,7 +2,6 @@
 
 #include <math.h>
 #include <string.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <float.h>
 
@@ -69,20 +68,30 @@
 typedef float   f32;
 typedef double  f64;
 
-typedef int8_t  i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
+typedef char        i8;
+typedef short       i16;
+typedef int         i32;
+typedef long long   i64;
 
-typedef uint8_t  u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+typedef unsigned char       u8;
+typedef unsigned short      u16;
+typedef unsigned int        u32;
+typedef unsigned long long  u64;
 
-typedef uint8_t  b8;
-typedef uint16_t b16;
-typedef uint32_t b32;
-typedef uint64_t b64;
+static_assert (sizeof (i8)  >= 1, "i8 -- not enough bits!");
+static_assert (sizeof (i16) >= 2, "i16 -- not enough bits!");
+static_assert (sizeof (i32) >= 4, "i32 -- not enough bits!");
+static_assert (sizeof (i64) >= 8, "i64 -- not enough bits!");
+
+static_assert (sizeof (u8)  >= 1, "u8 -- not enough bits!");
+static_assert (sizeof (u16) >= 2, "u16 -- not enough bits!");
+static_assert (sizeof (u32) >= 4, "u32 -- not enough bits!");
+static_assert (sizeof (u64) >= 8, "u64 -- not enough bits!");
+
+typedef u8  b8;
+typedef u16 b16;
+typedef u32 b32;
+typedef u64 b64;
 
 typedef union vec2_t vec2_t;
 typedef union vec3_t vec3_t;
@@ -269,7 +278,7 @@ struct priority_queue_t {
 };
 #endif
 
-// ======================================== API-FUNCTIONS ======================================= //
+// ======================================== FUNCTIONS ======================================= //
 
 static f32 sqrt_f32(f32 n);
 static f32 rsqrt_f32(f32 n);
@@ -2126,7 +2135,7 @@ static u32 hash_str(const char* str) {
     return hash + (hash >> 16);
 }
 
-static const uint32_t crc_table[] = {
+static const u32 crc_table[] = {
     0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9, 0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005,
     0x2608EDB8, 0x22C9F00F, 0x2F8AD6D6, 0x2B4BCB61, 0x350C9B64, 0x31CD86D3, 0x3C8EA00A, 0x384FBDBD,
     0x4C11DB70, 0x48D0C6C7, 0x4593E01E, 0x4152FDA9, 0x5F15ADAC, 0x5BD4B01B, 0x569796C2, 0x52568B75,
@@ -2161,7 +2170,7 @@ static const uint32_t crc_table[] = {
     0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4
 };
 
-static u32 hash_mem(const void *data, size_t size) {
+static u32 hash_mem(const void *data, u32 size) {
     const u8 *d = (const u8*)data;
     u32 crc = 0xFFFFFFFF;
 

@@ -30,7 +30,6 @@ struct texture_entry_t {
 
 struct texture_table_t {
     image_t image;
-
     texture_entry_t array[TEXTURE_TABLE_SIZE];
 };
 
@@ -54,11 +53,18 @@ extern void tt_add_entry(texture_table_t* table, const char* name, rect2_t rect)
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
 
-    rect.min.x += TEXTURE_BORDER;
-    rect.min.y += TEXTURE_BORDER;
+    f32 sx = 1.0f / table->image.width;
+    f32 sy = 1.0f / table->image.height;
 
-    rect.max.x -= TEXTURE_BORDER;
-    rect.max.y -= TEXTURE_BORDER;
+    rect.min.x *= sx;
+    rect.min.y *= sy;
+    rect.max.x *= sx;
+    rect.max.y *= sy;
+
+    rect.min.x += TEXTURE_BORDER * sx;
+    rect.min.y += TEXTURE_BORDER * sy;
+    rect.max.x -= TEXTURE_BORDER * sx;
+    rect.max.y -= TEXTURE_BORDER * sy;
     
     texture_entry_t* entry = &table->array[index];
     

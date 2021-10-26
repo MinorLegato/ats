@@ -1,6 +1,7 @@
 #pragma once
 
 #ifndef __cplusplus
+
 // ========================================== DYNAMIC ARRAY ===================================== //
 
 #ifndef BUF_INIT_SIZE
@@ -79,20 +80,6 @@ static void* _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
         return header + 1;
     }
 }
-
-// ============================== hash map ========================= //
-
-#if 0
-// used, hash, key, value
-
-#define ht_put(table, ...) \
-    ((table) = _ht_put((table), &(__VA_ARGS__), sizeof *(table), sizeof ((table)->key), (u32)((u8*)(table) - (u8*)&(table)->key)))
-
-static void* _ht_put(void* table, const void* new_entry, u32 entry_size, u32 key_size, u32 key_offset) {
-    if (!table) _buf_reserve(table, entry_size, 256);
-    return table;
-}
-#endif
 
 #else //=============================================== C++ ============================================ //
 
