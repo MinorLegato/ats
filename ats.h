@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <float.h>
+#include <assert.h>
 
 // ======================================== API-MACROS ======================================= //
 
@@ -123,10 +124,8 @@ typedef struct memory_arena_t memory_arena_t;
 
 typedef struct image_t image_t;
 
-#if 0
 typedef struct queue_node_t     queue_node_t;
 typedef struct priority_queue_t priority_queue_t;
-#endif
 
 // =========================================== TYPES ========================================= //
 
@@ -185,21 +184,18 @@ union color_t {
 };
 
 union mat2_t {
-    struct { vec2_t x, y; };
-
     f32 e[4];
+    struct { vec2_t x, y; };
 };
 
 union mat3_t {
-    struct { vec3_t x, y, z; };
-
     f32 e[9];
+    struct { vec3_t x, y, z; };
 };
 
 union mat4_t {
-    struct { vec4_t x, y, z, w; };
-
     f32 e[16];
+    struct { vec4_t x, y, z, w; };
 };
 
 struct quat_t {
@@ -266,7 +262,6 @@ struct image_t {
     u32* pixels;
 };
 
-#if 0
 struct queue_node_t {
     f32 weight;
     vec2i_t e;
@@ -276,7 +271,6 @@ struct priority_queue_t {
     u32 len;
     queue_node_t* array;
 };
-#endif
 
 // ======================================== FUNCTIONS ======================================= //
 
@@ -387,16 +381,6 @@ static i32 v2i_dot(vec2i_t a, vec2i_t b);
 static i32 v3i_dot(vec3i_t a, vec3i_t b);
 static i32 v4i_dot(vec4i_t a, vec4i_t b);
 
-#ifdef __cplusplus
-static f32 dot(vec2_t a, vec2_t b)      { return v2_dot(a, b); }
-static f32 dot(vec3_t a, vec3_t b)      { return v3_dot(a, b); }
-static f32 dot(vec4_t a, vec4_t b)      { return v4_dot(a, b); }
-
-static i32 dot(vec2i_t a, vec2i_t b)    { return v2i_dot(a, b); }
-static i32 dot(vec3i_t a, vec3i_t b)    { return v3i_dot(a, b); }
-static i32 dot(vec4i_t a, vec4i_t b)    { return v4i_dot(a, b); }
-#endif
-
 // ----------- length squared ----------- //
 
 static f32 v2_len_sq(vec2_t u);
@@ -407,27 +391,11 @@ static i32 v2i_len_sq(vec2i_t u);
 static i32 v3i_len_sq(vec3i_t u);
 static i32 v4i_len_sq(vec4i_t u);
 
-#ifdef __cplusplus
-static f32 len_sq(vec2_t u)     { return v2_len_sq(u); }
-static f32 len_sq(vec3_t u)     { return v3_len_sq(u); }
-static f32 len_sq(vec4_t u)     { return v4_len_sq(u); }
-
-static i32 len_sq(vec2i_t u)    { return v2i_len_sq(u); }
-static i32 len_sq(vec3i_t u)    { return v3i_len_sq(u); }
-static i32 len_sq(vec4i_t u)    { return v4i_len_sq(u); }
-#endif
-
 // -------------- length -------------- //
 
 static f32 v2_len(vec2_t u);
 static f32 v3_len(vec3_t u);
 static f32 v4_len(vec4_t u);
-
-#ifdef __cplusplus
-static f32 len(vec2_t u) { return v2_len(u); }
-static f32 len(vec3_t u) { return v3_len(u); }
-static f32 len(vec4_t u) { return v4_len(u); }
-#endif
 
 // -------------- distance squared -------------- //
 
@@ -439,49 +407,22 @@ static i32 v2i_dist_sq(vec2i_t a, vec2i_t b);
 static i32 v3i_dist_sq(vec3i_t a, vec3i_t b);
 static i32 v4i_dist_sq(vec4i_t a, vec4i_t b);
 
-#ifdef __cplusplus
-static f32 dist_sq(vec2_t a, vec2_t b)      { return v2_dist_sq(a, b); }
-static f32 dist_sq(vec3_t a, vec3_t b)      { return v3_dist_sq(a, b); }
-static f32 dist_sq(vec4_t a, vec4_t b)      { return v4_dist_sq(a, b); }
-
-static i32 dist_sq(vec2i_t a, vec2i_t b)    { return v2i_dist_sq(a, b); }
-static i32 dist_sq(vec3i_t a, vec3i_t b)    { return v3i_dist_sq(a, b); }
-static i32 dist_sq(vec4i_t a, vec4i_t b)    { return v4i_dist_sq(a, b); }
-#endif
-
 // ----------------- distance ------------------ //
 
 static f32 v2_dist(vec2_t a, vec2_t b);
 static f32 v3_dist(vec3_t a, vec3_t b);
 static f32 v4_dist(vec4_t a, vec4_t b);
 
-#ifdef __cplusplus
-static f32 dist(vec2_t a, vec2_t b) { return v2_dist(a, b); }
-static f32 dist(vec3_t a, vec3_t b) { return v3_dist(a, b); }
-static f32 dist(vec4_t a, vec4_t b) { return v4_dist(a, b); }
-#endif
-
 // -------------- manhattan distance -------------- //
 
 static i32 v2i_manhattan(vec2i_t a, vec2i_t b);
 static i32 v3i_manhattan(vec3i_t a, vec3i_t b);
-
-#ifdef __cplusplus
-static i32 manhattan(vec2i_t a, vec2i_t b) { return v2i_manhattan(a, b); }
-static i32 manhattan(vec3i_t a, vec3i_t b) { return v3i_manhattan(a, b); }
-#endif
 
 // -------------- normalize --------------- //
 
 static vec2_t v2_norm(vec2_t u);
 static vec3_t v3_norm(vec3_t u);
 static vec4_t v4_norm(vec4_t u);
-
-#ifdef __cplusplus
-static vec2_t norm(vec2_t u) { return v2_norm(u); }
-static vec3_t norm(vec3_t u) { return v3_norm(u); }
-static vec4_t norm(vec4_t u) { return v4_norm(u); }
-#endif
 
 // ---------------- min ----------------- //
 
@@ -492,16 +433,6 @@ static vec4_t v4_min(vec4_t a, vec4_t b);
 static vec2i_t v2i_min(vec2i_t a, vec2i_t b);
 static vec3i_t v3i_min(vec3i_t a, vec3i_t b);
 static vec4i_t v4i_min(vec4i_t a, vec4i_t b);
-
-#ifdef __cplusplus
-static vec2_t min(vec2_t a, vec2_t b) { return v2_min(a, b); }
-static vec3_t min(vec3_t a, vec3_t b) { return v3_min(a, b); }
-static vec4_t min(vec4_t a, vec4_t b) { return v4_min(a, b); }
-
-static vec2i_t min(vec2i_t a, vec2i_t b) { return v2i_min(a, b); }
-static vec3i_t min(vec3i_t a, vec3i_t b) { return v3i_min(a, b); }
-static vec4i_t min(vec4i_t a, vec4i_t b) { return v4i_min(a, b); }
-#endif
 
 // ----------- equal ------------ //
 
@@ -519,16 +450,6 @@ static vec2i_t v2i_max(vec2i_t a, vec2i_t b);
 static vec3i_t v3i_max(vec3i_t a, vec3i_t b);
 static vec4i_t v4i_max(vec4i_t a, vec4i_t b);
 
-#ifdef __cplusplus
-static vec2_t max(vec2_t a, vec2_t b) { return v2_max(a, b); }
-static vec3_t max(vec3_t a, vec3_t b) { return v3_max(a, b); }
-static vec4_t max(vec4_t a, vec4_t b) { return v4_max(a, b); }
-
-static vec2i_t max(vec2i_t a, vec2i_t b) { return v2i_max(a, b); }
-static vec3i_t max(vec3i_t a, vec3i_t b) { return v3i_max(a, b); }
-static vec4i_t max(vec4i_t a, vec4i_t b) { return v4i_max(a, b); }
-#endif
-
 // ---------------- lerp ----------------- //
 
 static vec2_t v2_lerp(vec2_t a, vec2_t b, f32 t);
@@ -537,29 +458,13 @@ static vec4_t v4_lerp(vec4_t a, vec4_t b, f32 t);
 
 static color_t color_lerp(color_t a, color_t b, f32 t);
 
-#ifdef __cplusplus
-static vec2_t lerp(vec2_t a, vec2_t b, f32 t) { return v2_lerp(a, b, t); }
-static vec3_t lerp(vec3_t a, vec3_t b, f32 t) { return v3_lerp(a, b, t); }
-static vec4_t lerp(vec4_t a, vec4_t b, f32 t) { return v4_lerp(a, b, t); }
-
-static color_t lerp(color_t a, color_t b, f32 t) { return color_lerp(a, b, t); }
-#endif
-
 // --------------- cross ------------------- //
 
 static vec3_t v3_cross(vec3_t a, vec3_t b);
 
-#ifdef __cplusplus
-static vec3_t cross(vec3_t a, vec3_t b) { return v3_cross(a, b); }
-#endif
-
 // --------------- get angle --------------- //
 
 static f32 v2_get_angle(vec2_t a, vec2_t b);
-
-#ifdef __cplusplus
-static f32 get_angle(vec2_t a, vec2_t b) { return v2_get_angle(a, b); }
-#endif
 
 // --------------- transform/scale/rotation ---------------- //
 
@@ -593,16 +498,6 @@ static b32 rect2i_contains(rect2i_t rect, vec2i_t pos);
 static b32 rect3i_contains(rect3i_t rect, vec3i_t pos);
 static b32 frustum_contains(frustum_t frustum, vec3_t pos);
 
-#ifdef __cplusplus
-static b32 contains(circle_t circle, vec2_t pos)    { return circle_contains(circle, pos); }
-static b32 contains(sphere_t sphere, vec3_t pos)    { return sphere_contains(sphere, pos); }
-static b32 contains(rect2_t rect, vec2_t pos)       { return rect2_contains(rect, pos); }
-static b32 contains(rect3_t rect, vec3_t pos)       { return rect3_contains(rect, pos); }
-static b32 contains(rect2i_t rect, vec2i_t pos)     { return rect2i_contains(rect, pos); }
-static b32 contains(rect3i_t rect, vec3i_t pos)     { return rect3i_contains(rect, pos); }
-static b32 contains(frustum_t frustum, vec3_t pos)  { return frustum_contains(frustum, pos); }
-#endif
-
 // ------------------ intersect ------------------ //
 
 static b32 circle_intersect(circle_t a, circle_t b);
@@ -615,31 +510,12 @@ static b32 rect3i_intersect(rect3i_t a, rect3i_t b);
 static b32 frustum_intersect_sphere(frustum_t frustum, sphere_t sphere);
 static b32 frustum_intersect_rect3(frustum_t frustum, rect3_t rect);
 
-#ifdef __cplusplus
-static b32 intersect(circle_t a, circle_t b)    { return circle_intersect(a, b); }
-static b32 intersect(sphere_t a, sphere_t b)    { return sphere_intersect(a, b); }
-static b32 intersect(rect2_t a, rect2_t b)      { return rect2_intersect(a, b); }
-static b32 intersect(rect3_t a, rect3_t b)      { return rect3_intersect(a, b); }
-static b32 intersect(rect2i_t a, rect2i_t b)    { return rect2i_intersect(a, b); }
-static b32 intersect(rect3i_t a, rect3i_t b)    { return rect3i_intersect(a, b); }
-
-static b32 intersect(frustum_t frustum, sphere_t sphere) { return frustum_intersect_sphere(frustum, sphere); }
-static b32 intersect(frustum_t frustum, rect3_t rect)    { return frustum_intersect_rect3(frustum, rect); }
-#endif
-
 // ------------------- get overlap --------------- //
 
 static rect2_t rect2_get_overlap(rect2_t a, rect2_t b);
 static rect3_t rect3_get_overlap(rect3_t a, rect3_t b);
 static rect2i_t rect2i_get_overlap(rect2i_t a, rect2i_t b);
 static rect3i_t rect3i_get_overlap(rect3i_t a, rect3i_t b);
-
-#ifdef __cplusplus
-static rect2_t  get_overlap(rect2_t a, rect2_t b)   { return rect2_get_overlap(a, b); }
-static rect3_t  get_overlap(rect3_t a, rect3_t b)   { return rect3_get_overlap(a, b); }
-static rect2i_t get_overlap(rect2i_t a, rect2i_t b) { return rect2i_get_overlap(a, b); }
-static rect3i_t get_overlap(rect3i_t a, rect3i_t b) { return rect3i_get_overlap(a, b); }
-#endif
 
 // -------------- get intersect vector ---------- //
 
@@ -649,15 +525,6 @@ static vec2_t  rect2_get_intersect_vector(rect2_t a, rect2_t b);
 static vec3_t  rect3_get_intersect_vector(rect3_t a, rect3_t b);
 static vec2i_t rect2i_get_intersect_vector(rect2i_t a, rect2i_t b);
 static vec3i_t rect3i_get_intersect_vector(rect3i_t a, rect3i_t b);
-
-#ifdef __cplusplus
-static vec2_t  get_intersect_vector(circle_t a, circle_t b) { return circle_get_intersect_vector(a, b); }
-static vec3_t  get_intersect_vector(sphere_t a, sphere_t b) { return sphere_get_intersect_vector(a, b); }
-static vec2_t  get_intersect_vector(rect2_t a, rect2_t b)   { return rect2_get_intersect_vector(a, b); }
-static vec3_t  get_intersect_vector(rect3_t a, rect3_t b)   { return rect3_get_intersect_vector(a, b); }
-static vec2i_t get_intersect_vector(rect2i_t a, rect2i_t b) { return rect2i_get_intersect_vector(a, b); }
-static vec3i_t get_intersect_vector(rect3i_t a, rect3i_t b) { return rect3i_get_intersect_vector(a, b); }
-#endif
 
 // ---------------------- random ------------------------ //
 
@@ -691,12 +558,10 @@ static u32 pack_color_v3(vec3_t color);
 
 // ---------------------- priority queue --------------------- //
 
-#if 0
 static b32  queue_empty(const priority_queue_t* queue);
 static void queue_clear(priority_queue_t* queue);
 static void queue_push(priority_queue_t* queue, vec2i_t e, f32 weight);
 static f32  queue_pop(vec2i_t* out, priority_queue_t* queue);
-#endif
 
 // -------------------- f64 matrix funcs ------------------- //
 
@@ -2238,7 +2103,6 @@ static u32 pack_color_v3(vec3_t color) {
 
 // ---------------------- priority queue --------------------- //
 
-#if 0
 static b32 queue_empty(const priority_queue_t* queue) {
     return queue->len == 0;
 }
@@ -2289,7 +2153,6 @@ static f32 queue_pop(vec2i_t* out, priority_queue_t* queue) {
     *out = data.e;
     return data.weight;
 }
-#endif
 
 // -------------------- f64 matrix funcs ------------------- //
 
@@ -2596,8 +2459,9 @@ extern b32 file_write_bin(const char* file_name, const void* buffer, u32 size) {
 
 // --------------------- image ----------------------- //
 
+#ifndef ATS_NO_IMAGE
 #define STB_IMAGE_IMPLEMENTATION
-#include "dep/stb_image.h" 
+#include "ext/stb_image.h" 
 
 extern image_t image_load_from_file(const char* path) {
     image_t image = {0};
@@ -2616,6 +2480,7 @@ extern u32 image_get_pixel(image_t* img, i32 x, i32 y) {
 extern void image_set_pixel(image_t* img, i32 x, i32 y, u32 pixel) {
     img->pixels[y * img->width + x] = pixel;
 }
+#endif
 
 #endif // ATS_IMPL
 

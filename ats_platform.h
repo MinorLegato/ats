@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef ATS_OGL33
-#include "dep/glad/glad.h"
+#include "ext/glad/glad.h"
 #endif
 
 // ====================================================== API =================================================== //
@@ -379,7 +379,7 @@ struct platform_t {
 #ifdef ATS_IMPL
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#pragma comment(lib, "glfw3.lib")
+#pragma comment(lib, "glfw3_mt.lib")
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "shell32.lib")
@@ -388,7 +388,7 @@ struct platform_t {
 #endif
 
 #ifdef ATS_OGL33
-#include "dep/glad/glad.c"
+#include "ext/glad/glad.c"
 #endif
 
 #include <GLFW/glfw3.h>
@@ -688,6 +688,7 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
     return texture;
 }
 
+#ifndef ATS_NO_IMAGE
 extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth) {
     gl_texture_t texture = ATS_INIT_ZERO;
     i32 channels = 0;
@@ -712,6 +713,7 @@ extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_s
 
     return texture;
 }
+#endif
 
 extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width = width;
@@ -828,36 +830,36 @@ extern u32 gl_shader_location(gl_shader_t shader, const char* name) {
     return glGetUniformLocation(shader.id, name);
 }
 
-extern void gl_uniform_i32(u32 uniform_index, i32 i) {
-    glUniform1i(uniform_index, i);
+extern void gl_uniform_i32(u32 location, i32 i) {
+    glUniform1i(location, i);
 }
 
-extern void gl_uniform_f32(u32 uniform_index, f32 f) {
-    glUniform1f(uniform_index, f);
+extern void gl_uniform_f32(u32 location, f32 f) {
+    glUniform1f(location, f);
 }
 
-extern void gl_uniform_v2(u32 uniform_index, vec2_t u) {
-    glUniform2f(uniform_index, u.x, u.y);
+extern void gl_uniform_v2(u32 location, vec2_t u) {
+    glUniform2f(location, u.x, u.y);
 }
 
-extern void gl_uniform_v3(u32 uniform_index, vec3_t u) {
-    glUniform3f(uniform_index, u.x, u.y, u.z);
+extern void gl_uniform_v3(u32 location, vec3_t u) {
+    glUniform3f(location, u.x, u.y, u.z);
 }
 
-extern void gl_uniform_v4(u32 uniform_index, vec4_t u) {
-    glUniform4f(uniform_index, u.x, u.y, u.z, u.w);
+extern void gl_uniform_v4(u32 location, vec4_t u) {
+    glUniform4f(location, u.x, u.y, u.z, u.w);
 }
 
-extern void gl_uniform_m2(u32 uniform_index, mat2_t m) {
-    glUniformMatrix2fv(uniform_index, 1, GL_FALSE, m.e);
+extern void gl_uniform_m2(u32 location, mat2_t m) {
+    glUniformMatrix2fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void gl_uniform_m3(u32 uniform_index, mat3_t m) {
-    glUniformMatrix3fv(uniform_index, 1, GL_FALSE, m.e);
+extern void gl_uniform_m3(u32 location, mat3_t m) {
+    glUniformMatrix3fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void gl_uniform_m4(u32 uniform_index, mat4_t m) {
-    glUniformMatrix4fv(uniform_index, 1, GL_FALSE, m.e);
+extern void gl_uniform_m4(u32 location, mat4_t m) {
+    glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
 extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview) {
