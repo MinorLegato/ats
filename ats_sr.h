@@ -836,7 +836,7 @@ static const u64 sr_bitascii[SR_BITMAP_COUNT] = {
     0x007e424242427e00
 };
 
-#define SR_BITMAP_GETBIT(N, X, Y) (((u64)(N)) & (1ull << (((u64)(Y)) * 8ull + ((u64)(X)))))
+#define SR_BITMAP_GETBIT(n, x, y) (((u64)(n)) & (1ull << (((u64)(y)) * 8ull + ((u64)(x)))))
 
 static void sr_init_bitmap(void) {
     u32 pixels[8][SR_BITMAP_COUNT * 8] = {0};
@@ -858,6 +858,7 @@ static void sr_init_bitmap(void) {
 
     glActiveTexture(GL_TEXTURE0 + 1);
     gl_texture_bind(&sr_bitmap_texture);
+    glActiveTexture(GL_TEXTURE0);
 }
 
 static void sr_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {

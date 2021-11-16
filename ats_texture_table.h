@@ -11,8 +11,8 @@ typedef struct texture_entry_t texture_entry_t;
 typedef struct texture_table_t texture_table_t;
 
 extern rect2_t          tt_get_rect(texture_table_t* table, texture_id_t id);
-extern void             tt_add_entry(texture_table_t* table, const char* name, rect2_t rect);
 extern texture_id_t     tt_get_id(texture_table_t* table, const char* name);
+extern rect2_t          tt_get(texture_table_t* table, const char* name);
 extern texture_table_t  tt_load_from_dir(const char* dir_path, memory_arena_t* ma);
 
 struct texture_id_t {
@@ -42,7 +42,30 @@ extern rect2_t tt_get_rect(texture_table_t* table, texture_id_t id) {
     return table->array[id.index].rect;
 }
 
-extern void tt_add_entry(texture_table_t* table, const char* name, rect2_t rect) {
+extern texture_id_t tt_get_id(texture_table_t* table, const char* name) {
+    u32 hash  = hash_str(name);
+    u16 index = hash % TEXTURE_TABLE_SIZE;
+
+    while (table->array[index].in_use) {
+        if ((table->array[index].hash == hash) && (strcmp(table->array[index].name, name) == 0)) {
+            texture_id_t id = { index };
+            return id;
+        }
+
+        index = (index + 1) % TEXTURE_TABLE_SIZE;
+    }
+    
+    assert(false);
+
+    texture_id_t id = {0};
+    return id;
+}
+
+extern rect2_t tt_get(texture_table_t* table, const char* name) {
+    return tt_get_rect(table, tt_get_id(table, name));
+}
+
+static void _tt_add_entry(texture_table_t* table, const char* name, rect2_t rect) {
     u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
@@ -75,36 +98,17 @@ extern void tt_add_entry(texture_table_t* table, const char* name, rect2_t rect)
     strcpy_s(entry->name, 64, name);
 }
 
-extern texture_id_t tt_get_id(texture_table_t* table, const char* name) {
-    u32 hash  = hash_str(name);
-    u16 index = hash % TEXTURE_TABLE_SIZE;
-
-    while (table->array[index].in_use) {
-        if ((table->array[index].hash == hash) && (strcmp(table->array[index].name, name) == 0)) {
-            texture_id_t id = { index };
-            return id;
-        }
-
-        index = (index + 1) % TEXTURE_TABLE_SIZE;
-    }
-    
-    assert(false);
-
-    texture_id_t id = {0};
-    return id;
+static void cstr_copy_no_file_extension(char* out, char* str) {
+    int i = strlen(str) - 1;
+    while (i && str[i] != '.') i--;
+    memcpy(out, str, i);
+    out[i] = '\0';
 }
 
 static void cstr_concat(char* out, const char* a, const char* b) {
     while (*a) *out++ = *a++;
     while (*b) *out++ = *b++;
     *(out) = '\0';
-}
-
-static void cstr_copy_no_file_extension(char* out, char* str) {
-    int i = strlen(str) - 1;
-    while (i && str[i] != '.') i--;
-    memcpy(out, str, i);
-    out[i] = '\0';
 }
 
 typedef struct image_data_t image_data_t;
@@ -200,7 +204,7 @@ extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma
                 vec2_t size   = v2(data->image.width + 2, data->image.height + 2);
                 vec2_t offset = rect.min;
 
-                tt_add_entry(&table, data->name, rect2(
+                _tt_add_entry(&table, data->name, rect2(
                         v2(offset.x + 1, offset.y + 1),
                         v2(offset.x + size.x - 1, offset.y + size.y - 1)));
 
