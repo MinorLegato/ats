@@ -6,9 +6,9 @@
 #define TEXTURE_BORDER 0
 #endif
 
-typedef struct texture_id_t texture_id_t;
-typedef struct texture_entry_t texture_entry_t;
-typedef struct texture_table_t texture_table_t;
+typedef struct texture_id_t     texture_id_t;
+typedef struct texture_entry_t  texture_entry_t;
+typedef struct texture_table_t  texture_table_t;
 
 extern rect2_t          tt_get_rect(texture_table_t* table, texture_id_t id);
 extern texture_id_t     tt_get_id(texture_table_t* table, const char* name);

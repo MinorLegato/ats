@@ -4,6 +4,11 @@
 #include "ext/glad/glad.h"
 #endif
 
+#ifdef ATS_IMGUI
+#include "ext/imgui/imgui_impl_glfw.h"
+#include "ext/imgui/imgui_impl_opengl3.h"
+#endif
+
 // ====================================================== API =================================================== //
 
 // ------------------- platform layer ------------------------ //
@@ -371,7 +376,9 @@ struct platform_t {
     } keyboard;
 
     gamepad_t gamepad[JOYSTICK_LAST];
-} platform;
+};
+
+extern platform_t platform;
 
 // ===================================================================================================== //
 // ======================================= PLATFORM IMPL =============================================== //
@@ -396,7 +403,17 @@ struct platform_t {
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
-extern platform_t platform;
+#ifdef ATS_IMGUI
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+#include "ext/imgui/imgui_impl_opengl3.cpp"
+#include "ext/imgui/imgui_impl_glfw.cpp"
+#include "ext/imgui/imgui.cpp"
+#include "ext/imgui/imgui_draw.cpp"
+#include "ext/imgui/imgui_tables.cpp"
+#include "ext/imgui/imgui_widgets.cpp"
+#endif
+
+platform_t platform;
 
 static struct {
     GLFWwindow* window;
@@ -532,6 +549,14 @@ extern void platform_init(const char* title, int width, int height, int samples)
             platform.gamepad[i].active = 1;
     }
 
+#ifdef ATS_IMGUI
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(platform_internal.window, true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+#endif
+
     glfwSetTime(0.0);
 
     glClearColor(0, 0, 0, 1);
@@ -539,6 +564,13 @@ extern void platform_init(const char* title, int width, int height, int samples)
     
     glfwSwapBuffers(platform_internal.window);
     glfwPollEvents();
+
+#ifdef ATS_IMGUI
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+
+    ImGui::NewFrame();
+#endif
 }
 
 extern void platform_update(void) {
@@ -654,11 +686,22 @@ extern void platform_update(void) {
     memset(platform.mouse.pressed,  0, sizeof (platform.mouse.pressed));
     memset(platform.mouse.released, 0, sizeof (platform.mouse.released));
 
+#ifdef ATS_IMGUI
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
+
     glfwPollEvents();
     glfwSwapBuffers(platform_internal.window);
 
     platform.time.delta = glfwGetTime() - platform.time.total;
     platform.time.total += platform.time.delta;
+
+#ifdef ATS_IMGUI
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+#endif
 }
 
 extern f64 timer_get_current(void) {

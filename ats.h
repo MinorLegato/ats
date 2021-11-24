@@ -280,6 +280,10 @@ static f32 rsqrt_f32(f32 n);
 static f32 shortest_angle_distance_f32(f32 a, f32 b);
 static f32 lerp_angle_f32(f32 a, f32 b, f32 t);
 
+static f32 clamp_f32(f32 n, f32 min, f32 max);
+
+static f32 lerp_f32(f32 a, f32 b, f32 t);
+
 // ---------- type creation ---------- //
 
 static vec2_t v2_from_array(const f32* a);
@@ -935,6 +939,16 @@ static f32 shortest_angle_distance_f32(f32 a, f32 b) {
 
 static f32 lerp_angle_f32(f32 a, f32 b, f32 t) {
     return a + shortest_angle_distance_f32(a, b) * t;
+}
+
+static f32 clamp_f32(f32 n, f32 min, f32 max) {
+    if (n < min) return min;
+    if (n > max) return max;
+    return n;
+}
+
+static f32 lerp_f32(f32 a, f32 b, f32 t) {
+    return a + t * (b - a);
 }
 
 // ---------- from array ---------- //
@@ -2480,6 +2494,7 @@ extern u32 image_get_pixel(image_t* img, i32 x, i32 y) {
 extern void image_set_pixel(image_t* img, i32 x, i32 y, u32 pixel) {
     img->pixels[y * img->width + x] = pixel;
 }
+
 #endif
 
 #endif // ATS_IMPL

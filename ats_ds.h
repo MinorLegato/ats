@@ -83,54 +83,198 @@ static void* _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
 
 #else //=============================================== C++ ============================================ //
 
-template <typename type_t, u32 INIT_SIZE = 32>
-struct array_t {
-    u32     cap    = 0;
-    u32     len    = 0;
-    type_t* array  = nullptr;
+// =================================================== ARRAYS ================================================== //
 
-    inline void add(const type_t& e) {
-        if (len >= cap) reserve(cap? (2 * cap) : INIT_SIZE);
-        array[len++] = e;
-    }
+// --------------- fixed array --------------- //
 
-    inline void rem(u32 i) {
-        array[i] = array[--len];
-    }
-
-    inline void reserve(u32 new_cap) {
-        if (new_cap > cap) {
-            cap     = new_cap;
-            array   = (type_t*)realloc(array, cap * sizeof (type_t));
-        }
-    }
+template <typename type_t, u32 cap>
+struct fixed_array {
+    u32     len;
+    type_t  buf[cap];
 
     inline type_t& operator[](u32 i) {
-        return array[i];
+        return buf[i];
     }
 
     inline const type_t& operator[](u32 i) const {
-        return array[i];
+        return buf[i];
     }
-
-    inline void clear(void) {
-        len = 0;
-    }
-
-    inline void destroy(void) {
-        free(array);
-        cap     = 0;
-        len     = 0;
-        array   = nullptr;
-
-        puts("array destroy");
-    }
-
-    ~array_t() { destroy(); }
 };
 
+template <typename type_t, u32 cap>
+static bool array_add(fixed_array<type_t, cap>* a, const type_t& e) {
+    if (a->len >= cap) return false;
+    a->buf[a->len++] = e;
+    return true;
+}
+
+template <typename type_t, u32 cap>
+static type_t* array_new(fixed_array<type_t, cap>* a) {
+    if (a->len >= cap) return nullptr;
+    type_t* e = &a->buf[a->len++];
+    *e = {};
+    return e;
+}
+
+template <typename type_t, u32 cap>
+static void array_rem(fixed_array<type_t, cap>* a, u32 i) {
+    a->buf[i] = a->buf[--a->len];
+}
+
+template <typename type_t, u32 cap>
+static type_t* array_ptr(fixed_array<type_t, cap>* a) {
+    return a->buf;
+}
+
+template <typename type_t, u32 cap>
+static const type_t* array_ptr(const fixed_array<type_t, cap>* a) {
+    return a->buf;
+}
+
+template <typename type_t, u32 cap>
+static type_t* array_get(fixed_array<type_t, cap>* a, u32 i) {
+    return a->buf + i;
+}
+
+template <typename type_t, u32 cap>
+static const type_t* array_get(const fixed_array<type_t, cap>* a, u32 i) {
+    return a->buf + i;
+}
+
+template <typename type_t, u32 cap>
+static u32 array_len(const fixed_array<type_t, cap>* a) {
+    return a->len;
+}
+
+template <typename type_t, u32 cap>
+static u32 array_cap(const fixed_array<type_t, cap>* a) {
+    return a->cap;
+}
+
+template <typename type_t, u32 cap>
+static void array_clear(fixed_array<type_t, cap>* a) {
+    a->len = 0;
+}
+
+// --------------- dynamic array --------------- //
+
+#ifndef DYN_ARRAY_INIT_SIZE
+#define DYN_ARRAY_INIT_SIZE (32)
+#endif
+
+template <typename type_t>
+struct dyn_array {
+    u32         cap;
+    u32         len;
+    type_t*     buf;
+
+    inline type_t& operator[](u32 i) {
+        return buf[i];
+    }
+
+    inline const type_t& operator[](u32 i) const {
+        return buf[i];
+    }
+};
+
+template <typename type_t>
+static void array_reserve(dyn_array<type_t>* a, u32 new_cap) {
+    if (new_cap > a->cap) {
+        a->cap = new_cap;
+        a->buf = (type_t*)realloc(a->buf, a->cap * sizeof (type_t));
+    }
+}
+
+template <typename type_t>
+static void array_resize(dyn_array<type_t>* a, u32 new_size) {
+    array_reserve(a, new_size);
+    a->len = new_size;
+}
+
+template <typename type_t>
+static bool array_add(dyn_array<type_t>* a, const type_t& e) {
+    if (a->len >= a->cap) array_reserve(a, a->cap? (2 * a->cap) : DYN_ARRAY_INIT_SIZE);
+    a->buf[a->len++] = e;
+    return true;
+}
+
+template <typename type_t>
+static void array_rem(dyn_array<type_t>* a, u32 i) {
+    a->buf[i] = a->buf[--a->len];
+}
+
+template <typename type_t>
+static type_t* array_new(dyn_array<type_t>* a) {
+    array_reserve(a, a->len + 1);
+    type_t* e = &a->buf[a->len++];
+    *e = {};
+    return e;
+}
+
+template <typename type_t>
+static type_t* array_ptr(dyn_array<type_t>* a) {
+    return a->buf;
+}
+
+template <typename type_t>
+static const type_t* array_ptr(const dyn_array<type_t>* a) {
+    return a->buf;
+}
+
+template <typename type_t>
+static type_t* array_get(dyn_array<type_t>* a, u32 i) {
+    return a->buf + i;
+}
+
+template <typename type_t>
+static const type_t* array_get(const dyn_array<type_t>* a, u32 i) {
+    return a->buf + i;
+}
+
+template <typename type_t>
+static u32 array_len(const dyn_array<type_t>* a) {
+    return a->len;
+}
+
+template <typename type_t>
+static u32 array_cap(const dyn_array<type_t>* a) {
+    return a->cap;
+}
+
+template <typename type_t>
+static void array_clear(dyn_array<type_t>* a) {
+    a->len = 0;
+}
+
+template <typename type_t>
+static void array_free(dyn_array<type_t>* a) {
+    free(a->buf);
+
+    a->cap = 0;
+    a->len = 0;
+    a->buf = nullptr;
+}
+
+// ===================================================== SLICES ================================================== //
+
+template <typename type_t>
+struct slice {
+    u32         len;
+    type_t*     buf;
+
+    inline type_t& operator[](u32 i) {
+        return buf[i];
+    }
+
+    inline const type_t& operator[](u32 i) const {
+        return buf[i];
+    }
+};
+
+// ===================================================== TABLES ================================================== //
+
 template <typename key_t, typename value_t, u32 INIT_SIZE = 64>
-struct hash_table_t {
+struct hash_table {
     static_assert(IS_POWER_OF_TWO(INIT_SIZE), "init size has to be a power of 2");
 
     enum : u32 { NONE, USED, DELETED, };
@@ -250,18 +394,18 @@ struct hash_table_t {
     inline u32 _hash(const key_t& key) const {
         return hash_mem(&key, sizeof (key_t));
     }
-    
-    ~hash_table_t() { destroy(); }
 };
 
+// ===================================================== QUEUES ================================================ //
+
 template <typename type_t, typename weight_t = f32>
-struct priority_queue_t {
+struct priority_queue {
     struct entry_t {
         weight_t w;
         type_t   e;
     };
 
-    array_t<entry_t> array;
+    dyn_array<entry_t> array;
 
     inline b32 empty() {
         return array.len == 0;
@@ -272,7 +416,7 @@ struct priority_queue_t {
     }
 
     inline void push(const type_t& e, weight_t w) {
-        array.reserve(array.len + 1);
+        array_reserve(&array, array.len + 1);
         
         entry_t node = { w, e };
 

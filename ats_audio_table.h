@@ -1,6 +1,6 @@
 
 #define CUTE_SOUND_IMPLEMENTATION
-#include "dep/cute_sound.h"
+#include "ext/cute_sound.h"
 
 #ifndef AUDIO_TABLE_SIZE
 #define AUDIO_TABLE_SIZE (256)
