@@ -2,10 +2,15 @@
 
 #define SR_MAX_POINT_LIGHTS 16
 
+typedef struct uv_coord_t {
+    i16 x;
+    i16 y;
+} uv_coord_t;
+
 typedef struct sr_vertex_t {
     vec3_t      pos;
     vec3_t      normal;
-    vec2_t      uv;
+    uv_coord_t  uv;
     u32         color;
 } sr_vertex_t;
 
@@ -232,7 +237,7 @@ static gl_shader_desc_t sr_text_shader_desc = {
         uniform sampler2D texture1;
 
         void main() {
-            vec4 color = frag_color * texture(texture1, frag_uv);
+            vec4 color = frag_color * texture(texture1, frag_uv / textureSize(texture1, 0));
             if (color.a == 0) discard;
             out_color = color;
         }),
@@ -316,7 +321,7 @@ static void sr_init(void) {
     
     array_desc.layout[0] = ctor(gl_layout_t, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, pos));
     array_desc.layout[1] = ctor(gl_layout_t, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, normal), true);
-    array_desc.layout[2] = ctor(gl_layout_t, 2, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, uv));
+    array_desc.layout[2] = ctor(gl_layout_t, 2, GL_SHORT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, uv));
     array_desc.layout[3] = ctor(gl_layout_t, 4, GL_UNSIGNED_BYTE,   sizeof (sr_vertex_t), offsetof(sr_vertex_t, color), true);
 
     sr_array = gl_array_create(&array_desc);
@@ -334,8 +339,9 @@ static void sr_normal(f32 x, f32 y, f32 z) {
     sr_current_vertex.normal = v3(x, y, z);
 }
 
-static void sr_tex_coord(f32 x, f32 y) {
-    sr_current_vertex.uv = v2(x, y);
+static void sr_tex_coord(i32 x, i32 y) {
+    sr_current_vertex.uv.x = x;
+    sr_current_vertex.uv.y = y;
 }
 
 static void sr_vertex(f32 x, f32 y, f32 z) {
@@ -462,7 +468,7 @@ static void sr_billboard(rect2_t tex_rect, vec3_t pos, vec2_t rad, vec3_t normal
     sr_tex_coord(tex_rect.min.x, tex_rect.max.y); sr_vertex(ax, ay, az);
 }
 
-static void sr_texture_box(rect2_t rect, rect3_t box, u32 color) {
+static void sr_texture_box(rect2i_t rect, rect3_t box, u32 color) {
     sr_color(color);
     
     sr_normal(0, 0, -1);
@@ -514,7 +520,7 @@ static void sr_texture_box(rect2_t rect, rect3_t box, u32 color) {
     sr_tex_coord(rect.min.x, rect.min.y); sr_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void sr_texture_rect(rect2_t tex_rect, rect2_t rect, f32 z, u32 color) {
+static void sr_texture_rect(rect2i_t tex_rect, rect2_t rect, f32 z, u32 color) {
     sr_color(color);
     
     sr_normal(0, 0, +1);
@@ -878,17 +884,9 @@ static void sr_init_bitmap(void) {
 }
 
 static void sr_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
-    f32     b        = 0.00;
-    rect2_t tex_rect = rect2(v2(c * 8 + b, 0 + b), v2(c * 8 + 8 - b, 8 - b));
-    rect2_t rect     = rect2(v2(x, y), v2(x + sx, y + sy));
-
-    f32 tsx = 1.0f / sr_bitmap_texture.width;
-    f32 tsy = 1.0f / sr_bitmap_texture.height;
-
-    tex_rect.min.x *= tsx;
-    tex_rect.min.y *= tsy;
-    tex_rect.max.x *= tsx;
-    tex_rect.max.y *= tsy;
+    f32     b           = 0.00;
+    rect2i_t tex_rect   = rect2i(v2i(c * 8 + b, 0 + b), v2i(c * 8 + 8 - b, 8 - b));
+    rect2_t rect        = rect2(v2(x, y), v2(x + sx, y + sy));
 
     sr_texture_rect(tex_rect, rect, z, color);
 }

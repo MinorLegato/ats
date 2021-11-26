@@ -10,9 +10,9 @@ typedef struct texture_id_t     texture_id_t;
 typedef struct texture_entry_t  texture_entry_t;
 typedef struct texture_table_t  texture_table_t;
 
-extern rect2_t          tt_get_rect(texture_table_t* table, texture_id_t id);
+extern rect2i_t          tt_get_rect(texture_table_t* table, texture_id_t id);
 extern texture_id_t     tt_get_id(texture_table_t* table, const char* name);
-extern rect2_t          tt_get(texture_table_t* table, const char* name);
+extern rect2i_t          tt_get(texture_table_t* table, const char* name);
 extern texture_table_t  tt_load_from_dir(const char* dir_path, memory_arena_t* ma);
 
 struct texture_id_t {
@@ -20,12 +20,12 @@ struct texture_id_t {
 };
 
 struct texture_entry_t {
-    b32 in_use;
-    u32 hash;
+    b32         in_use;
+    u32         hash;
 
-    rect2_t rect;
+    rect2i_t    rect;
 
-    char name[64];
+    char        name[64];
 };
 
 struct texture_table_t {
@@ -38,7 +38,7 @@ struct texture_table_t {
 // ====================================== IMPL ========================================== //
 // ====================================================================================== //
 
-extern rect2_t tt_get_rect(texture_table_t* table, texture_id_t id) {
+extern rect2i_t tt_get_rect(texture_table_t* table, texture_id_t id) {
     return table->array[id.index].rect;
 }
 
@@ -61,11 +61,11 @@ extern texture_id_t tt_get_id(texture_table_t* table, const char* name) {
     return id;
 }
 
-extern rect2_t tt_get(texture_table_t* table, const char* name) {
+extern rect2i_t tt_get(texture_table_t* table, const char* name) {
     return tt_get_rect(table, tt_get_id(table, name));
 }
 
-static void _tt_add_entry(texture_table_t* table, const char* name, rect2_t rect) {
+static void _tt_add_entry(texture_table_t* table, const char* name, rect2i_t rect) {
     u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
@@ -76,11 +76,6 @@ static void _tt_add_entry(texture_table_t* table, const char* name, rect2_t rect
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
 
-    rect.min.x += TEXTURE_BORDER;
-    rect.min.y += TEXTURE_BORDER;
-    rect.max.x -= TEXTURE_BORDER;
-    rect.max.y -= TEXTURE_BORDER;
-    
     texture_entry_t* entry = &table->array[index];
     
     entry->in_use = true;
@@ -119,7 +114,7 @@ static int cmp_image_data(const void* va, const void* vb) {
     return b->image.width - a->image.width;
 }
 
-extern b32 rect_contains_image(rect2_t rect, image_t image) {
+extern b32 rect_contains_image(rect2i_t rect, image_t image) {
     i32 rect_width  = rect.max.x - rect.min.x;
     i32 rect_height = rect.max.y - rect.min.y;
 
@@ -172,13 +167,13 @@ extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma
         u32 image_count = 0;
         image_data_t* image_array = tt__load_png_files_in_directory(&image_count, dir_path, ma);
 
-        u32       rect_count   = 0;
-        rect2_t*  rect_array   = NULL;
+        u32        rect_count   = 0;
+        rect2i_t*  rect_array   = NULL;
 
-        defer(rect_array = (rect2_t*)ma_begin(ma), ma_end(ma, 0)) {
-            rect_array[rect_count++] = rect2(
-                v2(0, 0),
-                v2(table.image.width, table.image.height));
+        defer(rect_array = (rect2i_t*)ma_begin(ma), ma_end(ma, 0)) {
+            rect_array[rect_count++] = rect2i(
+                v2i(0, 0),
+                v2i(table.image.width, table.image.height));
 
             for (u32 i = 0; i < image_count; ++i) {
                 image_data_t* data = &image_array[i];
@@ -190,15 +185,15 @@ extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma
                     }
                 }
 
-                rect2_t rect  = rect_array[j];
+                rect2i_t rect  = rect_array[j];
                 rect_array[j] = rect_array[--rect_count];
 
-                vec2_t size   = v2(data->image.width + 2, data->image.height + 2);
-                vec2_t offset = rect.min;
+                vec2i_t size   = v2i(data->image.width + 2, data->image.height + 2);
+                vec2i_t offset = rect.min;
 
-                _tt_add_entry(&table, data->name, rect2(
-                        v2(offset.x + 1, offset.y + 1),
-                        v2(offset.x + size.x - 1, offset.y + size.y - 1)));
+                _tt_add_entry(&table, data->name, rect2i(
+                        v2i(offset.x + 1, offset.y + 1),
+                        v2i(offset.x + size.x - 1, offset.y + size.y - 1)));
 
                 for (i32 y = 0; y < data->image.height; ++y) {
                     for (i32 x = 0; x < data->image.width; ++x) {
@@ -207,8 +202,8 @@ extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma
                 }
                 
                 {
-                    rect2_t a = { { rect.min.x,           rect.min.y + size.y },  { rect.min.x + size.x, rect.max.y } };
-                    rect2_t b = { { rect.min.x + size.x,  rect.min.y },           rect.max };
+                    rect2i_t a = { { rect.min.x,           rect.min.y + size.y },  { rect.min.x + size.x, rect.max.y } };
+                    rect2i_t b = { { rect.min.x + size.x,  rect.min.y },           rect.max };
 
                     if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { rect_array[rect_count++] = a; }
                     if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { rect_array[rect_count++] = b; }
