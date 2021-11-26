@@ -76,18 +76,10 @@ static void _tt_add_entry(texture_table_t* table, const char* name, rect2_t rect
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
 
-    f32 sx = 1.0f / table->image.width;
-    f32 sy = 1.0f / table->image.height;
-
-    rect.min.x *= sx;
-    rect.min.y *= sy;
-    rect.max.x *= sx;
-    rect.max.y *= sy;
-
-    rect.min.x += TEXTURE_BORDER * sx;
-    rect.min.y += TEXTURE_BORDER * sy;
-    rect.max.x -= TEXTURE_BORDER * sx;
-    rect.max.y -= TEXTURE_BORDER * sy;
+    rect.min.x += TEXTURE_BORDER;
+    rect.min.y += TEXTURE_BORDER;
+    rect.max.x -= TEXTURE_BORDER;
+    rect.max.y -= TEXTURE_BORDER;
     
     texture_entry_t* entry = &table->array[index];
     
@@ -169,7 +161,7 @@ static image_data_t* tt__load_png_files_in_directory(u32* out_image_count, const
 }
 
 extern texture_table_t tt_load_from_dir(const char* dir_path, memory_arena_t* ma) {
-    texture_table_t table = { { 2048, 2048, ma_array(ma, u32, 2048 * 2048) } };
+    texture_table_t table = { { 4096, 4096, ma_array(ma, u32, 4096 * 4096) } };
     table.array[0].in_use = true;
 
     for (u32 i = 0; i < 2048 * 2048; ++i) {

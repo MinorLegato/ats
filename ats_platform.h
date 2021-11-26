@@ -53,7 +53,7 @@ extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc);
 extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
 
 extern void gl_shader_use(gl_shader_t shader);
-extern u32 gl_shader_location(gl_shader_t shader, const char* name);
+extern u32  gl_shader_location(gl_shader_t shader, const char* name);
 
 extern void gl_uniform_i32(u32 location, i32 u);
 extern void gl_uniform_f32(u32 location, f32 u);

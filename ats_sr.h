@@ -45,18 +45,13 @@ typedef struct sr_point_light_uniform_t {
     u32     quadratic;
 } sr_point_light_uniform_t;
 
-typedef struct sr_uniforms_t {
-    u32     pvm;
-    u32     view_pos;
-} sr_uniforms_t;
+static gl_shader_t  sr_shader;
+static gl_shader_t  sr_basic_shader;
+static gl_shader_t  sr_texture_shader;
 
-static gl_shader_t sr_shader;
-static gl_shader_t sr_basic_shader;
-static gl_shader_t sr_texture_shader;
-
-static gl_shader_t sr_ui_basic_shader;
-static gl_shader_t sr_ui_texture_shader;
-static gl_shader_t sr_ui_text_shader;
+static gl_shader_t  sr_ui_basic_shader;
+static gl_shader_t  sr_ui_texture_shader;
+static gl_shader_t  sr_ui_text_shader;
 
 static gl_array_t   sr_array;
 static sr_vertex_t  sr_current_vertex;
@@ -66,11 +61,11 @@ static sr_vertex_t  sr_vertex_array[1024 * 1024];
 
 static b32          sr_depth_test = false;
 static sr_range_t   sr_current_range;
+
 static u32          sr_range_count;
 static sr_range_t   sr_range_array[1024 * 1024];
 
 static sr_point_light_uniform_t sr_lights[SR_MAX_POINT_LIGHTS];
-static sr_uniforms_t            sr_uniforms;
 
 static gl_texture_t sr_bitmap_texture;
 
@@ -122,9 +117,7 @@ static gl_shader_desc_t sr_shader_desc = {
             out vec4 out_color;
 
             uniform vec3 view_pos;
-
             uniform sampler2D texture1;
-
             uniform point_light light[16];
 
             vec3 calculate_point_light(int i, vec4 color) {
@@ -156,7 +149,7 @@ static gl_shader_desc_t sr_shader_desc = {
             }
 
             void main() {
-                vec4 color = frag_color * texture(texture1, frag_uv);
+                vec4 color = frag_color * texture(texture1, frag_uv / textureSize(texture1, 0));
                 if (color.a == 0) discard;
 
                 vec3 result;
@@ -203,7 +196,7 @@ static gl_shader_desc_t sr_texture_shader_desc = {
         uniform sampler2D texture1;
 
         void main() {
-            vec4 color = frag_color * texture(texture1, frag_uv);
+            vec4 color = frag_color * texture(texture1, frag_uv / textureSize(texture1, 0));
             if (color.a == 0) discard;
             out_color = color;
         }),
@@ -273,6 +266,8 @@ static gl_shader_desc_t sr_basic_shader_desc = {
         }),
 }; 
 
+static void sr_init_bitmap(void);
+
 static void sr_init(void) {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
     glClearDepth(1.0f);
@@ -293,9 +288,6 @@ static void sr_init(void) {
         {
             gl_shader_use(sr_shader);
             
-            sr_uniforms.pvm = gl_shader_location(sr_shader, "pvm");
-            sr_uniforms.view_pos = gl_shader_location(sr_shader, "view_pos");
-
             char buffer[256];
 
             for (u32 i = 0; i < SR_MAX_POINT_LIGHTS; ++i) {
@@ -330,6 +322,8 @@ static void sr_init(void) {
     sr_array = gl_array_create(&array_desc);
 
     gl_array_data(sr_array, NULL, sizeof (sr_vertex_t) * ARRAY_COUNT(sr_vertex_array));
+
+    sr_init_bitmap();
 }
 
 static void sr_color(u32 color) {
@@ -394,9 +388,31 @@ static void sr_end(void) {
     sr_range_array[sr_range_count++] = sr_current_range;
 }
 
-static void sr_begin_frame(void) {
-    gl_shader_use(sr_ui_text_shader);
-    gl_uniform_m4(gl_shader_location(sr_ui_text_shader, "pvm"), m4_ortho(0, platform.width, platform.height, 0, -1, 1));
+static void sr_begin_frame(vec3_t view_pos, mat4_t pvm) {
+    mat4_t ortho = m4_ortho(0, platform.width, platform.height, 0, -1, 1);
+
+    {
+        gl_shader_use(sr_ui_basic_shader);
+        gl_uniform_m4(gl_shader_location(sr_ui_basic_shader, "pvm"), ortho);
+
+        gl_shader_use(sr_ui_texture_shader);
+        gl_uniform_m4(gl_shader_location(sr_ui_texture_shader, "pvm"), ortho);
+
+        gl_shader_use(sr_ui_text_shader);
+        gl_uniform_m4(gl_shader_location(sr_ui_text_shader, "pvm"), ortho);
+    }
+
+    {
+        gl_shader_use(sr_basic_shader);
+        gl_uniform_m4(gl_shader_location(sr_basic_shader, "pvm"), pvm);
+
+        gl_shader_use(sr_texture_shader);
+        gl_uniform_m4(gl_shader_location(sr_texture_shader, "pvm"), pvm);
+
+        gl_shader_use(sr_shader);
+        gl_uniform_v3(gl_shader_location(sr_shader, "view_pos"), view_pos);
+        gl_uniform_m4(gl_shader_location(sr_shader, "pvm"), pvm);
+    }
 }
 
 static void sr_end_frame(void) {
