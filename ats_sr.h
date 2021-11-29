@@ -77,10 +77,10 @@ static gl_texture_t sr_bitmap_texture;
 static gl_shader_desc_t sr_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
-        layout (location = 0) in vec3 in_position;
-        layout (location = 1) in vec3 in_normal;
+        layout (location = 0) in vec3  in_position;
+        layout (location = 1) in vec3  in_normal;
         layout (location = 2) in vec2 in_uv;
-        layout (location = 3) in vec4 in_color;
+        layout (location = 3) in vec4  in_color;
 
         out vec3 frag_pos;
         out vec3 frag_normal;
@@ -114,15 +114,15 @@ static gl_shader_desc_t sr_shader_desc = {
                 float   quadratic;
             };
 
-            in vec3 frag_pos;
-            in vec3 frag_normal;
-            in vec2 frag_uv;
-            in vec4 frag_color;
+            in vec3  frag_pos;
+            in vec3  frag_normal;
+            in vec2  frag_uv;
+            in vec4  frag_color;
 
             out vec4 out_color;
 
-            uniform vec3 view_pos;
-            uniform sampler2D texture1;
+            uniform vec3        view_pos;
+            uniform sampler2D   texture1;
             uniform point_light light[16];
 
             vec3 calculate_point_light(int i, vec4 color) {
@@ -154,10 +154,10 @@ static gl_shader_desc_t sr_shader_desc = {
             }
 
             void main() {
-                vec4 color = frag_color * texture(texture1, frag_uv / textureSize(texture1, 0));
+                vec4 color = frag_color * texelFetch(texture1, ivec2(frag_uv), 0);
                 if (color.a == 0) discard;
 
-                vec3 result;
+                vec3 result = vec3(0);
 
                 for (int i = 0; i < 16; ++i) {
                     if (light[i].range > 0) {
@@ -201,7 +201,7 @@ static gl_shader_desc_t sr_texture_shader_desc = {
         uniform sampler2D texture1;
 
         void main() {
-            vec4 color = frag_color * texture(texture1, frag_uv / textureSize(texture1, 0));
+            vec4 color = frag_color * texelFetch(texture1, ivec2(frag_uv), 0);
             if (color.a == 0) discard;
             out_color = color;
         }),
@@ -237,7 +237,7 @@ static gl_shader_desc_t sr_text_shader_desc = {
         uniform sampler2D texture1;
 
         void main() {
-            vec4 color = frag_color * texture(texture1, frag_uv / textureSize(texture1, 0));
+            vec4 color = frag_color * texelFetch(texture1, ivec2(frag_uv), 0);
             if (color.a == 0) discard;
             out_color = color;
         }),

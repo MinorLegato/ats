@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 #ifndef __cplusplus
 
 // ========================================== DYNAMIC ARRAY ===================================== //
@@ -87,74 +89,47 @@ static void* _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
 
 // --------------- fixed array --------------- //
 
-template <typename type_t, u32 cap>
+template <typename type_t, u32 max_cap>
 struct fixed_array {
-    u32     len;
-    type_t  buf[cap];
+    u32     m_len = 0;
+    type_t  m_buf[max_cap];
 
-    inline type_t& operator[](u32 i) {
-        return buf[i];
+    inline type_t&          operator[](u32 i)       { return m_buf[i]; }
+    inline const type_t&    operator[](u32 i) const { return m_buf[i]; }
+
+    inline bool add(type_t e) {
+        if (m_len >= max_cap) return false;
+        m_buf[m_len++] = e;
+        return true;
     }
 
-    inline const type_t& operator[](u32 i) const {
-        return buf[i];
+    inline type_t* add() {
+        if (m_len >= max_cap) return nullptr;
+        type_t* e = &m_buf[m_len++];
+        *e = {};
+        return e;
     }
+
+    inline void             rem(u32 i)  { m_buf[i] = m_buf[--m_len]; }
+
+    inline type_t*          ptr()       { return m_buf; }
+    inline const type_t*    ptr() const { return m_buf; }
+
+    inline type_t*          get(u32 i)       { return m_buf + i; }
+    inline const type_t*    get(u32 i) const { return m_buf + i; }
+
+    inline u32              len() const { return m_len; }
+    inline u32              cap() const { return max_cap; }
+
+    inline void             clear() { m_len = 0; }
+
+    inline type_t*          begin()         { return m_buf; }
+    inline const type_t*    begin() const   { return m_buf; }
+
+    inline type_t*          end()       { return m_buf + m_len; }
+    inline const type_t*    end() const { return m_buf + m_len; }
 };
 
-template <typename type_t, u32 cap>
-static bool array_add(fixed_array<type_t, cap>* a, const type_t& e) {
-    if (a->len >= cap) return false;
-    a->buf[a->len++] = e;
-    return true;
-}
-
-template <typename type_t, u32 cap>
-static type_t* array_new(fixed_array<type_t, cap>* a) {
-    if (a->len >= cap) return nullptr;
-    type_t* e = &a->buf[a->len++];
-    *e = {};
-    return e;
-}
-
-template <typename type_t, u32 cap>
-static void array_rem(fixed_array<type_t, cap>* a, u32 i) {
-    a->buf[i] = a->buf[--a->len];
-}
-
-template <typename type_t, u32 cap>
-static type_t* array_ptr(fixed_array<type_t, cap>* a) {
-    return a->buf;
-}
-
-template <typename type_t, u32 cap>
-static const type_t* array_ptr(const fixed_array<type_t, cap>* a) {
-    return a->buf;
-}
-
-template <typename type_t, u32 cap>
-static type_t* array_get(fixed_array<type_t, cap>* a, u32 i) {
-    return a->buf + i;
-}
-
-template <typename type_t, u32 cap>
-static const type_t* array_get(const fixed_array<type_t, cap>* a, u32 i) {
-    return a->buf + i;
-}
-
-template <typename type_t, u32 cap>
-static u32 array_len(const fixed_array<type_t, cap>* a) {
-    return a->len;
-}
-
-template <typename type_t, u32 cap>
-static u32 array_cap(const fixed_array<type_t, cap>* a) {
-    return a->cap;
-}
-
-template <typename type_t, u32 cap>
-static void array_clear(fixed_array<type_t, cap>* a) {
-    a->len = 0;
-}
 
 // --------------- dynamic array --------------- //
 
@@ -164,96 +139,69 @@ static void array_clear(fixed_array<type_t, cap>* a) {
 
 template <typename type_t>
 struct dyn_array {
-    u32         cap;
-    u32         len;
-    type_t*     buf;
+    u32     m_cap     = 0;
+    u32     m_len     = 0;
+    type_t* m_buf     = nullptr;
 
-    inline type_t& operator[](u32 i) {
-        return buf[i];
+    inline type_t&          operator[](u32 i)       { return m_buf[i]; }
+    inline const type_t&    operator[](u32 i) const { return m_buf[i]; }
+
+    inline void reserve(u32 new_cap) {
+        if (new_cap > m_cap) {
+            m_cap = m_cap? 2 * m_cap : DYN_ARRAY_INIT_SIZE;
+            m_cap = new_cap > m_cap? new_cap : m_cap;
+
+            m_buf = (type_t*)realloc(m_buf, m_cap * sizeof (type_t));
+        }
     }
 
-    inline const type_t& operator[](u32 i) const {
-        return buf[i];
+    inline void resize(u32 new_size) {
+        reserve(new_size);
+        m_len = new_size;
+    }
+
+    inline bool add(const type_t& e) {
+        reserve(m_len + 1);
+        m_buf[m_len++] = e;
+        return true;
+    }
+
+    inline void rem(u32 i) {
+        m_buf[i] = m_buf[--m_len];
+    }
+
+    inline type_t* add() {
+        reserve(m_len + 1);
+        type_t* e = &m_buf[m_len++];
+        *e = {};
+        return e;
+    }
+
+    inline type_t*          ptr()       { return m_buf; }
+    inline const type_t*    ptr() const { return m_buf; }
+
+    inline type_t*          get()       { return m_buf + i; }
+    inline const type_t*    get() const { return m_buf + i; }
+
+    inline u32              len()       { return m_len; }
+    inline u32              cap() const { return m_cap; }
+
+    inline void             clear() { m_len = 0; }
+
+    inline type_t*          begin()         { return m_buf; }
+    inline const type_t*    begin() const   { return m_buf; }
+
+    inline type_t*          end()       { return m_buf + m_len; }
+    inline const type_t*    end() const { return m_buf + m_len; }
+
+    inline void destroy() {
+        free(m_buf);
+
+        m_cap = 0;
+        m_len = 0;
+        m_buf = nullptr;
     }
 };
-
-template <typename type_t>
-static void array_reserve(dyn_array<type_t>* a, u32 new_cap) {
-    if (new_cap > a->cap) {
-        a->cap = new_cap;
-        a->buf = (type_t*)realloc(a->buf, a->cap * sizeof (type_t));
-    }
-}
-
-template <typename type_t>
-static void array_resize(dyn_array<type_t>* a, u32 new_size) {
-    array_reserve(a, new_size);
-    a->len = new_size;
-}
-
-template <typename type_t>
-static bool array_add(dyn_array<type_t>* a, const type_t& e) {
-    if (a->len >= a->cap) array_reserve(a, a->cap? (2 * a->cap) : DYN_ARRAY_INIT_SIZE);
-    a->buf[a->len++] = e;
-    return true;
-}
-
-template <typename type_t>
-static void array_rem(dyn_array<type_t>* a, u32 i) {
-    a->buf[i] = a->buf[--a->len];
-}
-
-template <typename type_t>
-static type_t* array_new(dyn_array<type_t>* a) {
-    array_reserve(a, a->len + 1);
-    type_t* e = &a->buf[a->len++];
-    *e = {};
-    return e;
-}
-
-template <typename type_t>
-static type_t* array_ptr(dyn_array<type_t>* a) {
-    return a->buf;
-}
-
-template <typename type_t>
-static const type_t* array_ptr(const dyn_array<type_t>* a) {
-    return a->buf;
-}
-
-template <typename type_t>
-static type_t* array_get(dyn_array<type_t>* a, u32 i) {
-    return a->buf + i;
-}
-
-template <typename type_t>
-static const type_t* array_get(const dyn_array<type_t>* a, u32 i) {
-    return a->buf + i;
-}
-
-template <typename type_t>
-static u32 array_len(const dyn_array<type_t>* a) {
-    return a->len;
-}
-
-template <typename type_t>
-static u32 array_cap(const dyn_array<type_t>* a) {
-    return a->cap;
-}
-
-template <typename type_t>
-static void array_clear(dyn_array<type_t>* a) {
-    a->len = 0;
-}
-
-template <typename type_t>
-static void array_free(dyn_array<type_t>* a) {
-    free(a->buf);
-
-    a->cap = 0;
-    a->len = 0;
-    a->buf = nullptr;
-}
 
 // ===================================================== SLICES ================================================== //
 
@@ -273,96 +221,109 @@ struct slice {
 
 // ===================================================== TABLES ================================================== //
 
+enum entry_state_t : u32 {
+    ENTRY_NONE,
+    ENTRY_USED,
+    ENTRY_DELETED,
+};
+
+template <typename key_t, typename value_t>
+struct table_entry {
+    u32         state;
+    u32         hash;
+    key_t       key;
+    value_t     value;
+
+    inline b32 is_entry(u32 h, const key_t& k) const {
+        return hash == h && (memcmp(&key, &k, sizeof (key_t)) == 0);
+    }
+};
+
 template <typename key_t, typename value_t, u32 INIT_SIZE = 64>
-struct hash_table {
+struct dyn_table {
     static_assert(IS_POWER_OF_TWO(INIT_SIZE), "init size has to be a power of 2");
 
-    enum : u32 { NONE, USED, DELETED, };
-
-    struct entry_t {
-        u32     state;
-        u32     hash;
-        key_t   key;
-        value_t value;
-
-        inline b32 is_entry(u32 h, const key_t& k) const {
-            return hash == h && (memcmp(&key, &k, sizeof (key_t)) == 0);
-        }
-    };
+    typedef table_entry<key_t, value_t> entry_t;
    
-    u32 cap = 0;
-    u32 count = 0;
-    entry_t* array = nullptr;
+    u32         cap     = 0;
+    u32         count   = 0;
+    entry_t*    array   = nullptr;
 
     inline void put(const key_t& key, const value_t& value) {
-        if (count + 1 >= cap) { _grow(); }
+        if (count + 1 >= cap) _grow();
 
-        u32 hash = _hash(key);
-        entry_t* e = _get_entry(hash, key);
+        auto hash = _hash(key);
+        auto e    = _get_entry(hash, key);
 
-        if (e->state == NONE) { count++; }
+        if (e->state == ENTRY_NONE) { count++; }
 
-        e->state    = USED;
+        e->state    = ENTRY_USED;
         e->hash     = hash;
         e->key      = key;
         e->value    = value;
     }
 
-    inline value_t* put_ptr(const key_t& key) {
-        if (count + 1 >= cap) { _grow(); }
+    inline value_t* put(const key_t& key) {
+        if (count + 1 >= cap) _grow();
 
-        u32 hash = _hash(key);
-        entry_t* e = _get_entry(hash, key);
+        auto hash = _hash(key);
+        auto e    = _get_entry(hash, key);
 
         if (e->state == NONE)       { count++; }
         if (e->state == DELETED)    { e->value = {}; }
 
-        e->state    = USED;
+        e->state    = ENTRY_USED;
         e->hash     = hash;
         e->key      = key;
 
         return &e->value;
     }
 
-    inline value_t get(const key_t& key) const {
-        u32 hash = _hash(key);
-        entry_t* e = _get_entry(hash, key);
+    inline value_t get(const key_t& key) {
+        auto hash   = _hash(key);
+        auto e      = _get_entry(hash, key);
 
-        return (e && e->state == USED)? e->value : value_t {};
+        return (e && e->state == ENTRY_USED)? e->value : value_t {};
     }
 
-    inline value_t* get_ptr(const key_t& key) const {
-        u32 hash = _hash(key);
-        entry_t* e = _get_entry(hash, key);
+    inline value_t* get_ptr(const key_t& key) {
+        auto hash = _hash(key);
+        auto e = _get_entry(hash, key);
 
-        return (e && e->state == USED)? &e->value : nullptr;
+        return (e && e->state == ENTRY_USED)? &e->value : nullptr;
     }
 
     inline void del(const key_t& key) {
-        u32 hash = _hash(key);
-        entry_t* e = _get_entry(hash, key);
+        auto hash = _hash(key);
+        auto e    = _get_entry(hash, key);
 
-        if (e && (e->state == USED)) { e->state = DELETED; }
+        if (e && (e->state == ENTRY_USED)) { e->state = ENTRY_DELETED; }
     }
 
     inline void clear(void) {
         count = 0;
-        memset(array, 0, cap * sizeof (entry_t));
+        memset(array, 0, cap * sizeof (table_entry<key_t, value_t>));
     }
 
     inline void destroy(void) {
         free(array);
+
+        cap     = 0;
+        count   = 0;
+        array   = nullptr;
     }
 
-    inline entry_t* _get_entry(u32 hash, const key_t& key) const {
+    inline table_entry<key_t, value_t>* _get_entry(u32 hash, const key_t& key) {
+        if (!array) return nullptr;
+
         u32 index = hash & (cap - 1);
 
         for (u32 i = index; ((i + 1) & (cap - 1)) != index; i = ((i + 1) & (cap - 1))) {
-            entry_t* e = &array[i];
+            auto e = &array[i];
 
-            if ((e->state == NONE) ||
-                (e->state == DELETED) && (hash == e->hash) ||
-                (e->state == USED) && e->is_entry(hash, key)) {
+            if ((e->state == ENTRY_NONE) ||
+                (e->state == ENTRY_DELETED) && (hash == e->hash) ||
+                (e->state == ENTRY_USED) && e->is_entry(hash, key)) {
                 return e;
             }
         }
@@ -371,8 +332,8 @@ struct hash_table {
     }
 
     inline void _grow(void) {
-        u32      old_cap    = cap;
-        entry_t* old_array  = array;
+        auto old_cap   = cap;
+        auto old_array = array;
 
         cap   = cap? (cap << 1) : INIT_SIZE;
         count = 0;
@@ -380,15 +341,95 @@ struct hash_table {
 
         if (old_array) {
             for (u32 i = 0; i < old_cap; ++i) {
-                entry_t* e = &old_array[i];
+                auto e = &old_array[i];
 
-                if (e->state == USED) {
+                if (e->state == ENTRY_USED) {
                     put(e->key, e->value);
                 }
             }
 
             free(old_array);
         }
+    }
+
+    inline u32 _hash(const key_t& key) const {
+        return hash_mem(&key, sizeof (key_t));
+    }
+};
+
+template <typename key_t, typename value_t, u32 SIZE>
+struct fixed_table {
+    typedef table_entry<key_t, value_t> entry_t;
+       
+    u32         count       = 0;
+    entry_t     array[SIZE] = {};
+
+    inline void put(const key_t& key, const value_t& value) {
+        auto hash = _hash(key);
+        auto e    = _get_entry(hash, key);
+
+        if (e->state == ENTRY_NONE) { count++; }
+
+        e->state    = ENTRY_USED;
+        e->hash     = hash;
+        e->key      = key;
+        e->value    = value;
+    }
+
+    inline value_t* put(const key_t& key) {
+        auto hash  = _hash(key);
+        auto e     = _get_entry(hash, key);
+
+        if (e->state == NONE)       { count++; }
+        if (e->state == DELETED)    { e->value = {}; }
+
+        e->state    = ENTRY_USED;
+        e->hash     = hash;
+        e->key      = key;
+
+        return &e->value;
+    }
+
+    inline value_t get(const key_t& key) {
+        auto hash   = _hash(key);
+        auto e      = _get_entry(hash, key);
+
+        return (e && e->state == ENTRY_USED)? e->value : value_t {};
+    }
+
+    inline value_t* get_ptr(const key_t& key) {
+        auto hash   = _hash(key);
+        auto e      = _get_entry(hash, key);
+
+        return (e && e->state == ENTRY_USED)? &e->value : nullptr;
+    }
+
+    inline void del(const key_t& key) {
+        auto hash   = _hash(key);
+        auto e      = _get_entry(hash, key);
+
+        if (e && (e->state == ENTRY_USED)) { e->state = DELETED; }
+    }
+
+    inline void clear(void) {
+        count = 0;
+        memset(array, 0, SIZE * sizeof (entry_t));
+    }
+
+    inline entry_t* _get_entry(u32 hash, const key_t& key) {
+        u32 index = hash % SIZE;
+
+        for (u32 i = index; ((i + 1) % SIZE) != index; i = ((i + 1) % SIZE)) {
+            auto e = &array[i];
+
+            if ((e->state == ENTRY_NONE) ||
+                (e->state == ENTRY_DELETED) && (hash == e->hash) ||
+                (e->state == ENTRY_USED) && e->is_entry(hash, key)) {
+                return e;
+            }
+        }
+
+        return nullptr;
     }
 
     inline u32 _hash(const key_t& key) const {
