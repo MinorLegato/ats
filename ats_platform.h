@@ -13,8 +13,8 @@
 
 // ------------------- platform layer ------------------------ //
 
-typedef struct platform_t   platform_t;
-extern platform_t platform;
+typedef struct Platform Platform;
+extern Platform platform;
 
 extern void platform_init(const char* title, int width, int height, int samples);
 extern void platform_update(void);
@@ -23,55 +23,59 @@ extern f64 timer_get_current(void);
 
 // ---------------- gl helper types/functions ---------------- //
 
-typedef struct gl_texture_t gl_texture_t;
-struct gl_texture_t {
+typedef struct GLTexture
+{
     u32 id;
     int width;
     int height;
-};
+} GLTexture;
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
-extern void         gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
-extern void         gl_texture_bind(const gl_texture_t *texture);
-extern void         gl_texture_delete(gl_texture_t* texture);
+extern GLTexture    gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern GLTexture    gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern void         gl_texture_update(GLTexture* texture, void *pixels, int width, int height, int is_smooth);
+extern void         gl_texture_bind(const GLTexture *texture);
+extern void         gl_texture_delete(GLTexture* texture);
 
 #ifdef ATS_OGL33
 
 #define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
-typedef struct gl_shader_t {
+typedef struct GLShader
+{
     u32 id;
-} gl_shader_t;
+} GLShader;
 
-typedef struct gl_shader_desc_t {
+typedef struct GLShaderDesc
+{
     const char* vs;
     const char* fs;
-} gl_shader_desc_t;
+} GLShaderDesc;
 
-extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc);
-extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
+extern GLShader gl_shader_create(const GLShaderDesc* desc);
+extern GLShader gl_shader_load_from_file(const char *vs, const char *fs, MemoryArena* ma);
 
-extern void gl_shader_use(gl_shader_t shader);
-extern u32  gl_shader_location(gl_shader_t shader, const char* name);
+extern void gl_shader_use(GLShader shader);
+extern u32  gl_shader_location(GLShader shader, const char* name);
 
 extern void gl_uniform_i32(u32 location, i32 u);
 extern void gl_uniform_f32(u32 location, f32 u);
-extern void gl_uniform_v2(u32 location, vec2_t u);
-extern void gl_uniform_v3(u32 location, vec3_t u);
-extern void gl_uniform_v4(u32 location, vec4_t u);
-extern void gl_uniform_m2(u32 location, mat2_t m);
-extern void gl_uniform_m3(u32 location, mat3_t m);
-extern void gl_uniform_m4(u32 location, mat4_t m);
+extern void gl_uniform_v2(u32 location, V2 u);
+extern void gl_uniform_v3(u32 location, V3 u);
+extern void gl_uniform_v4(u32 location, V4 u);
+extern void gl_uniform_m2(u32 location, M2 m);
+extern void gl_uniform_m3(u32 location, M3 m);
+extern void gl_uniform_m4(u32 location, M4 m);
 
-extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview);
+extern V3 gl_get_world_position(int x, int y, M4 in_projection, M4 in_modelview);
 
-typedef struct gl_array_t {
+typedef struct GLArray
+{
     u32 vao;
     u32 vbo;
-} gl_array_t;
+} GLArray;
 
-typedef struct gl_layout_t {
+typedef struct GLLayout
+{
     u32 size;
     u32 type;
     u32 stride;
@@ -79,12 +83,13 @@ typedef struct gl_layout_t {
     b32 normalize;
 } gl_layout_t;
 
-typedef struct gl_array_desc_t {
-    gl_layout_t layout[32];
-} gl_array_desc_t;
+typedef struct GLArrayDesc
+{
+    GLLayout layout[32];
+} GLArrayDesc;
 
-extern gl_array_t gl_array_create(const gl_array_desc_t* desc);
-extern void       gl_array_data(gl_array_t array, const void* data, u32 size);
+extern GLArray  gl_array_create(const GLArrayDesc* desc);
+extern void     gl_array_data(GLArray array, const void* data, u32 size);
 
 #endif
 
@@ -277,8 +282,8 @@ extern void       gl_array_data(gl_array_t array, const void* data, u32 size);
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-typedef union gamepad_buttons_t gamepad_buttons_t;
-union gamepad_buttons_t {
+typedef union gamepad_buttons_t
+{
     struct {
         u32 X : 1;
         u32 A : 1;
@@ -302,14 +307,14 @@ union gamepad_buttons_t {
     } button;
 
     u32 data;
-};
+} gamepad_buttons_t;
 
-typedef struct gamepad_t gamepad_t;
-struct gamepad_t {
+typedef struct gamepad_t
+{
     b32 active;
 
-    vec2_t LS;
-    vec2_t RS;
+    V2 LS;
+    V2 RS;
 
     f32 LT;
     f32 RT;
@@ -317,16 +322,17 @@ struct gamepad_t {
     gamepad_buttons_t down;
     gamepad_buttons_t pressed;
     gamepad_buttons_t released;
-};
+} gamepad_t;
 
-enum {
+enum
+{
     MOUSE_NORMAL,
     MOUSE_HIDDEN,
     MOUSE_DISABLED
 };
 
-typedef struct platform_t platform_t;
-struct platform_t {
+typedef struct Platform
+{
     b32 close;
 
     i32 width;
@@ -350,9 +356,9 @@ struct platform_t {
         b32 is_pressed  : 1;
         b32 is_released : 1;
 
-        vec2_t pos;
-        vec2_t delta;
-        vec2_t scroll;
+        V2 pos;
+        V2 delta;
+        V2 scroll;
 
         b8 down[MOUSE_BUTTON_LAST + 1];
         b8 pressed[MOUSE_BUTTON_LAST + 1];
@@ -376,9 +382,9 @@ struct platform_t {
     } keyboard;
 
     gamepad_t gamepad[JOYSTICK_LAST];
-};
+} Platform;
 
-extern platform_t platform;
+extern Platform platform;
 
 // ===================================================================================================== //
 // ======================================= PLATFORM IMPL =============================================== //
@@ -413,14 +419,16 @@ extern platform_t platform;
 #include "ext/imgui/imgui_widgets.cpp"
 #endif
 
-platform_t platform;
+Platform platform;
 
-static struct {
+static struct
+{
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
+static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
+{
     (void)window;
     (void)a;
     (void)b;
@@ -449,12 +457,14 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
     }
 }
 
-static void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+static void window_char_callback(GLFWwindow* window, unsigned int codepoint)
+{
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
+static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
+{
     (void)window;
     (void)a;
 
@@ -474,14 +484,16 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
     }
 }
 
-static void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+static void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
     (void)window;
 
     platform.mouse.scroll.x = (f32)xoffset;
     platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void window_joystick_callback(int joy, int event) {
+static void window_joystick_callback(int joy, int event)
+{
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
         platform.gamepad[joy].active = 1;
@@ -492,7 +504,8 @@ static void window_joystick_callback(int joy, int event) {
     }
 }
 
-extern void platform_init(const char* title, int width, int height, int samples) {
+extern void platform_init(const char* title, int width, int height, int samples)
+{
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -573,7 +586,8 @@ extern void platform_init(const char* title, int width, int height, int samples)
 #endif
 }
 
-extern void platform_update(void) {
+extern void platform_update(void)
+{
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
@@ -704,14 +718,16 @@ extern void platform_update(void) {
 #endif
 }
 
-extern f64 timer_get_current(void) {
+extern f64 timer_get_current(void)
+{
     return glfwGetTime();
 }
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern GLTexture gl_texture_create(void *pixels, int width, int height, int is_smooth)
+{
     assert(pixels);
 
-    gl_texture_t texture = {0};
+    GLTexture texture = {0};
 
     texture.width = width;
     texture.height = height;
@@ -732,8 +748,9 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
 }
 
 #ifndef ATS_NO_IMAGE
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth) {
-    gl_texture_t texture = ATS_INIT_ZERO;
+extern GLTexture gl_texture_load_from_file(const char *texture_path, int is_smooth)
+{
+    GLTexture texture = ATS_INIT_ZERO;
     i32 channels = 0;
 
     unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
@@ -758,7 +775,8 @@ extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_s
 }
 #endif
 
-extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(GLTexture* texture, void *pixels, int width, int height, int is_smooth)
+{
     texture->width = width;
     texture->height = height;
 
@@ -773,7 +791,7 @@ extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, in
 #endif
 }
 
-extern void gl_texture_bind(const gl_texture_t *texture) {
+extern void gl_texture_bind(const GLTexture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
 #ifndef ATS_OGL33
@@ -783,14 +801,16 @@ extern void gl_texture_bind(const gl_texture_t *texture) {
 #endif
 }
 
-extern void gl_texture_delete(gl_texture_t* texture) {
+extern void gl_texture_delete(GLTexture* texture)
+{
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
 }
 
 #ifdef ATS_OGL33
 
-static u32 gl_shader_compile(const char* source, unsigned int type) {
+static u32 gl_shader_compile(const char* source, unsigned int type)
+{
     int success = 0;
     char info_log[512] = {0};
     u32 shader = glCreateShader(type);
@@ -809,7 +829,8 @@ static u32 gl_shader_compile(const char* source, unsigned int type) {
     return shader;
 }
 
-static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
+static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader)
+{
     int success = 0;
     char info_log[512] = {0};
 
@@ -831,7 +852,8 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
     return shader;
 }
 
-extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
+extern GLShader gl_shader_create(const GLShaderDesc* desc)
+{
     u32 vertex   = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
     u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
     u32 program  = gl_shader_link_program(vertex, fragment);
@@ -841,71 +863,83 @@ extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
-    gl_shader_t shader = ATS_INIT_ZERO;
+    GLShader shader = ATS_INIT_ZERO;
     shader.id = program;
 
     return shader;
 }
 
-extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma) {
+extern GLShader gl_shader_load_from_file(const char *vs, const char *fs, MemoryArena* ma)
+{
     ma_save(ma);
 
     char* vs_content = file_read_str(vs, ma);
     char* fs_content = file_read_str(fs, ma);
 
-    gl_shader_desc_t desc = ATS_INIT_ZERO;
+    GLShaderDesc desc = ATS_INIT_ZERO;
 
     desc.vs = vs_content;
     desc.fs = fs_content;
 
-    gl_shader_t program = gl_shader_create(&desc);
+    GLShader program = gl_shader_create(&desc);
 
     ma_restore(ma);
 
     return program;
 }
 
-extern void gl_shader_use(gl_shader_t shader) {
+extern void gl_shader_use(GLShader shader)
+{
     glUseProgram(shader.id);
 }
 
-extern u32 gl_shader_location(gl_shader_t shader, const char* name) {
+extern u32 gl_shader_location(GLShader shader, const char* name)
+{
     return glGetUniformLocation(shader.id, name);
 }
 
-extern void gl_uniform_i32(u32 location, i32 i) {
+extern void gl_uniform_i32(u32 location, i32 i)
+{
     glUniform1i(location, i);
 }
 
-extern void gl_uniform_f32(u32 location, f32 f) {
+extern void gl_uniform_f32(u32 location, f32 f)
+{
     glUniform1f(location, f);
 }
 
-extern void gl_uniform_v2(u32 location, vec2_t u) {
+extern void gl_uniform_v2(u32 location, V2 u)
+{
     glUniform2f(location, u.x, u.y);
 }
 
-extern void gl_uniform_v3(u32 location, vec3_t u) {
+extern void gl_uniform_v3(u32 location, V3 u)
+{
     glUniform3f(location, u.x, u.y, u.z);
 }
 
-extern void gl_uniform_v4(u32 location, vec4_t u) {
+extern void gl_uniform_v4(u32 location, V4 u)
+{
     glUniform4f(location, u.x, u.y, u.z, u.w);
 }
 
-extern void gl_uniform_m2(u32 location, mat2_t m) {
+extern void gl_uniform_m2(u32 location, M2 m)
+{
     glUniformMatrix2fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void gl_uniform_m3(u32 location, mat3_t m) {
+extern void gl_uniform_m3(u32 location, M3 m)
+{
     glUniformMatrix3fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void gl_uniform_m4(u32 location, mat4_t m) {
+extern void gl_uniform_m4(u32 location, M4 m)
+{
     glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t in_modelview) {
+extern V3 gl_get_world_position(int x, int y, M4 in_projection, M4 in_modelview)
+{
     GLint viewport[4] = {0};
     f64 modelview[16] = {0};
     f64 projection[16] = {0};
@@ -929,7 +963,8 @@ extern vec3_t gl_get_world_position(int x, int y, mat4_t in_projection, mat4_t i
     return v3((f32)result[0], (f32)result[1], (f32)result[2]);
 }
 
-extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
+extern GLArray gl_array_create(const GLArrayDesc* desc)
+{
     u32 vao = 0;
     u32 vbo = 0;
     
@@ -939,8 +974,8 @@ extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    for (u32 i = 0; i < ARRAY_COUNT(desc->layout); ++i) {
-        const gl_layout_t* layout = &desc->layout[i];
+    for (u32 i = 0; i < ArrayCount(desc->layout); ++i) {
+        const GLLayout* layout = &desc->layout[i];
 
         if (layout->size) {
             glEnableVertexAttribArray(i);
@@ -948,7 +983,7 @@ extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
         }
     }
 
-    gl_array_t result = ATS_INIT_ZERO;
+    GLArray result = ATS_INIT_ZERO;
 
     result.vao = vao;
     result.vbo = vbo;
@@ -956,7 +991,8 @@ extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
     return result;
 }
 
-extern void gl_array_data(gl_array_t array, const void* data, u32 size) {
+extern void gl_array_data(GLArray array, const void* data, u32 size)
+{
     glBindBuffer(GL_ARRAY_BUFFER, array.vbo);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
