@@ -456,6 +456,14 @@ static V2 v2_ceil(V2 u);
 static V3 v3_ceil(V3 u);
 static V4 v4_ceil(V4 u);
 
+// -------------- clamp --------------- //
+
+static V2 v2_clamp(V2 u, R2 r);
+static V3 v3_clamp(V3 u, R3 r);
+
+static V2i v2i_clamp(V2i u, R2i r);
+static V3i v3i_clamp(V3i u, R3i r);
+
 // ------------- keep min ------------- //
 
 static V3 v3_keep_min(V3 u);
@@ -1470,6 +1478,39 @@ static V3 v3_ceil(V3 u)
 static V4 v4_ceil(V4 u)
 {
     return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w));
+}
+
+// -------------- clamp --------------- //
+
+static V2 v2_clamp(V2 u, R2 r)
+{
+    return v2(
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y));
+}
+
+static V3 v3_clamp(V3 u, R3 r)
+{
+    return v3(
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y),
+        Clamp(u.z, r.min.z, r.max.z));
+
+}
+
+static V2i v2i_clamp(V2i u, R2i r)
+{
+    return v2i(
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y));
+}
+
+static V3i v3i_clamp(V3i u, R3i r)
+{
+    return v3i(
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y),
+        Clamp(u.z, r.min.z, r.max.z));
 }
 
 // ----------- keep min ---------- //

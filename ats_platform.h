@@ -81,7 +81,7 @@ typedef struct GLLayout
     u32 stride;
     u32 offset;
     b32 normalize;
-} gl_layout_t;
+} GLLayout;
 
 typedef struct GLArrayDesc
 {
