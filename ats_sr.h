@@ -440,8 +440,6 @@ static void sr_end_frame(void)
 {
     gl_array_data(sr_array, sr_vertex_array, sizeof (SRVertex) * sr_vertex_count);
 
-    glEnable(GL_DEPTH_TEST);
-
     for (u32 i = 0; i < sr_range_count; ++i) {
         const SRRange* range = &sr_range_array[i];
 
