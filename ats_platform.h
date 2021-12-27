@@ -9,6 +9,10 @@
 #include "ext/imgui/imgui_impl_opengl3.h"
 #endif
 
+#if defined(ATS_OGL33) || defined(SOKOL_GLCORE33)
+#define GLSL_SHADER(shader) "#version 330 core\n" #shader
+#endif
+
 // ====================================================== API =================================================== //
 
 // ------------------- platform layer ------------------------ //
@@ -29,15 +33,13 @@ typedef struct GLTexture {
     int height;
 } gl_texture_t;
 
-extern gl_texture_t  gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
 extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
 extern void         gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
 extern void         gl_texture_bind(const gl_texture_t *texture);
 extern void         gl_texture_delete(gl_texture_t* texture);
 
 #ifdef ATS_OGL33
-
-#define GLSL_SHADER(shader) "#version 330 core\n" #shader
 
 typedef struct GLShader {
     u32 id;
@@ -276,8 +278,7 @@ extern void         gl_array_data(gl_array_t array, const void* data, u32 size);
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-typedef union GamepadButtons
-{
+typedef union GamepadButtons {
     struct {
         u32 X : 1;
         u32 A : 1;
@@ -294,14 +295,14 @@ typedef union GamepadButtons
         u32 LS : 1;
         u32 RS : 1;
 
-        u32 UP : 1;
-        u32 RIGHT : 1;
-        u32 DOWN : 1;
-        u32 LEFT : 1;
+        u32 up : 1;
+        u32 right : 1;
+        u32 down : 1;
+        u32 left : 1;
     } button;
 
     u32 data;
-} GamepadButtons;
+} gamepad_buttons;
 
 typedef struct Gamepad
 {
@@ -313,9 +314,9 @@ typedef struct Gamepad
     f32 LT;
     f32 RT;
 
-    GamepadButtons down;
-    GamepadButtons pressed;
-    GamepadButtons released;
+    gamepad_buttons down;
+    gamepad_buttons pressed;
+    gamepad_buttons released;
 } gamepad_t;
 
 enum {
@@ -396,6 +397,10 @@ extern platform_t platform;
 #include "ext/glad/glad.c"
 #endif
 
+#if defined(SOKOL_GLCORE33) 
+#define GLFW_INCLUDE_NONE
+#endif
+
 #include <GLFW/glfw3.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -413,14 +418,12 @@ extern platform_t platform;
 
 Platform platform;
 
-static struct
-{
+static struct {
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
-{
+static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
     (void)window;
     (void)a;
     (void)b;
@@ -449,14 +452,12 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
     }
 }
 
-static void window_char_callback(GLFWwindow* window, unsigned int codepoint)
-{
+static void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
-{
+static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
     (void)window;
     (void)a;
 
@@ -476,16 +477,14 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
     }
 }
 
-static void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+static void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     (void)window;
 
     platform.mouse.scroll.x = (f32)xoffset;
     platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void window_joystick_callback(int joy, int event)
-{
+static void window_joystick_callback(int joy, int event) {
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
         platform.gamepad[joy].active = 1;
@@ -496,8 +495,7 @@ static void window_joystick_callback(int joy, int event)
     }
 }
 
-extern void platform_init(const char* title, int width, int height, int samples)
-{
+extern void platform_init(const char* title, int width, int height, int samples) {
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -509,15 +507,16 @@ extern void platform_init(const char* title, int width, int height, int samples)
     glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
-#ifdef ATS_OGL33
+#if defined(ATS_OGL33) || defined(SOKOL_GLCORE33) 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
 
     glfwWindowHint(GLFW_SAMPLES, samples);
 
-    platform.width = width;
+    platform.width  = width;
     platform.height = height;
 
     platform_internal.window = glfwCreateWindow(width, height, title, NULL, NULL);
@@ -527,7 +526,7 @@ extern void platform_init(const char* title, int width, int height, int samples)
 
     glfwMakeContextCurrent(platform_internal.window);
 
-#ifdef ATS_OGL33 
+#if defined(ATS_OGL33)
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 #endif
 
@@ -564,11 +563,13 @@ extern void platform_init(const char* title, int width, int height, int samples)
 
     glfwSetTime(0.0);
 
+#if !defined (SOKOL_GLCORE33)
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glfwSwapBuffers(platform_internal.window);
     glfwPollEvents();
+#endif
 
 #ifdef ATS_IMGUI
     ImGui_ImplOpenGL3_NewFrame();
@@ -578,8 +579,7 @@ extern void platform_init(const char* title, int width, int height, int samples)
 #endif
 }
 
-extern void platform_update(void)
-{
+extern void platform_update(void) {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
@@ -626,7 +626,7 @@ extern void platform_update(void)
 
         for (int i = 0; i < JOYSTICK_LAST; ++i) {
             if (platform.gamepad[i].active) {
-                GamepadButtons old = platform.gamepad[i].down;
+                gamepad_buttons old = platform.gamepad[i].down;
 
                 platform.gamepad[i].down.data = 0;
                 platform.gamepad[i].pressed.data = 0;
@@ -658,10 +658,10 @@ extern void platform_update(void)
                 if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB]) platform.gamepad[i].down.button.LS = 1;
                 if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB]) platform.gamepad[i].down.button.RS = 1;
 
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_UP]) platform.gamepad[i].down.button.UP = 1;
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT]) platform.gamepad[i].down.button.RIGHT = 1;
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN]) platform.gamepad[i].down.button.DOWN = 1;
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT]) platform.gamepad[i].down.button.LEFT = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_UP]) platform.gamepad[i].down.button.up = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT]) platform.gamepad[i].down.button.right = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN]) platform.gamepad[i].down.button.down = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT]) platform.gamepad[i].down.button.left = 1;
 
                 platform.gamepad[i].pressed.data = platform.gamepad[i].down.data & ~old.data;
                 platform.gamepad[i].released.data = ~platform.gamepad[i].down.data & old.data;
@@ -710,13 +710,11 @@ extern void platform_update(void)
 #endif
 }
 
-extern f64 timer_get_current(void)
-{
+extern f64 timer_get_current(void) {
     return glfwGetTime();
 }
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth)
-{
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
     gl_texture_t texture = {0};
@@ -785,7 +783,7 @@ extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, in
 extern void gl_texture_bind(const gl_texture_t *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
-#ifndef ATS_OGL33
+#if !defined(ATS_OGL33) && !defined(SOKOL_GLCORE33)
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);

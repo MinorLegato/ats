@@ -83,6 +83,10 @@ typedef unsigned short      u16;
 typedef unsigned int        u32;
 typedef unsigned long long  u64;
 
+typedef unsigned int        uint;
+typedef long long           isize;
+typedef unsigned long long  usize;
+
 static_assert (sizeof (i8)  >= 1, "i8 -- not enough bits!");
 static_assert (sizeof (i16) >= 2, "i16 -- not enough bits!");
 static_assert (sizeof (i32) >= 4, "i32 -- not enough bits!");
@@ -1978,6 +1982,30 @@ static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
     return true;
 }
 
+// ===================================== MEM STUFF ================================= //
+
+static void zero_memory(void* data, usize size) {
+    volatile u8* d = (u8*)data;
+
+    while (size--)
+        *(d++) = 0;
+}
+
+static void set_memory(void* data, u8 value, usize size) {
+    volatile u8* d = (u8*)data;
+
+    while (size--)
+        *(d++) = value;
+}
+
+static void copy_memory(void* dst, const void* src, usize size) {
+    volatile u8*        d = (u8*)dst;
+    volatile const u8*  s = (u8*)src;
+
+    while (size--)
+        *(d++) = *(s++);
+}
+
 // ============================================================================================ //
 // ======================================= IMPLEMENTATION ===================================== //
 // ============================================================================================ //
@@ -2008,7 +2036,7 @@ extern void* ma_alloc(memory_arena_t* ma, u32 byte_size) {
     ma->index     += byte_size;
     ma->max       = ma->max > ma->index? ma->max : ma->index;
 
-    memset(memory, 0, byte_size);
+    zero_memory(memory, byte_size);
 
     return memory;
 }
