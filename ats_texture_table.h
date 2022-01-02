@@ -43,22 +43,42 @@ struct texture_table {
 // ====================================== IMPL ========================================== //
 // ====================================================================================== //
 
-static texture_table table;
+typedef struct {
+    image_t     image;
+    char        name[256];
+} tt_image;
+
+static texture_table    tt_table;
+
+static u32              tt_image_count;
+static u32              tt_image_capacity;
+static tt_image*        tt_image_array;
+
+static tt_image* tt_new_image(void) {
+    if (tt_image_count >= tt_image_capacity) {
+        tt_image_capacity   = tt_image_capacity? 256 : (tt_image_capacity << 1);
+        tt_image_array      = (tt_image*)realloc(tt_image_array, tt_image_capacity * (sizeof *tt_image_array));
+    }
+
+    tt_image* data = &tt_image_array[tt_image_count++];
+    memset(data, 0, sizeof (data));
+    return data;
+}
 
 extern image_t tt_get_image(void) {
-    return table.image;
+    return tt_table.image;
 }
 
 extern r2i tt_get_rect(texture_id id) {
-    return table.array[id.index].rect;
+    return tt_table.array[id.index].rect;
 }
 
 extern texture_id tt_get_id(const char* name) {
     u32 hash  = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
-    while (table.array[index].in_use) {
-        if ((table.array[index].hash == hash) && (strcmp(table.array[index].name, name) == 0)) {
+    while (tt_table.array[index].in_use) {
+        if ((tt_table.array[index].hash == hash) && (strcmp(tt_table.array[index].name, name) == 0)) {
             texture_id id = { index };
             return id;
         }
@@ -80,14 +100,14 @@ static void _tt_add_entry(const char* name, r2i rect) {
     u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
 
-    while (table.array[index].in_use) {
-        if ((table.array[index].hash == hash) && (strcmp(table.array[index].name, name) == 0))
+    while (tt_table.array[index].in_use) {
+        if ((tt_table.array[index].hash == hash) && (strcmp(tt_table.array[index].name, name) == 0))
             assert(true);
 
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
 
-    texture_entry* entry = &table.array[index];
+    texture_entry* entry = &tt_table.array[index];
     
     entry->in_use = true;
     entry->rect = rect;
@@ -111,14 +131,9 @@ static void cstr_concat(char* out, const char* a, const char* b) {
     *(out) = '\0';
 }
 
-typedef struct ImageData {
-    image_t     image;
-    char        name[256];
-} image_data;
-
-static int cmp_image_data(const void* va, const void* vb) {
-    image_data* a = (image_data*)va;
-    image_data* b = (image_data*)vb;
+static int cmp_tt_image(const void* va, const void* vb) {
+    tt_image* a = (tt_image*)va;
+    tt_image* b = (tt_image*)vb;
 
     int dw = b->image.width  - a->image.width;
     int dh = a->image.height - a->image.height;
@@ -133,61 +148,62 @@ extern b32 rect_contains_image(r2i rect, image_t image) {
     return image.width <= rect_width && image.height <= rect_height; 
 }
 
-static image_data* tt__load_png_files_in_directory(u32* out_image_count, const char* dir_path, memory_arena_t* ma) {
-    u32             image_count = 0;
-    image_data*   image_array = NULL;
+static tt_image* tt_load_png_files_in_directory(u32* out_image_count, const char* dir_path, memory_arena_t* ma) {
+    u32         image_count = 0;
+    tt_image*   image_array = NULL;
 
     // get all .png files in directory:
-    Defer (image_array = (image_data*)ma_begin(ma), ma_end(ma, image_count * sizeof (image_data))) {
+    Defer (image_array = (tt_image*)ma_begin(ma), ma_end(ma, image_count * sizeof (tt_image))) {
         char find_file_str[256];
 
         cstr_concat(find_file_str, dir_path, "*.png*");
 
-        WIN32_FIND_DATA find_data = {0};
+        WIN32_FIND_DATA find_data = ATS_INIT_ZERO;
         HANDLE find_handle = FindFirstFile(find_file_str, &find_data);
 
         if (find_handle != INVALID_HANDLE_VALUE) {
             do {
-                image_data* data = &image_array[image_count++];
+                tt_image* data = &image_array[image_count++];
 
                 char file_path[256];
                 cstr_concat(file_path, dir_path, find_data.cFileName);
                 data->image = image_load_from_file(file_path);
 
                 cstr_copy_no_file_extension(data->name, find_data.cFileName);
-            } while(FindNextFile(find_handle, &find_data));
+            } while (FindNextFile(find_handle, &find_data));
 
             FindClose(find_handle);
         }
     }
 
-    qsort(image_array, image_count, sizeof (image_data), cmp_image_data);
+    qsort(image_array, image_count, sizeof (tt_image), cmp_tt_image);
 
     *out_image_count = image_count;
     return image_array;
 }
 
 extern void tt_load_from_dir(const char* dir_path, memory_arena_t* ma) {
-    table = ctor(texture_table, { 4096, 4096, ma_array(ma, u32, 4096 * 4096) });
-    table.array[0].in_use = true;
+    tt_table = ctor(texture_table, { 4096, 4096, ma_array(ma, u32, 4096 * 4096) });
+    
+    tt_table.array[0].in_use = true;
 
     for (u32 i = 0; i < 2048 * 2048; ++i) {
-        table.image.pixels[i] = 0xff000000;
+        tt_table.image.pixels[i] = 0xff000000;
     }
 
     Defer (ma_save(ma), ma_restore(ma)) {
         u32             image_count     = 0;
-        image_data*     image_array     = tt__load_png_files_in_directory(&image_count, dir_path, ma);
+        tt_image*       image_array     = tt_load_png_files_in_directory(&image_count, dir_path, ma);
         u32             rect_count      = 0;
         r2i*            rect_array      = NULL;
 
         Defer (rect_array = (r2i*)ma_begin(ma), ma_end(ma, 0)) {
             rect_array[rect_count++] = r2i(
                 v2i(0, 0),
-                v2i(table.image.width, table.image.height));
+                v2i(tt_table.image.width, tt_table.image.height));
 
             for (u32 i = 0; i < image_count; ++i) {
-                image_data* data = &image_array[i];
+                tt_image* data = &image_array[i];
 
                 u32 j = 0;
                 for (j = 0; j < rect_count; ++j) {
@@ -207,7 +223,7 @@ extern void tt_load_from_dir(const char* dir_path, memory_arena_t* ma) {
 
                 for (i32 y = 0; y < data->image.height; ++y) {
                     for (i32 x = 0; x < data->image.width; ++x) {
-                        image_set_pixel(&table.image, x + offset.x + 1, y + offset.y + 1, image_get_pixel(&data->image, x, y));
+                        image_set_pixel(&tt_table.image, x + offset.x + 1, y + offset.y + 1, image_get_pixel(&data->image, x, y));
                     }
                 }
                 
@@ -222,6 +238,19 @@ extern void tt_load_from_dir(const char* dir_path, memory_arena_t* ma) {
                 free(data->image.pixels);
             }
         }
+    }
+}
+
+extern void tt_begin(void) {
+    //
+}
+extern void tt_end(void) {
+    {
+        free(tt_image_array);
+
+        tt_image_array      = NULL;
+        tt_image_capacity   = 0;
+        tt_image_count      = 0;
     }
 }
 
