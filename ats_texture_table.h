@@ -12,6 +12,7 @@ typedef struct texture_table    texture_table;
 
 extern void             tt_begin(int width, int height);
 extern void             tt_end(void);
+extern void             tt_add_image(const char* name, image_t image);
 
 extern r2i              tt_get_rect(texture_id id);
 extern texture_id       tt_get_id(const char* name);
@@ -63,6 +64,13 @@ static tt_image* tt_new_image(void) {
     tt_image* data = &tt_image_array[tt_image_count++];
     memset(data, 0, sizeof (data));
     return data;
+}
+
+extern void tt_add_image(const char* name, image_t image) {
+    tt_image* data = tt_new_image();
+
+    strcpy(data->name, name);
+    data->image = image;
 }
 
 extern image_t tt_get_image(void) {
