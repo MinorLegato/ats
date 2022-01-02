@@ -10,13 +10,13 @@ typedef struct texture_id       texture_id;
 typedef struct texture_entry    texture_entry;
 typedef struct texture_table    texture_table;
 
-extern void             tt_begin(void);
+extern void             tt_begin(int width, int height);
 extern void             tt_end(void);
 
 extern r2i              tt_get_rect(texture_id id);
 extern texture_id       tt_get_id(const char* name);
 extern r2i              tt_get(const char* name);
-extern void             tt_load_from_dir(const char* dir_path, memory_arena_t* ma);
+extern void             tt_load_from_dir(const char* dir_path);
 
 extern image_t          tt_get_image(void);
 
@@ -56,7 +56,7 @@ static tt_image*        tt_image_array;
 
 static tt_image* tt_new_image(void) {
     if (tt_image_count >= tt_image_capacity) {
-        tt_image_capacity   = tt_image_capacity? 256 : (tt_image_capacity << 1);
+        tt_image_capacity   = !tt_image_capacity? 256 : (tt_image_capacity << 1);
         tt_image_array      = (tt_image*)realloc(tt_image_array, tt_image_capacity * (sizeof *tt_image_array));
     }
 
@@ -148,103 +148,99 @@ extern b32 rect_contains_image(r2i rect, image_t image) {
     return image.width <= rect_width && image.height <= rect_height; 
 }
 
-static tt_image* tt_load_png_files_in_directory(u32* out_image_count, const char* dir_path, memory_arena_t* ma) {
-    u32         image_count = 0;
-    tt_image*   image_array = NULL;
+extern void tt_load_from_dir(const char* dir_path) {
+    char find_file_str[256] = ATS_INIT_ZERO;
+    cstr_concat(find_file_str, dir_path, "*.png*");
 
-    // get all .png files in directory:
-    Defer (image_array = (tt_image*)ma_begin(ma), ma_end(ma, image_count * sizeof (tt_image))) {
-        char find_file_str[256];
+    WIN32_FIND_DATA find_data = ATS_INIT_ZERO;
+    HANDLE find_handle = FindFirstFile(find_file_str, &find_data);
 
-        cstr_concat(find_file_str, dir_path, "*.png*");
+    if (find_handle != INVALID_HANDLE_VALUE) {
+        do {
+            tt_image* data = tt_new_image();
 
-        WIN32_FIND_DATA find_data = ATS_INIT_ZERO;
-        HANDLE find_handle = FindFirstFile(find_file_str, &find_data);
+            char file_path[256];
+            cstr_concat(file_path, dir_path, find_data.cFileName);
+            data->image = image_load_from_file(file_path);
 
-        if (find_handle != INVALID_HANDLE_VALUE) {
-            do {
-                tt_image* data = &image_array[image_count++];
+            cstr_copy_no_file_extension(data->name, find_data.cFileName);
+        } while (FindNextFile(find_handle, &find_data));
 
-                char file_path[256];
-                cstr_concat(file_path, dir_path, find_data.cFileName);
-                data->image = image_load_from_file(file_path);
-
-                cstr_copy_no_file_extension(data->name, find_data.cFileName);
-            } while (FindNextFile(find_handle, &find_data));
-
-            FindClose(find_handle);
-        }
+        FindClose(find_handle);
     }
-
-    qsort(image_array, image_count, sizeof (tt_image), cmp_tt_image);
-
-    *out_image_count = image_count;
-    return image_array;
 }
 
-extern void tt_load_from_dir(const char* dir_path, memory_arena_t* ma) {
-    tt_table = ctor(texture_table, { 4096, 4096, ma_array(ma, u32, 4096 * 4096) });
-    
+extern void tt_begin(int width, int height) {
+    tt_table = ctor(texture_table, { width, height, (u32*)calloc(width * height, sizeof (u32)) });
+
     tt_table.array[0].in_use = true;
 
-    for (u32 i = 0; i < 2048 * 2048; ++i) {
+    for (u32 i = 0; i < width * height; ++i) {
         tt_table.image.pixels[i] = 0xff000000;
     }
+}
 
-    Defer (ma_save(ma), ma_restore(ma)) {
-        u32             image_count     = 0;
-        tt_image*       image_array     = tt_load_png_files_in_directory(&image_count, dir_path, ma);
-        u32             rect_count      = 0;
-        r2i*            rect_array      = NULL;
+typedef struct {
+    u32     top;
+    u32     cap;
+    r2i*    buf;
+} tt_rect_stack;
 
-        Defer (rect_array = (r2i*)ma_begin(ma), ma_end(ma, 0)) {
-            rect_array[rect_count++] = r2i(
-                v2i(0, 0),
-                v2i(tt_table.image.width, tt_table.image.height));
+static void tt_push_rect(tt_rect_stack* stack, r2i rect) {
+    if (stack->top >= stack->cap) {
+        stack->cap = !stack->cap? 256 : (stack->cap << 1);
+        stack->buf = (r2i*)realloc(stack->buf, stack->cap * sizeof (r2i));
+    }
 
-            for (u32 i = 0; i < image_count; ++i) {
-                tt_image* data = &image_array[i];
+    stack->buf[stack->top++] = rect;
+}
 
-                u32 j = 0;
-                for (j = 0; j < rect_count; ++j) {
-                    if (rect_contains_image(rect_array[j], data->image)) {
-                        break;
-                    }
-                }
-
-                r2i rect        = rect_array[j];
-                rect_array[j]   = rect_array[--rect_count];
-
-                v2i size        = v2i(data->image.width + 2, data->image.height + 2);
-                v2i offset      = rect.min;
-
-                _tt_add_entry(data->name, r2i(v2i(offset.x + 1, offset.y + 1),
-                                                     v2i(offset.x + size.x - 1, offset.y + size.y - 1)));
-
-                for (i32 y = 0; y < data->image.height; ++y) {
-                    for (i32 x = 0; x < data->image.width; ++x) {
-                        image_set_pixel(&tt_table.image, x + offset.x + 1, y + offset.y + 1, image_get_pixel(&data->image, x, y));
-                    }
-                }
-                
-                {
-                    r2i a = { { rect.min.x,           rect.min.y + size.y },  { rect.min.x + size.x, rect.max.y } };
-                    r2i b = { { rect.min.x + size.x,  rect.min.y },           rect.max };
-
-                    if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { rect_array[rect_count++] = a; }
-                    if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { rect_array[rect_count++] = b; }
-                }
-
-                free(data->image.pixels);
-            }
+static r2i tt_get_fit(tt_rect_stack* stack, image_t image) {
+    u32 j = 0;
+    for (j = 0; j < stack->top; ++j) {
+        if (rect_contains_image(stack->buf[j], image)) {
+            break;
         }
     }
+
+    r2i rect        = stack->buf[j];
+    stack->buf[j]   = stack->buf[--stack->top];
+
+    return rect;
 }
 
-extern void tt_begin(void) {
-    //
-}
 extern void tt_end(void) {
+    tt_rect_stack stack = ATS_INIT_ZERO;
+    tt_push_rect(&stack, r2i(v2i(0, 0), v2i(tt_table.image.width, tt_table.image.height)));
+
+    qsort(tt_image_array, tt_image_count, sizeof (tt_image), cmp_tt_image);
+
+    for (u32 i = 0; i < tt_image_count; ++i) {
+        tt_image*   data    = &tt_image_array[i];
+        r2i         rect    = tt_get_fit(&stack, data->image);
+        v2i         size    = v2i(data->image.width + 2, data->image.height + 2);
+        v2i         offset  = rect.min;
+
+        _tt_add_entry(data->name, r2i(v2i(offset.x + 1, offset.y + 1),
+                                      v2i(offset.x + size.x - 1, offset.y + size.y - 1)));
+
+        for (i32 y = 0; y < data->image.height; ++y) {
+            for (i32 x = 0; x < data->image.width; ++x) {
+                image_set_pixel(&tt_table.image, x + offset.x + 1, y + offset.y + 1, image_get_pixel(&data->image, x, y));
+            }
+        }
+
+        {
+            r2i a = { { rect.min.x,           rect.min.y + size.y },  { rect.min.x + size.x, rect.max.y } };
+            r2i b = { { rect.min.x + size.x,  rect.min.y },           rect.max };
+
+            if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { tt_push_rect(&stack, a); }
+            if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { tt_push_rect(&stack, b); }
+        }
+
+        free(data->image.pixels);
+    }
+
     {
         free(tt_image_array);
 
@@ -252,6 +248,8 @@ extern void tt_end(void) {
         tt_image_capacity   = 0;
         tt_image_count      = 0;
     }
+    
+    free(stack.buf);
 }
 
 #endif
