@@ -15,7 +15,7 @@ typedef struct SRVertex {
 } sr_vertex_t;
 
 typedef struct SRRange {
-    gl_shader_t    shader;
+    gl_shader   shader;
     u32         type;
 
     u32         index;
@@ -50,15 +50,15 @@ typedef struct SRPointLightUniform {
     u32     quadratic;
 } sr_point_light_uniform_t;
 
-static gl_shader_t      sr_shader;
-static gl_shader_t      sr_basic_shader;
-static gl_shader_t      sr_texture_shader;
+static gl_shader      sr_shader;
+static gl_shader      sr_basic_shader;
+static gl_shader      sr_texture_shader;
 
-static gl_shader_t      sr_ui_basic_shader;
-static gl_shader_t      sr_ui_texture_shader;
-static gl_shader_t      sr_ui_text_shader;
+static gl_shader      sr_ui_basic_shader;
+static gl_shader      sr_ui_texture_shader;
+static gl_shader      sr_ui_text_shader;
 
-static gl_array_t       sr_array;
+static gl_array       sr_array;
 static sr_vertex_t      sr_current_vertex;
 
 static u32              sr_vertex_count;
@@ -72,9 +72,9 @@ static sr_range_t      sr_range_array[1024 * 1024];
 
 static sr_point_light_uniform_t sr_lights[SR_MAX_POINT_LIGHTS];
 
-static gl_texture_t sr_bitmap_texture;
+static gl_texture sr_bitmap_texture;
 
-static gl_shader_desc_t sr_shader_desc = {
+static gl_shader_desc sr_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3  in_position;
@@ -171,7 +171,7 @@ static gl_shader_desc_t sr_shader_desc = {
             }),
 };
 
-static gl_shader_desc_t sr_texture_shader_desc = {
+static gl_shader_desc sr_texture_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3 in_position;
@@ -207,7 +207,7 @@ static gl_shader_desc_t sr_texture_shader_desc = {
         }),
 };
 
-static gl_shader_desc_t sr_text_shader_desc = {
+static gl_shader_desc sr_text_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3 in_position;
@@ -243,7 +243,7 @@ static gl_shader_desc_t sr_text_shader_desc = {
         }),
 };
 
-static gl_shader_desc_t sr_basic_shader_desc = {
+static gl_shader_desc sr_basic_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3 in_position;
@@ -318,12 +318,12 @@ static void sr_init(void)
         sr_ui_text_shader       = gl_shader_create(&sr_text_shader_desc);
     }
 
-    gl_array_desc_t array_desc = ATS_INIT_ZERO;
+    gl_array_desc array_desc = ATS_INIT_ZERO;
     
-    array_desc.layout[0] = ctor(gl_layout_t, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, pos));
-    array_desc.layout[1] = ctor(gl_layout_t, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, normal), true);
-    array_desc.layout[2] = ctor(gl_layout_t, 2, GL_SHORT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, uv));
-    array_desc.layout[3] = ctor(gl_layout_t, 4, GL_UNSIGNED_BYTE,   sizeof (sr_vertex_t), offsetof(sr_vertex_t, color), true);
+    array_desc.layout[0] = ctor(gl_layout, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, pos));
+    array_desc.layout[1] = ctor(gl_layout, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, normal), true);
+    array_desc.layout[2] = ctor(gl_layout, 2, GL_SHORT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, uv));
+    array_desc.layout[3] = ctor(gl_layout, 4, GL_UNSIGNED_BYTE,   sizeof (sr_vertex_t), offsetof(sr_vertex_t, color), true);
 
     sr_array = gl_array_create(&array_desc);
     gl_array_data(sr_array, NULL, sizeof (sr_vertex_t) * ArrayCount(sr_vertex_array));
@@ -376,12 +376,12 @@ static void sr_disable_all_lights(void) {
     }
 }
 
-static void sr_set_texture(gl_texture_t texture) {
+static void sr_set_texture(gl_texture texture) {
     glActiveTexture(GL_TEXTURE0);
     gl_texture_bind(&texture);
 }
 
-static void sr_begin(u32 primitive_type, gl_shader_t shader) {
+static void sr_begin(u32 primitive_type, gl_shader shader) {
     memset(&sr_current_range, 0, sizeof sr_current_range);
 
     sr_current_range.shader = shader;

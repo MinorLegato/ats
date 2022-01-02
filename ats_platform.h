@@ -31,30 +31,31 @@ typedef struct GLTexture {
     u32 id;
     int width;
     int height;
-} gl_texture_t;
+} gl_texture;
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
-extern void         gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
-extern void         gl_texture_bind(const gl_texture_t *texture);
-extern void         gl_texture_delete(gl_texture_t* texture);
+extern gl_texture   gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern gl_texture   gl_texture_create_from_image(image_t image, int is_smooth);
+extern gl_texture   gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern void         gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth);
+extern void         gl_texture_bind(const gl_texture *texture);
+extern void         gl_texture_delete(gl_texture* texture);
 
 #ifdef ATS_OGL33
 
 typedef struct GLShader {
     u32 id;
-} gl_shader_t;
+} gl_shader;
 
 typedef struct GLShaderDesc {
     const char* vs;
     const char* fs;
-} gl_shader_desc_t;
+} gl_shader_desc;
 
-extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc);
-extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
+extern gl_shader gl_shader_create(const gl_shader_desc* desc);
+extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma);
 
-extern void gl_shader_use(gl_shader_t shader);
-extern u32  gl_shader_location(gl_shader_t shader, const char* name);
+extern void gl_shader_use(gl_shader shader);
+extern u32  gl_shader_location(gl_shader shader, const char* name);
 
 extern void gl_uniform_i32(u32 location, i32 u);
 extern void gl_uniform_f32(u32 location, f32 u);
@@ -70,7 +71,7 @@ extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
 typedef struct GLArray {
     u32     vao;
     u32     vbo;
-} gl_array_t;
+} gl_array;
 
 typedef struct GLLayout {
     u32     size;
@@ -78,14 +79,21 @@ typedef struct GLLayout {
     u32     stride;
     u32     offset;
     b32     normalize;
-} gl_layout_t;
+} gl_layout;
 
 typedef struct GLArrayDesc {
-    gl_layout_t layout[32];
-} gl_array_desc_t;
+    gl_layout layout[32];
+} gl_array_desc;
 
-extern gl_array_t   gl_array_create(const gl_array_desc_t* desc);
-extern void         gl_array_data(gl_array_t array, const void* data, u32 size);
+extern gl_array gl_array_create(const gl_array_desc* desc);
+extern void     gl_array_data(gl_array array, const void* data, u32 size);
+
+#ifdef __cplusplus
+
+static inline gl_shader gl_shader_create(const gl_shader_desc& desc)   { return gl_shader_create(&desc); }
+static inline gl_array gl_array_create(const gl_array_desc& desc)      { return gl_array_create(&desc); }
+
+#endif // __cplusplus
 
 #endif
 
@@ -714,10 +722,10 @@ extern f64 timer_get_current(void) {
     return glfwGetTime();
 }
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
-    gl_texture_t texture = {0};
+    gl_texture texture = {0};
 
     texture.width = width;
     texture.height = height;
@@ -738,9 +746,13 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
 }
 
 #ifndef ATS_NO_IMAGE
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth)
-{
-    gl_texture_t texture = ATS_INIT_ZERO;
+
+extern gl_texture gl_texture_create_from_image(image_t image, int is_smooth) {
+    return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
+}
+
+extern gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth) {
+    gl_texture texture = ATS_INIT_ZERO;
     i32 channels = 0;
 
     unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
@@ -765,7 +777,7 @@ extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_s
 }
 #endif
 
-extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width = width;
     texture->height = height;
 
@@ -780,7 +792,7 @@ extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, in
 #endif
 }
 
-extern void gl_texture_bind(const gl_texture_t *texture) {
+extern void gl_texture_bind(const gl_texture *texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
 #if !defined(ATS_OGL33) && !defined(SOKOL_GLCORE33)
@@ -790,7 +802,7 @@ extern void gl_texture_bind(const gl_texture_t *texture) {
 #endif
 }
 
-extern void gl_texture_delete(gl_texture_t* texture) {
+extern void gl_texture_delete(gl_texture* texture) {
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
 }
@@ -838,7 +850,7 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
     return shader;
 }
 
-extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
+extern gl_shader gl_shader_create(const gl_shader_desc* desc) {
     u32 vertex   = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
     u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
     u32 program  = gl_shader_link_program(vertex, fragment);
@@ -848,35 +860,35 @@ extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
-    gl_shader_t shader = ATS_INIT_ZERO;
+    gl_shader shader = ATS_INIT_ZERO;
     shader.id = program;
 
     return shader;
 }
 
-extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma) {
+extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs, memory_arena_t* ma) {
     ma_save(ma);
 
     char* vs_content = file_read_str(vs, ma);
     char* fs_content = file_read_str(fs, ma);
 
-    gl_shader_desc_t desc = ATS_INIT_ZERO;
+    gl_shader_desc desc = ATS_INIT_ZERO;
 
     desc.vs = vs_content;
     desc.fs = fs_content;
 
-    gl_shader_t program = gl_shader_create(&desc);
+    gl_shader program = gl_shader_create(&desc);
 
     ma_restore(ma);
 
     return program;
 }
 
-extern void gl_shader_use(gl_shader_t shader) {
+extern void gl_shader_use(gl_shader shader) {
     glUseProgram(shader.id);
 }
 
-extern u32 gl_shader_location(gl_shader_t shader, const char* name) {
+extern u32 gl_shader_location(gl_shader shader, const char* name) {
     return glGetUniformLocation(shader.id, name);
 }
 
@@ -936,7 +948,7 @@ extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
     return v3((f32)result[0], (f32)result[1], (f32)result[2]);
 }
 
-extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
+extern gl_array gl_array_create(const gl_array_desc* desc) {
     u32 vao = 0;
     u32 vbo = 0;
     
@@ -947,7 +959,7 @@ extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     for (u32 i = 0; i < ArrayCount(desc->layout); ++i) {
-        const gl_layout_t* layout = &desc->layout[i];
+        const gl_layout* layout = &desc->layout[i];
 
         if (layout->size) {
             glEnableVertexAttribArray(i);
@@ -955,7 +967,7 @@ extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
         }
     }
 
-    gl_array_t result = ATS_INIT_ZERO;
+    gl_array result = ATS_INIT_ZERO;
 
     result.vao = vao;
     result.vbo = vbo;
@@ -963,7 +975,7 @@ extern gl_array_t gl_array_create(const gl_array_desc_t* desc) {
     return result;
 }
 
-extern void gl_array_data(gl_array_t array, const void* data, u32 size) {
+extern void gl_array_data(gl_array array, const void* data, u32 size) {
     glBindBuffer(GL_ARRAY_BUFFER, array.vbo);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
