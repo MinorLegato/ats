@@ -111,77 +111,23 @@ static gl_shader_desc sr_shader_desc = {
         // fragment shader:
         GLSL_SHADER(
             layout (location = 0) out vec4 out_color;
-            layout (location = 1) out vec4 out_position;
-            layout (location = 2) out vec4 out_normal;
+            layout (location = 1) out vec3 out_position;
+            layout (location = 2) out vec3 out_normal;
 
-            struct point_light {
-                float   range;
+            in vec3 frag_pos;
+            in vec3 frag_normal;
+            in vec2 frag_uv;
+            in vec4 frag_color;
 
-                vec3    pos;
-
-                vec3    ambient;
-                vec3    diffuse;
-                vec3    specular;
-
-                float   constant;
-                float   linear;
-                float   quadratic;
-            };
-
-            in vec3  frag_pos;
-            in vec3  frag_normal;
-            in vec2  frag_uv;
-            in vec4  frag_color;
-
-            //out vec4 out_color;
-
-            uniform vec3        view_pos;
             uniform sampler2D   texture1;
-            uniform point_light light[16];
-
-            vec3 calculate_point_light(int i, vec4 color) {
-                // ambient
-                vec3    ambient     = light[i].ambient * color.rgb;
-
-                // diffuse 
-                vec3    norm        = normalize(frag_normal);
-                vec3    light_dir   = normalize(light[i].pos - frag_pos);
-                float   diff        = max(dot(norm, light_dir), 0.0);
-                vec3    diffuse     = light[i].diffuse * diff * color.rgb;
-
-                // specular
-                vec3    view_dir    = normalize(view_pos - frag_pos);
-                vec3    reflect_dir = reflect(-light_dir, norm);  
-                float   spec        = pow(max(dot(view_dir, reflect_dir), 0.0), 1);
-                vec3    specular    = light[i].specular * spec * color.rgb;  
-
-                // attenuation
-                float   distance    = length(light[i].pos - frag_pos);
-                float   attenuation = 1.0 / (light[i].constant + light[i].linear * distance + light[i].quadratic * (distance * distance));    
-
-                ambient  *= attenuation;
-                diffuse  *= attenuation;
-                specular *= attenuation;
-
-                float str = distance / light[i].range;
-                return (ambient + diffuse + specular) * (1 - str * str * str);
-            }
 
             void main() {
                 vec4 color = frag_color * texture2D(texture1, frag_uv / textureSize(texture1, 0));
-                if (color.a == 0) discard;
-
-                vec3 result = vec3(0);
-
-                for (int i = 0; i < 16; ++i) {
-                    if (light[i].range > 0) {
-                        if (distance(light[i].pos, frag_pos) < light[i].range) {
-                            result += calculate_point_light(i, color);
-                        }
-                    }
-                }
-
-                out_color = vec4(result, color.a);
+                //if (color.a == 0) discard;
+                
+                out_color       = color;
+                out_position    = frag_pos;
+                out_normal      = frag_normal;
             }),
 };
 
@@ -193,6 +139,8 @@ static gl_shader_desc sr_texture_shader_desc = {
         layout (location = 2) in vec2 in_uv;
         layout (location = 3) in vec4 in_color;
 
+        in vec3 frag_pos;
+        in vec3 frag_normal;
         out vec2 frag_uv;
         out vec4 frag_color;
 
@@ -305,15 +253,73 @@ static gl_shader_desc sr_frame_shader_desc = {
 
     .fs = GLSL_SHADER(
         out vec4            out_color;
-
         in vec2             frag_uv;
 
-        uniform sampler2D   in_color;
-        uniform sampler2D   in_position;
-        uniform sampler2D   in_normal;
+        struct point_light {
+            float   range;
 
+            vec3    pos;
+
+            vec3    ambient;
+            vec3    diffuse;
+            vec3    specular;
+
+            float   constant;
+            float   linear;
+            float   quadratic;
+        };
+
+        uniform vec3        view_pos;
+        uniform point_light light[16];
+
+        vec3 calculate_point_light(int i, vec4 color, vec3 frag_pos, vec3 frag_normal) {
+            // ambient
+            vec3    ambient     = light[i].ambient * color.rgb;
+
+            // diffuse 
+            vec3    norm        = normalize(frag_normal);
+            vec3    light_dir   = normalize(light[i].pos - frag_pos);
+            float   diff        = max(dot(norm, light_dir), 0.0);
+            vec3    diffuse     = light[i].diffuse * diff * color.rgb;
+
+            // specular
+            vec3    view_dir    = normalize(view_pos - frag_pos);
+            vec3    reflect_dir = reflect(-light_dir, norm);  
+            float   spec        = pow(max(dot(view_dir, reflect_dir), 0.0), 1);
+            vec3    specular    = light[i].specular * spec * color.rgb;  
+
+            // attenuation
+            float   distance    = length(light[i].pos - frag_pos);
+            float   attenuation = 1.0 / (light[i].constant + light[i].linear * distance + light[i].quadratic * (distance * distance));    
+
+            ambient  *= attenuation;
+            diffuse  *= attenuation;
+            specular *= attenuation;
+
+            float str = distance / light[i].range;
+            return (ambient + diffuse + specular) * (1 - str * str * str);
+        }
+ 
+        uniform sampler2D in_color;
+        uniform sampler2D in_position;
+        uniform sampler2D in_normal;
+       
         void main() {
-            out_color = texture(in_color, frag_uv);
+            vec4 color      = texture2D(in_color, frag_uv);
+            vec3 position   = texture2D(in_position, frag_uv).xyz;
+            vec3 normal     = texture2D(in_normal, frag_uv).xyz;
+
+            vec3 result = vec3(0);
+            for (int i = 0; i < 16; ++i) {
+                if (light[i].range > 0) {
+                    if (distance(light[i].pos, position) < light[i].range) {
+                        result += calculate_point_light(i, color, position, normal);
+                    }
+                }
+            }
+
+            //out_color = vec4(result, 1);
+            out_color = color;
         }),
 };
 
@@ -339,25 +345,22 @@ static void sr_init(void) {
 
         {
             gl_shader_use(sr_frame_shader);
-            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_color"), 0);
-            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_position"), 1);
-            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_normal"), 2);
-
-            gl_shader_use(sr_shader);
+            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_color"),     0);
+            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_position"),  1);
+            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_normal"),    2);
 
             char buffer[256];
-
             for (u32 i = 0; i < SR_MAX_POINT_LIGHTS; ++i) {
                 sr_point_light_uniform_t* light = &sr_lights[i];
 
-                sprintf(buffer, "light[%d].range", i);     light->range     = gl_shader_location(sr_shader, buffer);
-                sprintf(buffer, "light[%d].pos", i);       light->pos       = gl_shader_location(sr_shader, buffer);
-                sprintf(buffer, "light[%d].ambient", i);   light->ambient   = gl_shader_location(sr_shader, buffer);
-                sprintf(buffer, "light[%d].diffuse", i);   light->diffuse   = gl_shader_location(sr_shader, buffer);
-                sprintf(buffer, "light[%d].specular", i);  light->specular  = gl_shader_location(sr_shader, buffer);
-                sprintf(buffer, "light[%d].constant", i);  light->constant  = gl_shader_location(sr_shader, buffer);
-                sprintf(buffer, "light[%d].linear", i);    light->linear    = gl_shader_location(sr_shader, buffer);
-                sprintf(buffer, "light[%d].quadratic", i); light->quadratic = gl_shader_location(sr_shader, buffer);
+                sprintf(buffer, "light[%d].range", i);     light->range     = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].pos", i);       light->pos       = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].ambient", i);   light->ambient   = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].diffuse", i);   light->diffuse   = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].specular", i);  light->specular  = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].constant", i);  light->constant  = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].linear", i);    light->linear    = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].quadratic", i); light->quadratic = gl_shader_location(sr_frame_shader, buffer);
             }
         }
     }
@@ -395,14 +398,14 @@ static void sr_init(void) {
 
         glGenTextures(1, &sr_frame_position);
         glBindTexture(GL_TEXTURE_2D, sr_frame_position);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 2048, 2048, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, sr_frame_position, 0);
 
         glGenTextures(1, &sr_frame_normal);
         glBindTexture(GL_TEXTURE_2D, sr_frame_normal);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 2048, 2048, 0, GL_RGBA, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, sr_frame_normal, 0);
@@ -413,8 +416,8 @@ static void sr_init(void) {
         u32 rbo;
         glGenRenderbuffers(1, &rbo);
         glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 2048, 2048);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 2048, 2048);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
         sr_frame_array = gl_array_create(&(gl_array_desc) {
             .layout = {
@@ -457,7 +460,7 @@ static void sr_vertex(f32 x, f32 y, f32 z) {
 static void sr_set_light(u32 light_index, const sr_point_light_t* light) {
     const sr_point_light_uniform_t* location = &sr_lights[light_index];
 
-    gl_shader_use(sr_shader);
+    gl_shader_use(sr_frame_shader);
 
     gl_uniform_f32(location->range,     light->range);
 
@@ -472,7 +475,7 @@ static void sr_set_light(u32 light_index, const sr_point_light_t* light) {
 }
 
 static void sr_disable_all_lights(void) {
-    gl_shader_use(sr_shader);
+    gl_shader_use(sr_frame_shader);
 
     for (u32 i = 0; i < SR_MAX_POINT_LIGHTS; ++i) {
         const sr_point_light_uniform_t* location = &sr_lights[i];
@@ -520,8 +523,10 @@ static void sr_begin_frame(v3 view_pos, m4 pvm) {
         gl_uniform_m4(gl_shader_location(sr_texture_shader, "pvm"), pvm);
 
         gl_shader_use(sr_shader);
-        gl_uniform_v3(gl_shader_location(sr_shader, "view_pos"), view_pos);
         gl_uniform_m4(gl_shader_location(sr_shader, "pvm"), pvm);
+
+        gl_shader_use(sr_frame_shader);
+        gl_uniform_v3(gl_shader_location(sr_frame_shader, "view_pos"), view_pos);
     }
 }
 
@@ -532,7 +537,13 @@ static void sr_end_frame(void) {
         glBindFramebuffer(GL_FRAMEBUFFER, sr_framebuffer);
 
         glBindTexture(GL_TEXTURE_2D, sr_frame_color);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, platform.width, platform.height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+        glBindTexture(GL_TEXTURE_2D, sr_frame_position);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, platform.width, platform.height, 0, GL_RGBA, GL_FLOAT, NULL);
+
+        glBindTexture(GL_TEXTURE_2D, sr_frame_normal);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, platform.width, platform.height, 0, GL_RGBA, GL_FLOAT, NULL);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -563,16 +574,19 @@ static void sr_end_frame(void) {
         glDisable(GL_DEPTH_TEST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        gl_shader_use(sr_frame_shader);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, sr_frame_color);
+
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, sr_frame_position);
+
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, sr_frame_normal);
 
-        gl_shader_use(sr_frame_shader);
         glBindVertexArray(sr_frame_array.vao);
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
