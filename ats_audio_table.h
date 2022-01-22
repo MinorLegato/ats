@@ -17,7 +17,7 @@ typedef struct {
     cs_play_sound_def_t     playing;
 
     char                    name[64];
-} Audio_Entry;
+} audio_entry;
 
 static struct {
     cs_context_t* context;
@@ -25,9 +25,9 @@ static struct {
 
 typedef struct {
     u16     index;
-} Audio_ID;
+} audio_id;
 
-static Audio_Entry audio_table[AUDIO_TABLE_SIZE];
+static audio_entry audio_table[AUDIO_TABLE_SIZE];
 
 static void audio_init(void) {
     audio.context = cs_make_context(platform.native, 44100, 8 * 4096, 1024, NULL);
@@ -36,11 +36,11 @@ static void audio_init(void) {
     cs_thread_sleep_delay(audio.context, 16);
 }
 
-static b32 audio_is_valid(Audio_ID id) {
+static b32 audio_is_valid(audio_id id) {
     return id.index != 0;
 }
 
-static Audio_ID audio_get(const char* name) {
+static audio_id audio_get(const char* name) {
     u32 hash  = hash_str(name);
     u16 index = hash & (AUDIO_TABLE_SIZE - 1);
     
@@ -48,7 +48,7 @@ static Audio_ID audio_get(const char* name) {
     
     while (audio_table[index].in_use) {
         if (strcmp(audio_table[index].name, name) == 0) {
-            Audio_ID id = { index };
+            audio_id id = { index };
             return id;
         }
         
@@ -73,10 +73,10 @@ static Audio_ID audio_get(const char* name) {
         path[path_index++] = '\0';
     }
 
-    Audio_Entry* entry = &audio_table[index];
+    audio_entry* entry = &audio_table[index];
     
     entry->in_use = true;
-    strcpy_s(entry->name, ArrayCount(entry->name), name);
+    strcpy_s(entry->name, array_count(entry->name), name);
     
     entry->loaded  = cs_load_wav(path);
     entry->playing = cs_make_def(&entry->loaded);
@@ -85,7 +85,7 @@ static Audio_ID audio_get(const char* name) {
         printf("%s ---- path: %s\n", cs_error_reason, path);
     }
 
-    Audio_ID id = { index };
+    audio_id id = { index };
     return id;
 }
 
@@ -106,14 +106,14 @@ static void audio_kill_all(void) {
     cs_stop_all_sounds(audio.context);
 }
 
-static Audio_Entry* audio_get_entry(Audio_ID id) {
+static audio_entry* audio_get_entry(audio_id id) {
     if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
 
     return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-static void audio_play(Audio_ID id, f32 volume) {
-    Audio_Entry* entry = audio_get_entry(id);
+static void audio_play(audio_id id, f32 volume) {
+    audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -126,8 +126,8 @@ static void audio_play(Audio_ID id, f32 volume) {
     }
 }
 
-static cs_playing_sound_t* audio_play_looped(Audio_ID id, f32 volume) {
-    Audio_Entry* entry = audio_get_entry(id);
+static cs_playing_sound_t* audio_play_looped(audio_id id, f32 volume) {
+    audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -148,13 +148,13 @@ static cs_playing_sound_t* audio_play_looped(Audio_ID id, f32 volume) {
     return NULL;
 }
 
-static void audio_play_music(Audio_ID id, f32 volume) {
+static void audio_play_music(audio_id id, f32 volume) {
     static cs_playing_sound_t* playing = NULL;
     
     if (playing && cs_is_active(playing))
         cs_stop_sound(playing);
     
-    Audio_Entry* entry = audio_get_entry(id);
+    audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
        playing = cs_play_sound(audio.context, entry->playing);
@@ -170,16 +170,16 @@ static void audio_play_music(Audio_ID id, f32 volume) {
     }
 }
 
-static void audio_play_from_source(Audio_ID id, V3 pos, V3 dir, V3 source, f32 volume, f32 max_distance) {
+static void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
     f32 sound_distance  = v3_dist(pos, source);
     f32 final_volume    = volume * max(1 - sound_distance / max_distance, 0);
 
     if (final_volume <= 0) return;
 
-    Audio_Entry* entry = audio_get_entry(id);
+    audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
-        V2 source_dir = {
+        v2 source_dir = {
             source.x - pos.x,
             source.y - pos.y,
         };
