@@ -484,7 +484,7 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
     }
 }
 
-static void window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
     (void)window;
 
     platform.mouse.scroll.x = (f32)xoffset;
@@ -508,6 +508,8 @@ extern void platform_init(const char* title, int width, int height, int samples)
     platform_internal.monitor = glfwGetPrimaryMonitor();
 
     const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
+
+    printf("%d\n", mode->refreshRate);
 
     glfwWindowHint(GLFW_RED_BITS, mode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);

@@ -40,6 +40,16 @@
 
 #define defer(start, end) for (int macro_var(i) = ((start), 0); !macro_var(i); (macro_var(i)++, (end)))
 
+#ifndef __cplusplus
+#define for_iter(iter_t, it, iterator) \
+    for (iter_t it = (iterator); iter_t##_is_valid(&it); iter_t##_advance(&it))
+#else
+#define for_iter(it, iterator) \
+    for (auto it = (iterator); is_valid(&it); advance(&it))
+#endif
+
+#define def(_val, _def) ((_val) == 0? (_def) : (_val))
+
 #define for_r2(rect, ix, iy) \
     for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
     for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)

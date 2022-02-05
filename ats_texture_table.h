@@ -93,7 +93,7 @@ extern texture_id tt_get_id(const char* name) {
 
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
-    
+
     assert(false);
 
     texture_id id = ATS_INIT_ZERO;
@@ -116,7 +116,7 @@ static void _tt_add_entry(const char* name, r2i rect) {
     }
 
     texture_entry* entry = &tt_table.array[index];
-    
+
     entry->in_use = true;
     entry->rect = rect;
     entry->hash = hash;
@@ -153,7 +153,7 @@ extern b32 rect_contains_image(r2i rect, image_t image) {
     i32 rect_width  = rect.max.x - rect.min.x;
     i32 rect_height = rect.max.y - rect.min.y;
 
-    return image.width <= rect_width && image.height <= rect_height; 
+    return image.width <= rect_width && image.height <= rect_height;
 }
 
 extern void tt_load_from_dir(const char* dir_path) {
@@ -256,7 +256,7 @@ extern void tt_end(void) {
         tt_image_capacity   = 0;
         tt_image_count      = 0;
     }
-    
+
     free(stack.buf);
 }
 
