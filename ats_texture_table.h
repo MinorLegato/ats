@@ -96,7 +96,7 @@ extern texture_id tt_get_id(const char* name) {
 
     assert(false);
 
-    texture_id id = ATS_INIT_ZERO;
+    texture_id id = {};
     return id;
 }
 
@@ -157,10 +157,10 @@ extern b32 rect_contains_image(r2i rect, image_t image) {
 }
 
 extern void tt_load_from_dir(const char* dir_path) {
-    char find_file_str[256] = ATS_INIT_ZERO;
+    char find_file_str[256] = {};
     cstr_concat(find_file_str, dir_path, "*.png*");
 
-    WIN32_FIND_DATA find_data   = ATS_INIT_ZERO;
+    WIN32_FIND_DATA find_data   = {};
     HANDLE          find_handle = FindFirstFile(find_file_str, &find_data);
 
     assert(find_handle != INVALID_HANDLE_VALUE);
@@ -218,7 +218,7 @@ static r2i tt_get_fit(tt_rect_stack* stack, image_t image) {
 }
 
 extern void tt_end(void) {
-    tt_rect_stack stack = ATS_INIT_ZERO;
+    tt_rect_stack stack = {};
     tt_push_rect(&stack, r2i(v2i(0, 0), v2i(tt_table.image.width, tt_table.image.height)));
 
     qsort(tt_image_array, tt_image_count, sizeof (tt_image), cmp_tt_image);
