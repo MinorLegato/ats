@@ -1,8 +1,8 @@
-#pragma once
+#ifndef __ATS_H__
+#define __ATS_H__
 
 #include <math.h>
 #include <string.h>
-#include <stdbool.h>
 #include <float.h>
 #include <assert.h>
 
@@ -40,9 +40,6 @@
 
 #define defer(start, end) for (int macro_var(i) = ((start), 0); !macro_var(i); (macro_var(i)++, (end)))
 
-#define for_iter(it, iterator) \
-    for (auto it = (iterator); is_valid(&it); advance(&it))
-
 #define def(_val, _def) ((_val) == 0? (_def) : (_val))
 
 #define for_rect2(rect, ix, iy) \
@@ -53,18 +50,6 @@
     for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
     for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
     for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
-
-#define sign(n)             ((n) < 0? (-1) : (1))
-#define sign_or_zero(n)     ((n) == 0? 0 : sign(n))
-#if 0
-#define clamp_min(a, lo)    ((a) < (lo)? (lo) : (a))
-#define clamp_max(a, hi)    ((a) > (hi)? (hi) : (a))
-#define clamp(a, lo, hi)    clamp_min(clamp_max(a, hi), lo)
-#endif
-
-#define unpack2(u) (u).x, (u).y
-#define unpack3(u) (u).x, (u).y, (u).z
-#define unpack4(u) (u).x, (u).y, (u).z, (u).w
 
 // =========================================== API-TYPES ====================================== //
 
@@ -310,6 +295,30 @@ static ivec4 iv4(i32 x, i32 y, i32 z, i32 w)     { return { x, y, z, w }; }
 static ivec4 iv4(i32 n)                          { return iv4(n, n, n, n); }
 static ivec4 iv4(ivec2 u, i32 z = 0, i32 w = 0)  { return iv4(u.x, u.y, z, w); }
 static ivec4 iv4(ivec3 u, i32 w = 0)             { return iv4(u.x, u.y, u.z, w); }
+
+static bvec2 bv2(bool x, bool y) {
+    bvec2 result = {};
+    result.x = x;
+    result.y = y;
+    return result;
+}
+
+static bvec3 bv3(bool x, bool y, bool z) {
+    bvec3 result = {};
+    result.x = x;
+    result.y = y;
+    result.z = z;
+    return result;
+}
+
+static bvec4 bv4(bool x, bool y, bool z, bool w) {
+    bvec4 result = {};
+    result.x = x;
+    result.y = y;
+    result.z = z;
+    result.w = w;
+    return result;
+}
 
 static mat2 m2() {
     return {
@@ -715,6 +724,63 @@ static bool operator!=(ivec2 a, ivec2 b) { return a.x != b.x || a.y != b.y; }
 static bool operator!=(ivec3 a, ivec3 b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
 static bool operator!=(ivec4 a, ivec4 b) { return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w; }
 
+// ------------- lt --------------- //
+
+static bvec2 operator<(vec2 a, vec2 b) { return bv2(a.x < b.x, a.y < b.y); }
+static bvec3 operator<(vec3 a, vec3 b) { return bv3(a.x < b.x, a.y < b.y, a.z < b.z); }
+static bvec4 operator<(vec4 a, vec4 b) { return bv4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < a.w); }
+
+static bvec2 operator<(ivec2 a, ivec2 b) { return bv2(a.x < b.x, a.y < b.y); }
+static bvec3 operator<(ivec3 a, ivec3 b) { return bv3(a.x < b.x, a.y < b.y, a.z < b.z); }
+static bvec4 operator<(ivec4 a, ivec4 b) { return bv4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < a.w); }
+
+// ------------- bt --------------- //
+
+static bvec2 operator>(vec2 a, vec2 b) { return bv2(a.x > b.x, a.y > b.y); }
+static bvec3 operator>(vec3 a, vec3 b) { return bv3(a.x > b.x, a.y > b.y, a.z > b.z); }
+static bvec4 operator>(vec4 a, vec4 b) { return bv4(a.x > b.x, a.y > b.y, a.z > b.z, a.w < a.w); }
+
+static bvec2 operator>(ivec2 a, ivec2 b) { return bv2(a.x > b.x, a.y > b.y); }
+static bvec3 operator>(ivec3 a, ivec3 b) { return bv3(a.x > b.x, a.y > b.y, a.z > b.z); }
+static bvec4 operator>(ivec4 a, ivec4 b) { return bv4(a.x > b.x, a.y > b.y, a.z > b.z, a.w > a.w); }
+
+// ------------- lteq --------------- //
+
+static bvec2 operator<=(vec2 a, vec2 b) { return bv2(a.x <= b.x, a.y <= b.y); }
+static bvec3 operator<=(vec3 a, vec3 b) { return bv3(a.x <= b.x, a.y <= b.y, a.z < b.z); }
+static bvec4 operator<=(vec4 a, vec4 b) { return bv4(a.x <= b.x, a.y <= b.y, a.z < b.z, a.w < a.w); }
+
+static bvec2 operator<=(ivec2 a, ivec2 b) { return bv2(a.x <= b.x, a.y <= b.y); }
+static bvec3 operator<=(ivec3 a, ivec3 b) { return bv3(a.x <= b.x, a.y <= b.y, a.z <= b.z); }
+static bvec4 operator<=(ivec4 a, ivec4 b) { return bv4(a.x <= b.x, a.y <= b.y, a.z <= b.z, a.w <= a.w); }
+
+// ------------- bteq --------------- //
+
+static bvec2 operator>=(vec2 a, vec2 b) { return bv2(a.x >= b.x, a.y >= b.y); }
+static bvec3 operator>=(vec3 a, vec3 b) { return bv3(a.x >= b.x, a.y >= b.y, a.z > b.z); }
+static bvec4 operator>=(vec4 a, vec4 b) { return bv4(a.x >= b.x, a.y >= b.y, a.z > b.z, a.w < a.w); }
+
+static bvec2 operator>=(ivec2 a, ivec2 b) { return bv2(a.x >= b.x, a.y >= b.y); }
+static bvec3 operator>=(ivec3 a, ivec3 b) { return bv3(a.x >= b.x, a.y >= b.y, a.z >= b.z); }
+static bvec4 operator>=(ivec4 a, ivec4 b) { return bv4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= a.w); }
+
+// ------------- any ---------------- //
+
+static bool any(bvec2 a) { return a.x || a.y;  }
+static bool any(bvec3 a) { return a.x || a.y || a.z;  }
+static bool any(bvec4 a) { return a.x || a.y || a.z || a.w;  }
+
+// ------------- all ---------------- //
+
+static bool all(bvec2 a) { return a.x && a.y;  }
+static bool all(bvec3 a) { return a.x && a.y && a.z;  }
+static bool all(bvec4 a) { return a.x && a.y && a.z && a.w;  }
+
+// ------------- not ---------------- //
+
+static bvec2 not(bvec2 a) { return bv2(!a.x, !a.y);  }
+static bvec3 not(bvec3 a) { return bv3(!a.x, !a.y, !a.z);  }
+static bvec4 not(bvec4 a) { return bv4(!a.x, !a.y, !a.z, !a.w);  }
 
 // ----------- dot product ----------- //
 
@@ -847,34 +913,6 @@ static ivec3 clamp(ivec3 u, irect3 r) {
     };
 }
 
-// ----------- keep min ---------- //
-
-static vec3 keep_min(vec3 u) {
-    f32 dx = fabsf(u.x);
-    f32 dy = fabsf(u.y);
-    f32 dz = fabsf(u.z);
-
-    if (dx <= dy && dx <= dz) return v3(u.x, 0, 0);
-    if (dy <= dx && dy <= dz) return v3(0, u.y, 0);
-    if (dz <= dx && dz <= dy) return v3(0, 0, u.z);
-
-    return u;
-}
-
-// ----------- mask min ---------- //
-
-static vec3 mask_min(vec3 u) {
-    f32 dx = fabsf(u.x);
-    f32 dy = fabsf(u.y);
-    f32 dz = fabsf(u.z);
-
-    if (dx <= dy && dx <= dz) return v3(0, 1, 1);
-    if (dy <= dx && dy <= dz) return v3(1, 0, 1);
-    if (dz <= dx && dz <= dy) return v3(1, 1, 0);
-
-    return v3(1, 1, 1);
-}
-
 // ---------------- min ----------------- //
 
 static vec2 min(vec2 a, vec2 b) {
@@ -983,6 +1021,19 @@ static vec2 lerp(vec2 a, vec2 b, f32 t) { return a + t * (b - a); }
 static vec3 lerp(vec3 a, vec3 b, f32 t) { return a + t * (b - a); }
 static vec4 lerp(vec4 a, vec4 b, f32 t) { return a + t * (b - a); }
 
+// -------------- sign (-1, 0, 1) ------------------- //
+
+static f32 sign(f32 n) { return n == 0? 0 : (n < 0? -1 : 1); }
+static i32 sign(i32 n) { return n == 0? 0 : (n < 0? -1 : 1); }
+
+static vec2 sign(vec2 u) { return { sign(u.x), sign(u.y) }; }
+static vec3 sign(vec3 u) { return { sign(u.x), sign(u.y), sign(u.z) }; }
+static vec4 sign(vec4 u) { return { sign(u.x), sign(u.y), sign(u.z), sign(u.w) }; }
+
+static ivec2 sign(ivec2 u) { return { sign(u.x), sign(u.y) }; }
+static ivec3 sign(ivec3 u) { return { sign(u.x), sign(u.y), sign(u.z) }; }
+static ivec4 sign(ivec4 u) { return { sign(u.x), sign(u.y), sign(u.z), sign(u.w) }; }
+
 // --------------- cross ------------------- //
 
 static vec3 cross(vec3 a, vec3 b) {
@@ -1000,6 +1051,34 @@ static f32 get_angle(vec2 a, vec2 b) {
     f32 dot = a.x * b.x + a.y * b.y;
 
     return atan2f(det, dot);
+}
+
+// ----------- keep min ---------- //
+
+static vec3 keep_min(vec3 u) {
+    f32 dx = fabsf(u.x);
+    f32 dy = fabsf(u.y);
+    f32 dz = fabsf(u.z);
+
+    if (dx <= dy && dx <= dz) return v3(u.x, 0, 0);
+    if (dy <= dx && dy <= dz) return v3(0, u.y, 0);
+    if (dz <= dx && dz <= dy) return v3(0, 0, u.z);
+
+    return u;
+}
+
+// ----------- mask min ---------- //
+
+static vec3 mask_min(vec3 u) {
+    f32 dx = fabsf(u.x);
+    f32 dy = fabsf(u.y);
+    f32 dz = fabsf(u.z);
+
+    if (dx <= dy && dx <= dz) return v3(0, 1, 1);
+    if (dy <= dx && dy <= dz) return v3(1, 0, 1);
+    if (dz <= dx && dz <= dy) return v3(1, 1, 0);
+
+    return v3(1, 1, 1);
 }
 
 // ------------------ transform/scale/rotate ------------------ //
@@ -1423,46 +1502,29 @@ static vec3 get_intersect_vector(sphere_t a, sphere_t b) {
 }
 
 static vec2 get_intersect_vector(rect2 a, rect2 b) {
-    rect2   o  = get_overlap(a, b);
-    f32     dx = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
-    f32     dy = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
-
-    return v2(sign(dx) * (o.max.x - o.min.x),
-              sign(dy) * (o.max.y - o.min.y));
+    rect2   overlap = get_overlap(a, b);
+    vec2    delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+    return sign(delta) * (overlap.max - overlap.min);
 }
 
 static vec3 get_intersect_vector(rect3 a, rect3 b) {
-    rect3 o = get_overlap(a, b);
-
-    f32 dx = 0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x);
-    f32 dy = 0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y);
-    f32 dz = 0.5f * (a.min.z + a.max.z) - 0.5f * (b.min.z + b.max.z);
-
-    return v3(sign(dx) * (o.max.x - o.min.x),
-              sign(dy) * (o.max.y - o.min.y),
-              sign(dz) * (o.max.z - o.min.z));
+    rect3   overlap = get_overlap(a, b);
+    vec3    delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+    return sign(delta) * (overlap.max - overlap.min);
 }
 
 static ivec2 get_intersect_vector(irect2 a, irect2 b) {
-    irect2 o = get_overlap(a, b);
+    irect2  overlap = get_overlap(a, b);
+    ivec2   delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    i32 dx = (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2;
-    i32 dy = (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2;
-
-    return iv2(sign(dx) * (o.max.x - o.min.x),
-               sign(dy) * (o.max.y - o.min.y));
+    return sign(delta) * (overlap.max - overlap.min);
 }
 
 static ivec3 get_intersect_vector(irect3 a, irect3 b) {
-    irect3 o = get_overlap(a, b);
+    irect3  overlap = get_overlap(a, b);
+    ivec3   delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
-    i32 dx = (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2;
-    i32 dy = (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2;
-    i32 dz = (a.min.z + a.max.z) / 2 - (b.min.z + b.max.z) / 2;
-
-    return iv3(sign(dx) * (o.max.x - o.min.x),
-               sign(dy) * (o.max.y - o.min.y),
-               sign(dz) * (o.max.z - o.min.z));
+    return sign(delta) * (overlap.max - overlap.min);
 }
 
 // ---------------------- random ------------------------ //
@@ -1863,6 +1925,8 @@ static void copy_memory(void* dst, const void* src, usize size) {
     while (size--)
         *(d++) = *(s++);
 }
+
+#endif // __ATS_H__
 
 // ============================================================================================ //
 // ======================================= IMPLEMENTATION ===================================== //

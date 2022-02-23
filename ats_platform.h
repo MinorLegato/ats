@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ATS_PLATFORM_H__ 
+#define __ATS_PLATFORM_H__
 
 #ifdef ATS_OGL33
 #include "ext/glad/glad.h"
@@ -386,6 +387,8 @@ struct platform_t {
 
 extern platform_t platform;
 
+#endif // __ATS_PLATFORM_H__
+
 // ===================================================================================================== //
 // ======================================= PLATFORM IMPL =============================================== //
 // ===================================================================================================== //
@@ -508,8 +511,6 @@ extern void platform_init(const char* title, int width, int height, int samples)
     platform_internal.monitor = glfwGetPrimaryMonitor();
 
     const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
-
-    printf("%d\n", mode->refreshRate);
 
     glfwWindowHint(GLFW_RED_BITS, mode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);

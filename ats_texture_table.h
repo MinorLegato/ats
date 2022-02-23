@@ -27,6 +27,7 @@ struct texture_table {
 extern void             tt_begin(int width, int height);
 extern void             tt_end(void);
 extern void             tt_add_image(const char* name, image_t image);
+extern void             tt_add_image()
 
 extern texture_id       tt_get_id(const char* name);
 extern irect2           tt_get_rect(texture_id id);
