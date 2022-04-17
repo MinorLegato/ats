@@ -1,3 +1,22 @@
+#ifndef __ATS_AUDIO_TABLE_H__
+#define __ATS_AUDIO_TABLE_H__
+
+struct AudioID {
+    u16 index;
+};
+
+extern void     AudioInit(void);
+extern AudioID  AudioGet(const char* name);
+extern void     AudioPause(b32 pause);
+extern void     AudioKillAll(void);
+extern void     AudioPlay(AudioID id, f32 volume);
+extern void*    AudioPlayLooped(AudioID id, f32 volume);
+extern void     AudioPlayMusic(AudioID id, f32 volume);
+extern void     AudioPlayFromSource(AudioID id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance);
+
+#endif // __ATS_AUDIO_TABLE_H__
+
+#ifdef ATS_IMPL
 
 #define CUTE_SOUND_IMPLEMENTATION
 #include "ext/cute_sound.h"
@@ -10,45 +29,43 @@
 #define AUDIO_PATH "assets/sounds/"
 #endif
 
-typedef struct {
+static const char* audio_path = AUDIO_PATH;
+
+struct AudioEntry {
     b32                     in_use;
 
     cs_loaded_sound_t       loaded;
     cs_play_sound_def_t     playing;
 
     char                    name[64];
-} audio_entry;
+};
 
 static struct {
     cs_context_t* context;
 } audio;
 
-typedef struct {
-    u16     index;
-} audio_id;
+static AudioEntry audio_table[AUDIO_TABLE_SIZE];
 
-static audio_entry audio_table[AUDIO_TABLE_SIZE];
-
-static void audio_init(void) {
+extern void AudioInit(void) {
     audio.context = cs_make_context(platform.native, 44100, 8 * 4096, 1024, NULL);
     
     cs_spawn_mix_thread(audio.context);
     cs_thread_sleep_delay(audio.context, 16);
 }
 
-static b32 audio_is_valid(audio_id id) {
+static b32 AudioIsValid(AudioID id) {
     return id.index != 0;
 }
 
-static audio_id audio_get(const char* name) {
-    u32 hash  = hash_str(name);
+extern AudioID AudioGet(const char* name) {
+    u32 hash  = HashStr(name);
     u16 index = hash & (AUDIO_TABLE_SIZE - 1);
     
     if (index == 0) index++;
     
     while (audio_table[index].in_use) {
         if (strcmp(audio_table[index].name, name) == 0) {
-            audio_id id = { index };
+            AudioID id = { index };
             return id;
         }
         
@@ -57,26 +74,29 @@ static audio_id audio_get(const char* name) {
         if (index == 0) index++;
     }
     
-    static char path[1024];
+    static char path[1024] = {};
 
     {
-        u32 path_index = 0;
-        u32 name_index = 0;
+        int i = 0;
+        for (i = 0; audio_path[i]; ++i) {
+            path[i] = audio_path[i];
+        }
 
-        while (AUDIO_PATH[path_index])  path[path_index]    = AUDIO_PATH[path_index++];
-        while (name[name_index])        path[path_index++]  = name[name_index++];
+        for (int j = 0; name[j]; ++j, ++i) {
+            path[i] = name[j];
+        }
 
-        path[path_index++] = '.';
-        path[path_index++] = 'w';
-        path[path_index++] = 'a';
-        path[path_index++] = 'v';
-        path[path_index++] = '\0';
+        path[i++] = '.';
+        path[i++] = 'w';
+        path[i++] = 'a';
+        path[i++] = 'v';
+        path[i++] = '\0';
     }
 
-    audio_entry* entry = &audio_table[index];
+    AudioEntry* entry = &audio_table[index];
     
     entry->in_use = true;
-    strcpy_s(entry->name, array_count(entry->name), name);
+    strcpy_s(entry->name, ArrayCount(entry->name), name);
     
     entry->loaded  = cs_load_wav(path);
     entry->playing = cs_make_def(&entry->loaded);
@@ -85,11 +105,11 @@ static audio_id audio_get(const char* name) {
         printf("%s ---- path: %s\n", cs_error_reason, path);
     }
 
-    audio_id id = { index };
+    AudioID id = { index };
     return id;
 }
 
-static void audio_pause(b32 pause) {
+extern void AudioPause(b32 pause) {
     cs_lock(audio.context);
     
     cs_playing_sound_t* playing = cs_get_playing(audio.context);
@@ -102,18 +122,18 @@ static void audio_pause(b32 pause) {
     cs_unlock(audio.context);
 }
 
-static void audio_kill_all(void) {
+extern void AudioKillAll(void) {
     cs_stop_all_sounds(audio.context);
 }
 
-static audio_entry* audio_get_entry(audio_id id) {
+static AudioEntry* AudioGetEntry(AudioID id) {
     if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
 
     return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-static void audio_play(audio_id id, f32 volume) {
-    audio_entry* entry = audio_get_entry(id);
+extern void AudioPlay(AudioID id, f32 volume) {
+    AudioEntry* entry = AudioGetEntry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -126,8 +146,8 @@ static void audio_play(audio_id id, f32 volume) {
     }
 }
 
-static cs_playing_sound_t* audio_play_looped(audio_id id, f32 volume) {
-    audio_entry* entry = audio_get_entry(id);
+extern void* AudioPlayLooped(AudioID id, f32 volume) {
+    AudioEntry* entry = AudioGetEntry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -148,13 +168,13 @@ static cs_playing_sound_t* audio_play_looped(audio_id id, f32 volume) {
     return NULL;
 }
 
-static void audio_play_music(audio_id id, f32 volume) {
+extern void AudioPlayMusic(AudioID id, f32 volume) {
     static cs_playing_sound_t* playing = NULL;
     
     if (playing && cs_is_active(playing))
         cs_stop_sound(playing);
     
-    audio_entry* entry = audio_get_entry(id);
+    AudioEntry* entry = AudioGetEntry(id);
 
     if (entry) {
        playing = cs_play_sound(audio.context, entry->playing);
@@ -170,13 +190,13 @@ static void audio_play_music(audio_id id, f32 volume) {
     }
 }
 
-static void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
-    f32 sound_distance  = v3_dist(pos, source);
-    f32 final_volume    = volume * max(1 - sound_distance / max_distance, 0);
+extern void AudioPlayFromSource(AudioID id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
+    f32 sound_distance  = Dist(pos, source);
+    f32 final_volume    = volume * Max(1 - sound_distance / max_distance, 0);
 
     if (final_volume <= 0) return;
 
-    audio_entry* entry = audio_get_entry(id);
+    AudioEntry* entry = AudioGetEntry(id);
 
     if (entry) {
         v2 source_dir = {
@@ -184,9 +204,9 @@ static void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 v
             source.y - pos.y,
         };
 
-        source_dir = v2_norm(source_dir);
+        source_dir = Norm(source_dir);
 
-        f32 pan = v2_get_angle(dir.xy, source_dir) / PI;
+        f32 pan = GetAngle(dir.xy, source_dir) / PI;
 
         if (pan > +0.5f) pan = 1.0f - pan;
         if (pan < -0.5f) pan =-1.0f - pan;
@@ -206,4 +226,6 @@ static void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 v
         cs_unlock(audio.context);
     }
 }
+
+#endif // ATS_IMPL
 

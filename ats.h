@@ -8,11 +8,6 @@
 
 // ======================================== API-MACROS ======================================= //
 
-#ifndef __cplusplus
-#define true  1
-#define false 0
-#endif
-
 #define KB (1024)
 #define MB (1024 * KB)
 #define GB (1024 * MB)
@@ -22,34 +17,40 @@
 #define TO_RAD_MUL (0.01745329251f)
 #define TO_DEG_MUL (57.2957795131f)
 
-#define to_rad(deg) ((deg) * TO_RAD_MUL)
-#define to_deg(rad) ((rad) * TO_DEG_MUL)
+#define ToRad(deg)          ((deg) * TO_RAD_MUL)
+#define ToDeg(rad)          ((rad) * TO_DEG_MUL)
 
-#define is_power_of_two(x)  (((x) != 0) && ((x) & ((x)-1)) == 0)
+#define IsPowerOfTwo(x)     (((x) != 0) && ((x) & ((x)-1)) == 0)
 
-#define align_down(n, a)      ((n) & ~((a) - 1))
-#define align_up(n, a)        align_down((n) + (a) - 1, (a))
-#define align_down_ptr(p, a)  ((void*)align_down((uintptr_t)(p), (a)))
-#define align_up_ptr(p, a)    ((void*)align_down((uintptr_t)(p), (a)))
+#define AlignDown(n, a)     ((n) & ~((a) - 1))
+#define AlignUp(n, a)       AlignDown((n) + (a) - 1, (a))
+#define AlignDownPtr(p, a)  ((void*)AlignDown((uintptr_t)(p), (a)))
+#define AlignUpPtr(p, a)    ((void*)AlignDown((uintptr_t)(p), (a)))
 
-#define array_count(array) (sizeof (array) / sizeof ((array)[0]))
+#define ArrayCount(array)   (sizeof (array) / sizeof ((array)[0]))
 
-#define join_helper(a, b)   a##b
-#define join_token(a, b)    join_helper(a, b)
-#define macro_var(a)        join_token(a, __LINE__)
+#define JoinHelper(a, b)    a##b
+#define JoinToken(a, b)     JoinHelper(a, b)
+#define MacroVar(a)         JoinToken(a, __LINE__)
 
-#define defer(start, end) for (int macro_var(i) = ((start), 0); !macro_var(i); (macro_var(i)++, (end)))
+#define Defer(start, end) for (int MacroVar(i) = ((start), 0); !MacroVar(i); (MacroVar(i)++, (end)))
 
-#define def(_val, _def) ((_val) == 0? (_def) : (_val))
+#define Def(_val, _def) ((_val) == 0? (_def) : (_val))
 
-#define for_rect2(rect, ix, iy) \
+#define ForR2(rect, ix, iy) \
     for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
     for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
-#define for_rect3(rect, ix, iy, iz) \
+#define ForR3(rect, ix, iy, iz) \
     for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
     for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
     for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+
+#define ClampMin(n, min)    ((n) < (min)? (min) : (n))
+#define ClampMax(n, max)    ((n) > (max)? (max) : (n))
+#define Clamp(n, lo, hi)    ClampMax(ClampMin(n, lo), hi)
+#define Lerp(a, b, t)       ((a) + (t) * ((b) - (a)))
+#define Sign(n)             ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
 // =========================================== API-TYPES ====================================== //
 
@@ -87,127 +88,109 @@ typedef u64 b64;
 
 // =========================================== TYPES ========================================= //
 
-union vec2 {
+union Vec2 {
     struct { f32 x, y; };
 
     f32 e[2];
 };
 
-union vec3 {
+union Vec3 {
     struct { f32 x, y, z; };
     struct { f32 r, g, b; };
-    struct { vec2 xy; };
+    struct { Vec2 xy; };
 
     f32 e[3];
 };
 
-union vec4 {
+union Vec4 {
     struct { f32 x, y, z, w; };
     struct { f32 r, g, b, a; };
-    struct { vec3 rgb; };
-    struct { vec3 xyz; };
+    struct { Vec3 rgb; };
+    struct { Vec3 xyz; };
 
     f32 e[4];
 };
 
-union ivec2 {
+union Vec2i {
     struct { i32 x, y; };
 
     i32 e[2];
 };
 
-union ivec3 {
+union Vec3i {
     struct { i32 x, y, z; };
-    struct { ivec2 xy; };
+    struct { Vec2i xy; };
 
     i32 e[3];
 };
 
-union ivec4 {
+union Vec4i {
     struct { i32 x, y, z, w; };
 
     i32 e[4];
 };
 
-union bvec2 {
-    u8 x : 1;
-    u8 y : 1;
-};
-
-struct bvec3 {
-    u8 x : 1;
-    u8 y : 1;
-    u8 z : 1;
-};
-
-union bvec4 {
-    u8 x : 1;
-    u8 y : 1;
-    u8 z : 1;
-    u8 w : 1;
-};
-
-union mat2 {
-    struct { vec2 x, y; };
+union Mat2 {
+    struct { Vec2 x, y; };
     f32 e[4];
 };
 
-union mat3 {
-    struct { vec3 x, y, z; };
+union Mat3 {
+    struct { Vec3 x, y, z; };
     f32 e[9];
 };
 
-union mat4 {
-    struct { vec4 x, y, z, w; };
+union Mat4 {
+    struct { Vec4 x, y, z, w; };
     f32 e[16];
 };
 
-struct quat_t {
+struct Quat {
     f32 x, y, z, w;
 };
 
-struct circle_t {
-    vec2    pos;
+struct Circle {
+    Vec2    pos;
     f32     rad;
 };
 
-struct sphere_t {
-    vec3    pos;
+struct Sphere {
+    Vec3    pos;
     f32     rad;
 };
 
-struct rect2 {
-    vec2    min;
-    vec2    max;
+struct Rect2 {
+    Vec2    min;
+    Vec2    max;
 };
 
-struct rect3 {
-    vec3    min;
-    vec3    max;
+struct Rect3 {
+    Vec3    min;
+    Vec3    max;
 };
 
-struct irect2 {
-    ivec2   min;
-    ivec2   max;
+struct Rect2i {
+    Vec2i   min;
+    Vec2i   max;
 };
 
-struct irect3 {
-    ivec3   min;
-    ivec3   max;
+struct Rect3i {
+    Vec3i   min;
+    Vec3i   max;
 };
 
-struct plane_t {
+struct Plane {
     f32     a;
     f32     b;
     f32     c;
     f32     d;
 };
 
-struct frustum_t {
-    plane_t     plane[6];
+struct Frustum {
+    Plane   plane[6];
 };
 
-struct memory_arena {
+struct Memory_Arena {
     usize       index;
     usize       cap;
     u8*         buffer;
@@ -219,129 +202,117 @@ struct memory_arena {
     usize       max;
 };
 
-struct image_t {
+struct Image {
     int     width;
     int     height;
+
     u32*    pixels;
 };
 
-struct queue_node {
+struct Queue_Node {
     f32     weight;
-    ivec2   e;
+    Vec2i   e;
 };
 
-struct priority_queue {
-    u32             len;
-    queue_node*     array;
+struct Priority_Queue {
+    u32         len;
+    Queue_Node* array;
 };
 
 // ---------------------- arena allocator ------------------------ //
 
-extern memory_arena ma_create(u8* buffer, usize size);
+extern Memory_Arena  ma_create(u8* buffer, usize size);
 
-#define ma_type(ma, t)           (t*)ma_alloc(ma, sizeof (t))
-#define ma_array(ma, t, count)   (t*)ma_alloc(ma, (count) * sizeof (t))
+#define MaType(ma, T)           (T*)ma_alloc(ma, sizeof (T))
+#define MaArray(ma, T, count)   (T*)ma_alloc(ma, (count) * sizeof (T))
 
-extern void*    ma_alloc(memory_arena* ma, usize byte_size);
-extern void*    ma_begin(memory_arena* ma);
-extern void     ma_end(memory_arena* ma, usize byte_size);
-extern void     ma_save(memory_arena* ma);
-extern void     ma_restore(memory_arena* ma);
-extern void     ma_validate(memory_arena* ma);
+extern void*    ma_alloc(Memory_Arena* ma, usize byte_size);
+extern void*    ma_begin(Memory_Arena* ma);
+extern void     ma_end(Memory_Arena* ma, usize byte_size);
+extern void     ma_save(Memory_Arena* ma);
+extern void     ma_restore(Memory_Arena* ma);
+extern void     ma_validate(const Memory_Arena* ma);
 
 // --------------------- read/write files ------------------------- //
 
-extern char*    file_read_str(const char* file_name, memory_arena* ma);
+extern char*    file_read_str(const char* file_name, Memory_Arena* ma);
 extern b32      file_write_str(const char* file_name, const char* buffer);
-extern b32      file_append_str(const char* file_name, const char* buffer);
+extern b32      file_append_Str(const char* file_name, const char* buffer);
 
 extern b32      file_read_bin(const char* file_name, void* buffer, u32 size);
 extern b32      file_write_bin(const char* file_name, const void* buffer, u32 size);
 
 // ----------------------- image -------------------------- //
 
-extern image_t  image_load_from_file(const char* path);
-extern u32      image_get_pixel(image_t* img, i32 x, i32 y);
-extern void     image_set_pixel(image_t* img, i32 x, i32 y, u32 pixel);
+extern Image    image_load_from_file(const char* path);
+extern u32      get_pixel(Image* img, i32 x, i32 y);
+extern void     set_pixel(Image* img, i32 x, i32 y, u32 pixel);
 
 // ======================================= STATIC FUNCTIONS ==================================== //
 
-static vec2 v2(f32 x, f32 y)                     { return { x, y }; }
-static vec2 v2(f32 n)                            { return v2(n, n); }
-static vec2 v2(vec3 u)                           { return v2(u.x, u.y); }
-static vec2 v2(vec4 u)                           { return v2(u.x, u.y); }
+static Vec2 v2(f32 x, f32 y)                        { return { x, y }; }
+static Vec2 v2(f32 n)                               { return v2(n, n); }
+static Vec2 v2(Vec3 u)                              { return v2(u.x, u.y); }
+static Vec2 v2(Vec4 u)                              { return v2(u.x, u.y); }
+static Vec2 v2(Vec2i u)                             { return v2(u.x, u.y); }
 
-static vec3 v3(f32 x, f32 y, f32 z)              { return { x, y, z }; }
-static vec3 v3(f32 n)                            { return v3(n, n, n); }
-static vec3 v3(vec3 u, f32 z = 0)                { return v3(u.x, u.y, z); }
-static vec3 v3(vec4 u)                           { return v3(u.x, u.y, u.z); }
+static Vec3 v3(f32 x, f32 y, f32 z)                 { return { x, y, z }; }
+static Vec3 v3(f32 n)                               { return v3(n, n, n); }
+static Vec3 v3(Vec2 u, f32 z = 0)                   { return v3(u.x, u.y, z); }
+static Vec3 v3(Vec4 u)                              { return v3(u.x, u.y, u.z); }
+static Vec3 v3(Vec2i u, f32 z = 0)                  { return v3(u.x, u.y, z); }
+static Vec3 v3(Vec4i u)                             { return v3(u.x, u.y, u.z); }
 
-static vec4 v4(f32 x, f32 y, f32 z, f32 w)       { return { x, y, z, w }; }
-static vec4 v4(f32 n)                            { return v4(n, n, n, n); }
-static vec4 v4(vec2 u, f32 z = 0, f32 w = 0)     { return v4(u.x, u.y, z, w); }
-static vec4 v4(vec3 u, f32 w = 0)                { return v4(u.x, u.y, u.z, w); }
+static Vec4 v4(f32 x, f32 y, f32 z, f32 w)          { return { x, y, z, w }; }
+static Vec4 v4(f32 n)                               { return v4(n, n, n, n); }
+static Vec4 v4(Vec2 u, f32 z = 0, f32 w = 0)        { return v4(u.x, u.y, z, w); }
+static Vec4 v4(Vec3 u, f32 w = 0)                   { return v4(u.x, u.y, u.z, w); }
+static Vec4 v4(Vec2i u, f32 z = 0, f32 w = 0)       { return v4(u.x, u.y, z, w); }
+static Vec4 v4(Vec3i u, f32 w = 0)                  { return v4(u.x, u.y, u.z, w); }
 
-static ivec2 iv2(i32 x, i32 y)                   { return { x, y }; }
-static ivec2 iv2(i32 n)                          { return iv2(n, n); }
-static ivec2 iv2(ivec3 u)                        { return iv2(u.x, u.y); }
-static ivec2 iv2(ivec4 u)                        { return iv2(u.x, u.y); }
+static Vec2i v2i(i32 x, i32 y)                      { return { x, y }; }
+static Vec2i v2i(i32 n)                             { return v2i(n, n); }
+static Vec2i v2i(Vec2i u)                           { return v2i(u.x, u.y); }
+static Vec2i v2i(Vec4i u)                           { return v2i(u.x, u.y); }
+static Vec2i v2i(Vec2 u)                            { return v2i(u.x, u.y); }
+static Vec2i v2i(Vec4 u)                            { return v2i(u.x, u.y); }
 
-static ivec3 iv3(i32 x, i32 y, i32 z)            { return { x, y, z }; }
-static ivec3 iv3(i32 n)                          { return iv3(n, n, n); }
-static ivec3 iv3(ivec3 u, i32 z = 0)             { return iv3(u.x, u.y, z); }
-static ivec3 iv3(ivec4 u)                        { return iv3(u.x, u.y, u.z); }
+static Vec3i v3i(i32 x, i32 y, i32 z)               { return { x, y, z }; }
+static Vec3i v3i(i32 n)                             { return v3i(n, n, n); }
+static Vec3i v3i(Vec3i u, i32 z = 0)                { return v3i(u.x, u.y, z); }
+static Vec3i v3i(Vec4i u)                           { return v3i(u.x, u.y, u.z); }
+static Vec3i v3i(Vec3 u, i32 z = 0)                 { return v3i(u.x, u.y, z); }
+static Vec3i v3i(Vec4 u)                            { return v3i(u.x, u.y, u.z); }
 
-static ivec4 iv4(i32 x, i32 y, i32 z, i32 w)     { return { x, y, z, w }; }
-static ivec4 iv4(i32 n)                          { return iv4(n, n, n, n); }
-static ivec4 iv4(ivec2 u, i32 z = 0, i32 w = 0)  { return iv4(u.x, u.y, z, w); }
-static ivec4 iv4(ivec3 u, i32 w = 0)             { return iv4(u.x, u.y, u.z, w); }
+static Vec4i v4i(i32 x, i32 y, i32 z, i32 w)        { return { x, y, z, w }; }
+static Vec4i v4i(i32 n)                             { return v4i(n, n, n, n); }
+static Vec4i v4i(Vec2i u, i32 z = 0, i32 w = 0)     { return v4i(u.x, u.y, z, w); }
+static Vec4i v4i(Vec3i u, i32 w = 0)                { return v4i(u.x, u.y, u.z, w); }
+static Vec4i v4i(Vec2 u, i32 z = 0, i32 w = 0)      { return v4i(u.x, u.y, z, w); }
+static Vec4i v4i(Vec3 u, i32 w = 0)                 { return v4i(u.x, u.y, u.z, w); }
 
-static bvec2 bv2(bool x, bool y) {
-    bvec2 result = {};
-    result.x = x;
-    result.y = y;
-    return result;
-}
-
-static bvec3 bv3(bool x, bool y, bool z) {
-    bvec3 result = {};
-    result.x = x;
-    result.y = y;
-    result.z = z;
-    return result;
-}
-
-static bvec4 bv4(bool x, bool y, bool z, bool w) {
-    bvec4 result = {};
-    result.x = x;
-    result.y = y;
-    result.z = z;
-    result.w = w;
-    return result;
-}
-
-static mat2 m2() {
+static Mat2 m2(void) {
     return {
         1, 0,
         0, 1,
     };
 }
 
-static mat2 m2(f32 xx, f32 xy, f32 yx, f32 yy) {
+static Mat2 m2(f32 xx, f32 xy, f32 yx, f32 yy) {
     return {
         xx, xy,
         yx, yy,
     };
 }
 
-static mat2 m2(vec2 x, vec2 y) {
+static Mat2 m2(Vec2 x, Vec2 y) {
     return {
         x.x, x.y,
         y.x, y.y,
     };
 }
 
-static mat3 m3() {
+static Mat3 m3() {
     return {
         1, 0, 0,
         0, 1, 0,
@@ -349,7 +320,7 @@ static mat3 m3() {
     };
 }
 
-static mat3 m3(f32 xx, f32 xy, f32 xz, f32 yx, f32 yy, f32 yz, f32 zx, f32 zy, f32 zz) {
+static Mat3 m3(f32 xx, f32 xy, f32 xz, f32 yx, f32 yy, f32 yz, f32 zx, f32 zy, f32 zz) {
     return {
         xx, xy, xz,
         yx, yy, yz,
@@ -357,7 +328,7 @@ static mat3 m3(f32 xx, f32 xy, f32 xz, f32 yx, f32 yy, f32 yz, f32 zx, f32 zy, f
     };
 }
 
-static mat3 m3(vec3 x, vec3 y, vec3 z) {
+static Mat3 m3(Vec3 x, Vec3 y, Vec3 z) {
     return {
         x.x, x.y, x.z,
         y.x, y.y, y.z,
@@ -365,7 +336,7 @@ static mat3 m3(vec3 x, vec3 y, vec3 z) {
     };
 }
 
-static mat4 m4() {
+static Mat4 m4() {
     return {
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -374,10 +345,10 @@ static mat4 m4() {
     };
 }
 
-static mat4 m4(f32 xx, f32 xy, f32 xz, f32 xw,
-                      f32 yx, f32 yy, f32 yz, f32 yw,
-                      f32 zx, f32 zy, f32 zz, f32 zw,
-                      f32 wx, f32 wy, f32 wz, f32 ww) {
+static Mat4 m4(f32 xx, f32 xy, f32 xz, f32 xw,
+               f32 yx, f32 yy, f32 yz, f32 yw,
+               f32 zx, f32 zy, f32 zz, f32 zw,
+               f32 wx, f32 wy, f32 wz, f32 ww) {
     return {
         xx, xy, xz, xw,
         yx, yy, yz, yw,
@@ -386,7 +357,7 @@ static mat4 m4(f32 xx, f32 xy, f32 xz, f32 xw,
     };
 }
 
-static mat4 m4(vec4 x, vec4 y, vec4 z, vec4 w) {
+static Mat4 m4(Vec4 x, Vec4 y, Vec4 z, Vec4 w) {
     return {
         x.x, x.y, x.z, x.w,
         y.x, y.y, y.z, y.w,
@@ -395,55 +366,35 @@ static mat4 m4(vec4 x, vec4 y, vec4 z, vec4 w) {
     };
 }
 
-static quat_t quat() {
-    return { 0, 0, 0, 1 };
-}
-
-static quat_t quat(f32 x, f32 y, f32 z, f32 w) {
-    return { x, y, z, w };
-}
-
-static circle_t circle(f32 x, f32 y, f32 rad) {
-    return { x, y, rad };
-}
-
-static circle_t circle(vec2 pos, f32 rad) {
-    return { pos, rad };
-}
-
-static sphere_t sphere(vec3 pos, f32 rad) {
-    return { pos, rad };
-}
-
-static rect2 r2(f32 min_x, f32 min_y, f32 max_x, f32 max_y) {
+static Rect2 r2(f32 min_x, f32 min_y, f32 max_x, f32 max_y) {
     return { min_x, min_y, max_x, max_y };
 }
 
-static rect2 r2(vec2 min, vec2 max) {
+static Rect2 r2(Vec2 min, Vec2 max) {
     return { min, max };
 }
 
-static rect3 r3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) {
+static Rect3 r3(f32 min_x, f32 min_y, f32 min_z, f32 max_x, f32 max_y, f32 max_z) {
     return { min_x, min_y, min_z, max_x, max_y, max_z };
 }
 
-static rect3 r3(vec3 min, vec3 max) {
+static Rect3 r3(Vec3 min, Vec3 max) {
     return { min, max };
 }
 
-static irect2 ir2(i32 min_x, i32 min_y, i32 max_x, i32 max_y) {
+static Rect2i r2i(i32 min_x, i32 min_y, i32 max_x, i32 max_y) {
     return { min_x, min_y, max_x, max_y };
 }
 
-static irect2 ir2(ivec2 min, ivec2 max) {
+static Rect2i r2i(Vec2i min, Vec2i max) {
     return { min, max };
 }
 
-static irect3 ir3(i32 min_x, i32 min_y, i32 min_z, i32 max_x, i32 max_y, i32 max_z) {
+static Rect3i r3i(i32 min_x, i32 min_y, i32 min_z, i32 max_x, i32 max_y, i32 max_z) {
     return { min_x, min_y, min_z, max_x, max_y, max_z };
 }
 
-static irect3 ir3(ivec3 min, ivec3 max) {
+static Rect3i r3i(Vec3i min, Vec3i max) {
     return { min, max };
 }
 
@@ -486,23 +437,23 @@ static f32 lerp_angle(f32 a, f32 b, f32 t) {
 
 // ---------- from array ---------- //
 
-static vec2 v2(const f32* a) { return v2(a[0], a[1]); }
-static vec3 v3(const f32* a) { return v3(a[0], a[1], a[2]); }
-static vec4 v4(const f32* a) { return v4(a[0], a[1], a[2], a[3]); }
+static Vec2 v2(const f32* a) { return v2(a[0], a[1]); }
+static Vec3 v3(const f32* a) { return v3(a[0], a[1], a[2]); }
+static Vec4 v4(const f32* a) { return v4(a[0], a[1], a[2], a[3]); }
 
-static ivec2 iv2(const i32* a) { return iv2(a[0], a[1]); }
-static ivec3 iv3(const i32* a) { return iv3(a[0], a[1], a[2]); }
-static ivec4 iv4(const i32* a) { return iv4(a[0], a[1], a[2], a[3]); }
+static Vec2i v2i(const i32* a) { return v2i(a[0], a[1]); }
+static Vec3i v3i(const i32* a) { return v3i(a[0], a[1], a[2]); }
+static Vec4i v4i(const i32* a) { return v4i(a[0], a[1], a[2], a[3]); }
 
-// ---------- from color ------------ //
+// ---------- unpack color ------------ //
 
-static vec3 v3_from_packed_color(u32 color) {
+static Vec3 unpack_color3(u32 color) {
     return v3(((color & 0x000000ff) >> 0)  / 256.0f,
               ((color & 0x0000ff00) >> 8)  / 256.0f,
               ((color & 0x00ff0000) >> 16) / 256.0f);
 }
 
-static vec4 v4_from_packed_color(u32 color) {
+static Vec4 unpack_color4(u32 color) {
     return v4(((color & 0x000000ff) >> 0)  / 256.0f,
               ((color & 0x0000ff00) >> 8)  / 256.0f,
               ((color & 0x00ff0000) >> 16) / 256.0f,
@@ -511,76 +462,76 @@ static vec4 v4_from_packed_color(u32 color) {
 
 // --------- negate ---------- //
 
-static vec2 operator-(vec2 u) { return v2(-u.x, -u.y); }
-static vec3 operator-(vec3 u) { return v3(-u.x, -u.y, -u.z); }
-static vec4 operator-(vec4 u) { return v4(-u.x, -u.y, -u.z, -u.w); }
+static Vec2 operator-(Vec2 u) { return v2(-u.x, -u.y); }
+static Vec3 operator-(Vec3 u) { return v3(-u.x, -u.y, -u.z); }
+static Vec4 operator-(Vec4 u) { return v4(-u.x, -u.y, -u.z, -u.w); }
 
-static ivec2 operator-(ivec2 u) { return iv2(-u.x, -u.y); }
-static ivec3 operator-(ivec3 u) { return iv3(-u.x, -u.y, -u.z); }
-static ivec4 operator-(ivec4 u) { return iv4(-u.x, -u.y, -u.z, -u.w); }
+static Vec2i operator-(Vec2i u) { return v2i(-u.x, -u.y); }
+static Vec3i operator-(Vec3i u) { return v3i(-u.x, -u.y, -u.z); }
+static Vec4i operator-(Vec4i u) { return v4i(-u.x, -u.y, -u.z, -u.w); }
 
 // ---------- addition ---------- //
 
-static vec2 operator+(vec2 a, vec2 b) { return v2(a.x + b.x, a.y + b.y); }
-static vec3 operator+(vec3 a, vec3 b) { return v3(a.x + b.x, a.y + b.y, a.z + b.z); }
-static vec4 operator+(vec4 a, vec4 b) { return v4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+static Vec2 operator+(Vec2 a, Vec2 b) { return v2(a.x + b.x, a.y + b.y); }
+static Vec3 operator+(Vec3 a, Vec3 b) { return v3(a.x + b.x, a.y + b.y, a.z + b.z); }
+static Vec4 operator+(Vec4 a, Vec4 b) { return v4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
 
-static ivec2 operator+(ivec2 a, ivec2 b) { return iv2(a.x + b.x, a.y + b.y); }
-static ivec3 operator+(ivec3 a, ivec3 b) { return iv3(a.x + b.x, a.y + b.y, a.z + b.z); }
-static ivec4 operator+(ivec4 a, ivec4 b) { return iv4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+static Vec2i operator+(Vec2i a, Vec2i b) { return v2i(a.x + b.x, a.y + b.y); }
+static Vec3i operator+(Vec3i a, Vec3i b) { return v3i(a.x + b.x, a.y + b.y, a.z + b.z); }
+static Vec4i operator+(Vec4i a, Vec4i b) { return v4i(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
 
-static vec2 operator+=(vec2& a, vec2 b) { return a = a + b; }
-static vec3 operator+=(vec3& a, vec3 b) { return a = a + b; }
-static vec4 operator+=(vec4& a, vec4 b) { return a = a + b; }
+static Vec2 operator+=(Vec2& a, Vec2 b) { return a = a + b; }
+static Vec3 operator+=(Vec3& a, Vec3 b) { return a = a + b; }
+static Vec4 operator+=(Vec4& a, Vec4 b) { return a = a + b; }
 
-static ivec2 operator+=(ivec2& a, ivec2 b) { return a = a + b; }
-static ivec3 operator+=(ivec3& a, ivec3 b) { return a = a + b; }
-static ivec4 operator+=(ivec4& a, ivec4 b) { return a = a + b; }
+static Vec2i operator+=(Vec2i& a, Vec2i b) { return a = a + b; }
+static Vec3i operator+=(Vec3i& a, Vec3i b) { return a = a + b; }
+static Vec4i operator+=(Vec4i& a, Vec4i b) { return a = a + b; }
 
 // -------- subtraction ------- //
 
-static vec2 operator-(vec2 a, vec2 b) { return v2(a.x - b.x, a.y - b.y); }
-static vec3 operator-(vec3 a, vec3 b) { return v3(a.x - b.x, a.y - b.y, a.z - b.z); }
-static vec4 operator-(vec4 a, vec4 b) { return v4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+static Vec2 operator-(Vec2 a, Vec2 b) { return v2(a.x - b.x, a.y - b.y); }
+static Vec3 operator-(Vec3 a, Vec3 b) { return v3(a.x - b.x, a.y - b.y, a.z - b.z); }
+static Vec4 operator-(Vec4 a, Vec4 b) { return v4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
 
-static ivec2 operator-(ivec2 a, ivec2 b) { return iv2(a.x - b.x, a.y - b.y); }
-static ivec3 operator-(ivec3 a, ivec3 b) { return iv3(a.x - b.x, a.y - b.y, a.z - b.z); }
-static ivec4 operator-(ivec4 a, ivec4 b) { return iv4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+static Vec2i operator-(Vec2i a, Vec2i b) { return v2i(a.x - b.x, a.y - b.y); }
+static Vec3i operator-(Vec3i a, Vec3i b) { return v3i(a.x - b.x, a.y - b.y, a.z - b.z); }
+static Vec4i operator-(Vec4i a, Vec4i b) { return v4i(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
 
-static vec2 operator-=(vec2& a, vec2 b) { return a = a - b; }
-static vec3 operator-=(vec3& a, vec3 b) { return a = a - b; }
-static vec4 operator-=(vec4& a, vec4 b) { return a = a - b; }
+static Vec2 operator-=(Vec2& a, Vec2 b) { return a = a - b; }
+static Vec3 operator-=(Vec3& a, Vec3 b) { return a = a - b; }
+static Vec4 operator-=(Vec4& a, Vec4 b) { return a = a - b; }
 
-static ivec2 operator-=(ivec2& a, ivec2 b) { return a = a - b; }
-static ivec3 operator-=(ivec3& a, ivec3 b) { return a = a - b; }
-static ivec4 operator-=(ivec4& a, ivec4 b) { return a = a - b; }
+static Vec2i operator-=(Vec2i& a, Vec2i b) { return a = a - b; }
+static Vec3i operator-=(Vec3i& a, Vec3i b) { return a = a - b; }
+static Vec4i operator-=(Vec4i& a, Vec4i b) { return a = a - b; }
 
 // -------- multiplication ------- //
 
-static vec2 operator*(vec2 a, vec2 b) { return v2(a.x * b.x, a.y * b.y); }
-static vec3 operator*(vec3 a, vec3 b) { return v3(a.x * b.x, a.y * b.y, a.z * b.z); }
-static vec4 operator*(vec4 a, vec4 b) { return v4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * a.w); }
+static Vec2 operator*(Vec2 a, Vec2 b) { return v2(a.x * b.x, a.y * b.y); }
+static Vec3 operator*(Vec3 a, Vec3 b) { return v3(a.x * b.x, a.y * b.y, a.z * b.z); }
+static Vec4 operator*(Vec4 a, Vec4 b) { return v4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * a.w); }
 
-static ivec2 operator*(ivec2 a, ivec2 b) { return iv2(a.x * b.x, a.y * b.y); }
-static ivec3 operator*(ivec3 a, ivec3 b) { return iv3(a.x * b.x, a.y * b.y, a.z * a.z); }
-static ivec4 operator*(ivec4 a, ivec4 b) { return iv4(a.x * b.x, a.y * b.y, a.z * a.z, a.w * a.w); }
+static Vec2i operator*(Vec2i a, Vec2i b) { return v2i(a.x * b.x, a.y * b.y); }
+static Vec3i operator*(Vec3i a, Vec3i b) { return v3i(a.x * b.x, a.y * b.y, a.z * a.z); }
+static Vec4i operator*(Vec4i a, Vec4i b) { return v4i(a.x * b.x, a.y * b.y, a.z * a.z, a.w * a.w); }
 
-static vec2 operator*=(vec2& a, vec2 b) { return a = a * b; }
-static vec3 operator*=(vec3& a, vec3 b) { return a = a * b; }
-static vec4 operator*=(vec4& a, vec4 b) { return a = a * b; }
+static Vec2 operator*=(Vec2& a, Vec2 b) { return a = a * b; }
+static Vec3 operator*=(Vec3& a, Vec3 b) { return a = a * b; }
+static Vec4 operator*=(Vec4& a, Vec4 b) { return a = a * b; }
 
-static ivec2 operator*=(ivec2& a, ivec2 b) { return a = a * b; }
-static ivec3 operator*=(ivec3& a, ivec3 b) { return a = a * b; }
-static ivec4 operator*=(ivec4& a, ivec4 b) { return a = a * b; }
+static Vec2i operator*=(Vec2i& a, Vec2i b) { return a = a * b; }
+static Vec3i operator*=(Vec3i& a, Vec3i b) { return a = a * b; }
+static Vec4i operator*=(Vec4i& a, Vec4i b) { return a = a * b; }
 
-static vec2 operator*(mat2 m, vec2 u) {
+static Vec2 operator*(Mat2 m, Vec2 u) {
     return {
         m.e[0] * u.x + m.e[2] * u.y,
         m.e[1] * u.x + m.e[3] * u.y
     };
 }
 
-static vec3 operator*(mat3 m, vec3 u) {
+static Vec3 operator*(const Mat3& m, Vec3 u) {
     return {
         m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
         m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
@@ -588,7 +539,7 @@ static vec3 operator*(mat3 m, vec3 u) {
     };
 }
 
-static vec4 operator*(mat4 m, vec4 u) {
+static Vec4 operator*(const Mat4& m, Vec4 u) {
     return {
         m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
         m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
@@ -597,7 +548,7 @@ static vec4 operator*(mat4 m, vec4 u) {
     };
 }
 
-static mat2 operator*(mat2 a, mat2 b) {
+static Mat2 operator*(Mat2 a, Mat2 b) {
     return {
         a.e[0] * b.e[0] + a.e[2] * b.e[1],
         a.e[1] * b.e[0] + a.e[3] * b.e[1],
@@ -606,7 +557,7 @@ static mat2 operator*(mat2 a, mat2 b) {
     };
 }
 
-static mat3 operator*(mat3 a, mat3 b) {
+static Mat3 operator*(const Mat3& a, const Mat3& b) {
     return {
         a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
         a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
@@ -622,7 +573,7 @@ static mat3 operator*(mat3 a, mat3 b) {
     };
 }
 
-static mat4 operator*(mat4 a, mat4 b) {
+static Mat4 operator*(const Mat4 a, const Mat4& b) {
     return {
         a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
         a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
@@ -646,283 +597,208 @@ static mat4 operator*(mat4 a, mat4 b) {
     };
 }
 
-static quat_t operator*(quat_t a, quat_t b) {
-    return quat(
+static Quat operator*(Quat a, Quat b) {
+    return {
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
         a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
-        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
+        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
+    };
 }
 
 // ------------ divition ------------ //
 
-static vec2 operator/(vec2 a, vec2 b) { return v2(a.x / b.x, a.y / b.y); }
-static vec3 operator/(vec3 a, vec3 b) { return v3(a.x / b.x, a.y / b.y, a.z / b.z); }
-static vec4 operator/(vec4 a, vec4 b) { return v4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+static Vec2 operator/(Vec2 a, Vec2 b) { return v2(a.x / b.x, a.y / b.y); }
+static Vec3 operator/(Vec3 a, Vec3 b) { return v3(a.x / b.x, a.y / b.y, a.z / b.z); }
+static Vec4 operator/(Vec4 a, Vec4 b) { return v4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
 
-static ivec2 operator/(ivec2 a, ivec2 b) { return iv2(a.x / b.x, a.y / b.y); }
-static ivec3 operator/(ivec3 a, ivec3 b) { return iv3(a.x / b.x, a.y / b.y, a.z / b.z); }
-static ivec4 operator/(ivec4 a, ivec4 b) { return iv4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+static Vec2i operator/(Vec2i a, Vec2i b) { return v2i(a.x / b.x, a.y / b.y); }
+static Vec3i operator/(Vec3i a, Vec3i b) { return v3i(a.x / b.x, a.y / b.y, a.z / b.z); }
+static Vec4i operator/(Vec4i a, Vec4i b) { return v4i(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
 
-static vec2 operator/=(vec2& a, vec2 b) { return a = a / b; }
-static vec3 operator/=(vec3& a, vec3 b) { return a = a / b; }
-static vec4 operator/=(vec4& a, vec4 b) { return a = a / b; }
+static Vec2 operator/=(Vec2& a, Vec2 b) { return a = a / b; }
+static Vec3 operator/=(Vec3& a, Vec3 b) { return a = a / b; }
+static Vec4 operator/=(Vec4& a, Vec4 b) { return a = a / b; }
 
-static ivec2 operator/=(ivec2& a, ivec2 b) { return a = a / b; }
-static ivec3 operator/=(ivec3& a, ivec3 b) { return a = a / b; }
-static ivec4 operator/=(ivec4& a, ivec4 b) { return a = a / b; }
+static Vec2i operator/=(Vec2i& a, Vec2i b) { return a = a / b; }
+static Vec3i operator/=(Vec3i& a, Vec3i b) { return a = a / b; }
+static Vec4i operator/=(Vec4i& a, Vec4i b) { return a = a / b; }
 
 // ------------- scaling ------------- //
 
-static vec2 operator*(vec2 a, f32 s) { return v2(a.x * s, a.y * s); }
-static vec3 operator*(vec3 a, f32 s) { return v3(a.x * s, a.y * s, a.z * s); }
-static vec4 operator*(vec4 a, f32 s) { return v4(a.x * s, a.y * s, a.z * s, a.w * s); }
+static Vec2 operator*(Vec2 a, f32 s) { return v2(a.x * s, a.y * s); }
+static Vec3 operator*(Vec3 a, f32 s) { return v3(a.x * s, a.y * s, a.z * s); }
+static Vec4 operator*(Vec4 a, f32 s) { return v4(a.x * s, a.y * s, a.z * s, a.w * s); }
 
-static vec2 operator*(f32 s, vec2 a) { return v2(a.x * s, a.y * s); }
-static vec3 operator*(f32 s, vec3 a) { return v3(a.x * s, a.y * s, a.z * s); }
-static vec4 operator*(f32 s, vec4 a) { return v4(a.x * s, a.y * s, a.z * s, a.w * s); }
+static Vec2 operator*(f32 s, Vec2 a) { return v2(a.x * s, a.y * s); }
+static Vec3 operator*(f32 s, Vec3 a) { return v3(a.x * s, a.y * s, a.z * s); }
+static Vec4 operator*(f32 s, Vec4 a) { return v4(a.x * s, a.y * s, a.z * s, a.w * s); }
 
-static vec2 operator/(vec2 a, f32 s) { return v2(a.x / s, a.y / s); }
-static vec3 operator/(vec3 a, f32 s) { return v3(a.x / s, a.y / s, a.z / s); }
-static vec4 operator/(vec4 a, f32 s) { return v4(a.x / s, a.y / s, a.z / s, a.w / s); }
+static Vec2 operator/(Vec2 a, f32 s) { return v2(a.x / s, a.y / s); }
+static Vec3 operator/(Vec3 a, f32 s) { return v3(a.x / s, a.y / s, a.z / s); }
+static Vec4 operator/(Vec4 a, f32 s) { return v4(a.x / s, a.y / s, a.z / s, a.w / s); }
 
-static ivec2 operator*(ivec2 a, i32 s) { return iv2(a.x * s, a.y * s); }
-static ivec3 operator*(ivec3 a, i32 s) { return iv3(a.x * s, a.y * s, a.z * s); }
-static ivec4 operator*(ivec4 a, i32 s) { return iv4(a.x * s, a.y * s, a.z * s, a.w * s); }
+static Vec2i operator*(Vec2i a, i32 s) { return v2i(a.x * s, a.y * s); }
+static Vec3i operator*(Vec3i a, i32 s) { return v3i(a.x * s, a.y * s, a.z * s); }
+static Vec4i operator*(Vec4i a, i32 s) { return v4i(a.x * s, a.y * s, a.z * s, a.w * s); }
 
-static ivec2 operator*(i32 s, ivec2 a) { return iv2(a.x * s, a.y * s); }
-static ivec3 operator*(i32 s, ivec3 a) { return iv3(a.x * s, a.y * s, a.z * s); }
-static ivec4 operator*(i32 s, ivec4 a) { return iv4(a.x * s, a.y * s, a.z * s, a.w * s); }
+static Vec2i operator*(i32 s, Vec2i a) { return v2i(a.x * s, a.y * s); }
+static Vec3i operator*(i32 s, Vec3i a) { return v3i(a.x * s, a.y * s, a.z * s); }
+static Vec4i operator*(i32 s, Vec4i a) { return v4i(a.x * s, a.y * s, a.z * s, a.w * s); }
 
-static ivec2 operator/(ivec2 a, i32 s) { return iv2(a.x / s, a.y / s); }
-static ivec3 operator/(ivec3 a, i32 s) { return iv3(a.x / s, a.y / s, a.z / s); }
-static ivec4 operator/(ivec4 a, i32 s) { return iv4(a.x / s, a.y / s, a.z / s, a.w / s); }
+static Vec2i operator/(Vec2i a, i32 s) { return v2i(a.x / s, a.y / s); }
+static Vec3i operator/(Vec3i a, i32 s) { return v3i(a.x / s, a.y / s, a.z / s); }
+static Vec4i operator/(Vec4i a, i32 s) { return v4i(a.x / s, a.y / s, a.z / s, a.w / s); }
 
-static vec2 operator*=(vec2& a, f32 s) { return a = a * s; }
-static vec3 operator*=(vec3& a, f32 s) { return a = a * s; }
-static vec4 operator*=(vec4& a, f32 s) { return a = a * s; }
+static Vec2 operator*=(Vec2& a, f32 s) { return a = a * s; }
+static Vec3 operator*=(Vec3& a, f32 s) { return a = a * s; }
+static Vec4 operator*=(Vec4& a, f32 s) { return a = a * s; }
 
-static vec2 operator/=(vec2& a, f32 s) { return a = a / s; }
-static vec3 operator/=(vec3& a, f32 s) { return a = a / s; }
-static vec4 operator/=(vec4& a, f32 s) { return a = a / s; }
+static Vec2 operator/=(Vec2& a, f32 s) { return a = a / s; }
+static Vec3 operator/=(Vec3& a, f32 s) { return a = a / s; }
+static Vec4 operator/=(Vec4& a, f32 s) { return a = a / s; }
 
-static ivec2 operator*=(ivec2& a, f32 s) { return a = a * s; }
-static ivec3 operator*=(ivec3& a, f32 s) { return a = a * s; }
-static ivec4 operator*=(ivec4& a, f32 s) { return a = a * s; }
+static Vec2i operator*=(Vec2i& a, f32 s) { return a = a * s; }
+static Vec3i operator*=(Vec3i& a, f32 s) { return a = a * s; }
+static Vec4i operator*=(Vec4i& a, f32 s) { return a = a * s; }
 
-static ivec2 operator/=(ivec2& a, f32 s) { return a = a / s; }
-static ivec3 operator/=(ivec3& a, f32 s) { return a = a / s; }
-static ivec4 operator/=(ivec4& a, f32 s) { return a = a / s; }
+static Vec2i operator/=(Vec2i& a, f32 s) { return a = a / s; }
+static Vec3i operator/=(Vec3i& a, f32 s) { return a = a / s; }
+static Vec4i operator/=(Vec4i& a, f32 s) { return a = a / s; }
 
 // ----------- eq ------------ //
 
-static bool operator==(ivec2 a, ivec2 b) { return a.x == b.x && a.y == b.y; }
-static bool operator==(ivec3 a, ivec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
-static bool operator==(ivec4 a, ivec4 b) { return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w; }
+static bool operator==(Vec2i a, Vec2i b) { return a.x == b.x && a.y == b.y; }
+static bool operator==(Vec3i a, Vec3i b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
+static bool operator==(Vec4i a, Vec4i b) { return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w; }
 
-static bool operator!=(ivec2 a, ivec2 b) { return a.x != b.x || a.y != b.y; }
-static bool operator!=(ivec3 a, ivec3 b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
-static bool operator!=(ivec4 a, ivec4 b) { return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w; }
-
-// ------------- lt --------------- //
-
-static bvec2 operator<(vec2 a, vec2 b) { return bv2(a.x < b.x, a.y < b.y); }
-static bvec3 operator<(vec3 a, vec3 b) { return bv3(a.x < b.x, a.y < b.y, a.z < b.z); }
-static bvec4 operator<(vec4 a, vec4 b) { return bv4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < a.w); }
-
-static bvec2 operator<(ivec2 a, ivec2 b) { return bv2(a.x < b.x, a.y < b.y); }
-static bvec3 operator<(ivec3 a, ivec3 b) { return bv3(a.x < b.x, a.y < b.y, a.z < b.z); }
-static bvec4 operator<(ivec4 a, ivec4 b) { return bv4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < a.w); }
-
-// ------------- bt --------------- //
-
-static bvec2 operator>(vec2 a, vec2 b) { return bv2(a.x > b.x, a.y > b.y); }
-static bvec3 operator>(vec3 a, vec3 b) { return bv3(a.x > b.x, a.y > b.y, a.z > b.z); }
-static bvec4 operator>(vec4 a, vec4 b) { return bv4(a.x > b.x, a.y > b.y, a.z > b.z, a.w < a.w); }
-
-static bvec2 operator>(ivec2 a, ivec2 b) { return bv2(a.x > b.x, a.y > b.y); }
-static bvec3 operator>(ivec3 a, ivec3 b) { return bv3(a.x > b.x, a.y > b.y, a.z > b.z); }
-static bvec4 operator>(ivec4 a, ivec4 b) { return bv4(a.x > b.x, a.y > b.y, a.z > b.z, a.w > a.w); }
-
-// ------------- lteq --------------- //
-
-static bvec2 operator<=(vec2 a, vec2 b) { return bv2(a.x <= b.x, a.y <= b.y); }
-static bvec3 operator<=(vec3 a, vec3 b) { return bv3(a.x <= b.x, a.y <= b.y, a.z < b.z); }
-static bvec4 operator<=(vec4 a, vec4 b) { return bv4(a.x <= b.x, a.y <= b.y, a.z < b.z, a.w < a.w); }
-
-static bvec2 operator<=(ivec2 a, ivec2 b) { return bv2(a.x <= b.x, a.y <= b.y); }
-static bvec3 operator<=(ivec3 a, ivec3 b) { return bv3(a.x <= b.x, a.y <= b.y, a.z <= b.z); }
-static bvec4 operator<=(ivec4 a, ivec4 b) { return bv4(a.x <= b.x, a.y <= b.y, a.z <= b.z, a.w <= a.w); }
-
-// ------------- bteq --------------- //
-
-static bvec2 operator>=(vec2 a, vec2 b) { return bv2(a.x >= b.x, a.y >= b.y); }
-static bvec3 operator>=(vec3 a, vec3 b) { return bv3(a.x >= b.x, a.y >= b.y, a.z > b.z); }
-static bvec4 operator>=(vec4 a, vec4 b) { return bv4(a.x >= b.x, a.y >= b.y, a.z > b.z, a.w < a.w); }
-
-static bvec2 operator>=(ivec2 a, ivec2 b) { return bv2(a.x >= b.x, a.y >= b.y); }
-static bvec3 operator>=(ivec3 a, ivec3 b) { return bv3(a.x >= b.x, a.y >= b.y, a.z >= b.z); }
-static bvec4 operator>=(ivec4 a, ivec4 b) { return bv4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= a.w); }
-
-// ------------- any ---------------- //
-
-static bool any(bvec2 a) { return a.x || a.y;  }
-static bool any(bvec3 a) { return a.x || a.y || a.z;  }
-static bool any(bvec4 a) { return a.x || a.y || a.z || a.w;  }
-
-// ------------- all ---------------- //
-
-static bool all(bvec2 a) { return a.x && a.y;  }
-static bool all(bvec3 a) { return a.x && a.y && a.z;  }
-static bool all(bvec4 a) { return a.x && a.y && a.z && a.w;  }
-
-// ------------- not ---------------- //
-
-static bvec2 not(bvec2 a) { return bv2(!a.x, !a.y);  }
-static bvec3 not(bvec3 a) { return bv3(!a.x, !a.y, !a.z);  }
-static bvec4 not(bvec4 a) { return bv4(!a.x, !a.y, !a.z, !a.w);  }
+static bool operator!=(Vec2i a, Vec2i b) { return a.x != b.x || a.y != b.y; }
+static bool operator!=(Vec3i a, Vec3i b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
+static bool operator!=(Vec4i a, Vec4i b) { return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w; }
 
 // ----------- dot product ----------- //
 
-static f32 dot(vec2 a, vec2 b) { return a.x * b.x + a.y * b.y; }
-static f32 dot(vec3 a, vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-static f32 dot(vec4 a, vec4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+static f32 dot(Vec2 a, Vec2 b) { return a.x * b.x + a.y * b.y; }
+static f32 dot(Vec3 a, Vec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+static f32 dot(Vec4 a, Vec4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
 
-static i32 dot(ivec2 a, ivec2 b) { return a.x * b.x + a.y * b.y; }
-static i32 dot(ivec3 a, ivec3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-static i32 dot(ivec4 a, ivec4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+static i32 dot(Vec2i a, Vec2i b) { return a.x * b.x + a.y * b.y; }
+static i32 dot(Vec3i a, Vec3i b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+static i32 dot(Vec4i a, Vec4i b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
 
 // ----------- length squared ----------- //
 
-static f32 len_sq(vec2 u) { return dot(u, u); }
-static f32 len_sq(vec3 u) { return dot(u, u); }
-static f32 len_sq(vec4 u) { return dot(u, u); }
+static f32 len_sq(Vec2 u) { return dot(u, u); }
+static f32 len_sq(Vec3 u) { return dot(u, u); }
+static f32 len_sq(Vec4 u) { return dot(u, u); }
 
-static i32 len_sq(ivec2 u) { return dot(u, u); }
-static i32 len_sq(ivec3 u) { return dot(u, u); }
-static i32 len_sq(ivec4 u) { return dot(u, u); }
+static i32 len_sq(Vec2i u) { return dot(u, u); }
+static i32 len_sq(Vec3i u) { return dot(u, u); }
+static i32 len_sq(Vec4i u) { return dot(u, u); }
 
 // -------------- length -------------- //
 
-static f32 len(vec2 u) { return sqrt32(len_sq(u)); }
-static f32 len(vec3 u) { return sqrt32(len_sq(u)); }
-static f32 len(vec4 u) { return sqrt32(len_sq(u)); }
+static f32 len(Vec2 u) { return sqrt32(len_sq(u)); }
+static f32 len(Vec3 u) { return sqrt32(len_sq(u)); }
+static f32 len(Vec4 u) { return sqrt32(len_sq(u)); }
 
-static f32 len(ivec2 u) { return sqrt32(len_sq(u)); }
-static f32 len(ivec3 u) { return sqrt32(len_sq(u)); }
-static f32 len(ivec4 u) { return sqrt32(len_sq(u)); }
+static f32 len(Vec2i u) { return sqrt32(len_sq(u)); }
+static f32 len(Vec3i u) { return sqrt32(len_sq(u)); }
+static f32 len(Vec4i u) { return sqrt32(len_sq(u)); }
 
 // -------------- distance squared -------------- //
 
-static f32 dist_sq(vec2 a, vec2 b) { return len_sq(a - b); }
-static f32 dist_sq(vec3 a, vec3 b) { return len_sq(a - b); }
-static f32 dist_sq(vec4 a, vec4 b) { return len_sq(a - b); }
+static f32 dist_sq(Vec2 a, Vec2 b) { return len_sq(a - b); }
+static f32 dist_sq(Vec3 a, Vec3 b) { return len_sq(a - b); }
+static f32 dist_sq(Vec4 a, Vec4 b) { return len_sq(a - b); }
 
-static i32 dist_sq(ivec2 a, ivec2 b) { return len_sq(a - b); }
-static i32 dist_sq(ivec3 a, ivec3 b) { return len_sq(a - b); }
-static i32 dist_sq(ivec4 a, ivec4 b) { return len_sq(a - b); }
+static i32 dist_sq(Vec2i a, Vec2i b) { return len_sq(a - b); }
+static i32 dist_sq(Vec3i a, Vec3i b) { return len_sq(a - b); }
+static i32 dist_sq(Vec4i a, Vec4i b) { return len_sq(a - b); }
 
 // ------------------ distance ------------------- //
 
-static f32 dist(vec2 a, vec2 b) { return sqrt32(dist_sq(a, b)); }
-static f32 dist(vec3 a, vec3 b) { return sqrt32(dist_sq(a, b)); }
-static f32 dist(vec4 a, vec4 b) { return sqrt32(dist_sq(a, b)); }
+static f32 dist(Vec2 a, Vec2 b) { return sqrt32(dist_sq(a, b)); }
+static f32 dist(Vec3 a, Vec3 b) { return sqrt32(dist_sq(a, b)); }
+static f32 dist(Vec4 a, Vec4 b) { return sqrt32(dist_sq(a, b)); }
 
 // -------------- manhattan distance -------------- //
 
-static i32 manhattan(ivec2 a, ivec2 b) {
-    ivec2 diff = a - b;
+static i32 manhattan(Vec2i a, Vec2i b) {
+    auto diff = a - b;
     return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y);
 }
 
-static i32 manhattan(ivec3 a, ivec3 b) {
-    ivec3 diff = a - b;
+static i32 manhattan(Vec3i a, Vec3i b) {
+    auto diff = a - b;
     return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y) + (0x7ffffffff & diff.z);
 }
 
 // -------------- normalize --------------- //
 
-static vec2 normalize(vec2 u) { return u * rsqrt32(dot(u, u)); }
-static vec3 normalize(vec3 u) { return u * rsqrt32(dot(u, u)); }
-static vec4 normalize(vec4 u) { return u * rsqrt32(dot(u, u)); }
+static Vec2 norm(Vec2 u) { return u * rsqrt32(dot(u, u)); }
+static Vec3 norm(Vec3 u) { return u * rsqrt32(dot(u, u)); }
+static Vec4 norm(Vec4 u) { return u * rsqrt32(dot(u, u)); }
 
 // -------------- floor --------------- //
 
-static vec2 floor(vec2 u) { return v2(floorf(u.x), floorf(u.y)); }
-static vec3 floor(vec3 u) { return v3(floorf(u.x), floorf(u.y), floorf(u.z)); }
-static vec4 floor(vec4 u) { return v4(floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w)); }
+static Vec2 floor(Vec2 u) { return v2(floorf(u.x), floorf(u.y)); }
+static Vec3 floor(Vec3 u) { return v3(floorf(u.x), floorf(u.y), floorf(u.z)); }
+static Vec4 floor(Vec4 u) { return v4(floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w)); }
 
 // -------------- ceil --------------- //
 
-static vec2 ceil(vec2 u) { return v2(ceilf(u.x), ceilf(u.y)); }
-static vec3 ceil(vec3 u) { return v3(ceilf(u.x), ceilf(u.y), ceilf(u.z)); }
-static vec4 ceil(vec4 u) { return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w)); }
-
-// -------------- clamp_min --------------- //
-
-static f32 clamp_min(f32 n, f32 min) { return n < min? min : n; }
-static i32 clamp_min(i32 n, i32 min) { return n < min? min : n; }
-
-// -------------- clamp_max --------------- //
-
-static f32 clamp_max(f32 n, f32 max) { return n > max? max : n; }
-static i32 clamp_max(i32 n, i32 max) { return n > max? max : n; }
+static Vec2 ceil(Vec2 u) { return v2(ceilf(u.x), ceilf(u.y)); }
+static Vec3 ceil(Vec3 u) { return v3(ceilf(u.x), ceilf(u.y), ceilf(u.z)); }
+static Vec4 ceil(Vec4 u) { return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w)); }
 
 // -------------- clamp --------------- //
 
-static f32 clamp(f32 n, f32 min, f32 max) {
-    if (n < min) return min;
-    if (n > max) return max;
-    return n;
-}
-
-static i32 clamp(i32 n, i32 min, i32 max) {
-    if (n < min) return min;
-    if (n > max) return max;
-    return n;
-}
-
-static vec2 clamp(vec2 u, rect2 r) {
+static Vec2 clamp(Vec2 u, Rect2 r) {
     return {
-        clamp(u.x, r.min.x, r.max.x),
-        clamp(u.y, r.min.y, r.max.y)
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y)
     };
 }
 
-static vec3 clamp(vec3 u, rect3 r) {
+static Vec3 clamp(Vec3 u, Rect3 r) {
     return {
-        clamp(u.x, r.min.x, r.max.x),
-        clamp(u.y, r.min.y, r.max.y),
-        clamp(u.z, r.min.z, r.max.z)
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y),
+        Clamp(u.z, r.min.z, r.max.z)
     };
 
 }
 
-static ivec2 clamp(ivec2 u, irect2 r) {
+static Vec2i clamp(Vec2i u, const Rect2i& r) {
     return {
-        clamp(u.x, r.min.x, r.max.x),
-        clamp(u.y, r.min.y, r.max.y)
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y)
     };
 }
 
-static ivec3 clamp(ivec3 u, irect3 r) {
+static Vec3i clamp(Vec3i u, const Rect3i& r) {
     return {
-        clamp(u.x, r.min.x, r.max.x),
-        clamp(u.y, r.min.y, r.max.y),
-        clamp(u.z, r.min.z, r.max.z)
+        Clamp(u.x, r.min.x, r.max.x),
+        Clamp(u.y, r.min.y, r.max.y),
+        Clamp(u.z, r.min.z, r.max.z)
     };
 }
 
 // ---------------- min ----------------- //
 
-static vec2 min(vec2 a, vec2 b) {
+static f32 min(f32 a, f32 b) {
+    return a < b? a : b;
+}
+
+static Vec2 min(Vec2 a, Vec2 b) {
     return {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y
     };
 }
 
-static vec3 min(vec3 a, vec3 b) {
+static Vec3 min(Vec3 a, Vec3 b) {
     return {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
@@ -930,7 +806,7 @@ static vec3 min(vec3 a, vec3 b) {
     };
 }
 
-static vec4 min(vec4 a, vec4 b) {
+static Vec4 min(Vec4 a, Vec4 b) {
     return {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
@@ -939,14 +815,14 @@ static vec4 min(vec4 a, vec4 b) {
     };
 }
 
-static ivec2 min(ivec2 a, ivec2 b) {
+static Vec2i min(Vec2i a, Vec2i b) {
     return {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y
     };
 }
 
-static ivec3 min(ivec3 a, ivec3 b) {
+static Vec3i min(Vec3i a, Vec3i b) {
     return {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
@@ -954,7 +830,7 @@ static ivec3 min(ivec3 a, ivec3 b) {
     };
 }
 
-static ivec4 min(ivec4 a, ivec4 b) {
+static Vec4i min(Vec4i a, Vec4i b) {
     return {
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
@@ -965,14 +841,18 @@ static ivec4 min(ivec4 a, ivec4 b) {
 
 // ---------------- max ----------------- //
 
-static vec2 max(vec2 a, vec2 b) {
+static f32 max(f32 a, f32 b) {
+    return a > b? a : b;
+}
+
+static Vec2 max(Vec2 a, Vec2 b) {
     return {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y
     };
 }
 
-static vec3 max(vec3 a, vec3 b) {
+static Vec3 max(Vec3 a, Vec3 b) {
     return {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
@@ -980,7 +860,7 @@ static vec3 max(vec3 a, vec3 b) {
     };
 }
 
-static vec4 max(vec4 a, vec4 b) {
+static Vec4 max(Vec4 a, Vec4 b) {
     return {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
@@ -989,14 +869,14 @@ static vec4 max(vec4 a, vec4 b) {
     };
 }
 
-static ivec2 max(ivec2 a, ivec2 b) {
+static Vec2i max(Vec2i a, Vec2i b) {
     return {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y
     };
 }
 
-static ivec3 max(ivec3 a, ivec3 b) {
+static Vec3i max(Vec3i a, Vec3i b) {
     return {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
@@ -1004,7 +884,7 @@ static ivec3 max(ivec3 a, ivec3 b) {
     };
 }
 
-static ivec4 v4i_max(ivec4 a, ivec4 b) {
+static Vec4i max(Vec4i a, Vec4i b) {
     return {
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
@@ -1015,28 +895,23 @@ static ivec4 v4i_max(ivec4 a, ivec4 b) {
 
 // ---------------- lerp ----------------- //
 
-static f32 lerp(f32 a, f32 b, f32 t) { return a + t * (b - a); }
-
-static vec2 lerp(vec2 a, vec2 b, f32 t) { return a + t * (b - a); }
-static vec3 lerp(vec3 a, vec3 b, f32 t) { return a + t * (b - a); }
-static vec4 lerp(vec4 a, vec4 b, f32 t) { return a + t * (b - a); }
+static Vec2 lerp(Vec2 a, Vec2 b, f32 t) { return a + t * (b - a); }
+static Vec3 lerp(Vec3 a, Vec3 b, f32 t) { return a + t * (b - a); }
+static Vec4 lerp(Vec4 a, Vec4 b, f32 t) { return a + t * (b - a); }
 
 // -------------- sign (-1, 0, 1) ------------------- //
 
-static f32 sign(f32 n) { return n == 0? 0 : (n < 0? -1 : 1); }
-static i32 sign(i32 n) { return n == 0? 0 : (n < 0? -1 : 1); }
+static Vec2 sign(Vec2 u) { return v2(Sign(u.x), Sign(u.y)); }
+static Vec3 sign(Vec3 u) { return v3(Sign(u.x), Sign(u.y), Sign(u.z)); }
+static Vec4 sign(Vec4 u) { return v4(Sign(u.x), Sign(u.y), Sign(u.z), Sign(u.w)); }
 
-static vec2 sign(vec2 u) { return { sign(u.x), sign(u.y) }; }
-static vec3 sign(vec3 u) { return { sign(u.x), sign(u.y), sign(u.z) }; }
-static vec4 sign(vec4 u) { return { sign(u.x), sign(u.y), sign(u.z), sign(u.w) }; }
-
-static ivec2 sign(ivec2 u) { return { sign(u.x), sign(u.y) }; }
-static ivec3 sign(ivec3 u) { return { sign(u.x), sign(u.y), sign(u.z) }; }
-static ivec4 sign(ivec4 u) { return { sign(u.x), sign(u.y), sign(u.z), sign(u.w) }; }
+static Vec2i sign(Vec2i u) { return v2i(Sign(u.x), Sign(u.y)); }
+static Vec3i sign(Vec3i u) { return v3i(Sign(u.x), Sign(u.y), Sign(u.z)); }
+static Vec4i sign(Vec4i u) { return v4i(Sign(u.x), Sign(u.y), Sign(u.z), Sign(u.w)); }
 
 // --------------- cross ------------------- //
 
-static vec3 cross(vec3 a, vec3 b) {
+static Vec3 cross(Vec3 a, Vec3 b) {
     return {
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
@@ -1046,7 +921,7 @@ static vec3 cross(vec3 a, vec3 b) {
 
 // --------------- get angle ------------------- //
 
-static f32 get_angle(vec2 a, vec2 b) {
+static f32 get_angle(Vec2 a, Vec2 b) {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
 
@@ -1055,7 +930,7 @@ static f32 get_angle(vec2 a, vec2 b) {
 
 // ----------- keep min ---------- //
 
-static vec3 keep_min(vec3 u) {
+static Vec3 keep_min(Vec3 u) {
     f32 dx = fabsf(u.x);
     f32 dy = fabsf(u.y);
     f32 dz = fabsf(u.z);
@@ -1069,7 +944,7 @@ static vec3 keep_min(vec3 u) {
 
 // ----------- mask min ---------- //
 
-static vec3 mask_min(vec3 u) {
+static Vec3 mask_min(Vec3 u) {
     f32 dx = fabsf(u.x);
     f32 dy = fabsf(u.y);
     f32 dz = fabsf(u.z);
@@ -1083,21 +958,21 @@ static vec3 mask_min(vec3 u) {
 
 // ------------------ transform/scale/rotate ------------------ //
 
-static mat2 m2_rotate(f32 angle) {
+static Mat2 rotate2(f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
     return { c, s, -s, c };
 }
 
-static mat3 m3_rotate(vec3 axis, f32 angle) {
+static Mat3 rotate3(Vec3 axis, f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
     f32 k = 1.0f - c;
 
-    vec3 sa   = { s * axis.x, s * axis.y, s * axis.z };
-    vec3 omca = { k * axis.x, k * axis.y, k * axis.z };
+    Vec3 sa   = { s * axis.x, s * axis.y, s * axis.z };
+    Vec3 omca = { k * axis.x, k * axis.y, k * axis.z };
 
     return {
         omca.x * axis.x + c,
@@ -1114,13 +989,12 @@ static mat3 m3_rotate(vec3 axis, f32 angle) {
     };
 }
 
-static mat4 m4_rotate(vec3 axis, f32 angle) {
-    f32 cosv = cosf(angle);
-    f32 sinv = sinf(angle);
-    f32 inv_cosv = 1.0f - cosv;
-
-    vec3 sa   = { axis.x * sinv,      axis.y * sinv,      axis.z * sinv };
-    vec3 omca = { axis.x * inv_cosv,  axis.y * inv_cosv,  axis.z * inv_cosv };
+static Mat4 rotate4(Vec3 axis, f32 angle) {
+    auto cosv       = cosf(angle);
+    auto sinv       = sinf(angle);
+    auto inv_cosv   = 1.0f - cosv;
+    auto sa         = axis * sinv;
+    auto omca       = axis * inv_cosv;
 
     return {
         omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
@@ -1130,14 +1004,12 @@ static mat4 m4_rotate(vec3 axis, f32 angle) {
     };
 }
 
-static quat_t quat_rotate(vec3 axis, f32 angle) {
-    f32  s = sinf(0.5f * angle);
-    vec3 v = { s * axis.x, s * axis.y, s * axis.z };
-
+static Quat rotate_quat(Vec3 axis, f32 angle) {
+    auto v = axis * sinf(0.5f * angle);
     return { v.x, v.y, v.z, cosf(0.5f * angle) };
 }
 
-static mat4 m4_translate(f32 x, f32 y, f32 z) {
+static Mat4 translate4(f32 x, f32 y, f32 z) {
     return {
         1, 0, 0, 0,
         0, 1, 0, 0,
@@ -1146,7 +1018,7 @@ static mat4 m4_translate(f32 x, f32 y, f32 z) {
     };
 }
 
-static mat4 m4_scale(f32 x, f32 y, f32 z) {
+static Mat4 scale4(f32 x, f32 y, f32 z) {
     return {
         x, 0, 0, 0,
         0, y, 0, 0,
@@ -1157,7 +1029,7 @@ static mat4 m4_scale(f32 x, f32 y, f32 z) {
 
 // --------------- from quat --------------- //
 
-static mat3 m3_from_quat(quat_t q) {
+static Mat3 from_quat3(Quat q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1183,7 +1055,7 @@ static mat3 m3_from_quat(quat_t q) {
     };
 }
 
-static mat4 m4_from_quat(quat_t q) {
+static Mat4 from_quat4(Quat q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1219,7 +1091,7 @@ static mat4 m4_from_quat(quat_t q) {
 
 // --------------- view matricies --------------- //
 
-static mat4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+static Mat4 ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     return {
         2 / (r - l),            0,                      0,                      0,
         0,                      2 / (t - b),            0,                      0,
@@ -1228,7 +1100,7 @@ static mat4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     };
 }
 
-static mat4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
+static Mat4 perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     f32 a = 1.0f / tanf(y_fov / 2.0f);
 
     return {
@@ -1239,11 +1111,12 @@ static mat4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     };
 }
 
-static mat4 m4_look_at(vec3 eye, vec3 center, vec3 up) {
-    vec3 f = normalize(center - eye);
-    vec3 s = normalize(cross(f, up));
-    vec3 t = cross(s, f);
-    mat4 m;
+static Mat4 look_at(Vec3 eye, Vec3 center, Vec3 up) {
+    auto f = norm(center - eye);
+    auto s = norm(cross(f, up));
+    auto t = cross(s, f);
+
+    Mat4 m;
 
 	m.e[0]  =  s.x;
 	m.e[1]  =  t.x;
@@ -1270,19 +1143,19 @@ static mat4 m4_look_at(vec3 eye, vec3 center, vec3 up) {
 
 // ----------------- plane/frustrum ------------------- //
 
-static plane_t normalize(plane_t plane) {
-    f32 mag = sqrt32(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
+static Plane norm(Plane plane) {
+    f32 r_len = rsqrt32(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
-    plane.a = plane.a / mag;
-    plane.b = plane.b / mag;
-    plane.c = plane.c / mag;
-    plane.d = plane.d / mag;
+    plane.a = plane.a * r_len;
+    plane.b = plane.b * r_len;
+    plane.c = plane.c * r_len;
+    plane.d = plane.d * r_len;
 
     return plane;
 }
 
-static frustum_t frustum_create(mat4 m) {
-    frustum_t result;
+static Frustum make_frustum(const Mat4& m) {
+    Frustum result;
 
     // left clipping plane
     result.plane[0].a = m.e[3]  + m.e[0];
@@ -1320,51 +1193,36 @@ static frustum_t frustum_create(mat4 m) {
     result.plane[5].c = m.e[11] - m.e[10];
     result.plane[5].d = m.e[15] - m.e[14];
 
-    result.plane[0] = normalize(result.plane[0]);
-    result.plane[1] = normalize(result.plane[1]);
-    result.plane[2] = normalize(result.plane[2]);
-    result.plane[3] = normalize(result.plane[3]);
-    result.plane[4] = normalize(result.plane[4]);
-    result.plane[5] = normalize(result.plane[5]);
+    result.plane[0] = norm(result.plane[0]);
+    result.plane[1] = norm(result.plane[1]);
+    result.plane[2] = norm(result.plane[2]);
+    result.plane[3] = norm(result.plane[3]);
+    result.plane[4] = norm(result.plane[4]);
+    result.plane[5] = norm(result.plane[5]);
     
     return result;
 }
 
 // ------------------ contains ------------------ //
 
-static bool contains(circle_t c, vec2 pos) {
+static bool contains(Circle c, Vec2 pos) {
     f32 distance = dist_sq(c.pos, pos);
     return distance < (c.rad * c.rad);
 }
 
-static bool contains(sphere_t s, vec3 pos) {
+static bool contains(Sphere s, Vec3 pos) {
     f32 distance = dist_sq(s.pos, pos);
     return distance < (s.rad * s.rad);
 }
 
-static bool contains(rect2 rect, vec2 pos) {
+static bool contains(Rect2 rect, Vec2 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
 
     return true;
 }
 
-static bool contains(rect3 rect, vec3 pos) {
-    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-    if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
-
-    return true;
-}
-
-static bool contains(irect2 rect, ivec2 pos) {
-    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-
-    return true;
-}
-
-static bool contains(irect3 rect, ivec3 pos) {
+static bool contains(const Rect3& rect, Vec3 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
@@ -1372,7 +1230,22 @@ static bool contains(irect3 rect, ivec3 pos) {
     return true;
 }
 
-static bool contains(frustum_t fs, vec3 pos) {
+static bool contains(Rect2i rect, Vec2i pos) {
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+
+    return true;
+}
+
+static bool contains(const Rect3i& rect, Vec3i pos) {
+    if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+    if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+    if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
+
+    return true;
+}
+
+static bool contains(const Frustum& fs, Vec3 pos) {
     for (i32 i = 0; i < 6; i++) {
 		if (fs.plane[i].a * pos.x + fs.plane[i].b * pos.y + fs.plane[i].c * pos.z + fs.plane[i].d <= 0)
 			return false;
@@ -1383,7 +1256,7 @@ static bool contains(frustum_t fs, vec3 pos) {
 
 // ------------------ intersect ------------------ //
 
-static bool intersect(circle_t a, circle_t b) {
+static bool intersect(Circle a, Circle b) {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
     f32 rt  = a.rad + b.rad;
@@ -1391,7 +1264,7 @@ static bool intersect(circle_t a, circle_t b) {
     return (dx * dx + dy * dy) < (rt * rt);
 }
 
-static bool intersect(sphere_t a, sphere_t b) {
+static bool intersect(Sphere a, Sphere b) {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
     f32 dz  = b.pos.z - a.pos.z;
@@ -1401,29 +1274,14 @@ static bool intersect(sphere_t a, sphere_t b) {
     return (dx * dx + dy * dy) < (rt * rt);
 }
 
-static bool intersect(rect2 a, rect2 b) {
+static bool intersect(Rect2 a, Rect2 b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
     return true;
 }
 
-static bool intersect(rect3 a, rect3 b) {
-    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-    if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
-
-    return true;
-}
-
-static bool intersect(irect2 a, irect2 b) {
-    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-
-    return true;
-}
-
-static bool intersect(irect3 a, irect3 b) {
+static bool intersect(const Rect3& a, const Rect3& b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
@@ -1431,7 +1289,22 @@ static bool intersect(irect3 a, irect3 b) {
     return true;
 }
 
-static bool intersect(frustum_t fs, sphere_t sphere) {
+static bool intersect(Rect2i a, Rect2i b) {
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+
+    return true;
+}
+
+static bool intersect(const Rect3i& a, const Rect3i& b) {
+    if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+    if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+    if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
+
+    return true;
+}
+
+static bool intersect(const Frustum& fs, Sphere sphere) {
     for (i32 i = 0; i < 6; i++) {
 		if(fs.plane[i].a * sphere.pos.x + fs.plane[i].b * sphere.pos.y + fs.plane[i].c * sphere.pos.z + fs.plane[i].d <= -sphere.rad) {
 			return false;
@@ -1440,7 +1313,7 @@ static bool intersect(frustum_t fs, sphere_t sphere) {
 	return true;
 }
 
-static bool intersect(frustum_t fs, rect3 rect) {
+static bool intersect(const Frustum& fs, const Rect3& rect) {
     for (int i = 0; i < 6; i++) {
 		if (fs.plane[i].a * rect.min.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
 		if (fs.plane[i].a * rect.max.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
@@ -1457,28 +1330,28 @@ static bool intersect(frustum_t fs, rect3 rect) {
 
 // ------------------- get overlap --------------- //
 
-static rect2 get_overlap(rect2 a, rect2 b) {
+static Rect2 get_overlap(Rect2 a, Rect2 b) {
     return {
         max(a.min, b.min),
         min(a.max, b.max)
     };
 }
 
-static rect3 get_overlap(rect3 a, rect3 b) {
+static Rect3 get_overlap(const Rect3& a, const Rect3& b) {
     return {
         max(a.min, b.min),
         min(a.max, b.max)
     };
 }
 
-static irect2 get_overlap(irect2 a, irect2 b) {
+static Rect2i get_overlap(Rect2i a, Rect2i b) {
     return {
         max(a.min, b.min),
         min(a.max, b.max)
     };
 }
 
-static irect3 get_overlap(irect3 a, irect3 b) {
+static Rect3i get_overlap(const Rect3i& a, const Rect3i& b) {
     return {
         max(a.min, b.min),
         min(a.max, b.max)
@@ -1487,43 +1360,42 @@ static irect3 get_overlap(irect3 a, irect3 b) {
 
 // -------------- get intersect vector ---------- //
 
-static vec2 get_intersect_vector(circle_t a, circle_t b) {
-    vec2 delta = a.pos - b.pos;
-    f32  depth = len(delta) - (a.rad + b.rad);
+static Vec2 get_intersect_vector(Circle a, Circle b) {
+    auto delta = a.pos - b.pos;
+    auto depth = len(delta) - (a.rad + b.rad);
     
     return -depth * delta;
 }
 
-static vec3 get_intersect_vector(sphere_t a, sphere_t b) {
-    vec3 delta = a.pos - b.pos;
-    f32  depth = len(delta) - (a.rad + b.rad);
+static Vec3 get_intersect_vector(Sphere a, Sphere b) {
+    auto delta = a.pos - b.pos;
+    auto depth = len(delta) - (a.rad + b.rad);
     
     return -depth * delta;
 }
 
-static vec2 get_intersect_vector(rect2 a, rect2 b) {
-    rect2   overlap = get_overlap(a, b);
-    vec2    delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+static Vec2 get_intersect_vector(Rect2 a, Rect2 b) {
+    auto overlap = get_overlap(a, b);
+    auto delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
     return sign(delta) * (overlap.max - overlap.min);
 }
 
-static vec3 get_intersect_vector(rect3 a, rect3 b) {
-    rect3   overlap = get_overlap(a, b);
-    vec3    delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+static Vec3 get_intersect_vector(const Rect3& a, const Rect3& b) {
+    auto overlap = get_overlap(a, b);
+    auto delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
     return sign(delta) * (overlap.max - overlap.min);
 }
 
-static ivec2 get_intersect_vector(irect2 a, irect2 b) {
-    irect2  overlap = get_overlap(a, b);
-    ivec2   delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
+static Vec2i get_intersect_vector(const Rect2i& a, const Rect2i& b) {
+    auto overlap = get_overlap(a, b);
+    auto delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
 
     return sign(delta) * (overlap.max - overlap.min);
 }
 
-static ivec3 get_intersect_vector(irect3 a, irect3 b) {
-    irect3  overlap = get_overlap(a, b);
-    ivec3   delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
-
+static Vec3i get_intersect_vector(const Rect3i& a, const Rect3i& b) {
+    auto overlap = get_overlap(a, b);
+    auto delta   = 0.5f * (a.min + a.max) - 0.5f * (b.min + b.max);
     return sign(delta) * (overlap.max - overlap.min);
 }
 
@@ -1547,21 +1419,19 @@ static f32 rand_f32(u32* state, f32 min, f32 max) {
     return min + ((f32)rand_u32(state) / (f32)0xffffffff) * (max - min); 
 }
 
-static vec2 rand_v2(u32* state) {
-    vec2 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
-    return normalize(out);
+static Vec2 rand_v2(u32* state) {
+    return norm(v2(rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
 }
 
-static vec3 rand_v3(u32* state) {
-    vec3 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
-    return normalize(out);
+static Vec3 rand_v3(u32* state) {
+    return norm(v3(rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1)));
 }
 
-static vec2 rand_v2(u32* state, f32 min, f32 max) {
+static Vec2 rand_v2(u32* state, f32 min, f32 max) {
     return rand_v2(state) * rand_f32(state, min, max);
 }
 
-static vec3 rand_v3(u32* state, f32 min, f32 max) {
+static Vec3 rand_v3(u32* state, f32 min, f32 max) {
     return rand_v3(state) * rand_f32(state, min, max);
 }
 
@@ -1628,7 +1498,7 @@ static const u32 crc_table[] = {
     0xAFB010B1, 0xAB710D06, 0xA6322BDF, 0xA2F33668, 0xBCB4666D, 0xB8757BDA, 0xB5365D03, 0xB1F740B4
 };
 
-static u32 hash_mem(const void *data, u32 size) {
+static u32 hash_crc32(const void *data, u32 size) {
     const u8 *d = (const u8*)data;
     u32 crc = 0xFFFFFFFF;
 
@@ -1645,14 +1515,14 @@ static u32 hash_mem(const void *data, u32 size) {
 #define HASH_PRIME2 4280703257u
 #define HASH_PRIME3 1609059329u
 
-static u32 hash_iv2(ivec2 k) {
+static u32 hash_v2i(Vec2i k) {
     u32 a = hash_i32(k.x);
     u32 b = hash_i32(k.y);
 
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
-static u32 hash_iv3(ivec3 k) {
+static u32 hash_v3i(Vec3i k) {
     u32 a = hash_i32(k.x);
     u32 b = hash_i32(k.y);
     u32 c = hash_i32(k.z);
@@ -1660,7 +1530,7 @@ static u32 hash_iv3(ivec3 k) {
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
 }
 
-static u32 hash_iv4(ivec4 k) {
+static u32 hash_v4i(Vec4i k) {
     u32 a = hash_i32(k.x);
     u32 b = hash_i32(k.y);
     u32 c = hash_i32(k.z);
@@ -1686,26 +1556,26 @@ static u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a) {
     return pack_color_u8((u8)(255 * r), (u8)(255 * g), (u8)(255 * b), (u8)(255 * a));
 }
 
-static u32 pack_color_v4(vec4 color) {
+static u32 pack_color_v4(Vec4 color) {
     return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
-static u32 pack_color_v3(vec3 color, f32 a = 1.0) {
+static u32 pack_color_v3(Vec3 color, f32 a = 1.0) {
     return pack_color_f32(color.r, color.g, color.b, a);
 }
 
 // ---------------------- priority queue --------------------- //
 
-static b32 queue_empty(const priority_queue* queue) {
+static b32 is_empty(const Priority_Queue* queue) {
     return queue->len == 0;
 }
 
-static void queue_clear(priority_queue* queue) {
+static void clear(Priority_Queue* queue) {
     queue->len = 0;
 }
 
-static void queue_push(priority_queue* queue, ivec2 e, f32 weight) {
-    queue_node node = { weight, e };
+static void push(Priority_Queue* queue, Vec2i e, f32 weight) {
+    Queue_Node node = { weight, e };
 
     u32 i = queue->len + 1;
     u32 j = i / 2;
@@ -1721,8 +1591,8 @@ static void queue_push(priority_queue* queue, ivec2 e, f32 weight) {
     queue->len++;
 }
 
-static f32 queue_pop(ivec2* out, priority_queue* queue) {
-    queue_node data = queue->array[1];
+static f32 pop(Vec2i* out, Priority_Queue* queue) {
+    Queue_Node data = queue->array[1];
 
     queue->array[1] = queue->array[queue->len];
     queue->len--;
@@ -1904,7 +1774,7 @@ static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
 
 // ===================================== MEM STUFF ================================= //
 
-static void zero_memory(void* data, usize size) {
+static void clear_memory(void* data, usize size) {
     volatile u8* d = (u8*)data;
 
     while (size--)
@@ -1940,8 +1810,8 @@ static void copy_memory(void* dst, const void* src, usize size) {
 
 // ---------------------- arena allocator ------------------------ //
 
-extern memory_arena ma_create(u8* buffer, usize size) {
-    memory_arena ma = {};
+extern Memory_Arena ma_create(u8* buffer, usize size) {
+    Memory_Arena ma = {};
 
     ma.cap    = size;
     ma.buffer = buffer;
@@ -1949,8 +1819,8 @@ extern memory_arena ma_create(u8* buffer, usize size) {
     return ma;
 }
 
-extern void* ma_alloc(memory_arena* ma, usize byte_size) {
-    byte_size = align_up(byte_size, 16);
+extern void* ma_alloc(Memory_Arena* ma, usize byte_size) {
+    byte_size = AlignUp(byte_size, 16);
 
     assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
 
@@ -1958,32 +1828,32 @@ extern void* ma_alloc(memory_arena* ma, usize byte_size) {
     ma->index     += byte_size;
     ma->max       = ma->max > ma->index? ma->max : ma->index;
 
-    zero_memory(memory, byte_size);
+    clear_memory(memory, byte_size);
 
     return memory;
 }
 
-extern void* ma_begin(memory_arena* ma) {
+extern void* ma_begin(Memory_Arena* ma) {
     ma->lock = true;
     return ma->buffer + ma->index;
 }
 
-extern void ma_end(memory_arena* ma, usize byte_size) {
-    ma->index += align_up(byte_size, 16);
+extern void ma_end(Memory_Arena* ma, usize byte_size) {
+    ma->index += AlignUp(byte_size, 16);
     ma->lock = false;
 }
 
-extern void ma_save(memory_arena* ma) {
+extern void ma_save(Memory_Arena* ma) {
     assert(ma->top < ma->cap);
     ma->stack[ma->top++] = ma->index;
 }
 
-extern void ma_restore(memory_arena* ma) {
+extern void ma_restore(Memory_Arena* ma) {
     assert(ma->top > 0);
     ma->index = ma->stack[--ma->top];
 }
 
-extern void ma_validate(memory_arena* ma) {
+extern void ma_validate(Memory_Arena* ma) {
     assert(ma->top == 0);
 }
 
@@ -1997,16 +1867,13 @@ static usize file_get_size(FILE* fp) {
     return size;
 }
 
-extern char* file_read_str(const char* file_name, memory_arena* ma) {
-    FILE *fp      = NULL;
-    char *buffer  = NULL;
-
+extern char* file_read_str(const char* file_name, Memory_Arena* ma) {
+    FILE *fp = NULL;
+    char *buffer = NULL;
     if (fopen_s(&fp, file_name, "rb") == 0) {
         usize size = file_get_size(fp);
-
-        memory_arena state = *ma;
+        Memory_Arena state = *ma;
         buffer = (char*)ma_alloc(ma, size + 1);
-
         if (buffer) {
             buffer[size] = 0;
 
@@ -2015,63 +1882,50 @@ extern char* file_read_str(const char* file_name, memory_arena* ma) {
                 buffer = NULL;
             }
         }
-
         fclose(fp);
     }
-
     return buffer;
 }
 
 extern b32 file_write_str(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
-
     if (fopen_s(&fp, file_name, "w") == 0) {
         usize size = strlen(buffer);
         usize n = fwrite(buffer, 1, size, fp);
-
         fclose(fp);
         return n == size;
     }
-
     return false;
 }
 
 extern b32 file_append_str(const char* file_name, const char* buffer) {
     FILE *fp = NULL;
-
     if (fopen_s(&fp, file_name, "a") == 0) {
         size_t size = strlen(buffer);
         size_t n = fwrite(buffer, 1, size, fp);
-
         fclose(fp);
         return n == size;
     }
-
     return false;
 }
 
 extern b32 file_read_bin(const char* file_name, void* buffer, u32 size) {
     FILE *fp = NULL;
-
     if (fopen_s(&fp, file_name, "rb") == 0) {
         fread(buffer, size, 1, fp);
         fclose(fp);
-
         return true;
     }
-
     return false;
 } 
 
 extern b32 file_write_bin(const char* file_name, const void* buffer, u32 size) {
     FILE *fp = NULL;
-
     if (fopen_s(&fp, file_name, "wb") == 0) {
         fwrite(buffer, size, 1, fp);
         fclose(fp);
         return 1;
     }
-
     return false;
 }
 
@@ -2081,23 +1935,21 @@ extern b32 file_write_bin(const char* file_name, const void* buffer, u32 size) {
 #define STB_IMAGE_IMPLEMENTATION
 #include "ext/stb_image.h" 
 
-extern image_t image_load_from_file(const char* path) {
-    image_t image       = {};
-    i32     channels    = 0;
-
+extern Image image_load_from_file(const char* path) {
+    Image image = {};
+    i32 channels = 0;
     image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
     assert(image.pixels);
-
     return image;
 }
 
 #endif
 
-extern u32 image_get_pixel(image_t* img, i32 x, i32 y) {
+extern u32 get_pixel(Image* img, i32 x, i32 y) {
     return img->pixels[y * img->width + x];
 }
 
-extern void image_set_pixel(image_t* img, i32 x, i32 y, u32 pixel) {
+extern void set_pixel(Image* img, i32 x, i32 y, u32 pixel) {
     img->pixels[y * img->width + x] = pixel;
 }
 

@@ -90,7 +90,7 @@ static void* _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
 // --------------- fixed array --------------- //
 
 template <typename type_t, u32 max_cap>
-struct fixed_array {
+struct Fixed_Array {
     u32     m_len = 0;
     type_t  m_buf[max_cap];
 
@@ -138,7 +138,7 @@ struct fixed_array {
 #endif
 
 template <typename type_t>
-struct dyn_array {
+struct Array {
     u32     m_cap     = 0;
     u32     m_len     = 0;
     type_t* m_buf     = nullptr;
@@ -206,7 +206,7 @@ struct dyn_array {
 // ===================================================== SLICES ================================================== //
 
 template <typename type_t>
-struct slice {
+struct Slice {
     u32         len;
     type_t*     buf;
 

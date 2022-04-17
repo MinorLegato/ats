@@ -2,89 +2,90 @@
 
 #define SR_MAX_POINT_LIGHTS 16
 
-typedef struct {
-    i16     x;
-    i16     y;
-} sr_uv;
+struct SR_UV {
+    i16 x;
+    i16 y;
+};
 
-typedef struct {
-    v3          pos;
-    v3          normal;
-    sr_uv       uv;
-    u32         color;
-} sr_vertex_t;
+struct SR_Vertex {
+    Vec3 pos;
+    Vec3 normal;
+    SR_UV uv;
+    u32 color;
+};
 
-typedef struct {
-    gl_shader   shader;
-    u32         type;
+struct SR_Range {
+    GL_Shader shader;
 
-    u32         index;
-    u32         count;
-} sr_range_t;
+    u32 type;
 
-typedef struct {
-    v3      pos;
+    u32 index;
+    u32 count;
+};
 
-    v3      ambient;
-    v3      diffuse;
-    v3      specular;
+struct SR_Point_Light {
+    Vec3 pos;
 
-    f32     constant;
-    f32     linear;
-    f32     quadratic;
+    Vec3 ambient;
+    Vec3 diffuse;
+    Vec3 specular;
 
-    f32     range;
-} sr_point_light_t;
+    f32 constant;
+    f32 linear;
+    f32 quadratic;
 
-typedef struct {
-    u32     range;
+    f32 range;
+};
 
-    u32     pos;
+struct SR_Point_Light_Uniform {
+    u32 range;
 
-    u32     ambient;
-    u32     diffuse;
-    u32     specular;
+    u32 pos;
 
-    u32     constant;
-    u32     linear;
-    u32     quadratic;
-} sr_point_light_uniform_t;
+    u32 ambient;
+    u32 diffuse;
+    u32 specular;
 
-static gl_shader        sr_shader;
-static gl_shader        sr_basic_shader;
-static gl_shader        sr_texture_shader;
+    u32 constant;
+    u32 linear;
+    u32 quadratic;
+};
 
-static gl_shader        sr_ui_basic_shader;
-static gl_shader        sr_ui_texture_shader;
-static gl_shader        sr_ui_text_shader;
+static GL_Shader sr_shader;
+static GL_Shader sr_basic_shader;
+static GL_Shader sr_texture_shader;
 
-static gl_texture       sr_texture;
+static GL_Shader sr_ui_basic_shader;
+static GL_Shader sr_ui_texture_shader;
+static GL_Shader sr_ui_text_shader;
 
-static u32              sr_framebuffer;
-static gl_shader        sr_frame_shader;
-static gl_array         sr_frame_array;
+static GL_Texture sr_texture;
 
-static u32              sr_frame_color;
-static u32              sr_frame_position;
-static u32              sr_frame_normal;
+static u32 sr_framebuffer;
+static GL_Shader sr_frame_shader;
+static GL_Array sr_frame_array;
 
-static gl_array         sr_array;
-static sr_vertex_t      sr_current_vertex;
+static u32 sr_frame_color;
+static u32 sr_frame_position;
+static u32 sr_frame_normal;
 
-static u32              sr_vertex_count;
-static sr_vertex_t      sr_vertex_array[1024 * 1024];
+static GL_Array sr_array;
+static SR_Vertex sr_current_vertex;
 
-static b32              sr_depth_test = false;
-static sr_range_t       sr_current_range;
+static u32 sr_vertex_count;
+static SR_Vertex sr_vertex_array[1024 * 1024];
 
-static u32              sr_range_count;
-static sr_range_t       sr_range_array[1024 * 1024];
+static b32 sr_depth_test = false;
+static SR_Range sr_current_range;
 
-static sr_point_light_uniform_t sr_lights[SR_MAX_POINT_LIGHTS];
+static u32 sr_range_count;
+static SR_Range sr_range_array[1024 * 1024];
 
-static gl_texture sr_bitmap_texture;
+static SR_Point_Light_Uniform sr_lights[SR_MAX_POINT_LIGHTS];
 
-static gl_shader_desc sr_shader_desc = {
+static GL_Texture sr_bitmap_texture;
+
+static GL_Shader_Desc sr_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3 in_position;
@@ -131,7 +132,7 @@ static gl_shader_desc sr_shader_desc = {
             }),
 };
 
-static gl_shader_desc sr_texture_shader_desc = {
+static GL_Shader_Desc sr_texture_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3 in_position;
@@ -174,7 +175,7 @@ static gl_shader_desc sr_texture_shader_desc = {
         }),
 };
 
-static gl_shader_desc sr_text_shader_desc = {
+static GL_Shader_Desc sr_text_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3 in_position;
@@ -215,7 +216,7 @@ static gl_shader_desc sr_text_shader_desc = {
         }),
 };
 
-static gl_shader_desc sr_basic_shader_desc = {
+static GL_Shader_Desc sr_basic_shader_desc = {
     // vertex shader:
     GLSL_SHADER(
         layout (location = 0) in vec3 in_position;
@@ -247,8 +248,8 @@ static gl_shader_desc sr_basic_shader_desc = {
         }),
 }; 
 
-static gl_shader_desc sr_frame_shader_desc = {
-    .vs = GLSL_SHADER(
+static GL_Shader_Desc sr_frame_shader_desc = {
+    GLSL_SHADER(
         layout (location = 0) in vec2 in_pos;
         layout (location = 1) in vec2 in_uv;
 
@@ -259,7 +260,7 @@ static gl_shader_desc sr_frame_shader_desc = {
             gl_Position     = vec4(in_pos, 0, 1);
         }),
 
-    .fs = GLSL_SHADER(
+    GLSL_SHADER(
         out vec4    out_color;
         in  vec2    frag_uv;
 
@@ -343,49 +344,49 @@ static void sr_init(void) {
 
     // game shader: (used in world space)
     {
-        sr_basic_shader     = gl_shader_create(&sr_basic_shader_desc);
-        sr_texture_shader   = gl_shader_create(&sr_texture_shader_desc);
-        sr_shader           = gl_shader_create(&sr_shader_desc);
-        sr_frame_shader     = gl_shader_create(&sr_frame_shader_desc);
+        sr_basic_shader     = gl_shader_create(sr_basic_shader_desc);
+        sr_texture_shader   = gl_shader_create(sr_texture_shader_desc);
+        sr_shader           = gl_shader_create(sr_shader_desc);
+        sr_frame_shader     = gl_shader_create(sr_frame_shader_desc);
 
         {
-            gl_shader_use(sr_frame_shader);
-            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_color"),     0);
-            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_position"),  1);
-            gl_uniform_i32(gl_shader_location(sr_frame_shader, "in_normal"),    2);
+            gl_use(sr_frame_shader);
+            gl_uniform(gl_location(sr_frame_shader, "in_color"),     0);
+            gl_uniform(gl_location(sr_frame_shader, "in_position"),  1);
+            gl_uniform(gl_location(sr_frame_shader, "in_normal"),    2);
 
             char buffer[256];
             for (u32 i = 0; i < SR_MAX_POINT_LIGHTS; ++i) {
-                sr_point_light_uniform_t* light = &sr_lights[i];
+                SR_Point_Light_Uniform* light = &sr_lights[i];
 
-                sprintf(buffer, "light[%d].range", i);     light->range     = gl_shader_location(sr_frame_shader, buffer);
-                sprintf(buffer, "light[%d].pos", i);       light->pos       = gl_shader_location(sr_frame_shader, buffer);
-                sprintf(buffer, "light[%d].ambient", i);   light->ambient   = gl_shader_location(sr_frame_shader, buffer);
-                sprintf(buffer, "light[%d].diffuse", i);   light->diffuse   = gl_shader_location(sr_frame_shader, buffer);
-                sprintf(buffer, "light[%d].specular", i);  light->specular  = gl_shader_location(sr_frame_shader, buffer);
-                sprintf(buffer, "light[%d].constant", i);  light->constant  = gl_shader_location(sr_frame_shader, buffer);
-                sprintf(buffer, "light[%d].linear", i);    light->linear    = gl_shader_location(sr_frame_shader, buffer);
-                sprintf(buffer, "light[%d].quadratic", i); light->quadratic = gl_shader_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].range", i);     light->range     = gl_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].pos", i);       light->pos       = gl_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].ambient", i);   light->ambient   = gl_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].diffuse", i);   light->diffuse   = gl_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].specular", i);  light->specular  = gl_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].constant", i);  light->constant  = gl_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].linear", i);    light->linear    = gl_location(sr_frame_shader, buffer);
+                sprintf(buffer, "light[%d].quadratic", i); light->quadratic = gl_location(sr_frame_shader, buffer);
             }
         }
     }
 
     // ui shader: (used in screen space)
     {
-        sr_ui_basic_shader      = gl_shader_create(&sr_basic_shader_desc);
-        sr_ui_texture_shader    = gl_shader_create(&sr_texture_shader_desc);
-        sr_ui_text_shader       = gl_shader_create(&sr_text_shader_desc);
+        sr_ui_basic_shader = gl_shader_create(sr_basic_shader_desc);
+        sr_ui_texture_shader = gl_shader_create(sr_texture_shader_desc);
+        sr_ui_text_shader = gl_shader_create(sr_text_shader_desc);
     }
 
-    gl_array_desc array_desc = ATS_INIT_ZERO;
+    GL_Array_Desc array_desc = {};
     
-    array_desc.layout[0] = ctor(gl_layout, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, pos));
-    array_desc.layout[1] = ctor(gl_layout, 3, GL_FLOAT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, normal), true);
-    array_desc.layout[2] = ctor(gl_layout, 2, GL_SHORT,           sizeof (sr_vertex_t), offsetof(sr_vertex_t, uv));
-    array_desc.layout[3] = ctor(gl_layout, 4, GL_UNSIGNED_BYTE,   sizeof (sr_vertex_t), offsetof(sr_vertex_t, color), true);
+    array_desc.layout[0] = { 3, GL_FLOAT, sizeof (SR_Vertex), offsetof(SR_Vertex, pos) };
+    array_desc.layout[1] = { 3, GL_FLOAT, sizeof (SR_Vertex), offsetof(SR_Vertex, normal), true };
+    array_desc.layout[2] = { 2, GL_SHORT, sizeof (SR_Vertex), offsetof(SR_Vertex, uv) };
+    array_desc.layout[3] = { 4, GL_UNSIGNED_BYTE, sizeof (SR_Vertex), offsetof(SR_Vertex, color), true };
 
-    sr_array = gl_array_create(&array_desc);
-    gl_array_data(sr_array, NULL, sizeof (sr_vertex_t) * array_count(sr_vertex_array));
+    sr_array = gl_array_create(array_desc);
+    gl_send(&sr_array, NULL, sizeof (SR_Vertex) * ArrayCount(sr_vertex_array));
 
     sr_init_bitmap();
 
@@ -426,10 +427,10 @@ static void sr_init(void) {
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        sr_frame_array = gl_array_create(&(gl_array_desc) {
-            .layout = {
-                [0] = { .size = 2, .type = GL_FLOAT, .stride = 4 * sizeof (f32) },
-                [1] = { .size = 2, .type = GL_FLOAT, .stride = 4 * sizeof (f32), .offset = 2 * sizeof (f32) },
+        sr_frame_array = gl_array_create({
+            {
+                { 2, GL_FLOAT, 4 * sizeof (f32) },
+                { 2, GL_FLOAT, 4 * sizeof (f32), 2 * sizeof (f32) },
             },
         });
 
@@ -442,7 +443,7 @@ static void sr_init(void) {
             -1, -1,     0, 0,
         };
 
-        gl_array_data(sr_frame_array, vertex_array, sizeof (vertex_array));
+        gl_send(&sr_frame_array, vertex_array, sizeof (vertex_array));
     }
 }
 
@@ -464,38 +465,35 @@ static void sr_vertex(f32 x, f32 y, f32 z) {
     sr_vertex_array[sr_vertex_count++] = sr_current_vertex;
 }
 
-static void sr_set_light(u32 light_index, const sr_point_light_t* light) {
-    const sr_point_light_uniform_t* location = &sr_lights[light_index];
+static void sr_set_light(u32 light_index, const SR_Point_Light& light) {
+    const SR_Point_Light_Uniform* location = &sr_lights[light_index];
 
-    gl_shader_use(sr_frame_shader);
-
-    gl_uniform_f32(location->range,     light->range);
-
-    gl_uniform_v3(location->pos,        light->pos);
-    gl_uniform_v3(location->ambient,    light->ambient);
-    gl_uniform_v3(location->diffuse,    light->diffuse);
-    gl_uniform_v3(location->specular,   light->specular);
-
-    gl_uniform_f32(location->constant,  light->constant);
-    gl_uniform_f32(location->linear,    light->linear);
-    gl_uniform_f32(location->quadratic, light->quadratic);
+    gl_use(sr_frame_shader);
+    gl_uniform(location->range, light.range);
+    gl_uniform(location->pos, light.pos);
+    gl_uniform(location->ambient, light.ambient);
+    gl_uniform(location->diffuse, light.diffuse);
+    gl_uniform(location->specular, light.specular);
+    gl_uniform(location->constant, light.constant);
+    gl_uniform(location->linear, light.linear);
+    gl_uniform(location->quadratic, light.quadratic);
 }
 
 static void sr_disable_all_lights(void) {
-    gl_shader_use(sr_frame_shader);
+    gl_use(sr_frame_shader);
 
     for (u32 i = 0; i < SR_MAX_POINT_LIGHTS; ++i) {
-        const sr_point_light_uniform_t* location = &sr_lights[i];
+        const SR_Point_Light_Uniform* location = &sr_lights[i];
 
-        gl_uniform_f32(location->range,  0);
+        gl_uniform(location->range,  0);
     }
 }
 
-static void sr_set_texture(gl_texture texture) {
+static void sr_set_texture(GL_Texture texture) {
     sr_texture = texture;
 }
 
-static void sr_begin(u32 primitive_type, gl_shader shader) {
+static void sr_begin(u32 primitive_type, GL_Shader shader) {
     memset(&sr_current_range, 0, sizeof sr_current_range);
 
     sr_current_range.shader = shader;
@@ -508,39 +506,40 @@ static void sr_end(void) {
     sr_range_array[sr_range_count++] = sr_current_range;
 }
 
-static void sr_begin_frame(v3 view_pos, m4 pvm) {
-    m4 ortho = m4_ortho(0, platform.width, platform.height, 0, -1, 1);
+static void sr_begin_frame(Vec3 view_pos, Mat4 pvm) {
+    Mat4 ortho_matrix = ortho(0, platform.width, platform.height, 0, -1, 1);
 
     {
-        gl_shader_use(sr_ui_basic_shader);
-        gl_uniform_m4(gl_shader_location(sr_ui_basic_shader, "pvm"), ortho);
+        gl_use(sr_ui_basic_shader);
+        gl_uniform(gl_location(sr_ui_basic_shader, "pvm"), ortho_matrix);
 
-        gl_shader_use(sr_ui_texture_shader);
-        gl_uniform_m4(gl_shader_location(sr_ui_texture_shader, "pvm"), ortho);
+        gl_use(sr_ui_texture_shader);
+        gl_uniform(gl_location(sr_ui_texture_shader, "pvm"), ortho_matrix);
 
-        gl_shader_use(sr_ui_text_shader);
-        gl_uniform_m4(gl_shader_location(sr_ui_text_shader, "pvm"), ortho);
+        gl_use(sr_ui_text_shader);
+        gl_uniform(gl_location(sr_ui_text_shader, "pvm"), ortho_matrix);
     }
 
     {
-        gl_shader_use(sr_basic_shader);
-        gl_uniform_m4(gl_shader_location(sr_basic_shader, "pvm"), pvm);
+        gl_use(sr_basic_shader);
+        gl_uniform(gl_location(sr_basic_shader, "pvm"), pvm);
 
-        gl_shader_use(sr_texture_shader);
-        gl_uniform_m4(gl_shader_location(sr_texture_shader, "pvm"), pvm);
+        gl_use(sr_texture_shader);
+        gl_uniform(gl_location(sr_texture_shader, "pvm"), pvm);
 
-        gl_shader_use(sr_shader);
-        gl_uniform_m4(gl_shader_location(sr_shader, "pvm"), pvm);
+        gl_use(sr_shader);
+        gl_uniform(gl_location(sr_shader, "pvm"), pvm);
 
-        gl_shader_use(sr_frame_shader);
-        gl_uniform_v3(gl_shader_location(sr_frame_shader, "view_pos"), view_pos);
+        gl_use(sr_frame_shader);
+        gl_uniform(gl_location(sr_frame_shader, "view_pos"), view_pos);
     }
 }
 
 static void sr_end_frame(void) {
     // render to framebuffer
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, sr_framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //glBindFramebuffer(GL_FRAMEBUFFER, sr_framebuffer);
 
         glBindTexture(GL_TEXTURE_2D, sr_frame_color);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -552,25 +551,26 @@ static void sr_end_frame(void) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, platform.width, platform.height, 0, GL_RGBA, GL_FLOAT, NULL);
         
         glActiveTexture(GL_TEXTURE0);
-        gl_texture_bind(&sr_texture);
+        gl_bind(&sr_texture);
 
         glActiveTexture(GL_TEXTURE1);
-        gl_texture_bind(&sr_bitmap_texture);
+        gl_bind(&sr_bitmap_texture);
 
         glBindVertexArray(sr_array.vao);
-        gl_array_data(sr_array, sr_vertex_array, sizeof (sr_vertex_t) * sr_vertex_count);
+        gl_send(&sr_array, sr_vertex_array, sizeof (SR_Vertex) * sr_vertex_count);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
 
         for (u32 i = 0; i < sr_range_count; ++i) {
-            const sr_range_t* range = &sr_range_array[i];
+            const SR_Range* range = &sr_range_array[i];
 
-            gl_shader_use(range->shader);
+            gl_use(range->shader);
             glDrawArrays(range->type, range->index, range->count);
         }
     }
         
+#if 0
     // render the frambuffer:
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -587,18 +587,20 @@ static void sr_end_frame(void) {
         glDisable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        gl_shader_use(sr_frame_shader);
+        gl_use(sr_frame_shader);
 
         glBindVertexArray(sr_frame_array.vao);
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
+#endif
 
     sr_vertex_count = 0;
     sr_range_count = 0;
+
     sr_disable_all_lights();
 }
 
-static void sr_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
+static void sr_billboard(Rect2i tex_rect, Vec3 pos, Vec2 rad, Vec3 normal, u32 color, Vec3 right, Vec3 up) {
     f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
     f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
     f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -627,7 +629,7 @@ static void sr_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 
     sr_tex_coord(tex_rect.min.x, tex_rect.max.y); sr_vertex(ax, ay, az);
 }
 
-static void sr_texture_box(r2i rect, r3 box, u32 color) {
+static void sr_texture_box(Rect2i rect, Rect3 box, u32 color) {
     sr_color(color);
     
     sr_normal(0, 0, -1);
@@ -679,7 +681,7 @@ static void sr_texture_box(r2i rect, r3 box, u32 color) {
     sr_tex_coord(rect.min.x, rect.min.y); sr_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void sr_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
+static void sr_texture_rect(Rect2i tex_rect, Rect2 rect, f32 z, u32 color) {
     sr_color(color);
     
     sr_normal(0, 0, +1);
@@ -691,7 +693,7 @@ static void sr_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
     sr_tex_coord(tex_rect.min.x, tex_rect.max.y); sr_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void sr_box(r3 box, u32 color) {
+static void sr_box(Rect3 box, u32 color) {
     sr_color(color);
     
     sr_normal(0, 0, -1);
@@ -743,7 +745,7 @@ static void sr_box(r3 box, u32 color) {
     sr_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void sr_rect(r2 rect, f32 z, u32 color) {
+static void sr_rect(Rect2 rect, f32 z, u32 color) {
     sr_color(color);
     sr_normal(0, 0, +1);
 
@@ -1031,13 +1033,13 @@ static void sr_init_bitmap(void) {
 
     sr_bitmap_texture = gl_texture_create(pixels, SR_BITMAP_COUNT * 8, 8, false);
 
-    gl_shader_use(sr_ui_text_shader);
-    gl_uniform_i32(gl_shader_location(sr_ui_text_shader, "texture1"), 1);
+    gl_use(sr_ui_text_shader);
+    gl_uniform(gl_location(sr_ui_text_shader, "texture1"), 1);
 }
 
 static void sr_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
-    r2i tex_rect    = r2i(v2i(c * 8, 0), v2i(c * 8 + 8, 8));
-    r2  rect        = r2(v2(x, y), v2(x + sx, y + sy));
+    Rect2i tex_rect = r2i(v2i(c * 8, 0), v2i(c * 8 + 8, 8));
+    Rect2 rect = r2(v2(x, y), v2(x + sx, y + sy));
 
     sr_texture_rect(tex_rect, rect, z, color);
 }

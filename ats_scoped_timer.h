@@ -1,5 +1,5 @@
 
-typedef u32 timer_type_t;
+typedef u32 TimerType;
 enum {
 #define TIMER_TYPE(name) TIMER_##name,
     TIMER_TYPES
@@ -7,8 +7,7 @@ enum {
     TIMER_COUNT
 };
 
-typedef struct timer_entry_t timer_entry_t;
-struct timer_entry_t {
+struct TimerEntry {
     b32     in_use;
 
     f32     start;
@@ -21,29 +20,30 @@ static const char* timer_name[TIMER_COUNT] = {
 #undef TIMER_TYPE
 };
 
-static timer_entry_t timer_table[TIMER_COUNT];
+static TimerEntry timer_table[TIMER_COUNT];
 
-#define timer_scope(name) defer(timer_start(TIMER_##name), timer_stop(TIMER_##name))
+#define TimerScope(name) Defer(TimerStart(TIMER_##name), TimerStop(TIMER_##name))
 
-static void timer_start(timer_type_t type) {
+static void TimerStart(TimerType type) {
     timer_table[type].in_use = true;
-    timer_table[type].start  = timer_get_current();
+    timer_table[type].start  = TimerGetCurrent();
 }
 
-static void timer_stop(timer_type_t type) {
-    timer_table[type].stop = timer_get_current();
+static void TimerStop(TimerType type) {
+    timer_table[type].stop = TimerGetCurrent();
 }
 
-static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
+static void TimerPrintResult(f32 px, f32 py, f32 sx, f32 sy) {
     i32 y = 0;
     for (i32 i = 0; i < TIMER_COUNT; ++i) {
-        timer_entry_t e = timer_table[i];
+        TimerEntry e = timer_table[i];
 
         if (e.in_use) {
-            gl_render_string_format(px, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", timer_name[i], 1000.0f * (e.stop - e.start));
+            GL_RenderStringFormat(px, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", timer_name[i], 1000.0f * (e.stop - e.start));
             y++;
         }
     }
-    memset(timer_table, 0, sizeof *timer_table);
+
+    MemoryClear(timer_table, sizeof *timer_table);
 }
 
