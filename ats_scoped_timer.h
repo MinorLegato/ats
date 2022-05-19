@@ -1,51 +1,51 @@
 
-typedef u32 Timer_Type;
-enum {
-#define TIMER_TYPE(name) TIMER_##name,
-    TIMER_TYPES
-#undef TIMER_TYPE
-    TIMER_COUNT
+struct timer_entry {
+    const char* name;
+
+    f64 start;
+    f64 stop;
+
+    usize depth;
 };
 
-struct Timer_Entry {
-    b32 in_use;
+static usize timer_top;
+static struct timer_entry timer_stack[512];
 
-    f32 start;
-    f32 stop;
-};
+static usize timer_count;
+static struct timer_entry timer_array[512];
 
-static const char* timer_name[TIMER_COUNT] = {
-#define TIMER_TYPE(name) #name,
-    TIMER_TYPES
-#undef TIMER_TYPE
-};
-
-static Timer_Entry timer_table[TIMER_COUNT];
-
-#define TimerScope(name) Defer(timer_start(TIMER_##name), timer_stop(TIMER_##name))
+#define timer_scope(name) defer(timer_start(name), timer_stop())
 
 static void
-timer_start(Timer_Type type) {
-    timer_table[type].in_use = true;
-    timer_table[type].start  = get_current_time();
+timer_start(const char* name) {
+    struct timer_entry* entry = timer_stack + (timer_top++);
+
+    entry->name = name;
+    entry->start = timer_get_current();
+    entry->stop = 0;
+    entry->depth = timer_top - 1;
 }
 
 static void
-timer_stop(Timer_Type type) {
-    timer_table[type].stop = get_current_time();
+timer_stop(void) {
+    struct timer_entry* entry = timer_stack + (--timer_top);
+    entry->stop = timer_get_current();
+    timer_array[timer_count++] = *entry;
+}
+
+static void
+timer_reset_all(void) {
+    timer_top = 0;
+    timer_count = 0;
 }
 
 static void
 timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
     i32 y = 0;
-    for (i32 i = 0; i < TIMER_COUNT; ++i) {
-        Timer_Entry e = timer_table[i];
-        if (e.in_use) {
-            gl_render_string_format(px, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", timer_name[i], 1000.0f * (e.stop - e.start));
-            y++;
-        }
+    for_range(i, 0, timer_count) {
+        struct timer_entry e = timer_array[i];
+        sr_string_format(px + 4 * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
+        y++;
     }
-
-    clear_memory(timer_table, sizeof *timer_table);
 }
 

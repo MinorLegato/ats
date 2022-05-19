@@ -18,66 +18,64 @@
 
 // ------------------- platform layer ------------------------ //
 
-typedef struct Platform Platform;
-extern Platform platform;
+struct platform;
+extern struct platform platform;
 
 extern void platform_init(const char* title, int width, int height, int samples);
 extern void platform_update(void);
 
-extern f64 get_current_time(void);
+extern f64 timer_get_current(void);
 
 // ---------------- gl helper types/functions ---------------- //
 
-struct GL_Texture {
+struct gl_texture {
     u32 id;
     i32 width;
     i32 height;
 };
 
-extern void gl_update(GL_Texture* texture, void *pixels, int width, int height, int is_smooth);
-extern void gl_bind(const GL_Texture* texture);
-extern void gl_destroy(GL_Texture* texture);
+extern struct gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern struct gl_texture gl_texture_create_from_image(struct image image, int is_smooth);
+extern struct gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
 
-extern GL_Texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern GL_Texture gl_texture_create_from_image(Image image, int is_smooth);
-extern GL_Texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern void gl_texture_update(struct gl_texture* texture, void *pixels, int width, int height, int is_smooth);
+extern void gl_texture_bind(const struct gl_texture* texture);
+extern void gl_texture_destroy(struct gl_texture* texture);
 
 #ifdef ATS_OGL33
 
-struct GL_Shader {
-    u32 id;
+struct gl_shader {
+    u32     id;
 };
 
-struct GL_Shader_Desc {
+struct gl_shader_desc {
     const char* vs;
     const char* fs;
 };
 
-extern GL_Shader gl_shader_create(const GL_Shader_Desc& desc);
-extern GL_Shader gl_shader_load_from_file(const char *vs, const char *fs, Memory_Arena* ma);
+extern struct gl_shader gl_shader_create(const struct gl_shader_desc* desc);
+extern struct gl_shader gl_shader_load_from_file(const char *vs, const char *fs, struct memory_arena* ma);
 
-extern void gl_use(GL_Shader shader);
-extern u32  gl_location(GL_Shader shader, const char* name);
+extern void gl_use(const struct gl_shader* shader);
+extern u32  gl_location(const struct gl_shader* shader, const char* name);
 
-extern void gl_uniform(u32 location, i32 u);
-extern void gl_uniform(u32 location, f32 u);
-extern void gl_uniform(u32 location, Vec2 u);
-extern void gl_uniform(u32 location, Vec3 u);
-extern void gl_uniform(u32 location, Vec4 u);
-extern void gl_uniform(u32 location, Mat2 m);
-extern void gl_uniform(u32 location, Mat3 m);
-extern void gl_uniform(u32 location, Mat4 m);
+extern void gl_uniformi(u32 location, int u);
+extern void gl_uniformf(u32 location, f32 u);
+extern void gl_uniform_v2(u32 location, union v2 u);
+extern void gl_uniform_v3(u32 location, union v3 u);
+extern void gl_uniform_v4(u32 location, union v4 u);
+extern void gl_uniform_m2(u32 location, union m2 m);
+extern void gl_uniform_m3(u32 location, union m3 m);
+extern void gl_uniform_m4(u32 location, union m4 m);
 
-extern Vec3 get_world_position(int x, int y, Mat4 in_projection, Mat4 in_modelview);
+extern union v3 gl_get_world_position(int x, int y, union m4 in_projection, union m4 in_modelview);
 
-struct GL_Array {
-    u32     vao;
-    u32     vbo;
+struct gl_array {
+    u32 vao;
+    u32 vbo;
 };
 
-extern void gl_send(const GL_Array* array, const void* data, u32 size);
-
-struct GL_Layout {
+struct gl_layout {
     u32 size;
     u32 type;
     u32 stride;
@@ -85,11 +83,12 @@ struct GL_Layout {
     b32 normalize;
 };
 
-struct GL_Array_Desc {
-    GL_Layout layout[32];
+struct gl_array_desc {
+    struct gl_layout layout[32];
 };
 
-extern GL_Array gl_array_create(const GL_Array_Desc& desc);
+extern struct gl_array gl_array_create(const struct gl_array_desc* desc);
+extern void gl_array_send(const struct gl_array* array, const void* data, u32 size);
 
 #endif
 
@@ -98,11 +97,11 @@ extern GL_Array gl_array_create(const GL_Array_Desc& desc);
 #define KEY_UNKNOWN            -1
 
 #define KEY_SPACE              32
-#define KEY_APOSTROPHE         39  /* ' */
-#define KEY_COMMA              44  /* , */
-#define KEY_MINUS              45  /* - */
-#define KEY_PERIOD             46  /* . */
-#define KEY_SLASH              47  /* / */
+#define KEY_APOSTROPHE         39  // '
+#define KEY_COMMA              44  // ,
+#define KEY_MINUS              45  // -
+#define KEY_PERIOD             46  // .
+#define KEY_SLASH              47  // /
 #define KEY_0                  48
 #define KEY_1                  49
 #define KEY_2                  50
@@ -113,8 +112,8 @@ extern GL_Array gl_array_create(const GL_Array_Desc& desc);
 #define KEY_7                  55
 #define KEY_8                  56
 #define KEY_9                  57
-#define KEY_SEMICOLON          59  /* ; */
-#define KEY_EQUAL              61  /* = */
+#define KEY_SEMICOLON          59  // ;
+#define KEY_EQUAL              61  // = 
 #define KEY_A                  65
 #define KEY_B                  66
 #define KEY_C                  67
@@ -141,14 +140,14 @@ extern GL_Array gl_array_create(const GL_Array_Desc& desc);
 #define KEY_X                  88
 #define KEY_Y                  89
 #define KEY_Z                  90
-#define KEY_LEFT_BRACKET       91  /* [ */
-#define KEY_BACKSLASH          92  /* \ */
-#define KEY_RIGHT_BRACKET      93  /* ] */
-#define KEY_GRAVE_ACCENT       96  /* ` */
-#define KEY_WORLD_1            161 /* non-US #1 */
-#define KEY_WORLD_2            162 /* non-US #2 */
+#define KEY_LEFT_BRACKET       91
+#define KEY_BACKSLASH          92
+#define KEY_RIGHT_BRACKET      93
+#define KEY_GRAVE_ACCENT       96
+#define KEY_WORLD_1            161 // non-US #1
+#define KEY_WORLD_2            162 // non-US #2
 
-/* Function keys */
+// Function keys
 #define KEY_ESCAPE             256
 #define KEY_ENTER              257
 #define KEY_TAB                258
@@ -282,7 +281,7 @@ extern GL_Array gl_array_create(const GL_Array_Desc& desc);
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-union Gamepad_Buttons {
+union gamepad_buttons {
     struct {
         u32 x : 1;
         u32 a : 1;
@@ -308,27 +307,27 @@ union Gamepad_Buttons {
     u32 data;
 };
 
-struct Gamepad {
+struct gamepad {
     b32 active;
 
-    Vec2 left_stick;
-    Vec2 right_stick;
+    union v2 left_stick;
+    union v2 right_stick;
 
     f32 left_trigger;
     f32 right_trigger;
 
-    Gamepad_Buttons down;
-    Gamepad_Buttons pressed;
-    Gamepad_Buttons released;
+    union gamepad_buttons down;
+    union gamepad_buttons pressed;
+    union gamepad_buttons released;
 };
 
-enum {
-    MOUSE_NORMAL,
-    MOUSE_HIDDEN,
-    MOUSE_DISABLED
+enum mouse_mode {
+    mouse_mode_normal,
+    mouse_mode_hidden,
+    mouse_mode_disabled
 };
 
-struct Platform {
+struct platform {
     b32 close;
 
     i32 width;
@@ -348,13 +347,13 @@ struct Platform {
     struct {
         u32 mode;
 
-        b32 is_down     : 1;
-        b32 is_pressed  : 1;
+        b32 is_down : 1;
+        b32 is_pressed : 1;
         b32 is_released : 1;
 
-        Vec2 pos;
-        Vec2 delta;
-        Vec2 scroll;
+        union v2 pos;
+        union v2 delta;
+        union v2 scroll;
 
         b8 down[MOUSE_BUTTON_LAST + 1];
         b8 pressed[MOUSE_BUTTON_LAST + 1];
@@ -365,11 +364,11 @@ struct Platform {
         i32 key;
         i32 ascii;
 
-        b32 is_down     : 1;
-        b32 is_pressed  : 1;
-        b32 is_repeat   : 1;
+        b32 is_down : 1;
+        b32 is_pressed : 1;
+        b32 is_repeat : 1;
         b32 is_released : 1;
-        b32 is_ascii    : 1;
+        b32 is_ascii : 1;
     
         b8 down[KEY_LAST + 1];
         b8 pressed[KEY_LAST + 1];
@@ -377,10 +376,10 @@ struct Platform {
         b8 released[KEY_LAST + 1];
     } keyboard;
 
-    Gamepad gamepad[JOYSTICK_LAST];
+    struct gamepad gamepad[JOYSTICK_LAST];
 };
 
-extern Platform platform;
+extern struct platform platform;
 
 #endif // __ATS_PLATFORM_H__
 
@@ -421,14 +420,15 @@ extern Platform platform;
 #include "ext/imgui/imgui_widgets.cpp"
 #endif
 
-Platform platform;
+struct platform platform;
 
 static struct {
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
+static void
+window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
     (void)window;
     (void)a;
     (void)b;
@@ -457,12 +457,14 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
     }
 }
 
-static void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+static void
+window_char_callback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
+static void
+window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
     (void)window;
     (void)a;
 
@@ -482,14 +484,16 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
     }
 }
 
-static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
+static void
+window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
     (void)window;
 
     platform.mouse.scroll.x = (f32)xoffset;
     platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void window_joystick_callback(int joy, int event) {
+static void
+window_joystick_callback(int joy, int event) {
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
         platform.gamepad[joy].active = 1;
@@ -500,7 +504,8 @@ static void window_joystick_callback(int joy, int event) {
     }
 }
 
-extern void platform_init(const char* title, int width, int height, int samples) {
+extern void
+platform_init(const char* title, int width, int height, int samples) {
     glfwInit();
 
     platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -584,7 +589,8 @@ extern void platform_init(const char* title, int width, int height, int samples)
 #endif
 }
 
-extern void platform_update(void) {
+extern void
+platform_update(void) {
     if (glfwWindowShouldClose(platform_internal.window))
         platform.close = 1;
 
@@ -613,13 +619,13 @@ extern void platform_update(void) {
         platform.mouse.scroll.y = 0;
 
         switch (platform.mouse.mode) {
-            case MOUSE_NORMAL: {
+            case mouse_mode_normal: {
                 glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             } break;
-            case MOUSE_HIDDEN: {
+            case mouse_mode_hidden: {
                 glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
             } break;
-            case MOUSE_DISABLED: {
+            case mouse_mode_disabled: {
                 glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             } break;
         }
@@ -631,7 +637,7 @@ extern void platform_update(void) {
 
         for (int i = 0; i < JOYSTICK_LAST; ++i) {
             if (platform.gamepad[i].active) {
-                Gamepad_Buttons old = platform.gamepad[i].down;
+                union gamepad_buttons old = platform.gamepad[i].down;
 
                 platform.gamepad[i].down.data       = 0;
                 platform.gamepad[i].pressed.data    = 0;
@@ -715,14 +721,16 @@ extern void platform_update(void) {
 #endif
 }
 
-extern f64 get_current_time(void) {
+extern f64
+timer_get_current(void) {
     return glfwGetTime();
 }
 
-extern GL_Texture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern struct gl_texture
+gl_texture_create(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
-    GL_Texture texture = {};
+    struct gl_texture texture = {0};
 
     texture.width = width;
     texture.height = height;
@@ -744,14 +752,15 @@ extern GL_Texture gl_texture_create(void *pixels, int width, int height, int is_
 
 #ifndef ATS_NO_IMAGE
 
-extern GL_Texture gl_texture_create_from_image(Image image, int is_smooth) {
+extern struct gl_texture
+gl_texture_create_from_image(struct image image, int is_smooth) {
     return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
 }
 
-extern GL_Texture gl_texture_load_from_file(const char *texture_path, int is_smooth) {
-    GL_Texture texture = {};
+extern struct gl_texture
+gl_texture_load_from_file(const char *texture_path, int is_smooth) {
+    struct gl_texture texture = {0};
     i32 channels = 0;
-
     unsigned char* pixels = stbi_load(texture_path, &texture.width, &texture.height, &channels, 4);
 
     assert(pixels);
@@ -774,7 +783,8 @@ extern GL_Texture gl_texture_load_from_file(const char *texture_path, int is_smo
 }
 #endif
 
-extern void gl_update(GL_Texture* texture, void *pixels, int width, int height, int is_smooth) {
+extern void
+gl_texture_update(struct gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width  = width;
     texture->height = height;
 
@@ -789,7 +799,8 @@ extern void gl_update(GL_Texture* texture, void *pixels, int width, int height, 
 #endif
 }
 
-extern void gl_bind(const GL_Texture* texture) {
+extern void
+gl_texture_bind(const struct gl_texture* texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
 #if !defined(ATS_OGL33) && !defined(SOKOL_GLCORE33)
@@ -799,17 +810,19 @@ extern void gl_bind(const GL_Texture* texture) {
 #endif
 }
 
-extern void gl_destroy(GL_Texture* texture) {
+extern void
+gl_texture_destroy(struct gl_texture* texture) {
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
 }
 
 #ifdef ATS_OGL33
 
-static u32 gl_shader_compile(const char* source, unsigned int type) {
-    int     success         = 0;
-    char    info_log[512]   = {};
-    u32     shader          = glCreateShader(type);
+static u32
+gl_shader_compile(const char* source, unsigned int type) {
+    int success = 0;
+    char info_log[512] = {0};
+    u32 shader = glCreateShader(type);
 
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
@@ -825,10 +838,11 @@ static u32 gl_shader_compile(const char* source, unsigned int type) {
     return shader;
 }
 
-static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
-    int     success         = 0;
-    char    info_log[512]   = {};
-    u32     shader          = glCreateProgram();
+static u32
+gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
+    int success = 0;
+    char info_log[512] = {0};
+    u32 shader = glCreateProgram();
 
     glAttachShader(shader, vertex_shader);
     glAttachShader(shader, fragment_shader);
@@ -846,82 +860,90 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
     return shader;
 }
 
-extern GL_Shader gl_shader_create(const GL_Shader_Desc& desc) {
-    u32 vertex   = gl_shader_compile(desc.vs, GL_VERTEX_SHADER);
-    u32 fragment = gl_shader_compile(desc.fs, GL_FRAGMENT_SHADER);
-    u32 program  = gl_shader_link_program(vertex, fragment);
+extern struct gl_shader
+gl_shader_create(const struct gl_shader_desc* desc) {
+    u32 vertex = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
+    u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
+    u32 program = gl_shader_link_program(vertex, fragment);
 
     glUseProgram(program);
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
-    GL_Shader shader = {};
+    struct gl_shader shader = {0};
     shader.id = program;
-
     return shader;
 }
 
-extern GL_Shader gl_shader_load_from_file(const char *vs, const char *fs, Memory_Arena* ma) {
+extern struct gl_shader
+gl_shader_load_from_file(const char *vs, const char *fs, struct memory_arena* ma) {
     ma_save(ma);
-
     char* vs_content = file_read_str(vs, ma);
     char* fs_content = file_read_str(fs, ma);
-
-    GL_Shader_Desc desc = {};
-    desc.vs = vs_content;
-    desc.fs = fs_content;
-    GL_Shader program = gl_shader_create(desc);
-
+    struct gl_shader program = gl_shader_create(&(struct gl_shader_desc) {
+        .vs = vs_content,
+        .fs = fs_content,
+    });
     ma_restore(ma);
-
     return program;
 }
 
-extern void gl_use(GL_Shader shader) {
-    glUseProgram(shader.id);
+extern void
+gl_use(const struct gl_shader* shader) {
+    glUseProgram(shader->id);
 }
 
-extern u32 gl_location(GL_Shader shader, const char* name) {
-    return glGetUniformLocation(shader.id, name);
+extern u32
+gl_location(const struct gl_shader* shader, const char* name) {
+    return glGetUniformLocation(shader->id, name);
 }
 
-extern void gl_uniform(u32 location, i32 i) {
+extern void
+gl_uniform_i32(u32 location, i32 i) {
     glUniform1i(location, i);
 }
 
-extern void gl_uniform(u32 location, f32 f) {
+extern void
+gl_uniform_f32(u32 location, f32 f) {
     glUniform1f(location, f);
 }
 
-extern void gl_uniform(u32 location, Vec2 u) {
+extern void
+gl_uniform_v2(u32 location, union v2 u) {
     glUniform2f(location, u.x, u.y);
 }
 
-extern void gl_uniform(u32 location, Vec3 u) {
+extern void
+gl_uniform_v3(u32 location, union v3 u) {
     glUniform3f(location, u.x, u.y, u.z);
 }
 
-extern void gl_uniform(u32 location, Vec4 u) {
+extern void 
+gl_uniform_v4(u32 location, union v4 u) {
     glUniform4f(location, u.x, u.y, u.z, u.w);
 }
 
-extern void gl_uniform(u32 location, Mat2 m) {
+extern void
+gl_uniform_m2(u32 location, union m2 m) {
     glUniformMatrix2fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void gl_uniform(u32 location, Mat3 m) {
+extern void
+gl_uniform_m3(u32 location, union m3 m) {
     glUniformMatrix3fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void gl_uniform(u32 location, Mat4 m) {
+extern void
+gl_uniform_m4(u32 location, union m4 m) {
     glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-extern Vec3 get_world_position(int x, int y, Mat4 in_projection, Mat4 in_modelview) {
-    GLint   viewport[4]     = {};
-    f64     modelview[16]   = {};
-    f64     projection[16]  = {};
+extern union v3
+gl_get_world_position(int x, int y, union m4 in_projection, union m4 in_modelview) {
+    GLint viewport[4] = {0};
+    f64 modelview[16] = {0};
+    f64 projection[16] = {0};
 
     GLfloat win_x, win_y, win_z;
  
@@ -941,7 +963,8 @@ extern Vec3 get_world_position(int x, int y, Mat4 in_projection, Mat4 in_modelvi
     return v3(result[0], result[1], result[2]);
 }
 
-extern GL_Array gl_array_create(const GL_Array_Desc& desc) {
+extern struct gl_array
+gl_array_create(const struct gl_array_desc* desc) {
     u32 vao = 0;
     u32 vbo = 0;
     
@@ -951,8 +974,8 @@ extern GL_Array gl_array_create(const GL_Array_Desc& desc) {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    for (u32 i = 0; i < ArrayCount(desc.layout); ++i) {
-        const GL_Layout* layout = &desc.layout[i];
+    for (u32 i = 0; i < array_count(desc->layout); ++i) {
+        const struct gl_layout* layout = &desc->layout[i];
 
         if (layout->size) {
             glEnableVertexAttribArray(i);
@@ -960,7 +983,7 @@ extern GL_Array gl_array_create(const GL_Array_Desc& desc) {
         }
     }
 
-    GL_Array result = {};
+    struct gl_array result = {0};
 
     result.vao = vao;
     result.vbo = vbo;
@@ -968,7 +991,8 @@ extern GL_Array gl_array_create(const GL_Array_Desc& desc) {
     return result;
 }
 
-extern void gl_send(const GL_Array* array, const void* data, u32 size) {
+extern void
+gl_array_send(const struct gl_array* array, const void* data, u32 size) {
     glBindBuffer(GL_ARRAY_BUFFER, array->vbo);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
