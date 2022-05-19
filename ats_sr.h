@@ -506,7 +506,7 @@ static void sr_end(void) {
     sr_range_array[sr_range_count++] = sr_current_range;
 }
 
-static void sr_begin_frame(Vec3 view_pos, Mat4 pvm) {
+static void sr_begin_frame(Vec3 view_pos = v3(0.0f), const Mat4& pvm = m4()) {
     Mat4 ortho_matrix = ortho(0, platform.width, platform.height, 0, -1, 1);
 
     {

@@ -46,6 +46,8 @@
     for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
     for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
+#define Min(a, b)           ((a) < (b)? (a) : (b))
+#define Max(a, b)           ((a) > (b)? (a) : (b))
 #define ClampMin(n, min)    ((n) < (min)? (min) : (n))
 #define ClampMax(n, max)    ((n) > (max)? (max) : (n))
 #define Clamp(n, lo, hi)    ClampMax(ClampMin(n, lo), hi)
@@ -930,6 +932,16 @@ static f32 get_angle(Vec2 a, Vec2 b) {
 
 // ----------- keep min ---------- //
 
+static Vec2 keep_min(Vec2 u) {
+    f32 dx = fabsf(u.x);
+    f32 dy = fabsf(u.y);
+
+    if (dx <= dy) return v2(u.x, 0);
+    if (dy <= dx) return v2(0, u.y);
+
+    return u;
+}
+
 static Vec3 keep_min(Vec3 u) {
     f32 dx = fabsf(u.x);
     f32 dy = fabsf(u.y);
@@ -943,6 +955,16 @@ static Vec3 keep_min(Vec3 u) {
 }
 
 // ----------- mask min ---------- //
+
+static Vec2 mask_min(Vec2 u) {
+    f32 dx = fabsf(u.x);
+    f32 dy = fabsf(u.y);
+
+    if (dx <= dy) return v2(0, 1);
+    if (dy <= dx) return v2(1, 0);
+
+    return v2(1, 1);
+}
 
 static Vec3 mask_min(Vec3 u) {
     f32 dx = fabsf(u.x);
@@ -1018,6 +1040,10 @@ static Mat4 translate4(f32 x, f32 y, f32 z) {
     };
 }
 
+static Mat4 translate4(Vec3 pos) {
+    return translate4(pos.x, pos.y, pos.y);
+}
+
 static Mat4 scale4(f32 x, f32 y, f32 z) {
     return {
         x, 0, 0, 0,
@@ -1025,6 +1051,10 @@ static Mat4 scale4(f32 x, f32 y, f32 z) {
         0, 0, z, 0,
         0, 0, 0, 1
     };
+}
+
+static Mat4 scale4(Vec3 pos) {
+    return scale4(pos.x, pos.y, pos.y);
 }
 
 // --------------- from quat --------------- //
