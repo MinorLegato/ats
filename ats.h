@@ -1774,7 +1774,6 @@ file_get_size(FILE* fp) {
     fseek(fp, 0L, SEEK_END);
     usize size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
-
     return size;
 }
 
