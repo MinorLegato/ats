@@ -50,8 +50,11 @@
          iter_type##_is_valid(&iter_name); \
          iter_type##_advance(&iter_name))
 
-#define repeat(count) \
-    for (i64 macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
+#define for_each(type, var, ...) \
+    for (struct type* var = (struct type*)0xdeadbeefull; var != NULL; var = NULL) \
+    for (struct type##_iter macro_var(it) = type##_iter_create(__VA_ARGS__); \
+         (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
+         type##_iter_advance(&macro_var(it)))
 
 #define for_r2(rect, ix, iy) \
     for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
@@ -1774,6 +1777,7 @@ file_get_size(FILE* fp) {
     fseek(fp, 0L, SEEK_END);
     usize size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
+
     return size;
 }
 

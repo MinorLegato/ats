@@ -97,11 +97,11 @@ extern void gl_array_send(const struct gl_array* array, const void* data, u32 si
 #define KEY_UNKNOWN            -1
 
 #define KEY_SPACE              32
-#define KEY_APOSTROPHE         39  // '
-#define KEY_COMMA              44  // ,
-#define KEY_MINUS              45  // -
-#define KEY_PERIOD             46  // .
-#define KEY_SLASH              47  // /
+#define KEY_APOSTROPHE         39  /* ' */
+#define KEY_COMMA              44  /* , */
+#define KEY_MINUS              45  /* - */
+#define KEY_PERIOD             46  /* . */
+#define KEY_SLASH              47  /* / */
 #define KEY_0                  48
 #define KEY_1                  49
 #define KEY_2                  50
@@ -112,8 +112,8 @@ extern void gl_array_send(const struct gl_array* array, const void* data, u32 si
 #define KEY_7                  55
 #define KEY_8                  56
 #define KEY_9                  57
-#define KEY_SEMICOLON          59  // ;
-#define KEY_EQUAL              61  // = 
+#define KEY_SEMICOLON          59  /* ; */
+#define KEY_EQUAL              61  /* = */
 #define KEY_A                  65
 #define KEY_B                  66
 #define KEY_C                  67
@@ -140,14 +140,14 @@ extern void gl_array_send(const struct gl_array* array, const void* data, u32 si
 #define KEY_X                  88
 #define KEY_Y                  89
 #define KEY_Z                  90
-#define KEY_LEFT_BRACKET       91
-#define KEY_BACKSLASH          92
-#define KEY_RIGHT_BRACKET      93
-#define KEY_GRAVE_ACCENT       96
-#define KEY_WORLD_1            161 // non-US #1
-#define KEY_WORLD_2            162 // non-US #2
+#define KEY_LEFT_BRACKET       91  /* [ */
+#define KEY_BACKSLASH          92  /* \ */
+#define KEY_RIGHT_BRACKET      93  /* ] */
+#define KEY_GRAVE_ACCENT       96  /* ` */
+#define KEY_WORLD_1            161 /* non-US #1 */
+#define KEY_WORLD_2            162 /* non-US #2 */
 
-// Function keys
+/* Function keys */
 #define KEY_ESCAPE             256
 #define KEY_ENTER              257
 #define KEY_TAB                258
@@ -783,7 +783,7 @@ gl_texture_load_from_file(const char *texture_path, int is_smooth) {
 }
 #endif
 
-extern void
+void
 gl_texture_update(struct gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width  = width;
     texture->height = height;
@@ -799,7 +799,7 @@ gl_texture_update(struct gl_texture* texture, void *pixels, int width, int heigh
 #endif
 }
 
-extern void
+void
 gl_texture_bind(const struct gl_texture* texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
@@ -810,8 +810,7 @@ gl_texture_bind(const struct gl_texture* texture) {
 #endif
 }
 
-extern void
-gl_texture_destroy(struct gl_texture* texture) {
+void gl_texture_destroy(struct gl_texture* texture) {
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
 }

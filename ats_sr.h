@@ -546,14 +546,17 @@ sr_end_frame(void) {
     {
         glBindFramebuffer(GL_FRAMEBUFFER, sr_framebuffer);
 
+        i32 div = 1;
+        glViewport(0, 0, platform.width / div, platform.height / div);
+
         glBindTexture(GL_TEXTURE_2D, sr_frame_color);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width / div, platform.height / div, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
         glBindTexture(GL_TEXTURE_2D, sr_frame_position);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, platform.width, platform.height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, platform.width / div, platform.height / div, 0, GL_RGBA, GL_FLOAT, NULL);
 
         glBindTexture(GL_TEXTURE_2D, sr_frame_normal);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, platform.width, platform.height, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, platform.width / div, platform.height / div, 0, GL_RGBA, GL_FLOAT, NULL);
         
         glActiveTexture(GL_TEXTURE0);
         gl_texture_bind(&sr_texture);
@@ -575,6 +578,7 @@ sr_end_frame(void) {
     // render the frambuffer:
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, platform.width, platform.height);
 
         gl_use(&sr_frame_shader);
 

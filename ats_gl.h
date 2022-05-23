@@ -5,15 +5,15 @@ extern void gl_init(void);
 
 extern void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z);
 extern void gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z);
-extern void gl_set_light_emitter(int index, union v3 p, union v3 color, f32 constant, f32 linear, f32 quadratic);
-extern void gl_set_light_directed(int index, union v3 pos, union v3 color);
+extern void gl_set_light_emitter(int index, vec3 p, vec3 color, f32 constant, f32 linear, f32 quadratic);
+extern void gl_set_light_directed(int index, vec3 pos, vec3 color);
 extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b);
-extern union v3 gl_get_world_position(int x, int y);
+extern vec3 gl_get_world_position(int x, int y);
 
 extern void gl_init_bitmap(void);
-extern void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy);
-extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color);
-extern void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...);
+extern void gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy);
+extern void gl_render_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color);
+extern void gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...);
 
 #endif // __ATS_GL_H__
 
@@ -78,7 +78,7 @@ gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
 }
 
 extern void
-gl_set_light_emitter(int index, union v3 p, union v3 color, f32 constant, f32 linear, f32 quadratic) {
+gl_set_light_emitter(int index, vec3 p, vec3 color, f32 constant, f32 linear, f32 quadratic) {
     f32 pos[4] = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4] = { color.r, color.g, color.b, 0.0f };
@@ -99,7 +99,7 @@ gl_set_light_emitter(int index, union v3 p, union v3 color, f32 constant, f32 li
 }
 
 extern void
-gl_set_light_directed(int index, union v3 pos, union v3 color) {
+gl_set_light_directed(int index, vec3 pos, vec3 color) {
     f32 d = (f32)(1.0f / sqrt32(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4] = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -122,7 +122,7 @@ gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern union v3
+extern vec3
 gl_get_world_position(int x, int y) {
     GLint viewport[4] = {0};
     f64 modelview[16] = {0};
@@ -446,10 +446,10 @@ gl_init_bitmap(void) {
 }
 
 extern void
-gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
-    union m4 t  = m4_translate(x, y, z);
-    union m4 s  = m4_scale(sx, sy, 1);
-    union m4 ts = m4_mul(t, s);
+gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
+    mat4 t  = m4_translate(x, y, z);
+    mat4 s  = m4_scale(sx, sy, 1);
+    mat4 ts = m4_mul(t, s);
 
     glPushMatrix();
 
@@ -460,23 +460,23 @@ gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
 }
 
 extern void
-gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+gl_render_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
     glColor4ubv((u8*)&color);
 
     for (int i = 0; str[i] != '\0'; i++) {
-        gl_ascii(str[i], x + i * sx, y, z, sx, sy);
+        gl_render_ascii(str[i], x + i * sx, y, z, sx, sy);
     }
 }
 
 extern void
-gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
+gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
     va_list list;
     char buffer[256];
 
     va_start(list, fmt);
 
     vsnprintf(buffer, 256, fmt, list);
-    gl_string(buffer, x, y, z, sx, sy, color);
+    gl_render_string(buffer, x, y, z, sx, sy, color);
 
     va_end(list);
 }
