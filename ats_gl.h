@@ -5,10 +5,10 @@ extern void gl_init(void);
 
 extern void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z);
 extern void gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z);
-extern void gl_set_light_emitter(int index, vec3 p, vec3 color, f32 constant, f32 linear, f32 quadratic);
-extern void gl_set_light_directed(int index, vec3 pos, vec3 color);
+extern void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic);
+extern void gl_set_light_directed(int index, v3 pos, v3 color);
 extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b);
-extern vec3 gl_get_world_position(int x, int y);
+extern v3 gl_get_world_position(int x, int y);
 
 extern void gl_init_bitmap(void);
 extern void gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy);
@@ -78,7 +78,7 @@ gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
 }
 
 extern void
-gl_set_light_emitter(int index, vec3 p, vec3 color, f32 constant, f32 linear, f32 quadratic) {
+gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
     f32 pos[4] = { p.x, p.y, p.z, 1.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     f32 c[4] = { color.r, color.g, color.b, 0.0f };
@@ -99,7 +99,7 @@ gl_set_light_emitter(int index, vec3 p, vec3 color, f32 constant, f32 linear, f3
 }
 
 extern void
-gl_set_light_directed(int index, vec3 pos, vec3 color) {
+gl_set_light_directed(int index, v3 pos, v3 color) {
     f32 d = (f32)(1.0f / sqrt32(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
     f32 dir[4] = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
     f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -122,7 +122,7 @@ gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern vec3
+extern v3
 gl_get_world_position(int x, int y) {
     GLint viewport[4] = {0};
     f64 modelview[16] = {0};
@@ -149,7 +149,7 @@ gl_get_world_position(int x, int y) {
 
 #define BITMAP_COUNT (256)
 
-static const u64 bitascii[BITMAP_COUNT] = {
+global const u64 bitascii[BITMAP_COUNT] = {
     0x0000000000000000,
     0x7e8199bd81a5817e,
     0x7effe7c3ffdbff7e,
@@ -408,7 +408,7 @@ static const u64 bitascii[BITMAP_COUNT] = {
     0x007e424242427e00
 };
 
-static int bitmap_display_list[BITMAP_COUNT];
+global int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) (((u64)(N)) & (1ull << (((u64)(Y)) * 8ull + ((u64)(X)))))
 
@@ -416,20 +416,14 @@ extern void
 gl_init_bitmap(void) {
     for (int i = 0; i < BITMAP_COUNT; ++i) {
         bitmap_display_list[i] = glGenLists(1);
-
         glNewList(bitmap_display_list[i], GL_COMPILE);
-
         u64 c = bitascii[i];
-
         glBegin(GL_QUADS);
-
         f32 scale = 1.0f / 8.0f;
-
         for (int j = 0; j < 8; ++j) {
             for (int i = 0; i < 8; ++i) {
-                f32 x   = i * scale;
-                f32 y   = j * scale;
-
+                f32 x = i * scale;
+                f32 y = j * scale;
                 if (BITMAP_GETBIT(c, i, j)) {
                     glVertex3f(x - 0,       y + scale,  0.0f);
                     glVertex3f(x + scale,   y + scale,  0.0f);
@@ -438,24 +432,20 @@ gl_init_bitmap(void) {
                 }
             }
         }
-
         glEnd();
-
         glEndList();
     }
 }
 
 extern void
 gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
-    mat4 t  = m4_translate(x, y, z);
-    mat4 s  = m4_scale(sx, sy, 1);
-    mat4 ts = m4_mul(t, s);
+    m4 t = m4_translate(x, y, z);
+    m4 s = m4_scale(sx, sy, 1);
+    m4 ts = m4_mul(t, s);
 
     glPushMatrix();
-
     glMultMatrixf(ts.e);
     glCallList(bitmap_display_list[c]);
-
     glPopMatrix();
 }
 
@@ -474,10 +464,8 @@ gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const ch
     char buffer[256];
 
     va_start(list, fmt);
-
     vsnprintf(buffer, 256, fmt, list);
     gl_render_string(buffer, x, y, z, sx, sy, color);
-
     va_end(list);
 }
 

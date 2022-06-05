@@ -12,7 +12,7 @@ extern void audio_kill_all(void);
 extern void audio_play(struct audio_id id, f32 volume);
 extern void* audio_play_looped(struct audio_id id, f32 volume);
 extern void audio_play_music(struct audio_id id, f32 volume);
-extern void audio_play_from_source(struct audio_id id, union v3 pos, union v3 dir, union v3 source, f32 volume, f32 max_distance);
+extern void audio_play_from_source(struct audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance);
 
 #endif // __ATS_AUDIO_TABLE_H__
 
@@ -29,7 +29,7 @@ extern void audio_play_from_source(struct audio_id id, union v3 pos, union v3 di
 #define AUDIO_PATH "assets/sounds/"
 #endif
 
-static const char* audio_path = AUDIO_PATH;
+global const char* audio_path = AUDIO_PATH;
 
 struct audio_entry {
     b32 in_use;
@@ -38,11 +38,11 @@ struct audio_entry {
     char name[64];
 };
 
-static struct {
+global struct {
     cs_context_t* context;
 } audio;
 
-static struct audio_entry audio_table[AUDIO_TABLE_SIZE];
+global struct audio_entry audio_table[AUDIO_TABLE_SIZE];
 
 extern void
 audio_init(void) {
@@ -52,7 +52,7 @@ audio_init(void) {
     cs_thread_sleep_delay(audio.context, 16);
 }
 
-static b32
+internal b32
 audio_is_valid(struct audio_id id) {
     return id.index != 0;
 }
@@ -61,6 +61,7 @@ extern struct audio_id
 audio_get(const char* name) {
     u32 hash = hash_str(name);
     u16 index = hash & (AUDIO_TABLE_SIZE - 1);
+
     if (index == 0) index++;
     while (audio_table[index].in_use) {
         if (strcmp(audio_table[index].name, name) == 0) {
@@ -71,7 +72,8 @@ audio_get(const char* name) {
         if (index == 0) index++;
     }
     
-    static char path[1024] = {0};
+    local_persist char path[1024] = {0};
+
     {
         int i = 0;
         for (i = 0; audio_path[i]; ++i) { path[i] = audio_path[i]; }
@@ -115,7 +117,7 @@ audio_kill_all(void) {
     cs_stop_all_sounds(audio.context);
 }
 
-static struct audio_entry*
+internal struct audio_entry*
 audio_get_entry(struct audio_id id) {
     if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
     return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
@@ -159,7 +161,7 @@ audio_play_looped(struct audio_id id, f32 volume) {
 
 extern void
 audio_play_music(struct audio_id id, f32 volume) {
-    static cs_playing_sound_t* playing = NULL;
+    local_persist cs_playing_sound_t* playing = NULL;
     
     if (playing && cs_is_active(playing))
         cs_stop_sound(playing);
@@ -180,7 +182,7 @@ audio_play_music(struct audio_id id, f32 volume) {
 }
 
 extern void
-audio_play_from_source(struct audio_id id, union v3 pos, union v3 dir, union v3 source, f32 volume, f32 max_distance) {
+audio_play_from_source(struct audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
     f32 sound_distance = v3_dist(pos, source);
     f32 final_volume = volume * max(1 - sound_distance / max_distance, 0);
 
@@ -189,7 +191,7 @@ audio_play_from_source(struct audio_id id, union v3 pos, union v3 dir, union v3 
     struct audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
-        union v2 source_dir = {
+        v2 source_dir = {
             source.x - pos.x,
             source.y - pos.y,
         };

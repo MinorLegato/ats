@@ -1,6 +1,6 @@
 #pragma once
 
-#define SR_MAX_POINT_LIGHTS 16
+#define SR_MAX_POINT_LIGHTS 32
 
 struct sr_uv {
     i16 x;
@@ -122,7 +122,6 @@ static struct gl_shader_desc sr_shader_desc = {
             void main() {
                 vec4 color = frag_color * texture2D(texture1, frag_uv / textureSize(texture1, 0));
                 if (color.a == 0) discard;
-                
                 out_color = color;
                 out_position = vec4(frag_pos, 1);
                 out_normal = vec4(frag_normal, 0);
@@ -253,7 +252,7 @@ static struct gl_shader_desc sr_frame_shader_desc = {
         out vec4 out_color;
         in vec2 frag_uv;
 
-        struct Point_Light {
+        struct point_light {
             float range;
 
             vec3 pos;
@@ -268,11 +267,11 @@ static struct gl_shader_desc sr_frame_shader_desc = {
         };
 
         uniform vec3 view_pos;
-        uniform Point_Light light[16];
+        uniform point_light light[32];
 
         vec3 calculate_point_light(int i, vec3 color, vec3 frag_pos, vec3 frag_normal) {
             // ambient
-            vec3 ambient     = light[i].ambient * color;
+            vec3 ambient = light[i].ambient * color;
 
             // diffuse 
             vec3 norm = normalize(frag_normal);
@@ -294,8 +293,8 @@ static struct gl_shader_desc sr_frame_shader_desc = {
             diffuse *= attenuation;
             specular *= attenuation;
 
-            //float str = distance / light[i].range;
-            return (ambient + diffuse + specular); // * (1 - str * str * str);
+            float str = distance / light[i].range;
+            return (ambient + diffuse + specular) * (1 - str * str);
         }
  
         uniform sampler2D in_color;
@@ -307,14 +306,13 @@ static struct gl_shader_desc sr_frame_shader_desc = {
             vec4 position = texture(in_position, frag_uv);
             vec4 normal = texture(in_normal, frag_uv);
 
-            if (false) {
+            if (true) {
                 vec3 result = vec3(0);
-                for (int i = 0; i < 16; ++i) {
+                for (int i = 0; i < 32; ++i) {
                     if (light[i].range > 0) {
                         result += calculate_point_light(i, color.rgb, position.xyz, normal.xyz);
                     }
                 }
-
                 out_color = vec4(result, 1);
             } else {
                 out_color = color;
@@ -431,12 +429,12 @@ sr_init(void) {
         });
 
         f32 vertex_array[] = {
-            -1, -1,     0, 0,
-            +1, -1,     1, 0,
-            +1, +1,     1, 1,
-            +1, +1,     1, 1,
-            -1, +1,     0, 1,
-            -1, -1,     0, 0,
+            -1, -1, 0, 0,
+            +1, -1, 1, 0,
+            +1, +1, 1, 1,
+            +1, +1, 1, 1,
+            -1, +1, 0, 1,
+            -1, -1, 0, 0,
         };
 
         gl_array_send(&sr_frame_array, vertex_array, sizeof (vertex_array));
@@ -597,7 +595,6 @@ sr_end_frame(void) {
         glBindVertexArray(sr_frame_array.vao);
         glDrawArrays(GL_TRIANGLES, 0, 6);
     }
-
     sr_vertex_count = 0;
     sr_range_count = 0;
     sr_disable_all_lights();

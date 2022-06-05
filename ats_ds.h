@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __ATS_DS_H__
+#define __ATS_DS_H__
 
 #include <stdlib.h>
 
@@ -20,17 +21,31 @@ struct buf_header {
 #define buf_rem(b, i)           ((b)? ((b)[(i)] = (b)[--_buf_header(b)->len], 1) : 0)
 #define buf_reserve(b, n)       ((b) = _buf_reserve((b), sizeof (*(b)), (n)))
 #define buf_clear(b)            ((b)? _buf_header(b)->len = 0 : 0)
+#define buf_sort(b, cmp_func)   qsort((b), buf_len(b), sizeof (*(b)), (cmp_func))
 
-#define for_buf(index, b)       for (u32 index = 0, macro_var(end) = buf_len(b); index < macro_var(end); ++index)
+#define for_buf(index, b)       for (u32 index = 0; index < buf_len(b); ++index)
 
-static void
+extern void buf_free(void* buffer);
+
+extern void* _buf_create(u32 element_size, u32 cap);
+extern void* _buf_grow(void* buffer, u32 element_size);
+extern void* _buf_reserve(void* buffer, u32 element_size, u32 new_cap);
+
+#endif // __ATS_DS_H__
+
+// ============================================================================================ //
+// ======================================= IMPLEMENTATION ===================================== //
+// ============================================================================================ //
+#ifdef ATS_IMPL
+
+extern void
 buf_free(void* buffer) {
     if (buffer) {
         free(_buf_header(buffer));
     }
 }
 
-static void*
+extern void*
 _buf_create(u32 element_size, u32 cap) {
     struct buf_header* header = malloc(sizeof (struct buf_header) + cap * element_size);
     header->len = 0;
@@ -38,7 +53,7 @@ _buf_create(u32 element_size, u32 cap) {
     return header + 1;
 }
 
-static void*
+extern void*
 _buf_grow(void* buffer, u32 element_size) {
     if (buffer) {
         struct buf_header* header = _buf_header(buffer);
@@ -56,7 +71,7 @@ _buf_grow(void* buffer, u32 element_size) {
     }
 }
 
-static void*
+extern void*
 _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
     if (buffer) {
         struct buf_header* header = _buf_header(buffer);
@@ -74,3 +89,4 @@ _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
     }
 }
 
+#endif

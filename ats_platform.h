@@ -408,7 +408,9 @@ extern struct platform platform;
 #include <GLFW/glfw3.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
+#undef function
 #include <GLFW/glfw3native.h>
+#define function static
 
 #ifdef ATS_IMGUI
 #define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
@@ -422,12 +424,12 @@ extern struct platform platform;
 
 struct platform platform;
 
-static struct {
+global struct {
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-static void
+internal void
 window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
     (void)window;
     (void)a;
@@ -457,13 +459,13 @@ window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
     }
 }
 
-static void
+internal void
 window_char_callback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-static void
+internal void
 window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
     (void)window;
     (void)a;
@@ -484,7 +486,7 @@ window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) 
     }
 }
 
-static void
+internal void
 window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
     (void)window;
 
@@ -492,7 +494,7 @@ window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
     platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void
+internal void
 window_joystick_callback(int joy, int event) {
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
@@ -817,7 +819,7 @@ void gl_texture_destroy(struct gl_texture* texture) {
 
 #ifdef ATS_OGL33
 
-static u32
+internal u32
 gl_shader_compile(const char* source, unsigned int type) {
     int success = 0;
     char info_log[512] = {0};
@@ -837,7 +839,7 @@ gl_shader_compile(const char* source, unsigned int type) {
     return shader;
 }
 
-static u32
+internal u32
 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
     int success = 0;
     char info_log[512] = {0};
