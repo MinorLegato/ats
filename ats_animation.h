@@ -7,6 +7,7 @@ struct at_string {
 };
 
 struct at_frame {
+    struct at_string name;
     r2i rect;
     struct at_frame* next;
     struct at_animation* animation;
@@ -65,8 +66,8 @@ at_push_size(usize size) {
     return ptr;
 }
 
-#define at_push_type(T) (T*)at_push_size(sizeof (T))
-#define at_push_array(T, size) (T*)at_push_size((size) * sizeof (T))
+#define at_push_type(type) (type*)at_push_size(sizeof (type))
+#define at_push_array(type, size) (type*)at_push_size((size) * sizeof (type))
 
 function struct at_string
 at_string_create(const char* c_str) {
@@ -92,9 +93,6 @@ at_equal_cstr(struct at_string a, const char* b) {
 extern void
 at_add_entity(const char* name) {
     at_current_animation = NULL;
-    if (at_current_frame) {
-        at_current_frame->next = at_current_frame->animation->frame;
-    }
     at_current_frame = NULL;
     struct at_entity* entity = at_push_type(struct at_entity);
     entity->name = at_string_create(name);
@@ -108,12 +106,10 @@ at_add_entity(const char* name) {
 
 extern void
 at_add_animation(const char* name) {
-    if (at_current_frame) {
-        at_current_frame->next = at_current_frame->animation->frame;
-    }
     at_current_frame = NULL;
     struct at_animation* animation = at_push_type(struct at_animation);
     animation->name = at_string_create(name);
+
     if (!at_current_entity->animation) {
         at_current_entity->animation = animation;
     } else {
@@ -125,6 +121,7 @@ at_add_animation(const char* name) {
 extern void
 at_add_frame(const char* name) {
     struct at_frame* frame = at_push_type(struct at_frame);
+    frame->name = at_string_create(name);
     frame->rect = tt_get(name);
     frame->animation = at_current_animation;
     if (!at_current_animation->frame) {
@@ -133,7 +130,6 @@ at_add_frame(const char* name) {
         at_current_frame->next = frame;
     }
     at_current_frame = frame;
-    // @NOTE: makes the animation loop, should be set by the user.
     at_current_frame->next = at_current_animation->frame;
 }
 
@@ -153,15 +149,16 @@ at_end(void) {
 
 extern void
 at_set(struct at_asset* asset, const char* name) {
-    if (!at_equal_cstr(asset->frame->animation->name, name)) {
-        struct at_animation* animation = asset->entity->animation;
-        while (animation && !at_equal_cstr(asset->frame->animation->name, name)) {
-            animation = animation->next;
-        }
-        if (animation) {
-            asset->frame = animation->frame;
-            asset->duration = 0;
-        }
+    if (at_equal_cstr(asset->frame->animation->name, name)) return;
+
+    struct at_animation* animation = asset->entity->animation;
+    while (animation && !at_equal_cstr(animation->name, name)) {
+        animation = animation->next;
+    }
+
+    if (animation) {
+        asset->frame = animation->frame;
+        asset->duration = 0;
     }
 }
 

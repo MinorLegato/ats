@@ -24,6 +24,8 @@
 #define TO_RAD_MUL (0.01745329251f)
 #define TO_DEG_MUL (57.2957795131f)
 
+#define swap(type, a, b) { type tmp = (a); (a) = (b); (b) = tmp; }
+
 #define to_rad(deg) ((deg) * TO_RAD_MUL)
 #define to_deg(rad) ((rad) * TO_DEG_MUL)
 
