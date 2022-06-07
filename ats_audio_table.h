@@ -72,7 +72,7 @@ audio_get(const char* name) {
         if (index == 0) index++;
     }
     
-    local_persist char path[1024] = {0};
+    local char path[1024] = {0};
 
     {
         int i = 0;
@@ -161,7 +161,7 @@ audio_play_looped(struct audio_id id, f32 volume) {
 
 extern void
 audio_play_music(struct audio_id id, f32 volume) {
-    local_persist cs_playing_sound_t* playing = NULL;
+    local cs_playing_sound_t* playing = NULL;
     
     if (playing && cs_is_active(playing))
         cs_stop_sound(playing);

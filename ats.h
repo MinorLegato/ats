@@ -13,7 +13,7 @@
 #define function static
 #define global static
 #define internal static
-#define local_persist static
+#define local static
 
 #define KB (1024)
 #define MB (1024 * KB)
@@ -54,13 +54,13 @@
     for (i64 macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
 
 #define for_iter(iter_type, iter_name, ...) \
-    for (struct iter_type iter_name = iter_type##_create(__VA_ARGS__); \
+    for (struct iter_type iter_name = (__VA_ARGS__); \
          iter_type##_is_valid(&iter_name); \
          iter_type##_advance(&iter_name))
 
 #define for_each(type, var, ...) \
     for (struct type* var = (struct type*)0xdeadbeefull; var != NULL; var = NULL) \
-    for (struct type##_iter macro_var(it) = type##_iter_create(__VA_ARGS__); \
+    for (struct type##_iter macro_var(it) = (__VA_ARGS__); \
          (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
          type##_iter_advance(&macro_var(it)))
 
@@ -178,20 +178,6 @@ union m4 {
     f32 e[16];
 };
 
-struct quat {
-    f32 x, y, z, w;
-};
-
-struct circle {
-    union v2 pos;
-    f32 rad;
-};
-
-struct sphere {
-    union v3 pos;
-    f32 rad;
-};
-
 struct r2 {
     union v2 min;
     union v2 max;
@@ -210,6 +196,20 @@ struct r2i {
 struct r3i {
     union v3i min;
     union v3i max;
+};
+
+struct quat {
+    f32 x, y, z, w;
+};
+
+struct circle {
+    union v2 pos;
+    f32 rad;
+};
+
+struct sphere {
+    union v3 pos;
+    f32 rad;
 };
 
 struct plane {
@@ -285,40 +285,39 @@ extern void image_set(struct image* img, i32 x, i32 y, u32 pixel);
 #define m3(...) ((m3) { __VA_ARGS__ })
 #define m4(...) ((m4) { __VA_ARGS__ })
 
-#define r2(...) ((struct r2) { __VA_ARGS__ })
-#define r3(...) ((struct r3) { __VA_ARGS__ })
+#define r2(...) ((r2) { __VA_ARGS__ })
+#define r3(...) ((r3) { __VA_ARGS__ })
 
-#define r2i(...) ((struct r2i) { __VA_ARGS__ })
-#define r3i(...) ((struct r3i) { __VA_ARGS__ })
+#define r2i(...) ((r2i) { __VA_ARGS__ })
+#define r3i(...) ((r3i) { __VA_ARGS__ })
 
 #define circle(...) ((struct circle) { __VA_ARGS__ })
 #define sphere(...) ((struct sphere) { __VA_ARGS__ })
 
+#define quat(...) ((struct quat) { __VA_ARGS__ })
+
 function m2
 m2_identity(void) {
-    return (m2) {
+    return m2(
         1, 0,
-        0, 1,
-    };
+        0, 1);
 }
 
 function m3
 m3_identity(void) {
-    return (m3) {
+    return m3(
         1, 0, 0,
         0, 1, 0,
-        0, 0, 1,
-    };
+        0, 0, 1);
 }
 
 function m4
 m4_identity(void) {
-    return (m4) {
+    return m4(
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        0, 0, 0, 1,
-    };
+        0, 0, 0, 1);
 }
 
 // ======================================= STATIC FUNCTIONS ==================================== //
@@ -431,44 +430,40 @@ function v4i v4i_mul(v4i a, v4i b) { return v4i(a.x * b.x, a.y * b.y, a.z * a.z,
 
 function v2
 m2_mulv(m2 m, v2 u) {
-    return (v2) {
+    return v2(
         m.e[0] * u.x + m.e[2] * u.y,
-        m.e[1] * u.x + m.e[3] * u.y
-    };
+        m.e[1] * u.x + m.e[3] * u.y);
 }
 
 function v3
 m3_mulv(m3 m, v3 u) {
-    return (v3) {
+    return v3(
         m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
         m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
-        m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z
-    };
+        m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z);
 }
 
 function v4
 m4_mulv(m4 m, v4 u) {
-    return (v4) {
+    return v4(
         m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
         m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
         m.e[2] * u.x + m.e[6] * u.y + m.e[10] * u.z + m.e[14] * u.w,
-        m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w
-    };
+        m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w);
 }
 
 function m2
 m2_mul(m2 a, m2 b) {
-    return (m2) {
+    return m2(
         a.e[0] * b.e[0] + a.e[2] * b.e[1],
         a.e[1] * b.e[0] + a.e[3] * b.e[1],
         a.e[0] * b.e[2] + a.e[2] * b.e[3],
-        a.e[1] * b.e[2] + a.e[3] * b.e[3]
-    };
+        a.e[1] * b.e[2] + a.e[3] * b.e[3]);
 }
 
 function m3
 m3_mul(m3 a, m3 b) {
-    return (m3) {
+    return m3(
         a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
         a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
         a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
@@ -479,13 +474,12 @@ m3_mul(m3 a, m3 b) {
 
         a.e[0] * b.e[6] + a.e[3] * b.e[7]  + a.e[6] * b.e[8],
         a.e[1] * b.e[6] + a.e[4] * b.e[7]  + a.e[7] * b.e[8],
-        a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8]
-    };
+        a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8]);
 }
 
 function m4
 m4_mul(m4 a, m4 b) {
-    return (m4) {
+    return m4(
         a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
         a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
         a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
@@ -504,18 +498,16 @@ m4_mul(m4 a, m4 b) {
         a.e[0] * b.e[12] + a.e[4] * b.e[13] + a.e[8]  * b.e[14] + a.e[12] * b.e[15],
         a.e[1] * b.e[12] + a.e[5] * b.e[13] + a.e[9]  * b.e[14] + a.e[13] * b.e[15],
         a.e[2] * b.e[12] + a.e[6] * b.e[13] + a.e[10] * b.e[14] + a.e[14] * b.e[15],
-        a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]
-    };
+        a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
 }
 
 function struct quat
 quat_mul(struct quat a, struct quat b) {
-    return (struct quat) {
+    return quat(
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
         a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
-        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
-    };
+        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
 }
 
 // ------------ divition ------------ //
@@ -640,71 +632,62 @@ function v4 v4_ceil(v4 u) { return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(
 
 function v2
 v2_clampf(v2 u, f32 min, f32 max) {
-    return (v2) {
+    return v2(
         clamp(u.x, min, max),
-        clamp(u.y, min, max)
-    };
+        clamp(u.y, min, max));
 }
 
 function v3
 v3_clampf(v3 u, f32 min, f32 max) {
-    return (v3) {
+    return v3(
         clamp(u.x, min, max),
         clamp(u.y, min, max),
-        clamp(u.z, min, max)
-    };
+        clamp(u.z, min, max));
 }
 
 function v2i
 v2i_clampi(v2i u, f32 min, f32 max) {
-    return (v2i) {
+    return v2i(
         clamp(u.x, min, max),
-        clamp(u.y, min, max)
-    };
+        clamp(u.y, min, max));
 }
 
 function v3i
 v3i_clampi(v3i u, f32 min, f32 max) {
-    return (v3i) {
+    return v3i(
         clamp(u.x, min, max),
         clamp(u.y, min, max),
-        clamp(u.z, min, max)
-    };
+        clamp(u.z, min, max));
 }
 
 function v2
-v2_clamp(v2 u, struct r2 r) {
-    return (v2) {
+v2_clamp(v2 u, r2 r) {
+    return v2(
         clamp(u.x, r.min.x, r.max.x),
-        clamp(u.y, r.min.y, r.max.y)
-    };
+        clamp(u.y, r.min.y, r.max.y));
 }
 
 function v3
-v3_clamp(v3 u, struct r3 r) {
-    return (v3) {
+v3_clamp(v3 u, r3 r) {
+    return v3(
         clamp(u.x, r.min.x, r.max.x),
         clamp(u.y, r.min.y, r.max.y),
-        clamp(u.z, r.min.z, r.max.z)
-    };
-
+        clamp(u.z, r.min.z, r.max.z));
 }
 
 function v2i
-v2i_clamp(v2i u, struct r2i r) {
-    return (v2i) {
+v2i_clamp(v2i u, r2i r) {
+    return v2i(
         clamp(u.x, r.min.x, r.max.x),
-        clamp(u.y, r.min.y, r.max.y)
-    };
+        clamp(u.y, r.min.y, r.max.y));
 }
 
 function v3i
-v3i_clamp(v3i u, struct r3i r) {
-    return (v3i) {
+v3i_clamp(v3i u, r3i r) {
+    return v3i(
         clamp(u.x, r.min.x, r.max.x),
         clamp(u.y, r.min.y, r.max.y),
-        clamp(u.z, r.min.z, r.max.z)
-    };
+        clamp(u.z, r.min.z, r.max.z));
 }
 
 // ---------------- min ----------------- //
@@ -715,56 +698,50 @@ v3i_clamp(v3i u, struct r3i r) {
 
 function v2
 v2_min(v2 a, v2 b) {
-    return (v2) {
+    return v2(
         a.x < b.x? a.x : b.x,
-        a.y < b.y? a.y : b.y
-    };
+        a.y < b.y? a.y : b.y);
 }
 
 function v3
 v3_min(v3 a, v3 b) {
-    return (v3) {
+    return v3(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
-        a.z < b.z? a.z : b.z
-    };
+        a.z < b.z? a.z : b.z);
 }
 
 function v4
 v4_min(v4 a, v4 b) {
-    return (v4) {
+    return v4(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
         a.z < b.z? a.z : b.z,
-        a.w < b.w? a.w : b.w
-    };
+        a.w < b.w? a.w : b.w);
 }
 
 function v2i
 v2i_min(v2i a, v2i b) {
-    return (v2i) {
+    return v2i(
         a.x < b.x? a.x : b.x,
-        a.y < b.y? a.y : b.y
-    };
+        a.y < b.y? a.y : b.y);
 }
 
 function v3i
 v3i_min(v3i a, v3i b) {
-    return (v3i) {
+    return v3i(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
-        a.z < b.z? a.z : b.z
-    };
+        a.z < b.z? a.z : b.z);
 }
 
 function v4i
 v4i_min(v4i a, v4i b) {
-    return (v4i) {
+    return v4i(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
         a.z < b.z? a.z : b.z,
-        a.w < b.w? a.w : b.w
-    };
+        a.w < b.w? a.w : b.w);
 }
 
 // ---------------- max ----------------- //
@@ -775,56 +752,50 @@ v4i_min(v4i a, v4i b) {
 
 function v2
 v2_max(v2 a, v2 b) {
-    return (v2) {
+    return v2(
         a.x > b.x? a.x : b.x,
-        a.y > b.y? a.y : b.y
-    };
+        a.y > b.y? a.y : b.y);
 }
 
 function v3
 v3_max(v3 a, v3 b) {
-    return (v3) {
+    return v3(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
-        a.z > b.z? a.z : b.z
-    };
+        a.z > b.z? a.z : b.z);
 }
 
 function v4
 v4_max(v4 a, v4 b) {
-    return (v4) {
+    return v4(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
         a.z > b.z? a.z : b.z,
-        a.w > b.w? a.w : b.w
-    };
+        a.w > b.w? a.w : b.w);
 }
 
 function v2i
 v2i_max(v2i a, v2i b) {
-    return (v2i) {
+    return v2i(
         a.x > b.x? a.x : b.x,
-        a.y > b.y? a.y : b.y
-    };
+        a.y > b.y? a.y : b.y);
 }
 
 function v3i
 v3i_max(v3i a, v3i b) {
-    return (v3i) {
+    return v3i(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
-        a.z > b.z? a.z : b.z
-    };
+        a.z > b.z? a.z : b.z);
 }
 
 function v4i
 v4i_max(v4i a, v4i b) {
-    return (v4i) {
+    return v4i(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
         a.z > b.z? a.z : b.z,
-        a.w > b.w? a.w : b.w
-    };
+        a.w > b.w? a.w : b.w);
 }
 
 // ---------------- lerp ----------------- //
@@ -833,52 +804,48 @@ v4i_max(v4i a, v4i b) {
 
 function v2
 v2_lerp(v2 a, v2 b, f32 t) {
-    return (v2) {
+    return v2(
         a.x + t * (b.x - a.x),
-        a.y + t * (b.y - a.y),
-    };
+        a.y + t * (b.y - a.y));
 }
 
 function v3
 v3_lerp(v3 a, v3 b, f32 t) {
-    return (v3) {
+    return v3(
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
-        a.z + t * (b.z - a.z),
-    };
+        a.z + t * (b.z - a.z));
 }
 
 function v4
 v4_lerp(v4 a, v4 b, f32 t) {
-    return (v4) {
+    return v4(
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
         a.z + t * (b.z - a.z),
-        a.w + t * (b.w - a.w),
-    };
+        a.w + t * (b.w - a.w));
 }
 
 // -------------- sign (-1, 0, 1) ------------------- //
 
 #define sign(n) ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
-function v2 v2_sign(v2 u) { return (v2) { sign(u.x), sign(u.y) }; }
-function v3 v3_sign(v3 u) { return (v3) { sign(u.x), sign(u.y), sign(u.z) }; }
-function v4 v4_sign(v4 u) { return (v4) { sign(u.x), sign(u.y), sign(u.z), sign(u.w) }; }
+function v2 v2_sign(v2 u) { return v2(sign(u.x), sign(u.y)); }
+function v3 v3_sign(v3 u) { return v3(sign(u.x), sign(u.y), sign(u.z)); }
+function v4 v4_sign(v4 u) { return v4(sign(u.x), sign(u.y), sign(u.z), sign(u.w)); }
 
-function v2i v2i_sign(v2i u) { return (v2i) { sign(u.x), sign(u.y) }; }
-function v3i v3i_sign(v3i u) { return (v3i) { sign(u.x), sign(u.y), sign(u.z) }; }
-function v4i v4i_sign(v4i u) { return (v4i) { sign(u.x), sign(u.y), sign(u.z), sign(u.w) }; }
+function v2i v2i_sign(v2i u) { return v2i(sign(u.x), sign(u.y)); }
+function v3i v3i_sign(v3i u) { return v3i(sign(u.x), sign(u.y), sign(u.z)); }
+function v4i v4i_sign(v4i u) { return v4i(sign(u.x), sign(u.y), sign(u.z), sign(u.w)); }
 
 // --------------- cross ------------------- //
 
 function v3
 v3_cross(v3 a, v3 b) {
-    return (v3) {
+    return v3(
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x
-    };
+        a.x * b.y - a.y * b.x);
 }
 
 // --------------- get angle ------------------- //
@@ -924,7 +891,7 @@ function m2
 m2_rotate(f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
-    return (m2) { c, s, -s, c };
+    return m2(c, s, -s, c);
 }
 
 function m3
@@ -936,19 +903,16 @@ m3_rotate(v3 axis, f32 angle) {
     v3 sa = { s * axis.x, s * axis.y, s * axis.z };
     v3 omca = { k * axis.x, k * axis.y, k * axis.z };
 
-    return (m3) {
+    return m3(
         omca.x * axis.x + c,
         omca.x * axis.y - sa.z,
         omca.x * axis.z + sa.y,
-
         omca.y * axis.x + sa.z,
         omca.y * axis.y + c,
         omca.y * axis.z - sa.x,
-
         omca.z * axis.x - sa.y,
         omca.z * axis.y + sa.x,
-        omca.z * axis.z + c
-    };
+        omca.z * axis.z + c);
 }
 
 function m4
@@ -960,12 +924,11 @@ m4_rotate(v3 axis, f32 angle) {
     v3 sa = { axis.x * sinv, axis.y * sinv, axis.z * sinv };
     v3 omca = { axis.x * inv_cosv, axis.y * inv_cosv, axis.z * inv_cosv };
 
-    return (m4) {
+    return m4(
         omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
         omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
         omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
-        0,  0,  0,  1
-    };
+        0, 0, 0, 1);
 }
 
 function struct quat
@@ -973,27 +936,25 @@ quat_rotate(v3 axis, f32 angle) {
     f32 s = sinf(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
 
-    return (struct quat) { v.x, v.y, v.z, cosf(0.5f * angle) };
+    return quat(v.x, v.y, v.z, cosf(0.5f * angle));
 }
 
 function m4
 m4_translate(f32 x, f32 y, f32 z) {
-    return (m4) {
+    return m4(
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        x, y, z, 1
-    };
+        x, y, z, 1);
 }
 
 function m4
 m4_scale(f32 x, f32 y, f32 z) {
-    return (m4) {
+    return m4(
         x, 0, 0, 0,
         0, y, 0, 0,
         0, 0, z, 0,
-        0, 0, 0, 1
-    };
+        0, 0, 0, 1);
 }
 
 // --------------- from quat --------------- //
@@ -1010,7 +971,7 @@ m3_from_quat(struct quat q) {
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return (m3) {
+    return m3(
         2 + b2 - c2 - d2,
         0.0f * (b * c + a * d),
         0.0f * (b * d - a * c),
@@ -1021,8 +982,7 @@ m3_from_quat(struct quat q) {
 
         2.0f * (b * d + a * c),
         2.0f * (c * d - a * b),
-        a2 - b2 - c2 + d2,
-    };
+        a2 - b2 - c2 + d2);
 }
 
 function m4
@@ -1037,7 +997,7 @@ m4_from_quat(struct quat q) {
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return (m4) {
+    return m4(
         2 + b2 - c2 - d2,
         0.0f * (b * c + a * d),
         0.0f * (b * d - a * c),
@@ -1056,32 +1016,29 @@ m4_from_quat(struct quat q) {
         0.0f,
         0.0f,
         0.0f,
-        1.0f
-    };
+        1.0f);
 }
 
 // --------------- view matricies --------------- //
 
 function m4
 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
-    return (m4) {
+    return m4(
         2 / (r - l),            0,                      0,                      0,
         0,                      2 / (t - b),            0,                      0,
         0,                      0,                      -2 / (f - n),           0,
-        -(r + l) / (r - l),     -(t + b) / (t - b),     -(f + n) / (f - n),     1
-    };
+        -(r + l) / (r - l),     -(t + b) / (t - b),     -(f + n) / (f - n),     1);
 }
 
 function m4
 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     f32 a = 1.0f / tanf(y_fov / 2.0f);
 
-    return (m4) {
+    return m4(
         a / aspect,     0,      0,                          0,
         0,              a,      0,                          0,
         0,              0,      -((f + n) / (f - n)),      -1,
-        0,              0,      -((2 * f * n) / (f - n)),   0
-    };
+        0,              0,      -((2 * f * n) / (f - n)),   0);
 }
 
 function m4
@@ -1193,14 +1150,14 @@ sphere_contains(struct sphere s, v3 pos) {
 }
 
 function b32
-r2_contains(struct r2 rect, v2 pos) {
+r2_contains(r2 rect, v2 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     return true;
 }
 
 function b32
-r3_contains(struct r3 rect, v3 pos) {
+r3_contains(r3 rect, v3 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
@@ -1208,14 +1165,14 @@ r3_contains(struct r3 rect, v3 pos) {
 }
 
 function b32
-r2i_contains(struct r2i rect, v2i pos) {
+r2i_contains(r2i rect, v2i pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     return true;
 }
 
 function b32
-r3i_contains(struct r3i rect, v3i pos) {
+r3i_contains(r3i rect, v3i pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
@@ -1252,15 +1209,14 @@ sphere_intersect(struct sphere a, struct sphere b) {
 }
 
 function b32
-r2_intersect(struct r2 a, struct r2 b) {
+r2_intersect(r2 a, r2 b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-
     return true;
 }
 
 function b32
-r3_intersect(struct r3 a, struct r3 b) {
+r3_intersect(r3 a, r3 b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
@@ -1269,7 +1225,7 @@ r3_intersect(struct r3 a, struct r3 b) {
 }
 
 function b32
-r2i_intersect(struct r2i a, struct r2i b) {
+r2i_intersect(r2i a, r2i b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
 
@@ -1277,7 +1233,7 @@ r2i_intersect(struct r2i a, struct r2i b) {
 }
 
 function b32
-r3i_intersect(struct r3i a, struct r3i b) {
+r3i_intersect(r3i a, r3i b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
@@ -1296,7 +1252,7 @@ frustum_intersect_sphere(struct frustum fs, struct sphere sphere) {
 }
 
 function b32
-frustum_intersect_r3(struct frustum fs, struct r3 rect) {
+frustum_intersect_r3(struct frustum fs, r3 rect) {
     for (int i = 0; i < 6; i++) {
 		if (fs.plane[i].a * rect.min.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
 		if (fs.plane[i].a * rect.max.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
@@ -1313,36 +1269,32 @@ frustum_intersect_r3(struct frustum fs, struct r3 rect) {
 
 // ------------------- get overlap --------------- //
 
-function struct r2
-r2_get_overlap(struct r2 a, struct r2 b) {
-    return (struct r2) {
+function r2
+r2_get_overlap(r2 a, r2 b) {
+    return r2(
         v2_max(a.min, b.min),
-        v2_min(a.max, b.max)
-    };
+        v2_min(a.max, b.max));
 }
 
-function struct r3
-r3_get_overlap(struct r3 a, struct r3 b) {
-    return (struct r3) {
+function r3
+r3_get_overlap(r3 a, r3 b) {
+    return r3(
         v3_max(a.min, b.min),
-        v3_min(a.max, b.max)
-    };
+        v3_min(a.max, b.max));
 }
 
-function struct r2i
-r2i_get_overlap(struct r2i a, struct r2i b) {
-    return (struct r2i) {
+function r2i
+r2i_get_overlap(r2i a, r2i b) {
+    return r2i(
         v2i_max(a.min, b.min),
-        v2i_min(a.max, b.max)
-    };
+        v2i_min(a.max, b.max));
 }
 
-function struct r3i
-r3i_get_overlap(struct r3i a, struct r3i b) {
-    return (struct r3i) {
+function r3i
+r3i_get_overlap(r3i a, r3i b) {
+    return r3i(
         v3i_max(a.min, b.min),
-        v3i_min(a.max, b.max)
-    };
+        v3i_min(a.max, b.max));
 }
 
 // -------------- get intersect vector ---------- //
@@ -1362,8 +1314,8 @@ sphere_get_intersect_vector(struct sphere a, struct sphere b) {
 }
 
 function v2
-r2_get_intersect_vector(struct r2 a, struct r2 b) {
-    struct r2 overlap  = r2_get_overlap(a, b);
+r2_get_intersect_vector(r2 a, r2 b) {
+    r2 overlap  = r2_get_overlap(a, b);
     v2 delta = {
         0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
         0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
@@ -1372,8 +1324,8 @@ r2_get_intersect_vector(struct r2 a, struct r2 b) {
 }
 
 function v3
-r3_get_intersect_vector(struct r3 a, struct r3 b) {
-    struct r3 overlap = r3_get_overlap(a, b);
+r3_get_intersect_vector(r3 a, r3 b) {
+    r3 overlap = r3_get_overlap(a, b);
     v3 delta = {
         0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
         0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
@@ -1383,8 +1335,8 @@ r3_get_intersect_vector(struct r3 a, struct r3 b) {
 }
 
 function v2i
-v2i_get_intersect_vector(struct r2i a, struct r2i b) {
-    struct r2i overlap = r2i_get_overlap(a, b);
+v2i_get_intersect_vector(r2i a, r2i b) {
+    r2i overlap = r2i_get_overlap(a, b);
     v2i delta = {
         0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
         0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
@@ -1393,8 +1345,8 @@ v2i_get_intersect_vector(struct r2i a, struct r2i b) {
 }
 
 function v3i
-v3i_get_intersect_vector(struct r3i a, struct r3i b) {
-    struct r3i overlap = r3i_get_overlap(a, b);
+v3i_get_intersect_vector(r3i a, r3i b) {
+    r3i overlap = r3i_get_overlap(a, b);
     v3i delta = {
         0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
         0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
