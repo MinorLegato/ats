@@ -1697,7 +1697,6 @@ f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64
 function void
 memory_clear(void* data, usize size) {
     volatile u8* d = (u8*)data;
-
     while (size--)
         *(d++) = 0;
 }
@@ -1705,7 +1704,6 @@ memory_clear(void* data, usize size) {
 function void
 memory_set(void* data, u8 value, usize size) {
     volatile u8* d = (u8*)data;
-
     while (size--)
         *(d++) = value;
 }
@@ -1714,7 +1712,6 @@ function void
 memory_copy(void* dst, const void* src, usize size) {
     volatile u8*        d = (u8*)dst;
     volatile const u8*  s = (u8*)src;
-
     while (size--)
         *(d++) = *(s++);
 }

@@ -45,7 +45,7 @@ extern void gl_texture_destroy(struct gl_texture* texture);
 #ifdef ATS_OGL33
 
 struct gl_shader {
-    u32     id;
+    u32 id;
 };
 
 struct gl_shader_desc {

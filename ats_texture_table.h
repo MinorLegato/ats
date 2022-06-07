@@ -26,11 +26,11 @@ struct texture_table {
 extern void tt_begin(int width, int height);
 extern void tt_end(void);
 extern void tt_add_image(const char* name, struct image image);
+extern void tt_load_from_dir(const char* dir_path);
 
 extern struct texture_id tt_get_id(const char* name);
 extern r2i tt_get_rect(struct texture_id id);
 extern r2i tt_get(const char* name);
-extern void tt_load_from_dir(const char* dir_path);
 
 extern struct image tt_get_image(void);
 
@@ -160,9 +160,8 @@ tt_load_from_dir(const char* dir_path) {
     char find_file_str[256] = {0};
     cstr_concat(find_file_str, dir_path, "*.png*");
 
-    WIN32_FIND_DATA find_data   = {0};
-    HANDLE          find_handle = FindFirstFile(find_file_str, &find_data);
-
+    WIN32_FIND_DATA find_data = {0};
+    HANDLE find_handle = FindFirstFile(find_file_str, &find_data);
     assert(find_handle != INVALID_HANDLE_VALUE);
 
     do {
@@ -222,7 +221,7 @@ tt_get_fit(struct tt_rect_stack* stack, struct image image) {
 extern void
 tt_end(void) {
     struct tt_rect_stack stack = {0};
-    tt_push_rect(&stack, r2i(v2i(0, 0), v2i(tt_table.image.width, tt_table.image.height)));
+    tt_push_rect(&stack, r2i(v2i(0, 0), v2i(tt_table.image.width - 1, tt_table.image.height - 1)));
 
     qsort(tt_image_array, tt_image_count, sizeof (struct tt_image), tt_cmp_image);
 
@@ -237,13 +236,21 @@ tt_end(void) {
 
         for (i32 y = 0; y < data->image.height; ++y) {
             for (i32 x = 0; x < data->image.width; ++x) {
-                image_set(&tt_table.image, x + offset.x + 1, y + offset.y + 1, image_get(&data->image, x, y));
+                u32 pixel = image_get(&data->image, x, y);
+                image_set(&tt_table.image, x + offset.x + 1, y + offset.y + 1, pixel);
             }
         }
 
         {
-            r2i a = { { rect.min.x, rect.min.y + size.y }, { rect.min.x + size.x, rect.max.y } };
-            r2i b = { { rect.min.x + size.x, rect.min.y }, rect.max };
+            r2i a = {
+                { rect.min.x, rect.min.y + size.y },
+                { rect.min.x + size.x, rect.max.y }
+            };
+
+            r2i b = {
+                { rect.min.x + size.x, rect.min.y },
+                { rect.max.x, rect.max.y },
+            };
 
             if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { tt_push_rect(&stack, a); }
             if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { tt_push_rect(&stack, b); }
