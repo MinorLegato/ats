@@ -408,9 +408,7 @@ extern struct platform platform;
 #include <GLFW/glfw3.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
-#undef function
 #include <GLFW/glfw3native.h>
-#define function static
 
 #ifdef ATS_IMGUI
 #define IMGUI_IMPL_OPENGL_LOADER_CUSTOM
@@ -424,12 +422,12 @@ extern struct platform platform;
 
 struct platform platform;
 
-global struct {
+static struct {
     GLFWwindow* window;
     GLFWmonitor* monitor;
 } platform_internal;
 
-internal void
+static void
 window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
     (void)window;
     (void)a;
@@ -459,13 +457,13 @@ window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
     }
 }
 
-internal void
+static void
 window_char_callback(GLFWwindow* window, unsigned int codepoint) {
     platform.keyboard.is_ascii  = 1;
     platform.keyboard.ascii     = codepoint;
 }
 
-internal void
+static void
 window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
     (void)window;
     (void)a;
@@ -486,7 +484,7 @@ window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) 
     }
 }
 
-internal void
+static void
 window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
     (void)window;
 
@@ -494,7 +492,7 @@ window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
     platform.mouse.scroll.y = (f32)yoffset;
 }
 
-internal void
+static void
 window_joystick_callback(int joy, int event) {
     if (event == GLFW_CONNECTED) {
         memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);

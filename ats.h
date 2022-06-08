@@ -10,11 +10,6 @@
 
 // ======================================== API-MACROS ======================================= //
 
-#define function static
-#define global static
-#define internal static
-#define local static
-
 #define KB (1024)
 #define MB (1024 * KB)
 #define GB (1024 * MB)
@@ -298,14 +293,14 @@ extern void image_set(struct image* img, i32 x, i32 y, u32 pixel);
 
 #define quat(...) ((struct quat) { __VA_ARGS__ })
 
-function m2
+static m2
 m2_identity(void) {
     return m2(
         1, 0,
         0, 1);
 }
 
-function m3
+static m3
 m3_identity(void) {
     return m3(
         1, 0, 0,
@@ -313,7 +308,7 @@ m3_identity(void) {
         0, 0, 1);
 }
 
-function m4
+static m4
 m4_identity(void) {
     return m4(
         1, 0, 0, 0,
@@ -324,7 +319,7 @@ m4_identity(void) {
 
 // ======================================= STATIC FUNCTIONS ==================================== //
 
-function f32
+static f32
 sqrt32(f32 n) {
     f32 x = n * 0.5f;
     f32 y = n;
@@ -337,7 +332,7 @@ sqrt32(f32 n) {
     return n * y;
 }
 
-function f32
+static f32
 rsqrt32(f32 n) {
 	f32 x2 = n * 0.5f;
 	f32 y  = n;
@@ -350,7 +345,7 @@ rsqrt32(f32 n) {
 	return y;
 }
 
-function f32
+static f32
 shortest_angle_distance(f32 a, f32 b) {
     f32 max = 2.0f * PI;
     f32 da  = fmodf(b - a, max);
@@ -358,31 +353,31 @@ shortest_angle_distance(f32 a, f32 b) {
     return fmodf(2.0f * da, max) - da;
 }
 
-function f32
+static f32
 lerp_angle(f32 a, f32 b, f32 t) {
     return a + shortest_angle_distance(a, b) * t;
 }
 
 // ---------- from array ---------- //
 
-function v2 v2_from_array(const f32* a) { return v2(a[0], a[1]); }
-function v3 v3_from_array(const f32* a) { return v3(a[0], a[1], a[2]); }
-function v4 v4_from_array(const f32* a) { return v4(a[0], a[1], a[2], a[3]); }
+static v2 v2_from_array(const f32* a) { return v2(a[0], a[1]); }
+static v3 v3_from_array(const f32* a) { return v3(a[0], a[1], a[2]); }
+static v4 v4_from_array(const f32* a) { return v4(a[0], a[1], a[2], a[3]); }
 
-function v2i v2i_from_array(const i32* a) { return v2i(a[0], a[1]); }
-function v3i v3i_from_array(const i32* a) { return v3i(a[0], a[1], a[2]); }
-function v4i v4i_from_array(const i32* a) { return v4i(a[0], a[1], a[2], a[3]); }
+static v2i v2i_from_array(const i32* a) { return v2i(a[0], a[1]); }
+static v3i v3i_from_array(const i32* a) { return v3i(a[0], a[1], a[2]); }
+static v4i v4i_from_array(const i32* a) { return v4i(a[0], a[1], a[2], a[3]); }
 
 // ---------- unpack color ------------ //
 
-function v3
+static v3
 v3_unpack_color(u32 color) {
     return v3(((color & 0x000000ff) >> 0)  / 256.0f,
               ((color & 0x0000ff00) >> 8)  / 256.0f,
               ((color & 0x00ff0000) >> 16) / 256.0f);
 }
 
-function v4
+static v4
 v4_unpack_color(u32 color) {
     return v4(((color & 0x000000ff) >> 0)  / 256.0f,
               ((color & 0x0000ff00) >> 8)  / 256.0f,
@@ -392,52 +387,52 @@ v4_unpack_color(u32 color) {
 
 // --------- negate ---------- //
 
-function v2 v2_neg(v2 u) { return v2(-u.x, -u.y); }
-function v3 v3_neg(v3 u) { return v3(-u.x, -u.y, -u.z); }
-function v4 v4_neg(v4 u) { return v4(-u.x, -u.y, -u.z, -u.w); }
+static v2 v2_neg(v2 u) { return v2(-u.x, -u.y); }
+static v3 v3_neg(v3 u) { return v3(-u.x, -u.y, -u.z); }
+static v4 v4_neg(v4 u) { return v4(-u.x, -u.y, -u.z, -u.w); }
 
-function v2i v2i_neg(v2i u) { return v2i(-u.x, -u.y); }
-function v3i v3i_neg(v3i u) { return v3i(-u.x, -u.y, -u.z); }
-function v4i v4i_neg(v4i u) { return v4i(-u.x, -u.y, -u.z, -u.w); }
+static v2i v2i_neg(v2i u) { return v2i(-u.x, -u.y); }
+static v3i v3i_neg(v3i u) { return v3i(-u.x, -u.y, -u.z); }
+static v4i v4i_neg(v4i u) { return v4i(-u.x, -u.y, -u.z, -u.w); }
 
 // ---------- addition ---------- //
 
-function v2 v2_add(v2 a, v2 b) { return v2(a.x + b.x, a.y + b.y); }
-function v3 v3_add(v3 a, v3 b) { return v3(a.x + b.x, a.y + b.y, a.z + b.z); }
-function v4 v4_add(v4 a, v4 b) { return v4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+static v2 v2_add(v2 a, v2 b) { return v2(a.x + b.x, a.y + b.y); }
+static v3 v3_add(v3 a, v3 b) { return v3(a.x + b.x, a.y + b.y, a.z + b.z); }
+static v4 v4_add(v4 a, v4 b) { return v4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
 
-function v2i v2i_add(v2i a, v2i b) { return v2i(a.x + b.x, a.y + b.y); }
-function v3i v3i_add(v3i a, v3i b) { return v3i(a.x + b.x, a.y + b.y, a.z + b.z); }
-function v4i v4i_add(v4i a, v4i b) { return v4i(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+static v2i v2i_add(v2i a, v2i b) { return v2i(a.x + b.x, a.y + b.y); }
+static v3i v3i_add(v3i a, v3i b) { return v3i(a.x + b.x, a.y + b.y, a.z + b.z); }
+static v4i v4i_add(v4i a, v4i b) { return v4i(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
 
 // -------- subtraction ------- //
 
-function v2 v2_sub(v2 a, v2 b) { return v2(a.x - b.x, a.y - b.y); }
-function v3 v3_sub(v3 a, v3 b) { return v3(a.x - b.x, a.y - b.y, a.z - b.z); }
-function v4 v4_sub(v4 a, v4 b) { return v4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+static v2 v2_sub(v2 a, v2 b) { return v2(a.x - b.x, a.y - b.y); }
+static v3 v3_sub(v3 a, v3 b) { return v3(a.x - b.x, a.y - b.y, a.z - b.z); }
+static v4 v4_sub(v4 a, v4 b) { return v4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
 
-function v2i v2i_sub(v2i a, v2i b) { return v2i(a.x - b.x, a.y - b.y); }
-function v3i v3i_sub(v3i a, v3i b) { return v3i(a.x - b.x, a.y - b.y, a.z - b.z); }
-function v4i v4i_sub(v4i a, v4i b) { return v4i(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+static v2i v2i_sub(v2i a, v2i b) { return v2i(a.x - b.x, a.y - b.y); }
+static v3i v3i_sub(v3i a, v3i b) { return v3i(a.x - b.x, a.y - b.y, a.z - b.z); }
+static v4i v4i_sub(v4i a, v4i b) { return v4i(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
 
 // -------- multiplication ------- //
 
-function v2 v2_mul(v2 a, v2 b) { return v2(a.x * b.x, a.y * b.y); }
-function v3 v3_mul(v3 a, v3 b) { return v3(a.x * b.x, a.y * b.y, a.z * b.z); }
-function v4 v4_mul(v4 a, v4 b) { return v4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * a.w); }
+static v2 v2_mul(v2 a, v2 b) { return v2(a.x * b.x, a.y * b.y); }
+static v3 v3_mul(v3 a, v3 b) { return v3(a.x * b.x, a.y * b.y, a.z * b.z); }
+static v4 v4_mul(v4 a, v4 b) { return v4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * a.w); }
 
-function v2i v2i_mul(v2i a, v2i b) { return v2i(a.x * b.x, a.y * b.y); }
-function v3i v3i_mul(v3i a, v3i b) { return v3i(a.x * b.x, a.y * b.y, a.z * a.z); }
-function v4i v4i_mul(v4i a, v4i b) { return v4i(a.x * b.x, a.y * b.y, a.z * a.z, a.w * a.w); }
+static v2i v2i_mul(v2i a, v2i b) { return v2i(a.x * b.x, a.y * b.y); }
+static v3i v3i_mul(v3i a, v3i b) { return v3i(a.x * b.x, a.y * b.y, a.z * a.z); }
+static v4i v4i_mul(v4i a, v4i b) { return v4i(a.x * b.x, a.y * b.y, a.z * a.z, a.w * a.w); }
 
-function v2
+static v2
 m2_mulv(m2 m, v2 u) {
     return v2(
         m.e[0] * u.x + m.e[2] * u.y,
         m.e[1] * u.x + m.e[3] * u.y);
 }
 
-function v3
+static v3
 m3_mulv(m3 m, v3 u) {
     return v3(
         m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
@@ -445,7 +440,7 @@ m3_mulv(m3 m, v3 u) {
         m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z);
 }
 
-function v4
+static v4
 m4_mulv(m4 m, v4 u) {
     return v4(
         m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
@@ -454,7 +449,7 @@ m4_mulv(m4 m, v4 u) {
         m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w);
 }
 
-function m2
+static m2
 m2_mul(m2 a, m2 b) {
     return m2(
         a.e[0] * b.e[0] + a.e[2] * b.e[1],
@@ -463,7 +458,7 @@ m2_mul(m2 a, m2 b) {
         a.e[1] * b.e[2] + a.e[3] * b.e[3]);
 }
 
-function m3
+static m3
 m3_mul(m3 a, m3 b) {
     return m3(
         a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
@@ -479,7 +474,7 @@ m3_mul(m3 a, m3 b) {
         a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8]);
 }
 
-function m4
+static m4
 m4_mul(m4 a, m4 b) {
     return m4(
         a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
@@ -503,7 +498,7 @@ m4_mul(m4 a, m4 b) {
         a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
 }
 
-function struct quat
+static struct quat
 quat_mul(struct quat a, struct quat b) {
     return quat(
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
@@ -514,89 +509,89 @@ quat_mul(struct quat a, struct quat b) {
 
 // ------------ divition ------------ //
 
-function v2 v2_div(v2 a, v2 b) { return v2(a.x / b.x, a.y / b.y); }
-function v3 v3_div(v3 a, v3 b) { return v3(a.x / b.x, a.y / b.y, a.z / b.z); }
-function v4 v4_div(v4 a, v4 b) { return v4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+static v2 v2_div(v2 a, v2 b) { return v2(a.x / b.x, a.y / b.y); }
+static v3 v3_div(v3 a, v3 b) { return v3(a.x / b.x, a.y / b.y, a.z / b.z); }
+static v4 v4_div(v4 a, v4 b) { return v4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
 
-function v2i v2i_div(v2i a, v2i b) { return v2i(a.x / b.x, a.y / b.y); }
-function v3i v3i_div(v3i a, v3i b) { return v3i(a.x / b.x, a.y / b.y, a.z / b.z); }
-function v4i v4i_div(v4i a, v4i b) { return v4i(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+static v2i v2i_div(v2i a, v2i b) { return v2i(a.x / b.x, a.y / b.y); }
+static v3i v3i_div(v3i a, v3i b) { return v3i(a.x / b.x, a.y / b.y, a.z / b.z); }
+static v4i v4i_div(v4i a, v4i b) { return v4i(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
 
 // ------------- scaling ------------- //
 
-function v2 v2_scale(v2 a, f32 s) { return v2(a.x * s, a.y * s); }
-function v3 v3_scale(v3 a, f32 s) { return v3(a.x * s, a.y * s, a.z * s); }
-function v4 v4_scale(v4 a, f32 s) { return v4(a.x * s, a.y * s, a.z * s, a.w * s); }
+static v2 v2_scale(v2 a, f32 s) { return v2(a.x * s, a.y * s); }
+static v3 v3_scale(v3 a, f32 s) { return v3(a.x * s, a.y * s, a.z * s); }
+static v4 v4_scale(v4 a, f32 s) { return v4(a.x * s, a.y * s, a.z * s, a.w * s); }
 
-function v2i v2i_scale(v2i a, i32 s) { return v2i(a.x * s, a.y * s); }
-function v3i v3i_scale(v3i a, i32 s) { return v3i(a.x * s, a.y * s, a.z * s); }
-function v4i v4i_scale(v4i a, i32 s) { return v4i(a.x * s, a.y * s, a.z * s, a.w * s); }
+static v2i v2i_scale(v2i a, i32 s) { return v2i(a.x * s, a.y * s); }
+static v3i v3i_scale(v3i a, i32 s) { return v3i(a.x * s, a.y * s, a.z * s); }
+static v4i v4i_scale(v4i a, i32 s) { return v4i(a.x * s, a.y * s, a.z * s, a.w * s); }
 
 // ----------- eq ------------ //
 
-function b32 v2i_eq(v2i a, v2i b) { return a.x == b.x && a.y == b.y; }
-function b32 v3i_eq(v3i a, v3i b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
-function b32 v4i_eq(v4i a, v4i b) { return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w; }
+static b32 v2i_eq(v2i a, v2i b) { return a.x == b.x && a.y == b.y; }
+static b32 v3i_eq(v3i a, v3i b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
+static b32 v4i_eq(v4i a, v4i b) { return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w; }
 
-function b32 v2i_neq(v2i a, v2i b) { return a.x != b.x || a.y != b.y; }
-function b32 v3i_neq(v3i a, v3i b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
-function b32 v4i_neq(v4i a, v4i b) { return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w; }
+static b32 v2i_neq(v2i a, v2i b) { return a.x != b.x || a.y != b.y; }
+static b32 v3i_neq(v3i a, v3i b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
+static b32 v4i_neq(v4i a, v4i b) { return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w; }
 
 // ----------- dot product ----------- //
 
-function f32 v2_dot(v2 a, v2 b) { return a.x * b.x + a.y * b.y; }
-function f32 v3_dot(v3 a, v3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-function f32 v4_dot(v4 a, v4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+static f32 v2_dot(v2 a, v2 b) { return a.x * b.x + a.y * b.y; }
+static f32 v3_dot(v3 a, v3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+static f32 v4_dot(v4 a, v4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
 
-function i32 v2i_dot(v2i a, v2i b) { return a.x * b.x + a.y * b.y; }
-function i32 v3i_dot(v3i a, v3i b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-function i32 v4i_dot(v4i a, v4i b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+static i32 v2i_dot(v2i a, v2i b) { return a.x * b.x + a.y * b.y; }
+static i32 v3i_dot(v3i a, v3i b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+static i32 v4i_dot(v4i a, v4i b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
 
 // ----------- length squared ----------- //
 
-function f32 v2_len_sq(v2 u) { return v2_dot(u, u); }
-function f32 v3_len_sq(v3 u) { return v3_dot(u, u); }
-function f32 v4_len_sq(v4 u) { return v4_dot(u, u); }
+static f32 v2_len_sq(v2 u) { return v2_dot(u, u); }
+static f32 v3_len_sq(v3 u) { return v3_dot(u, u); }
+static f32 v4_len_sq(v4 u) { return v4_dot(u, u); }
 
-function i32 v2i_len_sq(v2i u) { return v2i_dot(u, u); }
-function i32 v3i_len_sq(v3i u) { return v3i_dot(u, u); }
-function i32 v4i_len_sq(v4i u) { return v4i_dot(u, u); }
+static i32 v2i_len_sq(v2i u) { return v2i_dot(u, u); }
+static i32 v3i_len_sq(v3i u) { return v3i_dot(u, u); }
+static i32 v4i_len_sq(v4i u) { return v4i_dot(u, u); }
 
 // -------------- length -------------- //
 
-function f32 v2_len(v2 u) { return sqrt32(v2_len_sq(u)); }
-function f32 v3_len(v3 u) { return sqrt32(v3_len_sq(u)); }
-function f32 v4_len(v4 u) { return sqrt32(v4_len_sq(u)); }
+static f32 v2_len(v2 u) { return sqrt32(v2_len_sq(u)); }
+static f32 v3_len(v3 u) { return sqrt32(v3_len_sq(u)); }
+static f32 v4_len(v4 u) { return sqrt32(v4_len_sq(u)); }
 
-function f32 v2i_len(v2i u) { return sqrt32(v2i_len_sq(u)); }
-function f32 v3i_len(v3i u) { return sqrt32(v3i_len_sq(u)); }
-function f32 v4i_len(v4i u) { return sqrt32(v4i_len_sq(u)); }
+static f32 v2i_len(v2i u) { return sqrt32(v2i_len_sq(u)); }
+static f32 v3i_len(v3i u) { return sqrt32(v3i_len_sq(u)); }
+static f32 v4i_len(v4i u) { return sqrt32(v4i_len_sq(u)); }
 
 // -------------- distance squared -------------- //
 
-function f32 v2_dist_sq(v2 a, v2 b) { return v2_len_sq(v2_sub(a, b)); }
-function f32 v3_dist_sq(v3 a, v3 b) { return v3_len_sq(v3_sub(a, b)); }
-function f32 v4_dist_sq(v4 a, v4 b) { return v4_len_sq(v4_sub(a, b)); }
+static f32 v2_dist_sq(v2 a, v2 b) { return v2_len_sq(v2_sub(a, b)); }
+static f32 v3_dist_sq(v3 a, v3 b) { return v3_len_sq(v3_sub(a, b)); }
+static f32 v4_dist_sq(v4 a, v4 b) { return v4_len_sq(v4_sub(a, b)); }
 
-function i32 v2i_dist_sq(v2i a, v2i b) { return v2i_len_sq(v2i_sub(a, b)); }
-function i32 v3i_dist_sq(v3i a, v3i b) { return v3i_len_sq(v3i_sub(a, b)); }
-function i32 v4i_dist_sq(v4i a, v4i b) { return v4i_len_sq(v4i_sub(a, b)); }
+static i32 v2i_dist_sq(v2i a, v2i b) { return v2i_len_sq(v2i_sub(a, b)); }
+static i32 v3i_dist_sq(v3i a, v3i b) { return v3i_len_sq(v3i_sub(a, b)); }
+static i32 v4i_dist_sq(v4i a, v4i b) { return v4i_len_sq(v4i_sub(a, b)); }
 
 // ------------------ distance ------------------- //
 
-function f32 v2_dist(v2 a, v2 b) { return sqrt32(v2_dist_sq(a, b)); }
-function f32 v3_dist(v3 a, v3 b) { return sqrt32(v3_dist_sq(a, b)); }
-function f32 v4_dist(v4 a, v4 b) { return sqrt32(v4_dist_sq(a, b)); }
+static f32 v2_dist(v2 a, v2 b) { return sqrt32(v2_dist_sq(a, b)); }
+static f32 v3_dist(v3 a, v3 b) { return sqrt32(v3_dist_sq(a, b)); }
+static f32 v4_dist(v4 a, v4 b) { return sqrt32(v4_dist_sq(a, b)); }
 
 // -------------- manhattan distance -------------- //
 
-function i32
+static i32
 v2i_manhattan(v2i a, v2i b) {
     v2i diff = v2i_sub(a, b);
     return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y);
 }
 
-function i32
+static i32
 v3i_manhattan(v3i a, v3i b) {
     v3i diff = v3i_sub(a, b);
     return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y) + (0x7ffffffff & diff.z);
@@ -604,21 +599,21 @@ v3i_manhattan(v3i a, v3i b) {
 
 // -------------- normalize --------------- //
 
-function v2 v2_norm(v2 u) { return v2_scale(u, rsqrt32(v2_dot(u, u))); }
-function v3 v3_norm(v3 u) { return v3_scale(u, rsqrt32(v3_dot(u, u))); }
-function v4 v4_norm(v4 u) { return v4_scale(u, rsqrt32(v4_dot(u, u))); }
+static v2 v2_norm(v2 u) { return v2_scale(u, rsqrt32(v2_dot(u, u))); }
+static v3 v3_norm(v3 u) { return v3_scale(u, rsqrt32(v3_dot(u, u))); }
+static v4 v4_norm(v4 u) { return v4_scale(u, rsqrt32(v4_dot(u, u))); }
 
 // -------------- floor --------------- //
 
-function v2 v2_floor(v2 u) { return v2(floorf(u.x), floorf(u.y)); }
-function v3 v3_floor(v3 u) { return v3(floorf(u.x), floorf(u.y), floorf(u.z)); }
-function v4 v4_floor(v4 u) { return v4(floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w)); }
+static v2 v2_floor(v2 u) { return v2(floorf(u.x), floorf(u.y)); }
+static v3 v3_floor(v3 u) { return v3(floorf(u.x), floorf(u.y), floorf(u.z)); }
+static v4 v4_floor(v4 u) { return v4(floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w)); }
 
 // -------------- ceil --------------- //
 
-function v2 v2_ceil(v2 u) { return v2(ceilf(u.x), ceilf(u.y)); }
-function v3 v3_ceil(v3 u) { return v3(ceilf(u.x), ceilf(u.y), ceilf(u.z)); }
-function v4 v4_ceil(v4 u) { return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w)); }
+static v2 v2_ceil(v2 u) { return v2(ceilf(u.x), ceilf(u.y)); }
+static v3 v3_ceil(v3 u) { return v3(ceilf(u.x), ceilf(u.y), ceilf(u.z)); }
+static v4 v4_ceil(v4 u) { return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w)); }
 
 // -------------- clamp_min --------------- //
 
@@ -632,14 +627,14 @@ function v4 v4_ceil(v4 u) { return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(
 
 #define clamp(n, min, max)  clamp_max(clamp_min(n, min), max)
 
-function v2
+static v2
 v2_clampf(v2 u, f32 min, f32 max) {
     return v2(
         clamp(u.x, min, max),
         clamp(u.y, min, max));
 }
 
-function v3
+static v3
 v3_clampf(v3 u, f32 min, f32 max) {
     return v3(
         clamp(u.x, min, max),
@@ -647,14 +642,14 @@ v3_clampf(v3 u, f32 min, f32 max) {
         clamp(u.z, min, max));
 }
 
-function v2i
+static v2i
 v2i_clampi(v2i u, f32 min, f32 max) {
     return v2i(
         clamp(u.x, min, max),
         clamp(u.y, min, max));
 }
 
-function v3i
+static v3i
 v3i_clampi(v3i u, f32 min, f32 max) {
     return v3i(
         clamp(u.x, min, max),
@@ -662,14 +657,14 @@ v3i_clampi(v3i u, f32 min, f32 max) {
         clamp(u.z, min, max));
 }
 
-function v2
+static v2
 v2_clamp(v2 u, r2 r) {
     return v2(
         clamp(u.x, r.min.x, r.max.x),
         clamp(u.y, r.min.y, r.max.y));
 }
 
-function v3
+static v3
 v3_clamp(v3 u, r3 r) {
     return v3(
         clamp(u.x, r.min.x, r.max.x),
@@ -677,14 +672,14 @@ v3_clamp(v3 u, r3 r) {
         clamp(u.z, r.min.z, r.max.z));
 }
 
-function v2i
+static v2i
 v2i_clamp(v2i u, r2i r) {
     return v2i(
         clamp(u.x, r.min.x, r.max.x),
         clamp(u.y, r.min.y, r.max.y));
 }
 
-function v3i
+static v3i
 v3i_clamp(v3i u, r3i r) {
     return v3i(
         clamp(u.x, r.min.x, r.max.x),
@@ -698,14 +693,14 @@ v3i_clamp(v3i u, r3i r) {
 #define min(a, b)   ((a) < (b)? (a) : (b))
 #endif
 
-function v2
+static v2
 v2_min(v2 a, v2 b) {
     return v2(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y);
 }
 
-function v3
+static v3
 v3_min(v3 a, v3 b) {
     return v3(
         a.x < b.x? a.x : b.x,
@@ -713,7 +708,7 @@ v3_min(v3 a, v3 b) {
         a.z < b.z? a.z : b.z);
 }
 
-function v4
+static v4
 v4_min(v4 a, v4 b) {
     return v4(
         a.x < b.x? a.x : b.x,
@@ -722,14 +717,14 @@ v4_min(v4 a, v4 b) {
         a.w < b.w? a.w : b.w);
 }
 
-function v2i
+static v2i
 v2i_min(v2i a, v2i b) {
     return v2i(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y);
 }
 
-function v3i
+static v3i
 v3i_min(v3i a, v3i b) {
     return v3i(
         a.x < b.x? a.x : b.x,
@@ -737,7 +732,7 @@ v3i_min(v3i a, v3i b) {
         a.z < b.z? a.z : b.z);
 }
 
-function v4i
+static v4i
 v4i_min(v4i a, v4i b) {
     return v4i(
         a.x < b.x? a.x : b.x,
@@ -752,14 +747,14 @@ v4i_min(v4i a, v4i b) {
 #define max(a, b) ((a) > (b)? (a) : (b))
 #endif
 
-function v2
+static v2
 v2_max(v2 a, v2 b) {
     return v2(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y);
 }
 
-function v3
+static v3
 v3_max(v3 a, v3 b) {
     return v3(
         a.x > b.x? a.x : b.x,
@@ -767,7 +762,7 @@ v3_max(v3 a, v3 b) {
         a.z > b.z? a.z : b.z);
 }
 
-function v4
+static v4
 v4_max(v4 a, v4 b) {
     return v4(
         a.x > b.x? a.x : b.x,
@@ -776,14 +771,14 @@ v4_max(v4 a, v4 b) {
         a.w > b.w? a.w : b.w);
 }
 
-function v2i
+static v2i
 v2i_max(v2i a, v2i b) {
     return v2i(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y);
 }
 
-function v3i
+static v3i
 v3i_max(v3i a, v3i b) {
     return v3i(
         a.x > b.x? a.x : b.x,
@@ -791,7 +786,7 @@ v3i_max(v3i a, v3i b) {
         a.z > b.z? a.z : b.z);
 }
 
-function v4i
+static v4i
 v4i_max(v4i a, v4i b) {
     return v4i(
         a.x > b.x? a.x : b.x,
@@ -804,14 +799,14 @@ v4i_max(v4i a, v4i b) {
 
 #define lerp(a, b, t) ((a) + (f32)(t) * ((b) - (a)))
 
-function v2
+static v2
 v2_lerp(v2 a, v2 b, f32 t) {
     return v2(
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y));
 }
 
-function v3
+static v3
 v3_lerp(v3 a, v3 b, f32 t) {
     return v3(
         a.x + t * (b.x - a.x),
@@ -819,7 +814,7 @@ v3_lerp(v3 a, v3 b, f32 t) {
         a.z + t * (b.z - a.z));
 }
 
-function v4
+static v4
 v4_lerp(v4 a, v4 b, f32 t) {
     return v4(
         a.x + t * (b.x - a.x),
@@ -832,17 +827,17 @@ v4_lerp(v4 a, v4 b, f32 t) {
 
 #define sign(n) ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
-function v2 v2_sign(v2 u) { return v2(sign(u.x), sign(u.y)); }
-function v3 v3_sign(v3 u) { return v3(sign(u.x), sign(u.y), sign(u.z)); }
-function v4 v4_sign(v4 u) { return v4(sign(u.x), sign(u.y), sign(u.z), sign(u.w)); }
+static v2 v2_sign(v2 u) { return v2(sign(u.x), sign(u.y)); }
+static v3 v3_sign(v3 u) { return v3(sign(u.x), sign(u.y), sign(u.z)); }
+static v4 v4_sign(v4 u) { return v4(sign(u.x), sign(u.y), sign(u.z), sign(u.w)); }
 
-function v2i v2i_sign(v2i u) { return v2i(sign(u.x), sign(u.y)); }
-function v3i v3i_sign(v3i u) { return v3i(sign(u.x), sign(u.y), sign(u.z)); }
-function v4i v4i_sign(v4i u) { return v4i(sign(u.x), sign(u.y), sign(u.z), sign(u.w)); }
+static v2i v2i_sign(v2i u) { return v2i(sign(u.x), sign(u.y)); }
+static v3i v3i_sign(v3i u) { return v3i(sign(u.x), sign(u.y), sign(u.z)); }
+static v4i v4i_sign(v4i u) { return v4i(sign(u.x), sign(u.y), sign(u.z), sign(u.w)); }
 
 // --------------- cross ------------------- //
 
-function v3
+static v3
 v3_cross(v3 a, v3 b) {
     return v3(
         a.y * b.z - a.z * b.y,
@@ -852,7 +847,7 @@ v3_cross(v3 a, v3 b) {
 
 // --------------- get angle ------------------- //
 
-function f32
+static f32
 v2_get_angle(v2 a, v2 b) {
     f32 det = a.x * b.y - b.x * a.y;
     f32 dot = a.x * b.x + a.y * b.y;
@@ -861,7 +856,7 @@ v2_get_angle(v2 a, v2 b) {
 
 // ----------- keep min ---------- //
 
-function v3
+static v3
 v3_keep_min(v3 u) {
     f32 dx = fabsf(u.x);
     f32 dy = fabsf(u.y);
@@ -874,7 +869,7 @@ v3_keep_min(v3 u) {
 
 // ----------- mask min ---------- //
 
-function v3
+static v3
 v3_mask_min(v3 u) {
     f32 dx = fabsf(u.x);
     f32 dy = fabsf(u.y);
@@ -889,14 +884,14 @@ v3_mask_min(v3 u) {
 
 // ------------------ transform/scale/rotate ------------------ //
 
-function m2
+static m2
 m2_rotate(f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
     return m2(c, s, -s, c);
 }
 
-function m3
+static m3
 m3_rotate(v3 axis, f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
@@ -917,7 +912,7 @@ m3_rotate(v3 axis, f32 angle) {
         omca.z * axis.z + c);
 }
 
-function m4
+static m4
 m4_rotate(v3 axis, f32 angle) {
     f32 cosv = cosf(angle);
     f32 sinv = sinf(angle);
@@ -933,7 +928,7 @@ m4_rotate(v3 axis, f32 angle) {
         0, 0, 0, 1);
 }
 
-function struct quat
+static struct quat
 quat_rotate(v3 axis, f32 angle) {
     f32 s = sinf(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
@@ -941,7 +936,7 @@ quat_rotate(v3 axis, f32 angle) {
     return quat(v.x, v.y, v.z, cosf(0.5f * angle));
 }
 
-function m4
+static m4
 m4_translate(f32 x, f32 y, f32 z) {
     return m4(
         1, 0, 0, 0,
@@ -950,7 +945,7 @@ m4_translate(f32 x, f32 y, f32 z) {
         x, y, z, 1);
 }
 
-function m4
+static m4
 m4_scale(f32 x, f32 y, f32 z) {
     return m4(
         x, 0, 0, 0,
@@ -961,7 +956,7 @@ m4_scale(f32 x, f32 y, f32 z) {
 
 // --------------- from quat --------------- //
 
-function m3
+static m3
 m3_from_quat(struct quat q) {
     f32 a = q.w;
 	f32 b = q.x;
@@ -987,7 +982,7 @@ m3_from_quat(struct quat q) {
         a2 - b2 - c2 + d2);
 }
 
-function m4
+static m4
 m4_from_quat(struct quat q) {
     f32 a = q.w;
 	f32 b = q.x;
@@ -1023,7 +1018,7 @@ m4_from_quat(struct quat q) {
 
 // --------------- view matricies --------------- //
 
-function m4
+static m4
 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     return m4(
         2 / (r - l),            0,                      0,                      0,
@@ -1032,7 +1027,7 @@ m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
         -(r + l) / (r - l),     -(t + b) / (t - b),     -(f + n) / (f - n),     1);
 }
 
-function m4
+static m4
 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     f32 a = 1.0f / tanf(y_fov / 2.0f);
 
@@ -1043,7 +1038,7 @@ m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
         0,              0,      -((2 * f * n) / (f - n)),   0);
 }
 
-function m4
+static m4
 m4_look_at(v3 eye, v3 center, v3 up) {
     v3 f = v3_norm(v3_sub(center, eye));
     v3 s = v3_norm(v3_cross(f, up));
@@ -1075,7 +1070,7 @@ m4_look_at(v3 eye, v3 center, v3 up) {
 
 // ----------------- plane/frustrum ------------------- //
 
-function struct plane
+static struct plane
 plane_normalize(struct plane plane) {
     f32 r_len = rsqrt32(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
 
@@ -1087,7 +1082,7 @@ plane_normalize(struct plane plane) {
     return plane;
 }
 
-function struct frustum
+static struct frustum
 frustum_create(m4 m) {
     struct frustum result;
 
@@ -1139,26 +1134,26 @@ frustum_create(m4 m) {
 
 // ------------------ contains ------------------ //
 
-function b32
+static b32
 circle_contains(struct circle c, v2 pos) {
     f32 distance = v2_dist_sq(c.pos, pos);
     return distance < (c.rad * c.rad);
 }
 
-function b32
+static b32
 sphere_contains(struct sphere s, v3 pos) {
     f32 distance = v3_dist_sq(s.pos, pos);
     return distance < (s.rad * s.rad);
 }
 
-function b32
+static b32
 r2_contains(r2 rect, v2 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     return true;
 }
 
-function b32
+static b32
 r3_contains(r3 rect, v3 pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1166,14 +1161,14 @@ r3_contains(r3 rect, v3 pos) {
     return true;
 }
 
-function b32
+static b32
 r2i_contains(r2i rect, v2i pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
     return true;
 }
 
-function b32
+static b32
 r3i_contains(r3i rect, v3i pos) {
     if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
     if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
@@ -1181,7 +1176,7 @@ r3i_contains(r3i rect, v3i pos) {
     return true;
 }
 
-function b32
+static b32
 frustum_contains(struct frustum fs, v3 pos) {
     for (i32 i = 0; i < 6; i++) {
 		if (fs.plane[i].a * pos.x + fs.plane[i].b * pos.y + fs.plane[i].c * pos.z + fs.plane[i].d <= 0)
@@ -1193,7 +1188,7 @@ frustum_contains(struct frustum fs, v3 pos) {
 
 // ------------------ intersect ------------------ //
 
-function b32
+static b32
 circle_intersect(struct circle a, struct circle b) {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
@@ -1201,7 +1196,7 @@ circle_intersect(struct circle a, struct circle b) {
     return (dx * dx + dy * dy) < (rt * rt);
 }
 
-function b32
+static b32
 sphere_intersect(struct sphere a, struct sphere b) {
     f32 dx = b.pos.x - a.pos.x;
     f32 dy = b.pos.y - a.pos.y;
@@ -1210,14 +1205,14 @@ sphere_intersect(struct sphere a, struct sphere b) {
     return (dx * dx + dy * dy) < (rt * rt);
 }
 
-function b32
+static b32
 r2_intersect(r2 a, r2 b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
     return true;
 }
 
-function b32
+static b32
 r3_intersect(r3 a, r3 b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1226,7 +1221,7 @@ r3_intersect(r3 a, r3 b) {
     return true;
 }
 
-function b32
+static b32
 r2i_intersect(r2i a, r2i b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1234,7 +1229,7 @@ r2i_intersect(r2i a, r2i b) {
     return true;
 }
 
-function b32
+static b32
 r3i_intersect(r3i a, r3i b) {
     if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
     if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
@@ -1243,7 +1238,7 @@ r3i_intersect(r3i a, r3i b) {
     return true;
 }
 
-function b32
+static b32
 frustum_intersect_sphere(struct frustum fs, struct sphere sphere) {
     for (i32 i = 0; i < 6; i++) {
 		if(fs.plane[i].a * sphere.pos.x + fs.plane[i].b * sphere.pos.y + fs.plane[i].c * sphere.pos.z + fs.plane[i].d <= -sphere.rad) {
@@ -1253,7 +1248,7 @@ frustum_intersect_sphere(struct frustum fs, struct sphere sphere) {
 	return true;
 }
 
-function b32
+static b32
 frustum_intersect_r3(struct frustum fs, r3 rect) {
     for (int i = 0; i < 6; i++) {
 		if (fs.plane[i].a * rect.min.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
@@ -1271,28 +1266,28 @@ frustum_intersect_r3(struct frustum fs, r3 rect) {
 
 // ------------------- get overlap --------------- //
 
-function r2
+static r2
 r2_get_overlap(r2 a, r2 b) {
     return r2(
         v2_max(a.min, b.min),
         v2_min(a.max, b.max));
 }
 
-function r3
+static r3
 r3_get_overlap(r3 a, r3 b) {
     return r3(
         v3_max(a.min, b.min),
         v3_min(a.max, b.max));
 }
 
-function r2i
+static r2i
 r2i_get_overlap(r2i a, r2i b) {
     return r2i(
         v2i_max(a.min, b.min),
         v2i_min(a.max, b.max));
 }
 
-function r3i
+static r3i
 r3i_get_overlap(r3i a, r3i b) {
     return r3i(
         v3i_max(a.min, b.min),
@@ -1301,21 +1296,21 @@ r3i_get_overlap(r3i a, r3i b) {
 
 // -------------- get intersect vector ---------- //
 
-function v2
+static v2
 circle_get_intersect_vector(struct circle a, struct circle b) {
     v2 delta = v2_sub(a.pos, b.pos);
     f32 depth = v2_len(delta) - (a.rad + b.rad);
     return v2_scale(delta, -depth);
 }
 
-function v3
+static v3
 sphere_get_intersect_vector(struct sphere a, struct sphere b) {
     v3 delta = v3_sub(a.pos, b.pos);
     f32 depth = v3_len(delta) - (a.rad + b.rad);
     return v3_scale(delta, -depth);
 }
 
-function v2
+static v2
 r2_get_intersect_vector(r2 a, r2 b) {
     r2 overlap  = r2_get_overlap(a, b);
     v2 delta = {
@@ -1325,7 +1320,7 @@ r2_get_intersect_vector(r2 a, r2 b) {
     return v2_mul(v2_sub(overlap.max, overlap.min), v2_sign(delta));
 }
 
-function v3
+static v3
 r3_get_intersect_vector(r3 a, r3 b) {
     r3 overlap = r3_get_overlap(a, b);
     v3 delta = {
@@ -1336,7 +1331,7 @@ r3_get_intersect_vector(r3 a, r3 b) {
     return v3_mul(v3_sub(overlap.max, overlap.min), v3_sign(delta));
 }
 
-function v2i
+static v2i
 v2i_get_intersect_vector(r2i a, r2i b) {
     r2i overlap = r2i_get_overlap(a, b);
     v2i delta = {
@@ -1346,7 +1341,7 @@ v2i_get_intersect_vector(r2i a, r2i b) {
     return v2i_mul(v2i_sub(overlap.max, overlap.min), v2i_sign(delta));
 }
 
-function v3i
+static v3i
 v3i_get_intersect_vector(r3i a, r3i b) {
     r3i overlap = r3i_get_overlap(a, b);
     v3i delta = {
@@ -1359,7 +1354,7 @@ v3i_get_intersect_vector(r3i a, r3i b) {
 
 // ---------------------- random ------------------------ //
 
-function u32
+static u32
 rand_u32(u32* state) {
     u32 x = *state;
 	x ^= x << 13;
@@ -1369,42 +1364,42 @@ rand_u32(u32* state) {
 }
 
 // [min, max)
-function i32
+static i32
 rand_i32(u32* state, i32 min, i32 max) {
     assert(min < max);
     return min + rand_u32(state) % (max - min);
 }
 
-function f32
+static f32
 rand_f32(u32* state, f32 min, f32 max) {
     return min + ((f32)rand_u32(state) / (f32)0xffffffff) * (max - min); 
 }
 
-function v2
+static v2
 rand_unit_v2(u32* state) {
     v2 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
     return v2_norm(out);
 }
 
-function v3
+static v3
 rand_unit_v3(u32* state) {
     v3 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
     return v3_norm(out);
 }
 
-function v2
+static v2
 rand_v2(u32* state, f32 min, f32 max) {
     return v2_scale(rand_unit_v2(state), rand_f32(state, min, max));
 }
 
-function v3
+static v3
 rand_v3(u32* state, f32 min, f32 max) {
     return v3_scale(rand_unit_v3(state), rand_f32(state, min, max));
 }
 
 // ----------------------- hash ------------------------- //
 
-function u32
+static u32
 hash_u32(u32 a) {
     a = (a ^ 61) ^ (a >> 16);
     a = a + (a << 3);
@@ -1415,14 +1410,14 @@ hash_u32(u32 a) {
     return a;
 }
 
-function u32
+static u32
 hash_i32(i32 a) {
     union { u32 u; i32 i; } convert;
     convert.i = a;
     return hash_u32(convert.u);
 }
 
-function u32
+static u32
 hash_str(const char* str) {
     u32 hash = 0;
     while (*str) {
@@ -1431,7 +1426,7 @@ hash_str(const char* str) {
     return hash + (hash >> 16);
 }
 
-global const u32 crc_table[] = {
+static const u32 crc_table[] = {
     0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b, 0x1a864db2, 0x1e475005,
     0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61, 0x350c9b64, 0x31cd86d3, 0x3c8ea00a, 0x384fbdbd,
     0x4c11db70, 0x48d0c6c7, 0x4593e01e, 0x4152fda9, 0x5f15adac, 0x5bd4b01b, 0x569796c2, 0x52568b75,
@@ -1466,7 +1461,7 @@ global const u32 crc_table[] = {
     0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668, 0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
 
-function u32
+static u32
 hash_mem(const void *data, u32 size) {
     const u8 *d = (const u8*)data;
     u32 crc = 0xFFFFFFFF;
@@ -1482,14 +1477,14 @@ hash_mem(const void *data, u32 size) {
 #define HASH_PRIME2 4280703257u
 #define HASH_PRIME3 1609059329u
 
-function u32
+static u32
 hash_v2i(v2i k) {
     u32 a = hash_i32(k.x);
     u32 b = hash_i32(k.y);
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
-function u32
+static u32
 hash_v3i(v3i k) {
     u32 a = hash_i32(k.x);
     u32 b = hash_i32(k.y);
@@ -1497,7 +1492,7 @@ hash_v3i(v3i k) {
     return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
 }
 
-function u32
+static u32
 hash_v4i(v4i k) {
     u32 a = hash_i32(k.x);
     u32 b = hash_i32(k.y);
@@ -1508,7 +1503,7 @@ hash_v4i(v4i k) {
 
 // --------------------- packed color u32 -------------------- //
 
-function u32
+static u32
 pack_color_u8(u8 r, u8 g, u8 b, u8 a) {
     u32 color = 0;
     color |= (u32)(r) << 0;
@@ -1518,24 +1513,24 @@ pack_color_u8(u8 r, u8 g, u8 b, u8 a) {
     return color;
 }
 
-function u32
+static u32
 pack_color_f32(f32 r, f32 g, f32 b, f32 a) {
     return pack_color_u8((u8)(255 * r), (u8)(255 * g), (u8)(255 * b), (u8)(255 * a));
 }
 
-function u32
+static u32
 pack_color_v4(v4 color) {
     return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
-function u32
+static u32
 pack_color_v3(v3 color, f32 a) {
     return pack_color_f32(color.r, color.g, color.b, a);
 }
 
 // -------------------- f64 matrix funcs ------------------- //
 
-internal void
+static void
 f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
     f64 M[16];
 
@@ -1580,7 +1575,7 @@ f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
     R[15] = M[15];
 }
 
-internal void
+static void
 f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
     f64 r[4];
 
@@ -1595,7 +1590,7 @@ f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
     out[3] = r[3];
 }
 
-internal void
+static void
 f4x4_invert_64(f64* T, const f64* M) {
 	f64 s[6], c[6];
 
@@ -1637,7 +1632,7 @@ f4x4_invert_64(f64* T, const f64* M) {
 	T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-internal b32
+static b32
 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
     f64 fTempo[8];
 
@@ -1667,7 +1662,7 @@ f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* 
     return true;
 }
 
-internal b32
+static b32
 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
     f64 m[16], A[16];
     f64 in[4], out[4];
@@ -1696,21 +1691,21 @@ f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64
 
 // ===================================== MEM STUFF ================================= //
 
-function void
+static void
 memory_clear(void* data, usize size) {
     volatile u8* d = (u8*)data;
     while (size--)
         *(d++) = 0;
 }
 
-function void
+static void
 memory_set(void* data, u8 value, usize size) {
     volatile u8* d = (u8*)data;
     while (size--)
         *(d++) = value;
 }
 
-function void
+static void
 memory_copy(void* dst, const void* src, usize size) {
     volatile u8*        d = (u8*)dst;
     volatile const u8*  s = (u8*)src;
@@ -1785,7 +1780,7 @@ ma_validate(struct memory_arena* ma) {
 
 // --------------------- read/write files ------------------------- //
 
-function usize
+static usize
 file_get_size(FILE* fp) {
     fseek(fp, 0L, SEEK_END);
     usize size = ftell(fp);

@@ -149,7 +149,7 @@ gl_get_world_position(int x, int y) {
 
 #define BITMAP_COUNT (256)
 
-global const u64 bitascii[BITMAP_COUNT] = {
+static const u64 bitascii[BITMAP_COUNT] = {
     0x0000000000000000,
     0x7e8199bd81a5817e,
     0x7effe7c3ffdbff7e,
@@ -408,7 +408,7 @@ global const u64 bitascii[BITMAP_COUNT] = {
     0x007e424242427e00
 };
 
-global int bitmap_display_list[BITMAP_COUNT];
+static int bitmap_display_list[BITMAP_COUNT];
 
 #define BITMAP_GETBIT(N, X, Y) (((u64)(N)) & (1ull << (((u64)(Y)) * 8ull + ((u64)(X)))))
 

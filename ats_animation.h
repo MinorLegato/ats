@@ -49,15 +49,15 @@ extern void at_update(struct at_asset* asset, f32 dt);
 // ============================================================================================ //
 #ifdef ATS_IMPL
 
-global struct at_frame* at_current_frame = NULL;
-global struct at_animation* at_current_animation = NULL;
-global struct at_entity* at_current_entity = NULL;
+static struct at_frame* at_current_frame = NULL;
+static struct at_animation* at_current_animation = NULL;
+static struct at_entity* at_current_entity = NULL;
 
-global struct at_entity* at_entity_list = NULL;
-global usize at_mem_idx = 0;
-global u8 at_mem_buf[8 * MB];
+static struct at_entity* at_entity_list = NULL;
+static usize at_mem_idx = 0;
+static u8 at_mem_buf[8 * MB];
 
-function void*
+static void*
 at_push_size(usize size) {
     assert(at_mem_idx < array_count(at_mem_buf));
     u8* ptr = at_mem_buf + at_mem_idx;
@@ -69,7 +69,7 @@ at_push_size(usize size) {
 #define at_push_type(type) (type*)at_push_size(sizeof (type))
 #define at_push_array(type, size) (type*)at_push_size((size) * sizeof (type))
 
-function struct at_string
+static struct at_string
 at_string_create(const char* c_str) {
     struct at_string str = {0};
     str.len = strlen(c_str) + 1;
@@ -78,13 +78,13 @@ at_string_create(const char* c_str) {
     return str;
 }
 
-function b32
+static b32
 at_equal(struct at_string a, struct at_string b) {
     if (a.len != b.len) return false;
     return strcmp(a.buf, b.buf) == 0;
 }
 
-function b32
+static b32
 at_equal_cstr(struct at_string a, const char* b) {
     if (a.len == 0 || b == NULL) return false;
     return strcmp(a.buf, b) == 0;
@@ -171,7 +171,7 @@ at_update(struct at_asset* asset, f32 dt) {
     }
 }
 
-function struct at_entity*
+static struct at_entity*
 at_get_entity(const char* name) {
     struct at_entity* entity = at_entity_list;
     while (entity && !at_equal_cstr(entity->name, name)) {

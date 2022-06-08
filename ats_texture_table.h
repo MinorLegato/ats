@@ -46,13 +46,13 @@ struct tt_image {
     char name[256];
 };
 
-global struct texture_table tt_table;
+static struct texture_table tt_table;
 
-global usize tt_image_count;
-global usize tt_image_capacity;
-global struct tt_image* tt_image_array;
+static usize tt_image_count;
+static usize tt_image_capacity;
+static struct tt_image* tt_image_array;
 
-function struct tt_image*
+static struct tt_image*
 tt_new_image(void) {
     if (tt_image_count >= tt_image_capacity) {
         tt_image_capacity = !tt_image_capacity? 256 : (tt_image_capacity << 1);
@@ -101,7 +101,7 @@ tt_get(const char* name) {
     return tt_get_rect(tt_get_id(name));
 }
 
-function void
+static void
 _tt_add_entry(const char* name, r2i rect) {
     u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
@@ -122,7 +122,7 @@ _tt_add_entry(const char* name, r2i rect) {
     strcpy_s(entry->name, 64, name);
 }
 
-function void
+static void
 cstr_copy_without_extension(char* out, char* str) {
     int i = strlen(str) - 1;
     while (i && str[i] != '.') i--;
@@ -130,14 +130,14 @@ cstr_copy_without_extension(char* out, char* str) {
     out[i] = '\0';
 }
 
-function void
+static void
 cstr_concat(char* out, const char* a, const char* b) {
     while (*a) *out++ = *a++;
     while (*b) *out++ = *b++;
     *(out) = '\0';
 }
 
-function int
+static int
 tt_cmp_image(const void* va, const void* vb) {
     struct tt_image* a = (struct tt_image*)va;
     struct tt_image* b = (struct tt_image*)vb;
@@ -196,7 +196,7 @@ struct tt_rect_stack {
     r2i* buf;
 };
 
-function void
+static void
 tt_push_rect(struct tt_rect_stack* stack, r2i rect) {
     if (stack->top >= stack->cap) {
         stack->cap = !stack->cap? 256 : (stack->cap << 1);
@@ -205,7 +205,7 @@ tt_push_rect(struct tt_rect_stack* stack, r2i rect) {
     stack->buf[stack->top++] = rect;
 }
 
-function r2i
+static r2i
 tt_get_fit(struct tt_rect_stack* stack, struct image image) {
     u32 j = 0;
     for (j = 0; j < stack->top; ++j) {
