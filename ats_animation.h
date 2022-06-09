@@ -3,7 +3,7 @@
 
 struct at_string {
     usize len;
-    char* buf;
+    const char* buf;
 };
 
 struct at_frame {
@@ -73,8 +73,7 @@ static struct at_string
 at_string_create(const char* c_str) {
     struct at_string str = {0};
     str.len = strlen(c_str) + 1;
-    str.buf = at_push_array(char, str.len);
-    strcpy(str.buf, c_str);
+    str.buf = c_str;
     return str;
 }
 
@@ -86,7 +85,6 @@ at_equal(struct at_string a, struct at_string b) {
 
 static b32
 at_equal_cstr(struct at_string a, const char* b) {
-    if (a.len == 0 || b == NULL) return false;
     return strcmp(a.buf, b) == 0;
 }
 
