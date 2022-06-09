@@ -1,26 +1,21 @@
 #ifndef __ATS_ANIMATION_H__
 #define __ATS_ANIMATION_H__
 
-struct at_string {
-    usize len;
-    const char* buf;
-};
-
 struct at_frame {
-    struct at_string name;
+    const char* name;
     r2i rect;
     struct at_frame* next;
     struct at_animation* animation;
 };
 
 struct at_animation {
-    struct at_string name;
+    const char* name;
     struct at_frame* frame;
     struct at_animation* next;
 };
 
 struct at_entity {
-    struct at_string name;
+    const char* name;
     struct at_animation* animation;
     struct at_entity* next;
 };
@@ -67,33 +62,14 @@ at_push_size(usize size) {
 }
 
 #define at_push_type(type) (type*)at_push_size(sizeof (type))
-#define at_push_array(type, size) (type*)at_push_size((size) * sizeof (type))
-
-static struct at_string
-at_string_create(const char* c_str) {
-    struct at_string str = {0};
-    str.len = strlen(c_str) + 1;
-    str.buf = c_str;
-    return str;
-}
-
-static b32
-at_equal(struct at_string a, struct at_string b) {
-    if (a.len != b.len) return false;
-    return strcmp(a.buf, b.buf) == 0;
-}
-
-static b32
-at_equal_cstr(struct at_string a, const char* b) {
-    return strcmp(a.buf, b) == 0;
-}
 
 extern void
 at_add_entity(const char* name) {
+    assert(name);
     at_current_animation = NULL;
     at_current_frame = NULL;
     struct at_entity* entity = at_push_type(struct at_entity);
-    entity->name = at_string_create(name);
+    entity->name = name;
     if (!at_entity_list) {
         at_entity_list = entity;
     } else {
@@ -104,9 +80,10 @@ at_add_entity(const char* name) {
 
 extern void
 at_add_animation(const char* name) {
+    assert(name);
     at_current_frame = NULL;
     struct at_animation* animation = at_push_type(struct at_animation);
-    animation->name = at_string_create(name);
+    animation->name = name;
 
     if (!at_current_entity->animation) {
         at_current_entity->animation = animation;
@@ -118,8 +95,9 @@ at_add_animation(const char* name) {
 
 extern void
 at_add_frame(const char* name) {
+    assert(name);
     struct at_frame* frame = at_push_type(struct at_frame);
-    frame->name = at_string_create(name);
+    frame->name = name;
     frame->rect = tt_get(name);
     frame->animation = at_current_animation;
     if (!at_current_animation->frame) {
@@ -145,12 +123,21 @@ at_end(void) {
     // @NOTE: do some cool shit here!
 }
 
+static inline b32
+at_cstr_equal(const char* a, const char* b) {
+    while (*a && *a == *b) {
+        a++;
+        b++;
+    }
+    return *a == *b;
+}
+
 extern void
 at_set(struct at_asset* asset, const char* name) {
-    if (at_equal_cstr(asset->frame->animation->name, name)) return;
+    if (at_cstr_equal(asset->frame->animation->name, name)) return;
 
     struct at_animation* animation = asset->entity->animation;
-    while (animation && !at_equal_cstr(animation->name, name)) {
+    while (animation && !at_cstr_equal(animation->name, name)) {
         animation = animation->next;
     }
 
@@ -172,7 +159,7 @@ at_update(struct at_asset* asset, f32 dt) {
 static struct at_entity*
 at_get_entity(const char* name) {
     struct at_entity* entity = at_entity_list;
-    while (entity && !at_equal_cstr(entity->name, name)) {
+    while (entity && !at_cstr_equal(entity->name, name)) {
         entity = entity->next;
     }
     return entity? entity : NULL;
