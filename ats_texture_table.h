@@ -7,32 +7,32 @@
 #define TEXTURE_BORDER 0
 #endif
 
-struct texture_id {
+typedef struct texture_id {
     u16 index;
-};
+} texture_id;
 
-struct texture_entry {
+typedef struct texture_entry {
     b32 in_use;
     u32 hash;
     r2i rect;
     char name[64];
-};
+} texture_entry;
 
-struct texture_table {
-    struct image image;
-    struct texture_entry array[TEXTURE_TABLE_SIZE];
-};
+typedef struct texture_table {
+    image image;
+    texture_entry array[TEXTURE_TABLE_SIZE];
+} texture_table;
 
 extern void tt_begin(int width, int height);
 extern void tt_end(void);
-extern void tt_add_image(const char* name, struct image image);
+extern void tt_add_image(const char* name, image image);
 extern void tt_load_from_dir(const char* dir_path);
 
-extern struct texture_id tt_get_id(const char* name);
-extern r2i tt_get_rect(struct texture_id id);
+extern texture_id tt_get_id(const char* name);
+extern r2i tt_get_rect(texture_id id);
 extern r2i tt_get(const char* name);
 
-extern struct image tt_get_image(void);
+extern image tt_get_image(void);
 
 #endif // __ATS_TEXTURE_TABLE_H__
 
@@ -41,59 +41,59 @@ extern struct image tt_get_image(void);
 // ====================================== IMPL ========================================== //
 // ====================================================================================== //
 
-struct tt_image {
-    struct image image;
+typedef struct tt_image {
+    image image;
     char name[256];
-};
+} tt_image;
 
-static struct texture_table tt_table;
+static texture_table tt_table;
 
 static usize tt_image_count;
 static usize tt_image_capacity;
-static struct tt_image* tt_image_array;
+static tt_image* tt_image_array;
 
-static struct tt_image*
+static tt_image*
 tt_new_image(void) {
     if (tt_image_count >= tt_image_capacity) {
         tt_image_capacity = !tt_image_capacity? 256 : (tt_image_capacity << 1);
         tt_image_array = realloc(tt_image_array, tt_image_capacity * (sizeof *tt_image_array));
     }
 
-    struct tt_image* data = &tt_image_array[tt_image_count++];
+    tt_image* data = &tt_image_array[tt_image_count++];
     memset(data, 0, sizeof (data));
     return data;
 }
 
 extern void
-tt_add_image(const char* name, struct image image) {
-    struct tt_image* data = tt_new_image();
+tt_add_image(const char* name, image image) {
+    tt_image* data = tt_new_image();
     strcpy(data->name, name);
     data->image = image;
 }
 
-extern struct image
+extern image
 tt_get_image(void) {
     return tt_table.image;
 }
 
 extern r2i
-tt_get_rect(struct texture_id id) {
+tt_get_rect(texture_id id) {
     return tt_table.array[id.index].rect;
 }
 
-extern struct texture_id
+extern texture_id
 tt_get_id(const char* name) {
     u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
     while (tt_table.array[index].in_use) {
         if ((tt_table.array[index].hash == hash) && (strcmp(tt_table.array[index].name, name) == 0)) {
-            struct texture_id id = { index };
+            texture_id id = { index };
             return id;
         }
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
     assert(false);
-    return (struct texture_id) {0};
+    return (texture_id) {0};
 }
 
 extern r2i
@@ -113,7 +113,7 @@ _tt_add_entry(const char* name, r2i rect) {
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
 
-    struct texture_entry* entry = &tt_table.array[index];
+    texture_entry* entry = &tt_table.array[index];
 
     entry->in_use = true;
     entry->rect = rect;
@@ -139,8 +139,8 @@ cstr_concat(char* out, const char* a, const char* b) {
 
 static int
 tt_cmp_image(const void* va, const void* vb) {
-    struct tt_image* a = (struct tt_image*)va;
-    struct tt_image* b = (struct tt_image*)vb;
+    tt_image* a = (tt_image*)va;
+    tt_image* b = (tt_image*)vb;
 
     int dw = b->image.width  - a->image.width;
     int dh = a->image.height - a->image.height;
@@ -149,7 +149,7 @@ tt_cmp_image(const void* va, const void* vb) {
 }
 
 extern b32
-rect_contains_image(r2i rect, struct image image) {
+rect_contains_image(r2i rect, image image) {
     i32 rect_width  = rect.max.x - rect.min.x;
     i32 rect_height = rect.max.y - rect.min.y;
     return image.width <= rect_width && image.height <= rect_height;
@@ -165,7 +165,7 @@ tt_load_from_dir(const char* dir_path) {
     assert(find_handle != INVALID_HANDLE_VALUE);
 
     do {
-        struct tt_image* data = tt_new_image();
+        tt_image* data = tt_new_image();
         char file_path[256];
         cstr_concat(file_path, dir_path, find_data.cFileName);
         data->image = image_load_from_file(file_path);
@@ -177,7 +177,7 @@ tt_load_from_dir(const char* dir_path) {
 
 extern void
 tt_begin(int width, int height) {
-    tt_table = (struct texture_table) {
+    tt_table = (texture_table) {
         width,
         height, 
         (u32*)calloc(width * height, sizeof (u32))
@@ -190,14 +190,14 @@ tt_begin(int width, int height) {
     }
 }
 
-struct tt_rect_stack {
+typedef struct tt_rect_stack {
     u32 top;
     u32 cap;
     r2i* buf;
-};
+} tt_rect_stack;
 
 static void
-tt_push_rect(struct tt_rect_stack* stack, r2i rect) {
+tt_push_rect(tt_rect_stack* stack, r2i rect) {
     if (stack->top >= stack->cap) {
         stack->cap = !stack->cap? 256 : (stack->cap << 1);
         stack->buf = realloc(stack->buf, stack->cap * sizeof (r2i));
@@ -206,7 +206,7 @@ tt_push_rect(struct tt_rect_stack* stack, r2i rect) {
 }
 
 static r2i
-tt_get_fit(struct tt_rect_stack* stack, struct image image) {
+tt_get_fit(tt_rect_stack* stack, image image) {
     u32 j = 0;
     for (j = 0; j < stack->top; ++j) {
         if (rect_contains_image(stack->buf[j], image)) {
@@ -220,13 +220,13 @@ tt_get_fit(struct tt_rect_stack* stack, struct image image) {
 
 extern void
 tt_end(void) {
-    struct tt_rect_stack stack = {0};
+    tt_rect_stack stack = {0};
     tt_push_rect(&stack, r2i(v2i(0, 0), v2i(tt_table.image.width - 1, tt_table.image.height - 1)));
 
-    qsort(tt_image_array, tt_image_count, sizeof (struct tt_image), tt_cmp_image);
+    qsort(tt_image_array, tt_image_count, sizeof (tt_image), tt_cmp_image);
 
     for (u32 i = 0; i < tt_image_count; ++i) {
-        struct tt_image* data = &tt_image_array[i];
+        tt_image* data = &tt_image_array[i];
         r2i rect = tt_get_fit(&stack, data->image);
         v2i size = v2i(data->image.width + 2, data->image.height + 2);
         v2i offset = rect.min;

@@ -89,16 +89,6 @@ typedef unsigned int uint;
 typedef long long isize;
 typedef unsigned long long usize;
 
-static_assert (sizeof (i8) >= 1, "i8 -- not enough bits!");
-static_assert (sizeof (i16) >= 2, "i16 -- not enough bits!");
-static_assert (sizeof (i32) >= 4, "i32 -- not enough bits!");
-static_assert (sizeof (i64) >= 8, "i64 -- not enough bits!");
-
-static_assert (sizeof (u8) >= 1, "u8 -- not enough bits!");
-static_assert (sizeof (u16) >= 2, "u16 -- not enough bits!");
-static_assert (sizeof (u32) >= 4, "u32 -- not enough bits!");
-static_assert (sizeof (u64) >= 8, "u64 -- not enough bits!");
-
 typedef u8 b8;
 typedef u16 b16;
 typedef u32 b32;
@@ -139,8 +129,8 @@ union v3 {
 union v4 {
     struct { f32 x, y, z, w; };
     struct { f32 r, g, b, a; };
-    struct { union v3 rgb; };
-    struct { union v3 xyz; };
+    struct { v3 rgb; };
+    struct { v3 xyz; };
     f32 e[4];
 };
 
@@ -151,7 +141,7 @@ union v2i {
 
 union v3i {
     struct { i32 x, y, z; };
-    struct { union v2i xy; };
+    struct { v2i xy; };
     i32 e[3];
 };
 
@@ -161,66 +151,66 @@ union v4i {
 };
 
 union m2 {
-    struct { union v2 x, y; };
+    struct { v2 x, y; };
     f32 e[4];
 };
 
 union m3 {
-    struct { union v3 x, y, z; };
+    struct { v3 x, y, z; };
     f32 e[9];
 };
 
 union m4 {
-    struct { union v4 x, y, z, w; };
+    struct { v4 x, y, z, w; };
     f32 e[16];
 };
 
 struct r2 {
-    union v2 min;
-    union v2 max;
+    v2 min;
+    v2 max;
 };
 
 struct r3 {
-    union v3 min;
-    union v3 max;
+    v3 min;
+    v3 max;
 };
 
 struct r2i {
-    union v2i min;
-    union v2i max;
+    v2i min;
+    v2i max;
 };
 
 struct r3i {
-    union v3i min;
-    union v3i max;
+    v3i min;
+    v3i max;
 };
 
-struct quat {
+typedef struct quat {
     f32 x, y, z, w;
-};
+} quat;
 
-struct circle {
-    union v2 pos;
+typedef struct circle {
+    v2 pos;
     f32 rad;
-};
+} circle;
 
-struct sphere {
-    union v3 pos;
+typedef struct sphere {
+    v3 pos;
     f32 rad;
-};
+} sphere;
 
-struct plane {
+typedef struct plane {
     f32 a;
     f32 b;
     f32 c;
     f32 d;
-};
+} plane;
 
-struct frustum {
-    struct plane plane[6];
-};
+typedef struct frustum {
+    plane planes[6];
+} frustum;
 
-struct memory_arena {
+typedef struct memory_arena {
     usize index;
     usize cap;
     u8* buffer;
@@ -230,13 +220,14 @@ struct memory_arena {
 
     usize lock;
     usize max;
-};
+} memory_arena;
 
-struct image {
+typedef struct image {
     i32 width;
     i32 height;
+
     u32* pixels;
-};
+} image;
 
 // ---------------------- arena allocator ------------------------ //
 
@@ -288,10 +279,10 @@ extern void image_set(struct image* img, i32 x, i32 y, u32 pixel);
 #define r2i(...) ((r2i) { __VA_ARGS__ })
 #define r3i(...) ((r3i) { __VA_ARGS__ })
 
-#define circle(...) ((struct circle) { __VA_ARGS__ })
-#define sphere(...) ((struct sphere) { __VA_ARGS__ })
+#define circle(...) ((circle) { __VA_ARGS__ })
+#define sphere(...) ((sphere) { __VA_ARGS__ })
 
-#define quat(...) ((struct quat) { __VA_ARGS__ })
+#define quat(...) ((quat) { __VA_ARGS__ })
 
 static m2
 m2_identity(void) {
@@ -498,8 +489,8 @@ m4_mul(m4 a, m4 b) {
         a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
 }
 
-static struct quat
-quat_mul(struct quat a, struct quat b) {
+static quat
+quat_mul(quat a, quat b) {
     return quat(
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -1071,63 +1062,63 @@ m4_look_at(v3 eye, v3 center, v3 up) {
 // ----------------- plane/frustrum ------------------- //
 
 static struct plane
-plane_normalize(struct plane plane) {
-    f32 r_len = rsqrt32(plane.a * plane.a + plane.b * plane.b + plane.c * plane.c);
+plane_normalize(plane p) {
+    f32 r_len = rsqrt32(p.a * p.a + p.b * p.b + p.c * p.c);
 
-    plane.a = plane.a * r_len;
-    plane.b = plane.b * r_len;
-    plane.c = plane.c * r_len;
-    plane.d = plane.d * r_len;
+    p.a = p.a * r_len;
+    p.b = p.b * r_len;
+    p.c = p.c * r_len;
+    p.d = p.d * r_len;
 
-    return plane;
+    return p;
 }
 
-static struct frustum
+static frustum
 frustum_create(m4 m) {
     struct frustum result;
 
     // left clipping plane
-    result.plane[0].a = m.e[3]  + m.e[0];
-    result.plane[0].b = m.e[7]  + m.e[4];
-    result.plane[0].c = m.e[11] + m.e[8];
-    result.plane[0].d = m.e[15] + m.e[12];
+    result.planes[0].a = m.e[3]  + m.e[0];
+    result.planes[0].b = m.e[7]  + m.e[4];
+    result.planes[0].c = m.e[11] + m.e[8];
+    result.planes[0].d = m.e[15] + m.e[12];
 
     // right clipping plane
-    result.plane[1].a = m.e[3]  - m.e[0];
-    result.plane[1].b = m.e[7]  - m.e[4];
-    result.plane[1].c = m.e[11] - m.e[8];
-    result.plane[1].d = m.e[15] - m.e[12];
+    result.planes[1].a = m.e[3]  - m.e[0];
+    result.planes[1].b = m.e[7]  - m.e[4];
+    result.planes[1].c = m.e[11] - m.e[8];
+    result.planes[1].d = m.e[15] - m.e[12];
 
     // top clipping plane
-    result.plane[2].a = m.e[3]  - m.e[1];
-    result.plane[2].b = m.e[7]  - m.e[5];
-    result.plane[2].c = m.e[11] - m.e[9];
-    result.plane[2].d = m.e[15] - m.e[13];
+    result.planes[2].a = m.e[3]  - m.e[1];
+    result.planes[2].b = m.e[7]  - m.e[5];
+    result.planes[2].c = m.e[11] - m.e[9];
+    result.planes[2].d = m.e[15] - m.e[13];
 
     // bottom clipping plane
-    result.plane[3].a = m.e[3]  + m.e[1];
-    result.plane[3].b = m.e[7]  + m.e[5];
-    result.plane[3].c = m.e[11] + m.e[9];
-    result.plane[3].d = m.e[15] + m.e[13];
+    result.planes[3].a = m.e[3]  + m.e[1];
+    result.planes[3].b = m.e[7]  + m.e[5];
+    result.planes[3].c = m.e[11] + m.e[9];
+    result.planes[3].d = m.e[15] + m.e[13];
 
     // near clipping plane
-    result.plane[4].a = m.e[3]  + m.e[2];
-    result.plane[4].b = m.e[7]  + m.e[6];
-    result.plane[4].c = m.e[11] + m.e[10];
-    result.plane[4].d = m.e[15] + m.e[14];
+    result.planes[4].a = m.e[3]  + m.e[2];
+    result.planes[4].b = m.e[7]  + m.e[6];
+    result.planes[4].c = m.e[11] + m.e[10];
+    result.planes[4].d = m.e[15] + m.e[14];
 
     // far clipping plane
-    result.plane[5].a = m.e[3]  - m.e[2];
-    result.plane[5].b = m.e[7]  - m.e[6];
-    result.plane[5].c = m.e[11] - m.e[10];
-    result.plane[5].d = m.e[15] - m.e[14];
+    result.planes[5].a = m.e[3]  - m.e[2];
+    result.planes[5].b = m.e[7]  - m.e[6];
+    result.planes[5].c = m.e[11] - m.e[10];
+    result.planes[5].d = m.e[15] - m.e[14];
 
-    result.plane[0] = plane_normalize(result.plane[0]);
-    result.plane[1] = plane_normalize(result.plane[1]);
-    result.plane[2] = plane_normalize(result.plane[2]);
-    result.plane[3] = plane_normalize(result.plane[3]);
-    result.plane[4] = plane_normalize(result.plane[4]);
-    result.plane[5] = plane_normalize(result.plane[5]);
+    result.planes[0] = plane_normalize(result.planes[0]);
+    result.planes[1] = plane_normalize(result.planes[1]);
+    result.planes[2] = plane_normalize(result.planes[2]);
+    result.planes[3] = plane_normalize(result.planes[3]);
+    result.planes[4] = plane_normalize(result.planes[4]);
+    result.planes[5] = plane_normalize(result.planes[5]);
     
     return result;
 }
@@ -1177,9 +1168,9 @@ r3i_contains(r3i rect, v3i pos) {
 }
 
 static b32
-frustum_contains(struct frustum fs, v3 pos) {
+frustum_contains(frustum fs, v3 pos) {
     for (i32 i = 0; i < 6; i++) {
-		if (fs.plane[i].a * pos.x + fs.plane[i].b * pos.y + fs.plane[i].c * pos.z + fs.plane[i].d <= 0)
+		if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0)
 			return false;
 	}
 
@@ -1189,7 +1180,7 @@ frustum_contains(struct frustum fs, v3 pos) {
 // ------------------ intersect ------------------ //
 
 static b32
-circle_intersect(struct circle a, struct circle b) {
+circle_intersect(circle a, circle b) {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
     f32 rt  = a.rad + b.rad;
@@ -1197,7 +1188,7 @@ circle_intersect(struct circle a, struct circle b) {
 }
 
 static b32
-sphere_intersect(struct sphere a, struct sphere b) {
+sphere_intersect(sphere a, sphere b) {
     f32 dx = b.pos.x - a.pos.x;
     f32 dy = b.pos.y - a.pos.y;
     f32 dz = b.pos.z - a.pos.z;
@@ -1239,9 +1230,9 @@ r3i_intersect(r3i a, r3i b) {
 }
 
 static b32
-frustum_intersect_sphere(struct frustum fs, struct sphere sphere) {
+frustum_intersect_sphere(frustum fs, sphere sphere) {
     for (i32 i = 0; i < 6; i++) {
-		if(fs.plane[i].a * sphere.pos.x + fs.plane[i].b * sphere.pos.y + fs.plane[i].c * sphere.pos.z + fs.plane[i].d <= -sphere.rad) {
+		if(fs.planes[i].a * sphere.pos.x + fs.planes[i].b * sphere.pos.y + fs.planes[i].c * sphere.pos.z + fs.planes[i].d <= -sphere.rad) {
 			return false;
 		}
 	}
@@ -1249,16 +1240,16 @@ frustum_intersect_sphere(struct frustum fs, struct sphere sphere) {
 }
 
 static b32
-frustum_intersect_r3(struct frustum fs, r3 rect) {
+frustum_intersect_r3(frustum fs, r3 rect) {
     for (int i = 0; i < 6; i++) {
-		if (fs.plane[i].a * rect.min.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
-		if (fs.plane[i].a * rect.max.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
-		if (fs.plane[i].a * rect.min.x + fs.plane[i].b * rect.max.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
-		if (fs.plane[i].a * rect.max.x + fs.plane[i].b * rect.max.y + fs.plane[i].c * rect.min.z + fs.plane[i].d > 0) continue;
-		if (fs.plane[i].a * rect.min.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.max.z + fs.plane[i].d > 0) continue;
-		if (fs.plane[i].a * rect.max.x + fs.plane[i].b * rect.min.y + fs.plane[i].c * rect.max.z + fs.plane[i].d > 0) continue;
-		if (fs.plane[i].a * rect.min.x + fs.plane[i].b * rect.max.y + fs.plane[i].c * rect.max.z + fs.plane[i].d > 0) continue;
-		if (fs.plane[i].a * rect.max.x + fs.plane[i].b * rect.max.y + fs.plane[i].c * rect.max.z + fs.plane[i].d > 0) continue;
+		if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
+		if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
+		if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
+		if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
+		if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.max.z + fs.planes[i].d > 0) continue;
+		if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.max.z + fs.planes[i].d > 0) continue;
+		if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.max.z + fs.planes[i].d > 0) continue;
+		if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.max.z + fs.planes[i].d > 0) continue;
 		return false;
 	}
 	return true;

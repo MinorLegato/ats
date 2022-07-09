@@ -28,67 +28,67 @@ extern f64 timer_get_current(void);
 
 // ---------------- gl helper types/functions ---------------- //
 
-struct gl_texture {
+typedef struct gl_texture {
     u32 id;
     i32 width;
     i32 height;
-};
+} gl_texture;
 
-extern struct gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern struct gl_texture gl_texture_create_from_image(struct image image, int is_smooth);
-extern struct gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern gl_texture gl_texture_create_from_image(struct image image, int is_smooth);
+extern gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
 
-extern void gl_texture_update(struct gl_texture* texture, void *pixels, int width, int height, int is_smooth);
-extern void gl_texture_bind(const struct gl_texture* texture);
-extern void gl_texture_destroy(struct gl_texture* texture);
+extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth);
+extern void gl_texture_bind(const gl_texture* texture);
+extern void gl_texture_destroy(gl_texture* texture);
 
 #ifdef ATS_OGL33
 
-struct gl_shader {
+typedef struct gl_shader {
     u32 id;
-};
+} gl_shader;
 
-struct gl_shader_desc {
+typedef struct gl_shader_desc {
     const char* vs;
     const char* fs;
-};
+} gl_shader_desc;
 
-extern struct gl_shader gl_shader_create(const struct gl_shader_desc* desc);
-extern struct gl_shader gl_shader_load_from_file(const char *vs, const char *fs, struct memory_arena* ma);
+extern gl_shader gl_shader_create(const gl_shader_desc* desc);
+extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs, memory_arena* ma);
 
-extern void gl_use(const struct gl_shader* shader);
-extern u32  gl_location(const struct gl_shader* shader, const char* name);
+extern void gl_use(const gl_shader* shader);
+extern u32  gl_location(const gl_shader* shader, const char* name);
 
 extern void gl_uniformi(u32 location, int u);
 extern void gl_uniformf(u32 location, f32 u);
-extern void gl_uniform_v2(u32 location, union v2 u);
-extern void gl_uniform_v3(u32 location, union v3 u);
-extern void gl_uniform_v4(u32 location, union v4 u);
-extern void gl_uniform_m2(u32 location, union m2 m);
-extern void gl_uniform_m3(u32 location, union m3 m);
-extern void gl_uniform_m4(u32 location, union m4 m);
+extern void gl_uniform_v2(u32 location, v2 u);
+extern void gl_uniform_v3(u32 location, v3 u);
+extern void gl_uniform_v4(u32 location, v4 u);
+extern void gl_uniform_m2(u32 location, m2 m);
+extern void gl_uniform_m3(u32 location, m3 m);
+extern void gl_uniform_m4(u32 location, m4 m);
 
-extern union v3 gl_get_world_position(int x, int y, union m4 in_projection, union m4 in_modelview);
+extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview);
 
-struct gl_array {
+typedef struct gl_array {
     u32 vao;
     u32 vbo;
-};
+} gl_array;
 
-struct gl_layout {
+typedef struct gl_layout {
     u32 size;
     u32 type;
     u32 stride;
     u32 offset;
     b32 normalize;
-};
+} gl_layout;
 
-struct gl_array_desc {
+typedef struct gl_array_desc {
     struct gl_layout layout[32];
-};
+} gl_array_desc;
 
-extern struct gl_array gl_array_create(const struct gl_array_desc* desc);
-extern void gl_array_send(const struct gl_array* array, const void* data, u32 size);
+extern gl_array gl_array_create(const gl_array_desc* desc);
+extern void gl_array_send(const gl_array* array, const void* data, u32 size);
 
 #endif
 
@@ -281,7 +281,7 @@ extern void gl_array_send(const struct gl_array* array, const void* data, u32 si
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-union gamepad_buttons {
+typedef union gamepad_buttons {
     struct {
         u32 x : 1;
         u32 a : 1;
@@ -305,27 +305,27 @@ union gamepad_buttons {
     } button;
 
     u32 data;
-};
+} gamepad_buttons;
 
-struct gamepad {
+typedef struct gamepad {
     b32 active;
 
-    union v2 left_stick;
-    union v2 right_stick;
+    v2 left_stick;
+    v2 right_stick;
 
     f32 left_trigger;
     f32 right_trigger;
 
-    union gamepad_buttons down;
-    union gamepad_buttons pressed;
-    union gamepad_buttons released;
-};
+    gamepad_buttons down;
+    gamepad_buttons pressed;
+    gamepad_buttons released;
+} gamepad;
 
-enum mouse_mode {
+typedef enum mouse_mode {
     mouse_mode_normal,
     mouse_mode_hidden,
     mouse_mode_disabled
-};
+} mouse_mode;
 
 struct platform {
     b32 close;
@@ -351,9 +351,9 @@ struct platform {
         b32 is_pressed : 1;
         b32 is_released : 1;
 
-        union v2 pos;
-        union v2 delta;
-        union v2 scroll;
+        v2 pos;
+        v2 delta;
+        v2 scroll;
 
         b8 down[MOUSE_BUTTON_LAST + 1];
         b8 pressed[MOUSE_BUTTON_LAST + 1];
@@ -376,7 +376,7 @@ struct platform {
         b8 released[KEY_LAST + 1];
     } keyboard;
 
-    struct gamepad gamepad[JOYSTICK_LAST];
+    gamepad gamepads[JOYSTICK_LAST];
 };
 
 extern struct platform platform;
@@ -495,12 +495,12 @@ window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
 static void
 window_joystick_callback(int joy, int event) {
     if (event == GLFW_CONNECTED) {
-        memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
-        platform.gamepad[joy].active = 1;
+        memset(&platform.gamepads[joy], 0, sizeof platform.gamepads[joy]);
+        platform.gamepads[joy].active = 1;
     }
 
     if (event == GLFW_DISCONNECTED) {
-        memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
+        memset(&platform.gamepads[joy], 0, sizeof platform.gamepads[joy]);
     }
 }
 
@@ -560,7 +560,7 @@ platform_init(const char* title, int width, int height, int samples) {
     // init connected controllers
     for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
         if (glfwJoystickPresent(i))
-            platform.gamepad[i].active = 1;
+            platform.gamepads[i].active = 1;
     }
 
 #ifdef ATS_IMGUI
@@ -636,46 +636,46 @@ platform_update(void) {
         GLFWgamepadstate state;
 
         for (int i = 0; i < JOYSTICK_LAST; ++i) {
-            if (platform.gamepad[i].active) {
-                union gamepad_buttons old = platform.gamepad[i].down;
+            if (platform.gamepads[i].active) {
+                gamepad_buttons old = platform.gamepads[i].down;
 
-                platform.gamepad[i].down.data       = 0;
-                platform.gamepad[i].pressed.data    = 0;
-                platform.gamepad[i].released.data   = 0;
+                platform.gamepads[i].down.data       = 0;
+                platform.gamepads[i].pressed.data    = 0;
+                platform.gamepads[i].released.data   = 0;
 
                 glfwGetGamepadState(i, &state);
 
-                platform.gamepad[i].left_stick.x    = +state.axes[GAMEPAD_AXIS_LEFT_X];
-                platform.gamepad[i].left_stick.y    = -state.axes[GAMEPAD_AXIS_LEFT_Y];
-                platform.gamepad[i].right_stick.x   = +state.axes[GAMEPAD_AXIS_RIGHT_X];
-                platform.gamepad[i].right_stick.y   = -state.axes[GAMEPAD_AXIS_RIGHT_Y];
+                platform.gamepads[i].left_stick.x    = +state.axes[GAMEPAD_AXIS_LEFT_X];
+                platform.gamepads[i].left_stick.y    = -state.axes[GAMEPAD_AXIS_LEFT_Y];
+                platform.gamepads[i].right_stick.x   = +state.axes[GAMEPAD_AXIS_RIGHT_X];
+                platform.gamepads[i].right_stick.y   = -state.axes[GAMEPAD_AXIS_RIGHT_Y];
 
-                platform.gamepad[i].left_trigger    = 0.5f * (state.axes[GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
-                platform.gamepad[i].right_trigger   = 0.5f * (state.axes[GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
+                platform.gamepads[i].left_trigger    = 0.5f * (state.axes[GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
+                platform.gamepads[i].right_trigger   = 0.5f * (state.axes[GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
 
-                if (state.buttons[GAMEPAD_BUTTON_X]) platform.gamepad[i].down.button.x = 1;
-                if (state.buttons[GAMEPAD_BUTTON_A]) platform.gamepad[i].down.button.a = 1;
-                if (state.buttons[GAMEPAD_BUTTON_B]) platform.gamepad[i].down.button.b = 1;
-                if (state.buttons[GAMEPAD_BUTTON_Y]) platform.gamepad[i].down.button.y = 1;
+                if (state.buttons[GAMEPAD_BUTTON_X]) platform.gamepads[i].down.button.x = 1;
+                if (state.buttons[GAMEPAD_BUTTON_A]) platform.gamepads[i].down.button.a = 1;
+                if (state.buttons[GAMEPAD_BUTTON_B]) platform.gamepads[i].down.button.b = 1;
+                if (state.buttons[GAMEPAD_BUTTON_Y]) platform.gamepads[i].down.button.y = 1;
 
-                if (state.buttons[GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepad[i].down.button.left_bumper     = 1;
-                if (state.buttons[GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepad[i].down.button.right_bumper    = 1;
+                if (state.buttons[GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepads[i].down.button.left_bumper     = 1;
+                if (state.buttons[GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepads[i].down.button.right_bumper    = 1;
 
-                if (platform.gamepad[i].left_trigger  > 0.0f)   platform.gamepad[i].down.button.left_trigger    = 1;
-                if (platform.gamepad[i].right_trigger > 0.0f)   platform.gamepad[i].down.button.right_trigger   = 1;
+                if (platform.gamepads[i].left_trigger  > 0.0f)   platform.gamepads[i].down.button.left_trigger    = 1;
+                if (platform.gamepads[i].right_trigger > 0.0f)   platform.gamepads[i].down.button.right_trigger   = 1;
 
-                if (state.buttons[GAMEPAD_BUTTON_BACK])         platform.gamepad[i].down.button.select      = 1;
-                if (state.buttons[GAMEPAD_BUTTON_START])        platform.gamepad[i].down.button.start       = 1;
-                if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB])   platform.gamepad[i].down.button.left_stick  = 1;
-                if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB])  platform.gamepad[i].down.button.right_stick = 1;
+                if (state.buttons[GAMEPAD_BUTTON_BACK])         platform.gamepads[i].down.button.select      = 1;
+                if (state.buttons[GAMEPAD_BUTTON_START])        platform.gamepads[i].down.button.start       = 1;
+                if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB])   platform.gamepads[i].down.button.left_stick  = 1;
+                if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB])  platform.gamepads[i].down.button.right_stick = 1;
 
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_UP])      platform.gamepad[i].down.button.up      = 1;
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT])   platform.gamepad[i].down.button.right   = 1;
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN])    platform.gamepad[i].down.button.down    = 1;
-                if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT])    platform.gamepad[i].down.button.left    = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_UP])      platform.gamepads[i].down.button.up      = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT])   platform.gamepads[i].down.button.right   = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN])    platform.gamepads[i].down.button.down    = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT])    platform.gamepads[i].down.button.left    = 1;
 
-                platform.gamepad[i].pressed.data    =  platform.gamepad[i].down.data & ~old.data;
-                platform.gamepad[i].released.data   = ~platform.gamepad[i].down.data &  old.data;
+                platform.gamepads[i].pressed.data    =  platform.gamepads[i].down.data & ~old.data;
+                platform.gamepads[i].released.data   = ~platform.gamepads[i].down.data &  old.data;
             }
         }
     }
@@ -909,37 +909,37 @@ gl_uniform_f32(u32 location, f32 f) {
 }
 
 extern void
-gl_uniform_v2(u32 location, union v2 u) {
+gl_uniform_v2(u32 location, v2 u) {
     glUniform2f(location, u.x, u.y);
 }
 
 extern void
-gl_uniform_v3(u32 location, union v3 u) {
+gl_uniform_v3(u32 location, v3 u) {
     glUniform3f(location, u.x, u.y, u.z);
 }
 
 extern void 
-gl_uniform_v4(u32 location, union v4 u) {
+gl_uniform_v4(u32 location, v4 u) {
     glUniform4f(location, u.x, u.y, u.z, u.w);
 }
 
 extern void
-gl_uniform_m2(u32 location, union m2 m) {
+gl_uniform_m2(u32 location, m2 m) {
     glUniformMatrix2fv(location, 1, GL_FALSE, m.e);
 }
 
 extern void
-gl_uniform_m3(u32 location, union m3 m) {
+gl_uniform_m3(u32 location, m3 m) {
     glUniformMatrix3fv(location, 1, GL_FALSE, m.e);
 }
 
 extern void
-gl_uniform_m4(u32 location, union m4 m) {
+gl_uniform_m4(u32 location, m4 m) {
     glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-extern union v3
-gl_get_world_position(int x, int y, union m4 in_projection, union m4 in_modelview) {
+extern v3
+gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
     GLint viewport[4] = {0};
     f64 modelview[16] = {0};
     f64 projection[16] = {0};
