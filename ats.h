@@ -1,5 +1,4 @@
-#ifndef __ATS_H__
-#define __ATS_H__
+#pragma once
 
 #include <math.h>
 #include <string.h>
@@ -15,6 +14,7 @@
 #define GB (1024 * MB)
 
 #define PI (3.14159265359f)
+#define TAU (6.28318530718f)
 
 #define TO_RAD_MUL (0.01745329251f)
 #define TO_DEG_MUL (57.2957795131f)
@@ -42,13 +42,13 @@
 #define def(_val, _def) ((_val) == 0? (_def) : (_val))
 
 #define for_range(index, start, below) \
-    for (i64 index = (start); index < (below); ++index)
+    for (isize index = (start); index < (below); ++index)
 
 #define for_array(index, array) \
     for_range(index, 0, array_count(array))
 
 #define repeat(count) \
-    for (i64 macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
+    for (isize macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
 
 #define for_iter(iter_type, iter_name, ...) \
     for (struct iter_type iter_name = (__VA_ARGS__); \
@@ -89,6 +89,16 @@ typedef unsigned int uint;
 typedef long long isize;
 typedef unsigned long long usize;
 
+static_assert (sizeof (i8) >= 1, "i8 -- not enough bits!");
+static_assert (sizeof (i16) >= 2, "i16 -- not enough bits!");
+static_assert (sizeof (i32) >= 4, "i32 -- not enough bits!");
+static_assert (sizeof (i64) >= 8, "i64 -- not enough bits!");
+
+static_assert (sizeof (u8) >= 1, "u8 -- not enough bits!");
+static_assert (sizeof (u16) >= 2, "u16 -- not enough bits!");
+static_assert (sizeof (u32) >= 4, "u32 -- not enough bits!");
+static_assert (sizeof (u64) >= 8, "u64 -- not enough bits!");
+
 typedef u8 b8;
 typedef u16 b16;
 typedef u32 b32;
@@ -122,7 +132,7 @@ union v2 {
 union v3 {
     struct { f32 x, y, z; };
     struct { f32 r, g, b; };
-    struct { union v2 xy; };
+    struct { v2 xy; };
     f32 e[3];
 };
 
@@ -199,66 +209,6 @@ typedef struct sphere {
     f32 rad;
 } sphere;
 
-typedef struct plane {
-    f32 a;
-    f32 b;
-    f32 c;
-    f32 d;
-} plane;
-
-typedef struct frustum {
-    plane planes[6];
-} frustum;
-
-typedef struct memory_arena {
-    usize index;
-    usize cap;
-    u8* buffer;
-
-    usize top;
-    usize stack[16];
-
-    usize lock;
-    usize max;
-} memory_arena;
-
-typedef struct image {
-    i32 width;
-    i32 height;
-
-    u32* pixels;
-} image;
-
-// ---------------------- arena allocator ------------------------ //
-
-extern struct memory_arena ma_create(u8* buffer, usize size);
-
-#define ma_type(ma, t)           (t*)ma_alloc(ma, sizeof (t))
-#define ma_array(ma, t, count)   (t*)ma_alloc(ma, (count) * sizeof (t))
-
-extern void* ma_alloc(struct memory_arena* ma, usize byte_size);
-extern void* ma_begin(struct memory_arena* ma);
-extern void ma_end(struct memory_arena* ma, usize byte_size);
-extern void ma_save(struct memory_arena* ma);
-extern void ma_restore(struct memory_arena* ma);
-extern void ma_validate(struct memory_arena* ma);
-
-// --------------------- read/write files ------------------------- //
-
-extern char* file_read_str(const char* file_name, struct memory_arena* ma);
-extern b32 file_write_str(const char* file_name, const char* buffer);
-extern b32 file_append_str(const char* file_name, const char* buffer);
-
-extern b32 file_read_bin(const char* file_name, void* buffer, u32 size);
-extern b32 file_write_bin(const char* file_name, const void* buffer, u32 size);
-
-// ----------------------- image -------------------------- //
-
-extern struct image image_load_from_file(const char* path);
-
-extern u32 image_get(const struct image* img, i32 x, i32 y);
-extern void image_set(struct image* img, i32 x, i32 y, u32 pixel);
-
 // ======================================= STATIC FUNCTIONS ==================================== //
 
 #define v2(...) ((v2) { __VA_ARGS__ })
@@ -308,8 +258,6 @@ m4_identity(void) {
         0, 0, 0, 1);
 }
 
-// ======================================= STATIC FUNCTIONS ==================================== //
-
 static f32
 sqrt32(f32 n) {
     f32 x = n * 0.5f;
@@ -347,6 +295,208 @@ shortest_angle_distance(f32 a, f32 b) {
 static f32
 lerp_angle(f32 a, f32 b, f32 t) {
     return a + shortest_angle_distance(a, b) * t;
+}
+
+static f32
+sine_ease_in(f32 t) {
+    return 1 - cosf((t * PI) / 2);
+}
+
+static f32
+sine_ease_out(f32 t) {
+    return sinf((t * PI) / 2);
+}
+
+static f32
+sine_ease_in_out(f32 t) {
+    return -0.5 * (cosf(PI * t) - 1);
+}
+
+static f32
+quad_ease_in(f32 t) {
+    return t * t;
+}
+
+static f32
+quad_ease_out(f32 t) {
+    return 1 - (1 - t) * (1 - t);
+}
+
+static f32
+quad_ease_in_out(f32 t) {
+    f32 k = -2 * t + 2;
+    return (t < 0.5)? (2 * t * t) : (1 - 0.5 * k * k);
+}
+
+static f32
+cubic_ease_in(f32 t) {
+    return t * t * t;
+}
+
+static f32
+cubic_ease_out(f32 t) {
+    f32 k = 1 - t;
+    return 1 - k * k * k;
+}
+
+static f32
+cubic_ease_in_out(f32 t) {
+    f32 k = -2 * t + 2;
+    return (t < 0.5)? (4 * t * t * t) : (1 - 0.5 * k * k * k);
+}
+
+static f32
+quart_ease_in(f32 t) {
+    return t * t * t * t;
+}
+
+static f32
+quart_ease_out(f32 t) {
+    f32 k = 1 - t; 
+    return 1 - k * k * k * k;
+}
+
+static f32
+quart_ease_in_out(f32 t) {
+    f32 k = -2 * t + 2;
+    return (t < 0.5)? (8 * t * t * t * t) : (1 - 0.5 * k * k * k * k);
+}
+
+static f32
+quint_ease_in(f32 t) {
+    return t * t * t * t * t;
+}
+
+static f32
+quint_ease_out(f32 t) {
+    f32 k = 1 - t;
+    return 1 - k * k * k * k * k;
+}
+
+static f32
+quint_ease_in_out(f32 t) {
+    f32 k = -2 * t + 2;
+    return (t < 0.5)? (16 * t * t * t * t * t) : (1 - 0.5 * k * k * k * k * k);
+}
+
+static f32
+expo_ease_in(f32 t) {
+    return (t == 0)? 0 : powf(2, 10 * t - 10);
+}
+
+static f32
+expo_ease_out(f32 t) {
+    return (t == 1)? 1 : (1 - powf(2, -10 * t));
+}
+
+static f32
+expo_ease_in_out(f32 t) {
+    return (t == 0)? 0 : (t == 1)? 1 : t < 0.5? powf(2, 20 * t - 10) / 2 : (2 - powf(2, -20 * t + 10)) / 2;
+}
+
+static f32
+circ_ease_in(f32 t) {
+    return 1 - sqrt32(1 - (t * t));
+}
+
+static f32
+circ_ease_out(f32 t) {
+    return sqrt32(1 - (t - 1) * (t - 1));
+}
+
+static f32
+circ_ease_in_out(f32 t) {
+    f32 k = 2 * t;
+    f32 l = -2 * t + 2;
+    return (t < 0.5)? 0.5 * (1 - sqrt32(1 - k * k)) : 0.5 * (sqrt32(1 - l * l) + 1);
+}
+
+static f32
+back_ease_in(f32 t) {
+    f32 c1 = 1.70158;
+    f32 c3 = c1 + 1;
+    return c3 * t * t * t - c1 * t * t;
+}
+
+static f32
+back_ease_out(f32 t) {
+    f32 c1 = 1.70158;
+    f32 c3 = c1 + 1;
+    f32 k = t - 1;
+    return 1 + c3 * k * k * k + c1 * k * k;
+}
+
+static f32
+back_ease_in_out(f32 t) {
+    f32 c1 = 1.70158;
+    f32 c2 = c1 * 1.525;
+
+    return (t < 0.5)?
+        0.5 * (powf(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) :
+        0.5 * (pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2);
+}
+
+static f32
+elastic_ease_in(f32 t) {
+    f32 c4 = (2 * PI) / 3;
+
+    return (t == 0)?
+        0 :
+        (t == 1)?
+        1 :
+        -powf(2, 10 * t - 10) * sinf((t * 10 - 10.75) * c4);
+}
+
+static f32
+elastic_ease_out(f32 t) {
+    f32 c4 = (2 * PI) / 3;
+    return t == 0?
+        0 :
+        t == 1?
+        1 :
+        powf(2, -10 * t) * sinf((t * 10 - 0.75) * c4) + 1;
+}
+
+static f32
+elastic_ease_inout(f32 t) {
+    f32 c5 = (2 * PI) / 4.5;
+    return t == 0?
+        0 :
+        t == 1?
+        1 :
+        t < 0.5 ?
+        -0.5 * (powf(2, 20 * t - 10)  * sinf((20 * t - 11.125) * c5)) :
+        +0.5 * (powf(2, -20 * t + 10) * sinf((20 * t - 11.125) * c5)) + 1;
+}
+
+static f32
+bounce_ease_out(f32 t) {
+    f32 n1 = 7.5625;
+    f32 d1 = 2.75;
+    if (t < 1 / d1) {
+        return n1 * t * t;
+    } else if (t < 2 / d1) {
+        t -= 1.5 / d1;
+        return n1 * t * t + 0.75;
+    } else if (t < 2.5 / d1) {
+        t -= 2.25 / d1;
+        return n1 * t * t + 0.9375;
+    } else {
+        t -= 2.625 / d1;
+        return n1 * t * t + 0.984375;
+    }
+}
+
+static f32
+bounce_ease_in(f32 t) {
+    return 1 - bounce_ease_out(t);
+}
+
+static f32
+bounce_ease_in_out(f32 t) {
+    return t < 0.5?
+    0.5 * (1 - bounce_ease_out(1 - 2 * t)) :
+    0.5 * (1 + bounce_ease_out(2 * t - 1));
 }
 
 // ---------- from array ---------- //
@@ -919,11 +1069,10 @@ m4_rotate(v3 axis, f32 angle) {
         0, 0, 0, 1);
 }
 
-static struct quat
+static quat
 quat_rotate(v3 axis, f32 angle) {
     f32 s = sinf(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
-
     return quat(v.x, v.y, v.z, cosf(0.5f * angle));
 }
 
@@ -948,7 +1097,7 @@ m4_scale(f32 x, f32 y, f32 z) {
 // --------------- from quat --------------- //
 
 static m3
-m3_from_quat(struct quat q) {
+m3_from_quat(quat q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -974,7 +1123,7 @@ m3_from_quat(struct quat q) {
 }
 
 static m4
-m4_from_quat(struct quat q) {
+m4_from_quat(quat q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1012,10 +1161,25 @@ m4_from_quat(struct quat q) {
 static m4
 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
     return m4(
-        2 / (r - l),            0,                      0,                      0,
-        0,                      2 / (t - b),            0,                      0,
-        0,                      0,                      -2 / (f - n),           0,
-        -(r + l) / (r - l),     -(t + b) / (t - b),     -(f + n) / (f - n),     1);
+        2 / (r - l),
+        0,
+        0,
+        0,
+
+        0,
+        2 / (t - b),
+        0,
+        0,
+
+        0,
+        0, 
+        -2 / (f - n),
+        0,
+
+        -(r + l) / (r - l),
+        -(t + b) / (t - b),
+        -(f + n) / (f - n),
+        1);
 }
 
 static m4
@@ -1023,10 +1187,25 @@ m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     f32 a = 1.0f / tanf(y_fov / 2.0f);
 
     return m4(
-        a / aspect,     0,      0,                          0,
-        0,              a,      0,                          0,
-        0,              0,      -((f + n) / (f - n)),      -1,
-        0,              0,      -((2 * f * n) / (f - n)),   0);
+        a / aspect,
+        0,
+        0,
+        0,
+
+        0,
+        a,
+        0,
+        0,
+
+        0,
+        0,
+        -((f + n) / (f - n)),
+        -1,
+
+        0,
+        0,
+        -((2 * f * n) / (f - n)),
+        0);
 }
 
 static m4
@@ -1061,7 +1240,18 @@ m4_look_at(v3 eye, v3 center, v3 up) {
 
 // ----------------- plane/frustrum ------------------- //
 
-static struct plane
+typedef struct plane {
+    f32 a;
+    f32 b;
+    f32 c;
+    f32 d;
+} plane;
+
+typedef struct frustum {
+    plane planes[6];
+} frustum;
+
+static plane
 plane_normalize(plane p) {
     f32 r_len = rsqrt32(p.a * p.a + p.b * p.b + p.c * p.c);
 
@@ -1075,7 +1265,7 @@ plane_normalize(plane p) {
 
 static frustum
 frustum_create(m4 m) {
-    struct frustum result;
+    frustum result;
 
     // left clipping plane
     result.planes[0].a = m.e[3]  + m.e[0];
@@ -1126,13 +1316,13 @@ frustum_create(m4 m) {
 // ------------------ contains ------------------ //
 
 static b32
-circle_contains(struct circle c, v2 pos) {
+circle_contains(circle c, v2 pos) {
     f32 distance = v2_dist_sq(c.pos, pos);
     return distance < (c.rad * c.rad);
 }
 
 static b32
-sphere_contains(struct sphere s, v3 pos) {
+sphere_contains(sphere s, v3 pos) {
     f32 distance = v3_dist_sq(s.pos, pos);
     return distance < (s.rad * s.rad);
 }
@@ -1288,14 +1478,14 @@ r3i_get_overlap(r3i a, r3i b) {
 // -------------- get intersect vector ---------- //
 
 static v2
-circle_get_intersect_vector(struct circle a, struct circle b) {
+circle_get_intersect_vector(circle a, circle b) {
     v2 delta = v2_sub(a.pos, b.pos);
     f32 depth = v2_len(delta) - (a.rad + b.rad);
     return v2_scale(delta, -depth);
 }
 
 static v3
-sphere_get_intersect_vector(struct sphere a, struct sphere b) {
+sphere_get_intersect_vector(sphere a, sphere b) {
     v3 delta = v3_sub(a.pos, b.pos);
     f32 depth = v3_len(delta) - (a.rad + b.rad);
     return v3_scale(delta, -depth);
@@ -1680,201 +1870,401 @@ f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64
     return true;
 }
 
+// ===================================== IMAGE STUFF ================================= //
+
+typedef struct image {
+    i32 width;
+    i32 height;
+    u32* pixels;
+} image;
+
+static u32
+image_get(const image* img, i32 x, i32 y) {
+    assert(x >= 0 && x < img->width);
+    assert(y >= 0 && y < img->height);
+    return img->pixels[y * img->width + x];
+}
+
+static void
+image_set(image* img, i32 x, i32 y, u32 pixel) {
+    assert(x >= 0 && x < img->width);
+    assert(y >= 0 && y < img->height);
+    img->pixels[y * img->width + x] = pixel;
+}
+
 // ===================================== MEM STUFF ================================= //
 
 static void
-memory_clear(void* data, usize size) {
+m_clear(void* data, usize size) {
     volatile u8* d = (u8*)data;
     while (size--)
         *(d++) = 0;
 }
 
 static void
-memory_set(void* data, u8 value, usize size) {
+m_set(void* data, u8 value, usize size) {
     volatile u8* d = (u8*)data;
     while (size--)
         *(d++) = value;
 }
 
 static void
-memory_copy(void* dst, const void* src, usize size) {
-    volatile u8*        d = (u8*)dst;
-    volatile const u8*  s = (u8*)src;
+m_copy(void* dst, const void* src, usize size) {
+    volatile u8* d = (u8*)dst;
+    volatile const u8* s = (u8*)src;
     while (size--)
         *(d++) = *(s++);
 }
 
-#endif // __ATS_H__
+// --------------------- allocator interface ---------------------- //
 
-// ============================================================================================ //
-// ======================================= IMPLEMENTATION ===================================== //
-// ============================================================================================ //
-#ifdef ATS_IMPL
+typedef enum m_tag {
+    m_tag_alloc,
+    m_tag_resize,
+    m_tag_free,
+    // m_tag_free_all,
+} m_tag;
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
+typedef struct m_alloc_desc {
+    m_tag tag;
+
+    usize size;
+    void* pointer;
+
+    void* data;
+} m_alloc_desc;
+
+#define M_ALLOCATOR_PROC(name) void* name(m_alloc_desc desc)
+typedef M_ALLOCATOR_PROC(m_allocator_proc);
+
+typedef struct m_allocator {
+    m_allocator_proc* proc;
+    void* data;
+} m_allocator;
+
+#define m_type(allocator, type)         (type*)m_zero(allocator, sizeof (type))
+#define m_array(allocator, type, size)  (type*)m_zero(allocator, (size) * sizeof (type))
+
+static void*
+m_alloc(m_allocator allocator, usize size) {
+    return allocator.proc((m_alloc_desc) {
+        .tag = m_tag_alloc,
+        .size = size,
+        .data = allocator.data,
+    });
+}
+
+static void*
+m_resize(m_allocator allocator, void* pointer, usize size) {
+    return allocator.proc((m_alloc_desc) {
+        .tag = m_tag_resize,
+        .pointer = pointer,
+        .size = size,
+        .data = allocator.data,
+    });
+}
+
+static void
+m_free(m_allocator allocator, void* pointer) {
+    allocator.proc((m_alloc_desc) {
+        .tag = m_tag_free,
+        .pointer = pointer,
+        .data = allocator.data,
+    });
+}
+
+static void*
+m_zero(m_allocator allocator, usize size) {
+    void* memory = m_alloc(allocator, size);
+    memset(memory, 0, size);
+    return memory;
+}
 
 // ---------------------- arena allocator ------------------------ //
 
-extern struct memory_arena
-ma_create(u8* buffer, usize size) {
-    struct memory_arena ma = {0};
-    ma.cap    = size;
+typedef struct m_arena {
+    usize index;
+    usize cap;
+    u8* buffer;
+
+    usize top;
+    usize stack[16];
+
+    usize lock;
+    usize max;
+} m_arena;
+
+#define m_arena_type(ma, t)           (t*)m_arena_alloc(ma, sizeof (t))
+#define m_arena_array(ma, t, count)   (t*)m_arena_alloc(ma, (count) * sizeof (t))
+
+static m_arena
+m_arena_create(u8* buffer, usize size) {
+    m_arena ma = {0};
+    ma.cap = size;
     ma.buffer = buffer;
     return ma;
 }
 
-extern void*
-ma_alloc(struct memory_arena* ma, usize byte_size) {
+static void*
+m_arena_alloc(m_arena* ma, usize byte_size) {
     byte_size = align_up(byte_size, 16);
     assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
 
-    void* memory  = ma->buffer + ma->index;
-    ma->index     += byte_size;
-    ma->max       = ma->max > ma->index? ma->max : ma->index;
-
-    memory_clear(memory, byte_size);
+    void* memory = ma->buffer + ma->index;
+    ma->index += byte_size;
+    ma->max = ma->max > ma->index? ma->max : ma->index;
 
     return memory;
 }
 
-extern void*
-ma_begin(struct memory_arena* ma) {
+static void*
+m_arena_begin(m_arena* ma) {
     ma->lock = true;
     return ma->buffer + ma->index;
 }
 
-extern void
-ma_end(struct memory_arena* ma, usize byte_size) {
+static void
+m_arena_end(m_arena* ma, usize byte_size) {
     ma->index += align_up(byte_size, 16);
     ma->lock = false;
 }
 
-extern void
-ma_save(struct memory_arena* ma) {
+static void
+m_arena_save(m_arena* ma) {
     assert(ma->top < ma->cap);
     ma->stack[ma->top++] = ma->index;
 }
 
-extern void
-ma_restore(struct memory_arena* ma) {
+static void
+m_arena_restore(m_arena* ma) {
     assert(ma->top > 0);
     ma->index = ma->stack[--ma->top];
 }
 
-extern void
-ma_validate(struct memory_arena* ma) {
+static void
+m_arena_validate(m_arena* ma) {
     assert(ma->top == 0);
 }
 
-// --------------------- read/write files ------------------------- //
-
-static usize
-file_get_size(FILE* fp) {
-    fseek(fp, 0L, SEEK_END);
-    usize size = ftell(fp);
-    fseek(fp, 0, SEEK_SET);
-
-    return size;
-}
-
-extern char*
-file_read_str(const char* file_name, struct memory_arena* ma) {
-    FILE* fp = NULL;
-    char* buffer = NULL;
-    if (fopen_s(&fp, file_name, "rb") == 0) {
-        usize size = file_get_size(fp);
-        struct memory_arena state = *ma;
-        buffer = (char*)ma_alloc(ma, size + 1);
-        if (buffer) {
-            buffer[size] = 0;
-            if (fread(buffer, 1, size, fp) == 0) {
-                *ma = state;
-                buffer = NULL;
-            }
-        }
-        fclose(fp);
+static
+M_ALLOCATOR_PROC(m_arena_allocator_proc) {
+    m_arena* arena = desc.data;
+    switch (desc.tag) {
+        case m_tag_alloc: {
+            return m_arena_alloc(arena, desc.size);
+        } break;
     }
-    return buffer;
+    return NULL;
 }
 
-extern b32
-file_write_str(const char* file_name, const char* buffer) {
-    FILE* fp = NULL;
-    if (fopen_s(&fp, file_name, "w") == 0) {
-        usize size = strlen(buffer);
-        usize n = fwrite(buffer, 1, size, fp);
-        fclose(fp);
-        return n == size;
+static m_allocator
+m_arena_allocator(m_arena* arena) {
+    return (m_allocator) {
+        .proc = m_arena_allocator_proc,
+        .data = arena,
+    };
+}
+
+// ===================================== BUFFER STUFF ================================= //
+
+typedef struct buf_header {
+    m_allocator allocator;
+
+    u32 len;
+    u32 cap;
+
+    u8 data[];
+} buf_header;
+
+#define buf_create(type, n, allocator) ((type*)_buf_create(sizeof (type), (n), (allocator)))
+
+#define _buf_header(b) ((buf_header*)(b) - 1)
+
+#define buf_len(b)              ((b)? _buf_header(b)->len : 0)
+#define buf_cap(b)              ((b)? _buf_header(b)->cap : 0)
+#define buf_add(b, ...)         ((b) = _buf_grow((b), sizeof (*(b))), (b)[_buf_header(b)->len++] = (__VA_ARGS__))
+#define buf_rem(b, i)           ((b)? ((b)[(i)] = (b)[--_buf_header(b)->len], 1) : 0)
+#define buf_reserve(b, n)       ((b) = _buf_reserve((b), sizeof (*(b)), (n)))
+#define buf_clear(b)            ((b)? _buf_header(b)->len = 0 : 0)
+#define buf_sort(b, cmp_func)   qsort((b), buf_len(b), sizeof (*(b)), (cmp_func))
+
+#define for_buf(index, b)       for (u32 index = 0; index < buf_len(b); ++index)
+
+static void
+buf_free(void* buffer) {
+    if (buffer) {
+        buf_header* header = _buf_header(buffer);
+        m_allocator allocator = header->allocator;
+        m_free(allocator, header);
     }
-    return false;
 }
 
-extern b32
-file_append_str(const char* file_name, const char* buffer) {
-    FILE* fp = NULL;
-    if (fopen_s(&fp, file_name, "a") == 0) {
-        size_t size = strlen(buffer);
-        size_t n = fwrite(buffer, 1, size, fp);
-        fclose(fp);
-        return n == size;
+static void*
+_buf_create(u32 element_size, u32 cap, m_allocator allocator) {
+    buf_header* header = m_alloc(allocator, sizeof (buf_header) + cap * element_size);
+    assert(header);
+    header->allocator = allocator;
+    header->len = 0;
+    header->cap = cap;
+    return header->data;
+}
+
+static void*
+_buf_grow(void* buffer, u32 element_size) {
+    assert(buffer);
+    buf_header* header = _buf_header(buffer);
+    if (header->len >= header->cap) {
+        header->cap = header->cap << 1;
+        buf_header* new_header = m_resize(header->allocator, header, sizeof (buf_header) + header->cap * element_size);
+        assert(new_header);
+        header = new_header;
     }
-    return false;
+    return header->data;
 }
 
-extern b32
-file_read_bin(const char* file_name, void* buffer, u32 size) {
-    FILE *fp = NULL;
-    if (fopen_s(&fp, file_name, "rb") == 0) {
-        fread(buffer, size, 1, fp);
-        fclose(fp);
-        return true;
+static void*
+_buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
+    assert(buffer);
+    buf_header* header = _buf_header(buffer);
+    if (new_cap > header->cap) {
+        header->cap = new_cap;
+        buf_header* new_header = m_resize(header->allocator, header, sizeof (buf_header) + header->cap * element_size);
+        assert(new_header);
+        header = new_header;
     }
-    return false;
-} 
-
-extern b32
-file_write_bin(const char* file_name, const void* buffer, u32 size) {
-    FILE *fp = NULL;
-    if (fopen_s(&fp, file_name, "wb") == 0) {
-        fwrite(buffer, size, 1, fp);
-        fclose(fp);
-        return 1;
-    }
-    return false;
+    return header->data;
 }
 
-// --------------------- image ----------------------- //
+// ===================================== STRING STUFF ================================= //
 
-#ifndef ATS_NO_IMAGE
-#define STB_IMAGE_IMPLEMENTATION
-#include "ext/stb_image.h" 
+typedef struct string {
+    usize size;
+    const char* data;
+} string;
 
-extern struct image
-image_load_from_file(const char* path) {
-    struct image image = {0};
-    i32 channels = 0;
-    image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
-    assert(image.pixels);
-    return image;
+#define STR_FMT "%.*s"
+#define STR_ARG(s) (int)(s).size, (s).data
+
+#define string(text) (string) { sizeof (text) - 1, text }
+#define string_const(text) { sizeof (text) - 1, text }
+
+static string
+string_create(const char* str) {
+    return (string) {
+        .size = strlen(str),
+        .data = str,
+    };
 }
 
-#endif
-
-extern u32
-image_get(const struct image* image, i32 x, i32 y) {
-    assert(x >= 0 && x < image->width);
-    assert(y >= 0 && y < image->height);
-    return image->pixels[y * image->width + x];
+static b32
+string_equal(string a, string b) {
+    if (a.size != b.size) return false;
+    return memcmp(a.data, b.data, a.size) == 0;
 }
 
-extern void
-image_set(struct image* image, i32 x, i32 y, u32 pixel) {
-    assert(x >= 0 && x < image->width);
-    assert(y >= 0 && y < image->height);
-    image->pixels[y * image->width + x] = pixel;
+static b32
+string_equal_cstr(string a, const char* b) {
+    usize b_size = strlen(b);
+    if (a.size != b_size) return false;
+    return memcmp(a.data, b, a.size) == 0;
 }
 
-#endif // ATS_IMPL
+static b32
+string_empty(string s) {
+    return s.size == 0;
+}
+
+// ===================================== EXTERNAL STUFF ===================================== //
+
+// -------------------------------- ats_file.c ----------------------------------- //
+
+extern char* file_read_str(const char* file_name, m_allocator allocator);
+extern b32 file_write_str(const char* file_name, const char* buffer);
+extern b32 file_append_str(const char* file_name, const char* buffer);
+
+extern b32 file_read_bin(const char* file_name, void* buffer, usize size);
+extern b32 file_write_bin(const char* file_name, const void* buffer, usize size);
+
+extern image file_load_image(const char* path);
+extern void file_free_image(image* img);
+
+// ------------------------------- ats_memory.c --------------------------------- //
+
+extern m_allocator m_heap_allocator(void);
+extern m_allocator m_linear_allocator(usize size);
+
+// --------------------------- ats_texture_table.c ------------------------------ //
+
+#define TEXTURE_TABLE_SIZE (1024)
+
+typedef struct texture_id {
+    u16 index;
+} texture_id;
+
+typedef struct texture_entry {
+    b32 in_use;
+    u32 hash;
+    r2i rect;
+    char name[64];
+} texture_entry;
+
+typedef struct texture_table {
+    image img;
+    texture_entry array[TEXTURE_TABLE_SIZE];
+} texture_table;
+
+extern void tt_begin(int width, int height, m_allocator allocator);
+extern void tt_end(void);
+extern void tt_add_image(const char* name, image img);
+extern void tt_load_from_dir(const char* dir_path);
+
+extern texture_table* tt_get_texture_table(void);
+
+extern texture_id tt_get_id(const char* name);
+extern r2i tt_get_rect(texture_id id);
+extern r2i tt_get(const char* name);
+
+extern image tt_get_image(void);
+
+// -------------------------- ats_animation.c ----------------------------- //
+
+typedef struct at_frame at_frame;
+typedef struct at_animation at_animation;
+typedef struct at_entity at_entity;
+
+struct at_frame {
+    const char* name;
+    r2i rect;
+    at_frame* next;
+    at_animation* animation;
+};
+
+struct at_animation {
+    const char* name;
+    at_frame* frame;
+    at_animation* next;
+};
+
+struct at_entity {
+    const char* name;
+    at_animation* animation;
+    at_entity* next;
+};
+
+extern void at_begin(m_allocator allocator);
+extern void at_end(void);
+
+extern void at_add_entity(const char* name);
+extern void at_add_animation(const char* name);
+extern void at_add_frame(const char* name);
+
+typedef struct at_asset {
+    at_entity* entity;
+    at_frame* frame;
+    f32 duration;
+} at_asset;
+
+extern at_asset at_get(const char* name);
+extern void at_set(at_asset* asset, const char* name);
+extern void at_update(at_asset* asset, f32 dt);
+

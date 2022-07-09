@@ -10,10 +10,9 @@ extern void gl_set_light_directed(int index, v3 pos, v3 color);
 extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b);
 extern v3 gl_get_world_position(int x, int y);
 
-extern void gl_init_bitmap(void);
-extern void gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy);
-extern void gl_render_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color);
-extern void gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...);
+extern void gl_init_bitmap_font(void);
+extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color);
+extern void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...);
 
 #endif // __ATS_GL_H__
 
@@ -40,6 +39,8 @@ gl_init(void) {
     glEnable(GL_ALPHA_TEST);
 
     glEnable(GL_NORMALIZE);
+
+    gl_init_bitmap_font();
 }
 
 extern void
@@ -50,8 +51,8 @@ gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z) {
     u32 light = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, pos);
-    glLightfv(light, GL_DIFFUSE,  c);
-    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_DIFFUSE, c);
+    glLightfv(light, GL_AMBIENT, zero);
     glLightfv(light, GL_SPECULAR, zero);
 
     glEnable(light);
@@ -68,8 +69,8 @@ gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
     u32 light = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, dir);
-    glLightfv(light, GL_DIFFUSE,  c);
-    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_DIFFUSE, c);
+    glLightfv(light, GL_AMBIENT, zero);
     glLightfv(light, GL_SPECULAR, zero);
 
     glEnable(light);
@@ -89,9 +90,9 @@ gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 qu
     glLightfv(light, GL_AMBIENT,  zero);
     glLightfv(light, GL_SPECULAR, zero);
     
-    glLightf(light, GL_CONSTANT_ATTENUATION,    constant);
-    glLightf(light, GL_LINEAR_ATTENUATION,      linear);
-    glLightf(light, GL_QUADRATIC_ATTENUATION,   quadratic);
+    glLightf(light, GL_CONSTANT_ATTENUATION, constant);
+    glLightf(light, GL_LINEAR_ATTENUATION, linear);
+    glLightf(light, GL_QUADRATIC_ATTENUATION, quadratic);
 
     glEnable(light);
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
@@ -107,8 +108,8 @@ gl_set_light_directed(int index, v3 pos, v3 color) {
     u32 light = GL_LIGHT0 + index;
 
     glLightfv(light, GL_POSITION, dir);
-    glLightfv(light, GL_DIFFUSE,  c);
-    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_DIFFUSE, c);
+    glLightfv(light, GL_AMBIENT, zero);
     glLightfv(light, GL_SPECULAR, zero);
 
     glEnable(light);
@@ -143,6 +144,221 @@ gl_get_world_position(int x, int y) {
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
     return v3(result[0], result[1], result[2]);
+}
+
+// ======================================= GL ====================================== //
+
+extern void
+gl_begin(u32 type) {
+    glBegin(type);
+}
+
+extern void
+gl_end(void) {
+    glEnd();
+}
+
+extern void
+gl_color(u32 color) {
+    glColor4ubv((const u8*)&color);
+}
+
+extern void
+gl_normal(f32 x, f32 y, f32 z) {
+    glNormal3f(x, y, z);
+}
+
+extern void
+gl_uv(f32 x, f32 y) {
+    glTexCoord2f(x, y);
+}
+
+extern void
+gl_vertex(f32 x, f32 y, f32 z) {
+    glVertex3f(x, y, z);
+}
+
+extern void
+gl_set_matrix(m4 projection, m4 view) {
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(projection.e);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(view.e);
+}
+
+extern void
+gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
+    f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
+    f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
+    f32 az = pos.z - right.z * rad.x - up.z * rad.y;
+
+    f32 bx = pos.x + right.x * rad.x - up.x * rad.y;
+    f32 by = pos.y + right.y * rad.x - up.y * rad.y;
+    f32 bz = pos.z + right.z * rad.x - up.z * rad.y;
+
+    f32 cx = pos.x + right.x * rad.x + up.x * rad.y;
+    f32 cy = pos.y + right.y * rad.x + up.y * rad.y;
+    f32 cz = pos.z + right.z * rad.x + up.z * rad.y;
+
+    f32 dx = pos.x - right.x * rad.x + up.x * rad.y;
+    f32 dy = pos.y - right.y * rad.x + up.y * rad.y;
+    f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
+
+    gl_color(color);
+    gl_normal(normal.x, normal.y, normal.z);
+
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(ax, ay, az);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(bx, by, bz);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(cx, cy, cz);
+
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(cx, cy, cz);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(dx, dy, dz);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(ax, ay, az);
+}
+
+extern void
+gl_texture_box(r2i tex_rect, r3 box, u32 color) {
+    gl_color(color);
+
+    gl_normal(0, 0, -1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+
+    gl_normal(0, 0, +1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+
+    gl_normal(-1, 0, 0);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+
+    gl_normal(+1, 0, 0);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+
+    gl_normal(0, -1, 0);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+
+    gl_normal(0, +1, 0);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+}
+
+extern void
+gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
+    gl_color(color);
+    gl_normal(0, 0, +1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+}
+
+extern void
+gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
+    if (flip_x) { swap(i32, tex_rect.min.x, tex_rect.max.x); }
+    if (flip_y) { swap(i32, tex_rect.min.y, tex_rect.max.y); }
+
+    gl_color(color);
+    gl_normal(0, 0, +1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+}
+
+extern void
+gl_box(r3 box, u32 color) {
+    gl_color(color);
+
+    gl_normal(0, 0, -1);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+
+    gl_normal(0, 0, +1);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+
+    gl_normal(-1, 0, 0);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+
+    gl_normal(+1, 0, 0);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+
+    gl_normal(0, -1, 0);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+
+    gl_normal(0, +1, 0);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+}
+
+extern void
+gl_rect(r2 rect, f32 z, u32 color) {
+    gl_color(color);
+    gl_normal(0, 0, +1);
+    gl_vertex(rect.min.x, rect.min.y, z);
+    gl_vertex(rect.max.x, rect.min.y, z);
+    gl_vertex(rect.max.x, rect.max.y, z);
+    gl_vertex(rect.max.x, rect.max.y, z);
+    gl_vertex(rect.min.x, rect.max.y, z);
+    gl_vertex(rect.min.x, rect.min.y, z);
 }
 
 // ======================================= FONT ====================================== //
@@ -408,64 +624,60 @@ static const u64 bitascii[BITMAP_COUNT] = {
     0x007e424242427e00
 };
 
-static int bitmap_display_list[BITMAP_COUNT];
 
-#define BITMAP_GETBIT(N, X, Y) (((u64)(N)) & (1ull << (((u64)(Y)) * 8ull + ((u64)(X)))))
+static gl_texture bitmap_texture;
 
 extern void
-gl_init_bitmap(void) {
+gl_init_bitmap_font(void) {
+    u32 pixels[8][BITMAP_COUNT * 8] = {0};
     for (int i = 0; i < BITMAP_COUNT; ++i) {
-        bitmap_display_list[i] = glGenLists(1);
-        glNewList(bitmap_display_list[i], GL_COMPILE);
-        u64 c = bitascii[i];
-        glBegin(GL_QUADS);
-        f32 scale = 1.0f / 8.0f;
-        for (int j = 0; j < 8; ++j) {
-            for (int i = 0; i < 8; ++i) {
-                f32 x = i * scale;
-                f32 y = j * scale;
-                if (BITMAP_GETBIT(c, i, j)) {
-                    glVertex3f(x - 0,       y + scale,  0.0f);
-                    glVertex3f(x + scale,   y + scale,  0.0f);
-                    glVertex3f(x + scale,   y - 0,      0.0f);
-                    glVertex3f(x - 0,       y - 0,      0.0f);
+        for (int y = 0; y < 8; ++y) {
+            for (int x = 0; x < 8; ++x) {
+                u64 bit = y * 8 + x;
+
+                if (bitascii[i] & (1ull << bit)) {
+                    pixels[7 - y][8 * i + x] = 0xffffffff;
                 }
             }
         }
-        glEnd();
-        glEndList();
     }
+    bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, false);
+}
+
+static void
+gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
+    r2 tex_rect = { c * 8 + 0.1, 0.1, c * 8 + 7.9, 7.9 };
+    r2 rect = { x, y, x + sx, y + sy };
+
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
 extern void
-gl_render_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
-    m4 t = m4_translate(x, y, z);
-    m4 s = m4_scale(sx, sy, 1);
-    m4 ts = m4_mul(t, s);
+gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+    glEnable(GL_TEXTURE_2D);
+    gl_texture_bind(&bitmap_texture);
 
-    glPushMatrix();
-    glMultMatrixf(ts.e);
-    glCallList(bitmap_display_list[c]);
-    glPopMatrix();
-}
-
-extern void
-gl_render_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
-    glColor4ubv((u8*)&color);
-
+    gl_begin(GL_TRIANGLES);
+    gl_color(color);
+    gl_normal(0, 0, +1);
     for (int i = 0; str[i] != '\0'; i++) {
-        gl_render_ascii(str[i], x + i * sx, y, z, sx, sy);
+        gl_ascii(str[i], x + i * sx, y, z, sx, sy);
     }
+    gl_end();
 }
 
 extern void
-gl_render_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
+gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
     va_list list;
     char buffer[256];
-
     va_start(list, fmt);
     vsnprintf(buffer, 256, fmt, list);
-    gl_render_string(buffer, x, y, z, sx, sy, color);
+    gl_string(buffer, x, y, z, sx, sy, color);
     va_end(list);
 }
 

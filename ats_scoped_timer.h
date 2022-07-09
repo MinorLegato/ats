@@ -1,24 +1,24 @@
 
-struct timer_entry {
+typedef struct timer_entry {
     const char* name;
 
     f64 start;
     f64 stop;
 
     usize depth;
-};
+} timer_entry;
 
 static usize timer_top;
-static struct timer_entry timer_stack[512];
+static timer_entry timer_stack[512];
 
 static usize timer_count;
-static struct timer_entry timer_array[512];
+static timer_entry timer_array[512];
 
 #define timer_scope(name) defer(timer_start(name), timer_stop())
 
 static void
 timer_start(const char* name) {
-    struct timer_entry* entry = timer_stack + (timer_top++);
+    timer_entry* entry = timer_stack + (timer_top++);
 
     entry->name = name;
     entry->start = timer_get_current();
@@ -28,7 +28,7 @@ timer_start(const char* name) {
 
 static void
 timer_stop(void) {
-    struct timer_entry* entry = timer_stack + (--timer_top);
+    timer_entry* entry = timer_stack + (--timer_top);
     entry->stop = timer_get_current();
     timer_array[timer_count++] = *entry;
 }
@@ -41,10 +41,11 @@ timer_reset_all(void) {
 
 static void
 timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
+    glEnable(GL_TEXTURE_2D);
     i32 y = 0;
     for_range(i, 0, timer_count) {
-        struct timer_entry e = timer_array[i];
-        sr_string_format(px + 4 * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
+        timer_entry e = timer_array[i];
+        gl_string_format(px + 4 * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
         y++;
     }
 }

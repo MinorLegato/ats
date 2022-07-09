@@ -5,7 +5,7 @@ typedef struct audio_id {
     u16 index;
 } audio_id;
 
-extern void audio_init(void);
+extern void audio_init(void* handle);
 extern audio_id audio_get(const char* name);
 extern void audio_pause(b32 pause);
 extern void audio_kill_all(void);
@@ -45,8 +45,8 @@ static struct {
 static audio_entry audio_table[AUDIO_TABLE_SIZE];
 
 extern void
-audio_init(void) {
-    audio.context = cs_make_context(platform.native, 44100, 8 * 4096, 1024, NULL);
+audio_init(void* handle) {
+    audio.context = cs_make_context(handle, 44100, 8 * 4096, 1024, NULL);
     
     cs_spawn_mix_thread(audio.context);
     cs_thread_sleep_delay(audio.context, 16);
@@ -72,7 +72,7 @@ audio_get(const char* name) {
         if (index == 0) index++;
     }
     
-    char path[1024] = {0};
+    char path[512] = {0};
 
     {
         int i = 0;
@@ -125,7 +125,7 @@ audio_get_entry(audio_id id) {
 
 extern void
 audio_play(audio_id id, f32 volume) {
-    audio_entry* entry = audio_get_entry(id);
+    struct audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -140,7 +140,7 @@ audio_play(audio_id id, f32 volume) {
 
 extern void*
 audio_play_looped(audio_id id, f32 volume) {
-    audio_entry* entry = audio_get_entry(id);
+    struct audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -166,7 +166,7 @@ audio_play_music(audio_id id, f32 volume) {
     if (playing && cs_is_active(playing))
         cs_stop_sound(playing);
     
-    audio_entry* entry = audio_get_entry(id);
+    struct audio_entry* entry = audio_get_entry(id);
     if (entry) {
        playing = cs_play_sound(audio.context, entry->playing);
         
@@ -188,7 +188,7 @@ audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 m
 
     if (final_volume <= 0) return;
 
-    audio_entry* entry = audio_get_entry(id);
+    struct audio_entry* entry = audio_get_entry(id);
 
     if (entry) {
         v2 source_dir = {
