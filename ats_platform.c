@@ -1,6 +1,6 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#pragma comment(lib, "ats/lib/glfw3_mt.lib")
+#pragma comment(lib, "../ats/lib/glfw3_mt.lib")
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "shell32.lib")
@@ -292,30 +292,6 @@ timer_get_current(void) {
 }
 
 extern gl_texture
-gl_texture_create(void *pixels, int width, int height, int is_smooth) {
-    assert(pixels);
-
-    gl_texture texture = {0};
-
-    texture.width = width;
-    texture.height = height;
-
-    glGenTextures(1, &texture.id);
-
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-    
-#ifdef ATS_OGL33
-    glGenerateMipmap(GL_TEXTURE_2D);
-#endif
-
-    return texture;
-}
-
-extern gl_texture
 gl_texture_create_from_image(image image, int is_smooth) {
     return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
 }
@@ -329,159 +305,9 @@ gl_texture_load_from_file(const char* texture_path, int is_smooth) {
 }
 
 extern void
-gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
-    texture->width  = width;
-    texture->height = height;
-
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-
-#ifdef ATS_OGL33
-    glGenerateMipmap(GL_TEXTURE_2D);
-#endif
-}
-
-extern void
-gl_texture_bind(const gl_texture* texture) {
-    glBindTexture(GL_TEXTURE_2D, texture->id);
-
-#if !defined(ATS_OGL33)
-    glMatrixMode(GL_TEXTURE);
-    glLoadIdentity();
-    glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
-#endif
-}
-
-extern void
 gl_texture_destroy(gl_texture* texture) {
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
-}
-
-#ifdef ATS_OGL33
-
-internal u32
-gl_shader_compile(const char* source, unsigned int type) {
-    int success = 0;
-    char info_log[512] = {0};
-    u32 shader = glCreateShader(type);
-
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        glGetShaderInfoLog(shader, 512, NULL, info_log);
-        puts(info_log);
-        exit(EXIT_FAILURE);
-    }
-
-    return shader;
-}
-
-internal u32
-gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
-    int success = 0;
-    char info_log[512] = {0};
-    u32 shader = glCreateProgram();
-
-    glAttachShader(shader, vertex_shader);
-    glAttachShader(shader, fragment_shader);
-
-    glLinkProgram(shader);
-
-    glGetProgramiv(shader, GL_LINK_STATUS, &success);
-
-    if (!success) {
-        glGetProgramInfoLog(shader, 512, NULL, info_log);
-        puts(info_log);
-        exit(EXIT_FAILURE);
-    }
-
-    return shader;
-}
-
-extern gl_shader
-gl_shader_create(const gl_shader_desc* desc) {
-    u32 vertex = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
-    u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
-    u32 program = gl_shader_link_program(vertex, fragment);
-
-    glUseProgram(program);
-
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
-
-    gl_shader shader = {0};
-    shader.id = program;
-    return shader;
-}
-
-extern gl_shader
-gl_shader_load_from_file(const char *vs, const char *fs,  memory_arena* ma) {
-    ma_save(ma);
-    char* vs_content = file_read_str(vs, ma);
-    char* fs_content = file_read_str(fs, ma);
-    gl_shader program = gl_shader_create(&(gl_shader_desc) {
-        .vs = vs_content,
-        .fs = fs_content,
-    });
-    ma_restore(ma);
-    return program;
-}
-
-extern void
-gl_use(const gl_shader* shader) {
-    glUseProgram(shader->id);
-}
-
-extern u32
-gl_location(const gl_shader* shader, const char* name) {
-    return glGetUniformLocation(shader->id, name);
-}
-
-extern void
-gl_uniform_i32(u32 location, i32 i) {
-    glUniform1i(location, i);
-}
-
-extern void
-gl_uniform_f32(u32 location, f32 f) {
-    glUniform1f(location, f);
-}
-
-extern void
-gl_uniform_v2(u32 location, v2 u) {
-    glUniform2f(location, u.x, u.y);
-}
-
-extern void
-gl_uniform_v3(u32 location, v3 u) {
-    glUniform3f(location, u.x, u.y, u.z);
-}
-
-extern void 
-gl_uniform_v4(u32 location, v4 u) {
-    glUniform4f(location, u.x, u.y, u.z, u.w);
-}
-
-extern void
-gl_uniform_m2(u32 location, m2 m) {
-    glUniformMatrix2fv(location, 1, GL_FALSE, m.e);
-}
-
-extern void
-gl_uniform_m3(u32 location, m3 m) {
-    glUniformMatrix3fv(location, 1, GL_FALSE, m.e);
-}
-
-extern void
-gl_uniform_m4(u32 location, m4 m) {
-    glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
 extern v3
@@ -507,40 +333,4 @@ gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
  
     return v3(result[0], result[1], result[2]);
 }
-
-extern gl_array
-gl_array_create(const gl_array_desc* desc) {
-    u32 vao = 0;
-    u32 vbo = 0;
-    
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-    for (u32 i = 0; i < array_count(desc->layout); ++i) {
-        const gl_layout* layout = &desc->layout[i];
-
-        if (layout->size) {
-            glEnableVertexAttribArray(i);
-            glVertexAttribPointer(i, layout->size, layout->type, layout->normalize, layout->stride, (void*)(u64)layout->offset);
-        }
-    }
-
-    gl_array result = {0};
-
-    result.vao = vao;
-    result.vbo = vbo;
-
-    return result;
-}
-
-extern void
-gl_array_send(const gl_array* array, const void* data, u32 size) {
-    glBindBuffer(GL_ARRAY_BUFFER, array->vbo);
-    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-}
-
-#endif // ATS_OGL33
 

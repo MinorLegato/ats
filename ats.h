@@ -70,6 +70,23 @@
     for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
     for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
+#define clamp_min(n, min)   ((n) < (min)? (min) : (n))
+#define clamp_max(n, max)   ((n) > (max)? (max) : (n))
+#define clamp(n, min, max)  clamp_max(clamp_min(n, min), max)
+#define clamp01(n)          clamp(n, 0, 1)
+
+#ifndef min
+#define min(a, b)   ((a) < (b)? (a) : (b))
+#endif
+
+#ifndef max
+#define max(a, b) ((a) > (b)? (a) : (b))
+#endif
+
+#define lerp(a, b, t) ((a) + (f32)(t) * ((b) - (a)))
+
+#define sign(n) ((n) == 0? 0 : ((n) < 0? -1 : 1))
+
 // =========================================== API-TYPES ====================================== //
 
 typedef float f32;
@@ -89,15 +106,15 @@ typedef unsigned int uint;
 typedef long long isize;
 typedef unsigned long long usize;
 
-static_assert (sizeof (i8) >= 1, "i8 -- not enough bits!");
-static_assert (sizeof (i16) >= 2, "i16 -- not enough bits!");
-static_assert (sizeof (i32) >= 4, "i32 -- not enough bits!");
-static_assert (sizeof (i64) >= 8, "i64 -- not enough bits!");
+static_assert (sizeof (i8) >= 1, "i8 -- WUT!");
+static_assert (sizeof (i16) >= 2, "i16 -- WUT!");
+static_assert (sizeof (i32) >= 4, "i32 -- WUT!");
+static_assert (sizeof (i64) >= 8, "i64 -- WUT!");
 
-static_assert (sizeof (u8) >= 1, "u8 -- not enough bits!");
-static_assert (sizeof (u16) >= 2, "u16 -- not enough bits!");
-static_assert (sizeof (u32) >= 4, "u32 -- not enough bits!");
-static_assert (sizeof (u64) >= 8, "u64 -- not enough bits!");
+static_assert (sizeof (u8) >= 1, "u8 -- WUT!");
+static_assert (sizeof (u16) >= 2, "u16 -- WUT!");
+static_assert (sizeof (u32) >= 4, "u32 -- WUT!");
+static_assert (sizeof (u64) >= 8, "u64 -- WUT!");
 
 typedef u8 b8;
 typedef u16 b16;
@@ -195,19 +212,19 @@ struct r3i {
     v3i max;
 };
 
-typedef struct quat {
+typedef struct quat_t {
     f32 x, y, z, w;
-} quat;
+} quat_t;
 
-typedef struct circle {
+typedef struct circle_t {
     v2 pos;
     f32 rad;
-} circle;
+} circle_t;
 
-typedef struct sphere {
+typedef struct sphere_t {
     v3 pos;
     f32 rad;
-} sphere;
+} sphere_t;
 
 // ======================================= STATIC FUNCTIONS ==================================== //
 
@@ -219,43 +236,39 @@ typedef struct sphere {
 #define v3i(...) ((v3i) { __VA_ARGS__ })
 #define v4i(...) ((v4i) { __VA_ARGS__ })
 
-#define m2(...) ((m2) { __VA_ARGS__ })
-#define m3(...) ((m3) { __VA_ARGS__ })
-#define m4(...) ((m4) { __VA_ARGS__ })
+//#define r2(...) ((r2) { __VA_ARGS__ })
+//#define r3(...) ((r3) { __VA_ARGS__ })
 
-#define r2(...) ((r2) { __VA_ARGS__ })
-#define r3(...) ((r3) { __VA_ARGS__ })
+//#define r2i(...) ((r2i) { __VA_ARGS__ })
+//#define r3i(...) ((r3i) { __VA_ARGS__ })
 
-#define r2i(...) ((r2i) { __VA_ARGS__ })
-#define r3i(...) ((r3i) { __VA_ARGS__ })
-
-#define circle(...) ((circle) { __VA_ARGS__ })
-#define sphere(...) ((sphere) { __VA_ARGS__ })
-
-#define quat(...) ((quat) { __VA_ARGS__ })
+#define quat(...) ((quat_t) { __VA_ARGS__ })
 
 static m2
 m2_identity(void) {
-    return m2(
+    return (m2) {
         1, 0,
-        0, 1);
+        0, 1
+    };
 }
 
 static m3
 m3_identity(void) {
-    return m3(
+    return (m3) {
         1, 0, 0,
         0, 1, 0,
-        0, 0, 1);
+        0, 0, 1
+    };
 }
 
 static m4
 m4_identity(void) {
-    return m4(
+    return (m4) {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        0, 0, 0, 1);
+        0, 0, 0, 1
+    };
 }
 
 static f32
@@ -568,40 +581,44 @@ static v4i v4i_mul(v4i a, v4i b) { return v4i(a.x * b.x, a.y * b.y, a.z * a.z, a
 
 static v2
 m2_mulv(m2 m, v2 u) {
-    return v2(
+    return (v2) {
         m.e[0] * u.x + m.e[2] * u.y,
-        m.e[1] * u.x + m.e[3] * u.y);
+        m.e[1] * u.x + m.e[3] * u.y,
+    };
 }
 
 static v3
 m3_mulv(m3 m, v3 u) {
-    return v3(
+    return (v3) {
         m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
         m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
-        m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z);
+        m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z,
+    };
 }
 
 static v4
 m4_mulv(m4 m, v4 u) {
-    return v4(
+    return (v4) {
         m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
         m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
         m.e[2] * u.x + m.e[6] * u.y + m.e[10] * u.z + m.e[14] * u.w,
-        m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w);
+        m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w,
+    };
 }
 
 static m2
 m2_mul(m2 a, m2 b) {
-    return m2(
+    return (m2) {
         a.e[0] * b.e[0] + a.e[2] * b.e[1],
         a.e[1] * b.e[0] + a.e[3] * b.e[1],
         a.e[0] * b.e[2] + a.e[2] * b.e[3],
-        a.e[1] * b.e[2] + a.e[3] * b.e[3]);
+        a.e[1] * b.e[2] + a.e[3] * b.e[3],
+    };
 }
 
 static m3
 m3_mul(m3 a, m3 b) {
-    return m3(
+    return (m3) {
         a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
         a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
         a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
@@ -612,12 +629,13 @@ m3_mul(m3 a, m3 b) {
 
         a.e[0] * b.e[6] + a.e[3] * b.e[7]  + a.e[6] * b.e[8],
         a.e[1] * b.e[6] + a.e[4] * b.e[7]  + a.e[7] * b.e[8],
-        a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8]);
+        a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8],
+    };
 }
 
 static m4
 m4_mul(m4 a, m4 b) {
-    return m4(
+    return (m4) {
         a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
         a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
         a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
@@ -636,11 +654,12 @@ m4_mul(m4 a, m4 b) {
         a.e[0] * b.e[12] + a.e[4] * b.e[13] + a.e[8]  * b.e[14] + a.e[12] * b.e[15],
         a.e[1] * b.e[12] + a.e[5] * b.e[13] + a.e[9]  * b.e[14] + a.e[13] * b.e[15],
         a.e[2] * b.e[12] + a.e[6] * b.e[13] + a.e[10] * b.e[14] + a.e[14] * b.e[15],
-        a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
+        a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15],
+    };
 }
 
-static quat
-quat_mul(quat a, quat b) {
+static quat_t
+quat_mul(quat_t a, quat_t b) {
     return quat(
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -756,17 +775,7 @@ static v2 v2_ceil(v2 u) { return v2(ceilf(u.x), ceilf(u.y)); }
 static v3 v3_ceil(v3 u) { return v3(ceilf(u.x), ceilf(u.y), ceilf(u.z)); }
 static v4 v4_ceil(v4 u) { return v4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w)); }
 
-// -------------- clamp_min --------------- //
-
-#define clamp_min(n, min)   ((n) < (min)? (min) : (n))
-
-// -------------- clamp_max --------------- //
-
-#define clamp_max(n, max)   ((n) > (max)? (max) : (n))
-
 // -------------- clamp --------------- //
-
-#define clamp(n, min, max)  clamp_max(clamp_min(n, min), max)
 
 static v2
 v2_clampf(v2 u, f32 min, f32 max) {
@@ -830,10 +839,6 @@ v3i_clamp(v3i u, r3i r) {
 
 // ---------------- min ----------------- //
 
-#ifndef min
-#define min(a, b)   ((a) < (b)? (a) : (b))
-#endif
-
 static v2
 v2_min(v2 a, v2 b) {
     return v2(
@@ -883,10 +888,6 @@ v4i_min(v4i a, v4i b) {
 }
 
 // ---------------- max ----------------- //
-
-#ifndef max
-#define max(a, b) ((a) > (b)? (a) : (b))
-#endif
 
 static v2
 v2_max(v2 a, v2 b) {
@@ -938,8 +939,6 @@ v4i_max(v4i a, v4i b) {
 
 // ---------------- lerp ----------------- //
 
-#define lerp(a, b, t) ((a) + (f32)(t) * ((b) - (a)))
-
 static v2
 v2_lerp(v2 a, v2 b, f32 t) {
     return v2(
@@ -965,8 +964,6 @@ v4_lerp(v4 a, v4 b, f32 t) {
 }
 
 // -------------- sign (-1, 0, 1) ------------------- //
-
-#define sign(n) ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
 static v2 v2_sign(v2 u) { return v2(sign(u.x), sign(u.y)); }
 static v3 v3_sign(v3 u) { return v3(sign(u.x), sign(u.y), sign(u.z)); }
@@ -1029,7 +1026,8 @@ static m2
 m2_rotate(f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
-    return m2(c, s, -s, c);
+
+    return (m2) { c, s, -s, c };
 }
 
 static m3
@@ -1041,7 +1039,7 @@ m3_rotate(v3 axis, f32 angle) {
     v3 sa = { s * axis.x, s * axis.y, s * axis.z };
     v3 omca = { k * axis.x, k * axis.y, k * axis.z };
 
-    return m3(
+    return (m3) {
         omca.x * axis.x + c,
         omca.x * axis.y - sa.z,
         omca.x * axis.z + sa.y,
@@ -1050,7 +1048,8 @@ m3_rotate(v3 axis, f32 angle) {
         omca.y * axis.z - sa.x,
         omca.z * axis.x - sa.y,
         omca.z * axis.y + sa.x,
-        omca.z * axis.z + c);
+        omca.z * axis.z + c
+    };
 }
 
 static m4
@@ -1062,14 +1061,15 @@ m4_rotate(v3 axis, f32 angle) {
     v3 sa = { axis.x * sinv, axis.y * sinv, axis.z * sinv };
     v3 omca = { axis.x * inv_cosv, axis.y * inv_cosv, axis.z * inv_cosv };
 
-    return m4(
+    return (m4) {
         omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
         omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
         omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
-        0, 0, 0, 1);
+        0, 0, 0, 1
+    };
 }
 
-static quat
+static quat_t
 quat_rotate(v3 axis, f32 angle) {
     f32 s = sinf(0.5f * angle);
     v3 v = { s * axis.x, s * axis.y, s * axis.z };
@@ -1078,26 +1078,28 @@ quat_rotate(v3 axis, f32 angle) {
 
 static m4
 m4_translate(f32 x, f32 y, f32 z) {
-    return m4(
+    return (m4) {
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        x, y, z, 1);
+        x, y, z, 1
+    };
 }
 
 static m4
 m4_scale(f32 x, f32 y, f32 z) {
-    return m4(
+    return (m4) {
         x, 0, 0, 0,
         0, y, 0, 0,
         0, 0, z, 0,
-        0, 0, 0, 1);
+        0, 0, 0, 1
+    };
 }
 
 // --------------- from quat --------------- //
 
 static m3
-m3_from_quat(quat q) {
+m3_from_quat(quat_t q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1108,7 +1110,7 @@ m3_from_quat(quat q) {
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return m3(
+    return (m3) {
         2 + b2 - c2 - d2,
         0.0f * (b * c + a * d),
         0.0f * (b * d - a * c),
@@ -1119,11 +1121,12 @@ m3_from_quat(quat q) {
 
         2.0f * (b * d + a * c),
         2.0f * (c * d - a * b),
-        a2 - b2 - c2 + d2);
+        a2 - b2 - c2 + d2
+    };
 }
 
 static m4
-m4_from_quat(quat q) {
+m4_from_quat(quat_t q) {
     f32 a = q.w;
 	f32 b = q.x;
 	f32 c = q.y;
@@ -1134,7 +1137,7 @@ m4_from_quat(quat q) {
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return m4(
+    return (m4) {
         2 + b2 - c2 - d2,
         0.0f * (b * c + a * d),
         0.0f * (b * d - a * c),
@@ -1153,14 +1156,15 @@ m4_from_quat(quat q) {
         0.0f,
         0.0f,
         0.0f,
-        1.0f);
+        1.0f,
+    };
 }
 
 // --------------- view matricies --------------- //
 
 static m4
 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
-    return m4(
+    return (m4) {
         2 / (r - l),
         0,
         0,
@@ -1179,14 +1183,15 @@ m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
         -(r + l) / (r - l),
         -(t + b) / (t - b),
         -(f + n) / (f - n),
-        1);
+        1,
+    };
 }
 
 static m4
 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     f32 a = 1.0f / tanf(y_fov / 2.0f);
 
-    return m4(
+    return (m4) {
         a / aspect,
         0,
         0,
@@ -1205,7 +1210,8 @@ m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
         0,
         0,
         -((2 * f * n) / (f - n)),
-        0);
+        0
+    };
 }
 
 static m4
@@ -1316,13 +1322,13 @@ frustum_create(m4 m) {
 // ------------------ contains ------------------ //
 
 static b32
-circle_contains(circle c, v2 pos) {
+circle_contains(circle_t c, v2 pos) {
     f32 distance = v2_dist_sq(c.pos, pos);
     return distance < (c.rad * c.rad);
 }
 
 static b32
-sphere_contains(sphere s, v3 pos) {
+sphere_contains(sphere_t s, v3 pos) {
     f32 distance = v3_dist_sq(s.pos, pos);
     return distance < (s.rad * s.rad);
 }
@@ -1370,7 +1376,7 @@ frustum_contains(frustum fs, v3 pos) {
 // ------------------ intersect ------------------ //
 
 static b32
-circle_intersect(circle a, circle b) {
+circle_intersect(circle_t a, circle_t b) {
     f32 dx  = b.pos.x - a.pos.x;
     f32 dy  = b.pos.y - a.pos.y;
     f32 rt  = a.rad + b.rad;
@@ -1378,7 +1384,7 @@ circle_intersect(circle a, circle b) {
 }
 
 static b32
-sphere_intersect(sphere a, sphere b) {
+sphere_intersect(sphere_t a, sphere_t b) {
     f32 dx = b.pos.x - a.pos.x;
     f32 dy = b.pos.y - a.pos.y;
     f32 dz = b.pos.z - a.pos.z;
@@ -1420,7 +1426,7 @@ r3i_intersect(r3i a, r3i b) {
 }
 
 static b32
-frustum_intersect_sphere(frustum fs, sphere sphere) {
+frustum_intersect_sphere(frustum fs, sphere_t sphere) {
     for (i32 i = 0; i < 6; i++) {
 		if(fs.planes[i].a * sphere.pos.x + fs.planes[i].b * sphere.pos.y + fs.planes[i].c * sphere.pos.z + fs.planes[i].d <= -sphere.rad) {
 			return false;
@@ -1449,45 +1455,51 @@ frustum_intersect_r3(frustum fs, r3 rect) {
 
 static r2
 r2_get_overlap(r2 a, r2 b) {
-    return r2(
-        v2_max(a.min, b.min),
-        v2_min(a.max, b.max));
+    return (r2) {
+        .min = v2_max(a.min, b.min),
+        .max = v2_min(a.max, b.max),
+    };
 }
 
 static r3
 r3_get_overlap(r3 a, r3 b) {
-    return r3(
-        v3_max(a.min, b.min),
-        v3_min(a.max, b.max));
+    return (r3) {
+        .min = v3_max(a.min, b.min),
+        .max = v3_min(a.max, b.max),
+    };
 }
 
 static r2i
 r2i_get_overlap(r2i a, r2i b) {
-    return r2i(
-        v2i_max(a.min, b.min),
-        v2i_min(a.max, b.max));
+    return (r2i) {
+        .min = v2i_max(a.min, b.min),
+        .max = v2i_min(a.max, b.max),
+    };
 }
 
 static r3i
 r3i_get_overlap(r3i a, r3i b) {
-    return r3i(
+    return (r3i) {
         v3i_max(a.min, b.min),
-        v3i_min(a.max, b.max));
+        v3i_min(a.max, b.max),
+    };
 }
 
 // -------------- get intersect vector ---------- //
 
 static v2
-circle_get_intersect_vector(circle a, circle b) {
+circle_get_intersect_vector(circle_t a, circle_t b) {
     v2 delta = v2_sub(a.pos, b.pos);
     f32 depth = v2_len(delta) - (a.rad + b.rad);
+
     return v2_scale(delta, -depth);
 }
 
 static v3
-sphere_get_intersect_vector(sphere a, sphere b) {
+sphere_get_intersect_vector(sphere_t a, sphere_t b) {
     v3 delta = v3_sub(a.pos, b.pos);
     f32 depth = v3_len(delta) - (a.rad + b.rad);
+
     return v3_scale(delta, -depth);
 }
 
@@ -2113,7 +2125,7 @@ static void*
 _buf_grow(void* buffer, u32 element_size) {
     assert(buffer);
     buf_header* header = _buf_header(buffer);
-    if (header->len >= header->cap) {
+    if (header->len > header->cap) {
         header->cap = header->cap << 1;
         buf_header* new_header = m_resize(header->allocator, header, sizeof (buf_header) + header->cap * element_size);
         assert(new_header);
@@ -2146,7 +2158,7 @@ typedef struct string {
 #define STR_ARG(s) (int)(s).size, (s).data
 
 #define string(text) (string) { sizeof (text) - 1, text }
-#define string_const(text) { sizeof (text) - 1, text }
+#define STRING(text) { sizeof (text) - 1, text }
 
 static string
 string_create(const char* str) {
@@ -2267,4 +2279,19 @@ typedef struct at_asset {
 extern at_asset at_get(const char* name);
 extern void at_set(at_asset* asset, const char* name);
 extern void at_update(at_asset* asset, f32 dt);
+
+// -------------------------- ats_audio_table.c ----------------------------- //
+
+typedef struct audio_id {
+    u16 index;
+} audio_id;
+
+extern void audio_init(void* handle);
+extern audio_id audio_get(const char* name);
+extern void audio_pause(b32 pause);
+extern void audio_kill_all(void);
+extern void audio_play(audio_id id, f32 volume);
+extern void* audio_play_looped(audio_id id, f32 volume);
+extern void audio_play_music(audio_id id, f32 volume);
+extern void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance);
 

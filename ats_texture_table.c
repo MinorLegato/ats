@@ -172,35 +172,42 @@ tt_get_fit(r2i* stack, image img) {
 extern void
 tt_end(void) {
     r2i* stack = buf_create(r2i, 256, tt_allocator);
-    buf_add(stack, r2i(v2i(0, 0), v2i(tt_table.img.width - 1, tt_table.img.height - 1)));
+
+    buf_add(stack, (r2i) {
+        .min = { 0, 0 },
+        .max = { tt_table.img.width - 1, tt_table.img.height - 1 },
+    });
 
     buf_sort(tt_image_array, tt_cmp_image);
 
     for_buf(i, tt_image_array) {
         tt_image* data = &tt_image_array[i];
         r2i rect = tt_get_fit(stack, data->img);
-        v2i size = v2i(data->img.width + 2, data->img.height + 2);
+        v2i size = { data->img.width + 2, data->img.height + 2 };
         v2i offset = rect.min;
 
-        _tt_add_entry(data->name, r2i(v2i(offset.x + 1, offset.y + 1),
-                                      v2i(offset.x + size.x - 1, offset.y + size.y - 1)));
+        _tt_add_entry(data->name, (r2i) {
+            .min = { offset.x + 1, offset.y + 1 },
+            .max = { offset.x + size.x - 1, offset.y + size.y - 1 },
+        });
 
         for (i32 y = 0; y < data->img.height; ++y) {
             for (i32 x = 0; x < data->img.width; ++x) {
                 u32 pixel = image_get(&data->img, x, y);
+
                 image_set(&tt_table.img, x + offset.x + 1, y + offset.y + 1, pixel);
             }
         }
 
         {
             r2i a = {
-                rect.min.x, rect.min.y + size.y,
-                rect.min.x + size.x, rect.max.y
+                .min = { rect.min.x, rect.min.y + size.y },
+                .max = { rect.min.x + size.x, rect.max.y },
             };
 
             r2i b = {
-                rect.min.x + size.x, rect.min.y,
-                rect.max.x, rect.max.y,
+                .min = { rect.min.x + size.x, rect.min.y },
+                .max = { rect.max.x, rect.max.y },
             };
 
             if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { buf_add(stack, a); }
