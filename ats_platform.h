@@ -75,7 +75,7 @@ typedef struct gl_shader_desc {
 } gl_shader_desc;
 
 extern gl_shader gl_shader_create(const  gl_shader_desc* desc);
-extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs,  m_allocator allocator);
+extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocator);
 
 extern void gl_use(const gl_shader* shader);
 extern u32  gl_location(const gl_shader* shader, const char* name);

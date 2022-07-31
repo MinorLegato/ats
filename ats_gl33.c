@@ -75,7 +75,7 @@ gl_shader_create(const gl_shader_desc* desc) {
 }
 
 extern gl_shader
-gl_shader_load_from_file(const char *vs, const char *fs,  m_allocator allocator) {
+gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocator) {
     char* vs_content = file_read_str(vs, allocator);
     char* fs_content = file_read_str(fs, allocator);
 
@@ -84,8 +84,8 @@ gl_shader_load_from_file(const char *vs, const char *fs,  m_allocator allocator)
         .fs = fs_content,
     });
 
-    m_free(allocator, vs_content);
-    m_free(allocator, fs_content);
+    mem_free(allocator, vs_content);
+    mem_free(allocator, fs_content);
 
     return program;
 }

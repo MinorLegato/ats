@@ -19,16 +19,16 @@ file_get_size(FILE* fp) {
 }
 
 extern char*
-file_read_str(const char* file_name, m_allocator allocator) {
+file_read_str(const char* file_name, mem_allocator allocator) {
     FILE* fp = NULL;
     char* buffer = NULL;
     if (fopen_s(&fp, file_name, "rb") == 0) {
         usize size = file_get_size(fp);
-        buffer = (char*)m_alloc(allocator, size + 1);
+        buffer = (char*)mem_alloc(allocator, size + 1);
         if (buffer) {
             buffer[size] = 0;
             if (fread(buffer, 1, size, fp) == 0) {
-                m_free(allocator, buffer);
+                mem_free(allocator, buffer);
                 buffer = NULL;
             }
         }

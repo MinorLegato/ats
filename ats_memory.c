@@ -3,13 +3,13 @@
 // ==================================== HEAP ALLOCATOR ================================ //
 
 static
-M_ALLOCATOR_PROC(m_heap_allocator_proc) {
+M_ALLOCATOR_PROC(mem_heap_allocator_proc) {
     switch (desc.tag) {
-        case m_tag_alloc: {
+        case mem_tag_alloc: {
             return malloc(desc.size);
         } break;
 
-        case m_tag_resize: {
+        case mem_tag_resize: {
             void* new_pointer = realloc(desc.pointer, desc.size);
             if (new_pointer != desc.pointer) {
                 free(desc.pointer);
@@ -17,40 +17,40 @@ M_ALLOCATOR_PROC(m_heap_allocator_proc) {
             return new_pointer;
         } break;
 
-        case m_tag_free: {
+        case mem_tag_free: {
             free(desc.pointer);
         } break;
     }
     return NULL;
 }
 
-extern m_allocator
-m_heap_allocator(void) {
-    return (m_allocator) { .proc = m_heap_allocator_proc };
+extern mem_allocator
+mem_heap_allocator(void) {
+    return (mem_allocator) { .proc = mem_heap_allocator_proc };
 }
 
 // ====================================== LINEAR ALLOCATOR (using chunks) ================================ //
 
-typedef struct m_chunk {
-    struct m_chunk* prev;
+typedef struct mem_chunk {
+    struct mem_chunk* prev;
     usize index;
     u8 data[];
-} m_chunk;
+} mem_chunk;
 
-typedef struct m_linear {
+typedef struct mem_linear {
     usize chunk_size;
     usize chunk_count;
     usize memory_used;
 
-    m_chunk* chunk;
-} m_linear;
+    mem_chunk* chunk;
+} mem_linear;
 
 static void*
-m_linear_alloc(m_linear* arena, usize size) {
+mem_linear_alloc(mem_linear* arena, usize size) {
     arena->memory_used += size;
 
     if (!arena->chunk || (arena->chunk->index + size > arena->chunk_size)) {
-        m_chunk* chunk = malloc(sizeof (m_chunk) + max(arena->chunk_size, size));
+        mem_chunk* chunk = malloc(sizeof (mem_chunk) + max(arena->chunk_size, size));
         assert(chunk);
 
         chunk->index = 0;
@@ -67,16 +67,16 @@ m_linear_alloc(m_linear* arena, usize size) {
 }
 
 static
-M_ALLOCATOR_PROC(m_linear_allocator_proc) {
-    m_linear* arena = desc.data;
+M_ALLOCATOR_PROC(mem_linear_allocator_proc) {
+    mem_linear* arena = desc.data;
 
     switch (desc.tag) {
-        case m_tag_alloc: {
-            return m_linear_alloc(arena, desc.size);
+        case mem_tag_alloc: {
+            return mem_linear_alloc(arena, desc.size);
         } break;
 
-        case m_tag_resize: {
-            void* memory = m_linear_alloc(arena, desc.size);
+        case mem_tag_resize: {
+            void* memory = mem_linear_alloc(arena, desc.size);
             if (desc.pointer) {
                 memcpy(memory, desc.pointer, desc.size);
             }
@@ -86,15 +86,15 @@ M_ALLOCATOR_PROC(m_linear_allocator_proc) {
     return NULL;
 }
 
-extern m_allocator
-m_linear_allocator(usize chunk_size) {
-    m_linear* arena = calloc(1, sizeof (m_linear));
+extern mem_allocator
+mem_linear_allocator(usize chunk_size) {
+    mem_linear* arena = calloc(1, sizeof (mem_linear));
     assert(arena);
 
     arena->chunk_size = chunk_size;
 
-    return (m_allocator) {
-        .proc = m_linear_allocator_proc,
+    return (mem_allocator) {
+        .proc = mem_linear_allocator_proc,
         .data = arena,
     };
 }

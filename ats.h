@@ -1930,46 +1930,46 @@ m_copy(void* dst, const void* src, usize size) {
 
 // --------------------- allocator interface ---------------------- //
 
-typedef enum m_tag {
-    m_tag_alloc,
-    m_tag_resize,
-    m_tag_free,
-    // m_tag_free_all,
-} m_tag;
+typedef enum mem_tag {
+    mem_tag_alloc,
+    mem_tag_resize,
+    mem_tag_free,
+    // mem_tag_free_all,
+} mem_tag;
 
-typedef struct m_alloc_desc {
-    m_tag tag;
+typedef struct mem_alloc_desc {
+    mem_tag tag;
 
     usize size;
     void* pointer;
 
     void* data;
-} m_alloc_desc;
+} mem_alloc_desc;
 
-#define M_ALLOCATOR_PROC(name) void* name(m_alloc_desc desc)
-typedef M_ALLOCATOR_PROC(m_allocator_proc);
+#define M_ALLOCATOR_PROC(name) void* name(mem_alloc_desc desc)
+typedef M_ALLOCATOR_PROC(mem_allocator_proc);
 
-typedef struct m_allocator {
-    m_allocator_proc* proc;
+typedef struct mem_allocator {
+    mem_allocator_proc* proc;
     void* data;
-} m_allocator;
+} mem_allocator;
 
-#define m_type(allocator, type)         (type*)m_zero(allocator, sizeof (type))
-#define m_array(allocator, type, size)  (type*)m_zero(allocator, (size) * sizeof (type))
+#define mem_type(allocator, type)         (type*)mem_zero(allocator, sizeof (type))
+#define mem_array(allocator, type, size)  (type*)mem_zero(allocator, (size) * sizeof (type))
 
 static void*
-m_alloc(m_allocator allocator, usize size) {
-    return allocator.proc((m_alloc_desc) {
-        .tag = m_tag_alloc,
+mem_alloc(mem_allocator allocator, usize size) {
+    return allocator.proc((mem_alloc_desc) {
+        .tag = mem_tag_alloc,
         .size = size,
         .data = allocator.data,
     });
 }
 
 static void*
-m_resize(m_allocator allocator, void* pointer, usize size) {
-    return allocator.proc((m_alloc_desc) {
-        .tag = m_tag_resize,
+mem_resize(mem_allocator allocator, void* pointer, usize size) {
+    return allocator.proc((mem_alloc_desc) {
+        .tag = mem_tag_resize,
         .pointer = pointer,
         .size = size,
         .data = allocator.data,
@@ -1977,24 +1977,24 @@ m_resize(m_allocator allocator, void* pointer, usize size) {
 }
 
 static void
-m_free(m_allocator allocator, void* pointer) {
-    allocator.proc((m_alloc_desc) {
-        .tag = m_tag_free,
+mem_free(mem_allocator allocator, void* pointer) {
+    allocator.proc((mem_alloc_desc) {
+        .tag = mem_tag_free,
         .pointer = pointer,
         .data = allocator.data,
     });
 }
 
 static void*
-m_zero(m_allocator allocator, usize size) {
-    void* memory = m_alloc(allocator, size);
+mem_zero(mem_allocator allocator, usize size) {
+    void* memory = mem_alloc(allocator, size);
     memset(memory, 0, size);
     return memory;
 }
 
 // ---------------------- arena allocator ------------------------ //
 
-typedef struct m_arena {
+typedef struct mem_arena {
     usize index;
     usize cap;
     u8* buffer;
@@ -2004,21 +2004,21 @@ typedef struct m_arena {
 
     usize lock;
     usize max;
-} m_arena;
+} mem_arena;
 
-#define m_arena_type(ma, t)           (t*)m_arena_alloc(ma, sizeof (t))
-#define m_arena_array(ma, t, count)   (t*)m_arena_alloc(ma, (count) * sizeof (t))
+#define mem_arena_type(ma, t)           (t*)mem_arena_alloc(ma, sizeof (t))
+#define mem_arena_array(ma, t, count)   (t*)mem_arena_alloc(ma, (count) * sizeof (t))
 
-static m_arena
-m_arena_create(u8* buffer, usize size) {
-    m_arena ma = {0};
+static mem_arena
+mem_arena_create(u8* buffer, usize size) {
+    mem_arena ma = {0};
     ma.cap = size;
     ma.buffer = buffer;
     return ma;
 }
 
 static void*
-m_arena_alloc(m_arena* ma, usize byte_size) {
+mem_arena_alloc(mem_arena* ma, usize byte_size) {
     byte_size = align_up(byte_size, 16);
     assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
 
@@ -2030,49 +2030,49 @@ m_arena_alloc(m_arena* ma, usize byte_size) {
 }
 
 static void*
-m_arena_begin(m_arena* ma) {
+mem_arena_begin(mem_arena* ma) {
     ma->lock = true;
     return ma->buffer + ma->index;
 }
 
 static void
-m_arena_end(m_arena* ma, usize byte_size) {
+mem_arena_end(mem_arena* ma, usize byte_size) {
     ma->index += align_up(byte_size, 16);
     ma->lock = false;
 }
 
 static void
-m_arena_save(m_arena* ma) {
+mem_arena_save(mem_arena* ma) {
     assert(ma->top < ma->cap);
     ma->stack[ma->top++] = ma->index;
 }
 
 static void
-m_arena_restore(m_arena* ma) {
+mem_arena_restore(mem_arena* ma) {
     assert(ma->top > 0);
     ma->index = ma->stack[--ma->top];
 }
 
 static void
-m_arena_validate(m_arena* ma) {
+mem_arena_validate(mem_arena* ma) {
     assert(ma->top == 0);
 }
 
 static
-M_ALLOCATOR_PROC(m_arena_allocator_proc) {
-    m_arena* arena = desc.data;
+M_ALLOCATOR_PROC(mem_arena_allocator_proc) {
+    mem_arena* arena = desc.data;
     switch (desc.tag) {
-        case m_tag_alloc: {
-            return m_arena_alloc(arena, desc.size);
+        case mem_tag_alloc: {
+            return mem_arena_alloc(arena, desc.size);
         } break;
     }
     return NULL;
 }
 
-static m_allocator
-m_arena_allocator(m_arena* arena) {
-    return (m_allocator) {
-        .proc = m_arena_allocator_proc,
+static mem_allocator
+mem_arena_allocator(mem_arena* arena) {
+    return (mem_allocator) {
+        .proc = mem_arena_allocator_proc,
         .data = arena,
     };
 }
@@ -2080,7 +2080,7 @@ m_arena_allocator(m_arena* arena) {
 // ===================================== BUFFER STUFF ================================= //
 
 typedef struct buf_header {
-    m_allocator allocator;
+    mem_allocator allocator;
 
     u32 len;
     u32 cap;
@@ -2106,14 +2106,14 @@ static void
 buf_free(void* buffer) {
     if (buffer) {
         buf_header* header = _buf_header(buffer);
-        m_allocator allocator = header->allocator;
-        m_free(allocator, header);
+        mem_allocator allocator = header->allocator;
+        mem_free(allocator, header);
     }
 }
 
 static void*
-_buf_create(u32 element_size, u32 cap, m_allocator allocator) {
-    buf_header* header = m_alloc(allocator, sizeof (buf_header) + cap * element_size);
+_buf_create(u32 element_size, u32 cap, mem_allocator allocator) {
+    buf_header* header = mem_alloc(allocator, sizeof (buf_header) + cap * element_size);
     assert(header);
     header->allocator = allocator;
     header->len = 0;
@@ -2127,7 +2127,7 @@ _buf_grow(void* buffer, u32 element_size) {
     buf_header* header = _buf_header(buffer);
     if (header->len > header->cap) {
         header->cap = header->cap << 1;
-        buf_header* new_header = m_resize(header->allocator, header, sizeof (buf_header) + header->cap * element_size);
+        buf_header* new_header = mem_resize(header->allocator, header, sizeof (buf_header) + header->cap * element_size);
         assert(new_header);
         header = new_header;
     }
@@ -2140,7 +2140,7 @@ _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
     buf_header* header = _buf_header(buffer);
     if (new_cap > header->cap) {
         header->cap = new_cap;
-        buf_header* new_header = m_resize(header->allocator, header, sizeof (buf_header) + header->cap * element_size);
+        buf_header* new_header = mem_resize(header->allocator, header, sizeof (buf_header) + header->cap * element_size);
         assert(new_header);
         header = new_header;
     }
@@ -2273,7 +2273,7 @@ split_iter_create(const char* cstr, const char* delimiters, const char* separato
 
 // -------------------------------- ats_file.c ----------------------------------- //
 
-extern char* file_read_str(const char* file_name, m_allocator allocator);
+extern char* file_read_str(const char* file_name, mem_allocator allocator);
 extern b32 file_write_str(const char* file_name, const char* buffer);
 extern b32 file_append_str(const char* file_name, const char* buffer);
 
@@ -2285,8 +2285,8 @@ extern void file_free_image(image* img);
 
 // ------------------------------- ats_memory.c --------------------------------- //
 
-extern m_allocator m_heap_allocator(void);
-extern m_allocator m_linear_allocator(usize size);
+extern mem_allocator mem_heap_allocator(void);
+extern mem_allocator mem_linear_allocator(usize size);
 
 // --------------------------- ats_texture_table.c ------------------------------ //
 
@@ -2308,7 +2308,7 @@ typedef struct texture_table {
     texture_entry array[TEXTURE_TABLE_SIZE];
 } texture_table;
 
-extern void tt_begin(int width, int height, m_allocator allocator);
+extern void tt_begin(int width, int height, mem_allocator allocator);
 extern void tt_end(void);
 extern void tt_add_image(const char* name, image img);
 extern void tt_load_from_dir(const char* dir_path);
@@ -2346,7 +2346,7 @@ struct at_entity {
     at_entity* next;
 };
 
-extern void at_begin(m_allocator allocator);
+extern void at_begin(mem_allocator allocator);
 extern void at_end(void);
 
 extern void at_add_entity(const char* name);
