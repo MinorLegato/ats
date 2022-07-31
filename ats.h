@@ -2147,6 +2147,32 @@ _buf_reserve(void* buffer, u32 element_size, u32 new_cap) {
     return header->data;
 }
 
+// ====================================== BIT STUFF =================================== //
+
+static inline void
+bit_set(u32* array, u32 index) {
+    u32 idx = index >> 5;
+    u32 bit = index & 31;
+
+    array[idx] |= (1 << bit);
+}
+
+static inline bool
+bit_get(u32* array, u32 index) {
+    u32 idx = index >> 5;
+    u32 bit = index & 31;
+
+    return array[idx] & (1 << bit);
+}
+
+static inline void
+bit_clr(u32* array, u32 index) {
+    u32 idx = index >> 5;
+    u32 bit = index & 31;
+
+    array[idx] &= ~(1 << bit);
+}
+
 // ===================================== STRING STUFF ================================= //
 
 typedef struct string {
@@ -2157,8 +2183,8 @@ typedef struct string {
 #define STR_FMT "%.*s"
 #define STR_ARG(s) (int)(s).size, (s).data
 
-#define string(text) (string) { sizeof (text) - 1, text }
-#define STRING(text) { sizeof (text) - 1, text }
+#define str(text) (string) { sizeof (text) - 1, text }
+#define STR(text) { sizeof (text) - 1, text }
 
 static string
 string_create(const char* str) {
@@ -2184,6 +2210,63 @@ string_equal_cstr(string a, const char* b) {
 static b32
 string_empty(string s) {
     return s.size == 0;
+}
+
+typedef struct split_iter {
+    string current;
+
+    const char* content;
+
+    u32 del_table[8];
+    u32 tok_table[8];
+} split_iter;
+
+static b32
+split_iter_is_valid(const split_iter* it) {
+    return it->current.size;
+}
+
+static inline void
+split_iter_advance(split_iter* it) {
+    while (*it->content && bit_get(it->del_table, *it->content) && !bit_get(it->tok_table, *it->content)) {
+        it->content++;
+    }
+
+    const char* begin = it->content;
+
+    if (bit_get(it->tok_table, *it->content)) {
+        it->content++;
+    } else {
+        while (*it->content && !bit_get(it->del_table, *it->content) && !bit_get(it->tok_table, *it->content)) {
+            it->content++;
+        }
+    }
+
+    it->current = (string) {
+        (usize)(it->content - begin),
+        begin,
+    };
+}
+
+static inline split_iter
+split_iter_create(const char* cstr, const char* delimiters, const char* separators) {
+    assert(delimiters);
+    if (!separators) separators = "";
+
+    split_iter it = {0};
+
+    it.content = cstr;
+
+    for (u32 i = 0; delimiters[i]; ++i) {
+        bit_set(it.del_table, delimiters[i]);
+    }
+
+    for (u32 i = 0; separators[i]; ++i) {
+        bit_set(it.tok_table, separators[i]);
+    }
+
+    split_iter_advance(&it);
+    return it;
 }
 
 // ===================================== EXTERNAL STUFF ===================================== //
