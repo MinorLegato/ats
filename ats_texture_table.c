@@ -9,7 +9,7 @@ typedef struct tt_image {
     char name[256];
 } tt_image;
 
-static m_allocator tt_allocator;
+static mem_allocator tt_allocator;
 
 static texture_table tt_table;
 
@@ -139,14 +139,14 @@ tt_load_from_dir(const char* dir_path) {
 }
 
 extern void
-tt_begin(int width, int height, m_allocator allocator) {
+tt_begin(int width, int height, mem_allocator allocator) {
     tt_allocator = allocator;
     tt_image_array = buf_create(tt_image, 256, allocator);
 
     tt_table = (texture_table) {
         width,
         height, 
-        (u32*)m_zero(tt_allocator, width * height * sizeof (u32)),
+        (u32*)mem_zero(tt_allocator, width * height * sizeof (u32)),
     };
 
     tt_table.array[0].in_use = true;
@@ -171,7 +171,7 @@ tt_get_fit(r2i* stack, image img) {
 
 extern void
 tt_end(void) {
-    r2i* stack = buf_create(r2i, 256, tt_allocator);
+    r2i* stack = buf_create(r2i, 2048, tt_allocator);
 
     buf_add(stack, (r2i) {
         .min = { 0, 0 },
