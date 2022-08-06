@@ -1,6 +1,6 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#pragma comment(lib, "../ats/lib/glfw3_mt.lib")
+#pragma comment(lib, "../../ats/lib/glfw3_mt.lib")
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "shell32.lib")
