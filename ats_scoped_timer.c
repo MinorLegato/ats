@@ -41,7 +41,6 @@ timer_reset_all(void) {
 
 static void
 timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
-    glEnable(GL_TEXTURE_2D);
     i32 y = 0;
     for_range(i, 0, timer_count) {
         timer_entry e = timer_array[i];

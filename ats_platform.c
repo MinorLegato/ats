@@ -1,6 +1,6 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#pragma comment(lib, "../../ats/lib/glfw3_mt.lib")
+#pragma comment(lib, "../ats/lib/glfw3_mt.lib")
 #pragma comment(lib, "opengl32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "shell32.lib")
@@ -292,13 +292,13 @@ timer_get_current(void) {
 }
 
 extern gl_texture
-gl_texture_create_from_image(image image, int is_smooth) {
+gl_texture_create_from_image(image_t image, int is_smooth) {
     return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
 }
 
 extern gl_texture
 gl_texture_load_from_file(const char* texture_path, int is_smooth) {
-    image img = file_load_image(texture_path);
+    image_t img = file_load_image(texture_path);
     gl_texture texture = gl_texture_create_from_image(img, is_smooth);
     file_free_image(&img);
     return texture;
@@ -331,6 +331,6 @@ gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
     f64 result[3];
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
-    return v3(result[0], result[1], result[2]);
+    return V3(result[0], result[1], result[2]);
 }
 

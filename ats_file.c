@@ -18,11 +18,17 @@ file_get_size(FILE* fp) {
     return size;
 }
 
+static FILE*
+file_open(const char* path, const char* mode) {
+    FILE* file = fopen(path, mode);
+    return file;
+}
+
 extern char*
 file_read_str(const char* file_name, mem_allocator allocator) {
     FILE* fp = NULL;
     char* buffer = NULL;
-    if (fopen_s(&fp, file_name, "rb") == 0) {
+    if (fp = file_open(file_name, "rb")) {
         usize size = file_get_size(fp);
         buffer = (char*)mem_alloc(allocator, size + 1);
         if (buffer) {
@@ -40,7 +46,7 @@ file_read_str(const char* file_name, mem_allocator allocator) {
 extern b32
 file_write_str(const char* file_name, const char* buffer) {
     FILE* fp = NULL;
-    if (fopen_s(&fp, file_name, "w") == 0) {
+    if (fp = file_open(file_name, "w")) {
         usize size = strlen(buffer);
         usize n = fwrite(buffer, 1, size, fp);
         fclose(fp);
@@ -52,7 +58,7 @@ file_write_str(const char* file_name, const char* buffer) {
 extern b32
 file_append_str(const char* file_name, const char* buffer) {
     FILE* fp = NULL;
-    if (fopen_s(&fp, file_name, "a") == 0) {
+    if (fp = file_open(file_name, "a")) {
         size_t size = strlen(buffer);
         size_t n = fwrite(buffer, 1, size, fp);
         fclose(fp);
@@ -64,7 +70,7 @@ file_append_str(const char* file_name, const char* buffer) {
 extern b32
 file_read_bin(const char* file_name, void* buffer, usize size) {
     FILE *fp = NULL;
-    if (fopen_s(&fp, file_name, "rb") == 0) {
+    if (fp = file_open(file_name, "rb")) {
         fread(buffer, size, 1, fp);
         fclose(fp);
         return true;
@@ -75,7 +81,7 @@ file_read_bin(const char* file_name, void* buffer, usize size) {
 extern b32
 file_write_bin(const char* file_name, const void* buffer, usize size) {
     FILE *fp = NULL;
-    if (fopen_s(&fp, file_name, "wb") == 0) {
+    if (fp = file_open(file_name, "wb")) {
         fwrite(buffer, size, 1, fp);
         fclose(fp);
         return 1;
@@ -83,19 +89,20 @@ file_write_bin(const char* file_name, const void* buffer, usize size) {
     return false;
 }
 
-extern image
+extern image_t
 file_load_image(const char* path) {
-    image image = {0};
+    image_t image = {0};
     i32 channels = 0;
     image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
     assert(image.pixels);
+
     return image;
 }
 
 extern void
-file_free_image(image* img) {
+file_free_image(image_t* img) {
     stbi_image_free(img->pixels);
-    *img = (image) {0};
+    *img = (image_t) {0};
 }
 
 

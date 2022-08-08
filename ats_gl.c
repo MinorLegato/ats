@@ -282,8 +282,8 @@ gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
 
 extern void
 gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
-    if (flip_x) { swap(i32, tex_rect.min.x, tex_rect.max.x); }
-    if (flip_y) { swap(i32, tex_rect.min.y, tex_rect.max.y); }
+    if (flip_x) { Swap(i32, tex_rect.min.x, tex_rect.max.x); }
+    if (flip_y) { Swap(i32, tex_rect.min.y, tex_rect.max.y); }
 
     gl_color(color);
     gl_normal(0, 0, +1);
@@ -622,7 +622,6 @@ static const u64 bitascii[BITMAP_COUNT] = {
     0x007e7e7e7e7e7e00,
     0x007e424242427e00
 };
-
 
 static gl_texture bitmap_texture;
 

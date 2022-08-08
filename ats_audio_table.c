@@ -69,7 +69,7 @@ audio_get(const char* name) {
     audio_entry* entry = &audio_table[index];
     
     entry->in_use = true;
-    strcpy_s(entry->name, array_count(entry->name), name);
+    strcpy_s(entry->name, ArrayCount(entry->name), name);
     
     entry->loaded  = cs_load_wav(path);
     entry->playing = cs_make_def(&entry->loaded);

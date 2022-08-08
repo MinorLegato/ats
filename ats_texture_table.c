@@ -5,7 +5,7 @@
 typedef struct tt_image {
     b32 user_provided;
 
-    image img;
+    image_t img;
     char name[256];
 } tt_image;
 
@@ -21,7 +21,7 @@ tt_get_texture_table(void) {
 }
 
 extern void
-tt_add_image(const char* name, image img) {
+tt_add_image(const char* name, image_t img) {
     tt_image data = {0};
 
     data.user_provided = true;
@@ -31,7 +31,7 @@ tt_add_image(const char* name, image img) {
     buf_add(tt_image_array, data);
 }
 
-extern image
+extern image_t
 tt_get_image(void) {
     return tt_table.img;
 }
@@ -109,7 +109,7 @@ tt_cmp_image(const void* va, const void* vb) {
 }
 
 extern b32
-rect_contains_image(r2i rect, image image) {
+rect_contains_image(r2i rect, image_t image) {
     i32 rect_width  = rect.max.x - rect.min.x;
     i32 rect_height = rect.max.y - rect.min.y;
     return image.width <= rect_width && image.height <= rect_height;
@@ -141,7 +141,7 @@ tt_load_from_dir(const char* dir_path) {
 extern void
 tt_begin(int width, int height, mem_allocator allocator) {
     tt_allocator = allocator;
-    tt_image_array = buf_create(tt_image, 256, allocator);
+    tt_image_array = buf_create(tt_image, 1024, allocator);
 
     tt_table = (texture_table) {
         width,
@@ -157,7 +157,7 @@ tt_begin(int width, int height, mem_allocator allocator) {
 }
 
 static r2i
-tt_get_fit(r2i* stack, image img) {
+tt_get_fit(r2i* stack, image_t img) {
     u32 j = 0;
     for (j = 0; j < buf_len(stack); ++j) {
         if (rect_contains_image(stack[j], img)) {
@@ -171,7 +171,7 @@ tt_get_fit(r2i* stack, image img) {
 
 extern void
 tt_end(void) {
-    r2i* stack = buf_create(r2i, 2048, tt_allocator);
+    r2i* stack = buf_create(r2i, 4096, tt_allocator);
 
     buf_add(stack, (r2i) {
         .min = { 0, 0 },
@@ -220,10 +220,10 @@ tt_end(void) {
     }
 
     {
-        buf_free(tt_image_array);
+        buf_free(tt_image_array, tt_allocator);
         tt_image_array = NULL;
     }
 
-    buf_free(stack);
+    buf_free(stack, tt_allocator);
 }
 
