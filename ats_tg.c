@@ -173,45 +173,31 @@ sm_at_position(struct spatial_map* map, v2 pos) {
 
 // ============================================ RAYCAST 2D TILEMAP ========================================== //
 
-#define RAY2D_MAX_SIZE  (8192)
+#define RAY2D_MAP_SIZE      (512)
+#define RAY2D_MOD           (511)
+#define RAY2D_ARRAY_SIZE    (8192) // (512 * 512) / 32
 
 struct ray2D_map {
-    r2i bounds;
-    u32 array[RAY2D_MAX_SIZE];
+    u32 array[RAY2D_ARRAY_SIZE];
 };
 
 static void
-ray2D_init(struct ray2D_map* map, r2i bounds) {
-    i32 width  = bounds.max.x - bounds.min.x;
-    i32 height = bounds.max.y - bounds.min.y;
-
-    assert((width * height) < (32 * RAY2D_MAX_SIZE));
+ray2D_init(struct ray2D_map* map) {
     memset(map, 0, sizeof (struct ray2D_map));
-
-    map->bounds = bounds;
 }
 
 static inline u32
-ray2D_index(const struct ray2D_map* map, i32 x, i32 y) {
-    u32 width = map->bounds.max.x - map->bounds.min.x;
-    return y * width + x;
+ray2D_index(const struct ray2D_map* map, u32 x, u32 y) {
+    return (y & RAY2D_MOD) * RAY2D_MAP_SIZE + (x & RAY2D_MOD);
 }
 
-static void
-ray2D_set_traversable(struct ray2D_map* map, i32 x, i32 y) {
-    x -= map->bounds.min.x;
-    y -= map->bounds.min.x;
-
+static inline void
+ray2D_set_traversable(struct ray2D_map* map, u32 x, u32 y) {
     bit_set(map->array, ray2D_index(map, x, y));
 }
 
-static b32
-ray2D_is_traversable(const struct ray2D_map* map, i32 x, i32 y) {
-    if (!r2i_contains(map->bounds, V2i(x, y))) return false;
-
-    x -= map->bounds.min.x;
-    y -= map->bounds.min.x;
-
+static inline b32
+ray2D_is_traversable(const struct ray2D_map* map, u32 x, u32 y) {
     return bit_get(map->array, ray2D_index(map, x, y));
 }
 
