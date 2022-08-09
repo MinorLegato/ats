@@ -151,7 +151,7 @@ gl_buffer_create(const gl_buffer_desc* desc) {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    for (u32 i = 0; i < array_count(desc->layout); ++i) {
+    for (u32 i = 0; i < ArrayCount(desc->layout); ++i) {
         const gl_layout* layout = &desc->layout[i];
 
         if (layout->size) {
@@ -561,12 +561,12 @@ gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
     r2 tex_rect = { c * 8 + 0.1, 0.1, c * 8 + 7.9, 7.9 };
     r2 rect = { x, y, x + sx, y + sy };
 
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = v2(tex_rect.min.x, tex_rect.max.y), .pos = v2(rect.min.x, rect.min.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = v2(tex_rect.max.x, tex_rect.max.y), .pos = v2(rect.max.x, rect.min.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = v2(tex_rect.max.x, tex_rect.min.y), .pos = v2(rect.max.x, rect.max.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = v2(tex_rect.max.x, tex_rect.min.y), .pos = v2(rect.max.x, rect.max.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = v2(tex_rect.min.x, tex_rect.min.y), .pos = v2(rect.min.x, rect.max.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = v2(tex_rect.min.x, tex_rect.max.y), .pos = v2(rect.min.x, rect.min.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.max.y), .pos = V2(rect.min.x, rect.min.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.max.y), .pos = V2(rect.max.x, rect.min.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.min.y), .pos = V2(rect.max.x, rect.max.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.min.y), .pos = V2(rect.max.x, rect.max.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.min.y), .pos = V2(rect.min.x, rect.max.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.max.y), .pos = V2(rect.min.x, rect.min.y), .color = color };
 }
 
 extern void

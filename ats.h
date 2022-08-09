@@ -79,6 +79,7 @@
 #define Lerp(a, b, t)       ((a) + (f32)(t) * ((b) - (a)))
 #define Sign(n)             ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
+
 // =========================================== API-TYPES ====================================== //
 
 typedef float f32;
@@ -1982,8 +1983,8 @@ typedef struct mem_arena {
     usize max;
 } mem_arena;
 
-#define mem_arena_type(ma, t)           (t*)mem_arena_alloc(ma, sizeof (t))
-#define mem_arena_array(ma, t, count)   (t*)mem_arena_alloc(ma, (count) * sizeof (t))
+#define mem_arena_type(ma, t)           (t*)mem_arena_zero(ma, sizeof (t))
+#define mem_arena_array(ma, t, count)   (t*)mem_arena_zero(ma, (count) * sizeof (t))
 
 static mem_arena
 mem_arena_create(u8* buffer, usize size) {
@@ -2003,6 +2004,13 @@ mem_arena_alloc(mem_arena* ma, usize byte_size) {
     ma->max = ma->max > ma->index? ma->max : ma->index;
 
     return memory;
+}
+
+static void*
+mem_arena_zero(mem_arena* ma, usize byte_size) {
+    void* ptr = mem_arena_alloc(ma, byte_size);;
+    memset(ptr, 0, byte_size);
+    return ptr;
 }
 
 static void*
@@ -2055,6 +2063,7 @@ mem_arena_allocator(mem_arena* arena) {
 
 // ===================================== BUFFER STUFF ================================= //
 
+#if 0
 typedef struct buf_header {
     u32 len;
     u32 cap;
@@ -2091,6 +2100,7 @@ _buf_create(u32 element_size, u32 cap, mem_allocator allocator) {
     header->cap = cap;
     return header->data;
 }
+#endif
 
 // ====================================== BIT STUFF =================================== //
 
@@ -2102,7 +2112,7 @@ bit_set(u32* array, u32 index) {
 }
 
 static bool
-bit_get(u32* array, u32 index) {
+bit_get(const u32* array, u32 index) {
     u32 idx = index >> 5;
     u32 bit = index & 31;
     return array[idx] & (1 << bit);

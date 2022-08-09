@@ -13,7 +13,8 @@ static mem_allocator tt_allocator;
 
 static texture_table tt_table;
 
-static tt_image* tt_image_array;
+static usize    tt_image_count;
+static tt_image tt_image_array[1024];
 
 extern texture_table*
 tt_get_texture_table(void) {
@@ -28,7 +29,7 @@ tt_add_image(const char* name, image_t img) {
     data.img = img;
     strcpy(data.name, name);
 
-    buf_add(tt_image_array, data);
+    tt_image_array[tt_image_count++] = data;
 }
 
 extern image_t
@@ -132,7 +133,7 @@ tt_load_from_dir(const char* dir_path) {
         data.img = file_load_image(file_path);
         cstr_copy_without_extension(data.name, find_data.cFileName);
 
-        buf_add(tt_image_array, data);
+        tt_image_array[tt_image_count++] = data;
     } while (FindNextFile(find_handle, &find_data));
 
     FindClose(find_handle);
@@ -141,7 +142,7 @@ tt_load_from_dir(const char* dir_path) {
 extern void
 tt_begin(int width, int height, mem_allocator allocator) {
     tt_allocator = allocator;
-    tt_image_array = buf_create(tt_image, 1024, allocator);
+    tt_image_count = 0;
 
     tt_table = (texture_table) {
         width,
@@ -156,33 +157,36 @@ tt_begin(int width, int height, mem_allocator allocator) {
     }
 }
 
+static usize tt_stack_top; 
+static r2i   tt_stack_buf[4096];
+
 static r2i
-tt_get_fit(r2i* stack, image_t img) {
+tt_get_fit(image_t img) {
     u32 j = 0;
-    for (j = 0; j < buf_len(stack); ++j) {
-        if (rect_contains_image(stack[j], img)) {
+    for (j = 0; j < tt_stack_top; ++j) {
+        if (rect_contains_image(tt_stack_buf[j], img)) {
             break;
         }
     }
-    r2i rect = stack[j];
-    buf_rem(stack, j);
+    r2i rect = tt_stack_buf[j];
+    tt_stack_buf[j] = tt_stack_buf[--tt_stack_top];
     return rect;
 }
 
 extern void
 tt_end(void) {
-    r2i* stack = buf_create(r2i, 4096, tt_allocator);
-
-    buf_add(stack, (r2i) {
+    tt_stack_top = 0;
+    tt_stack_buf[tt_stack_top++] = (r2i) {
         .min = { 0, 0 },
         .max = { tt_table.img.width - 1, tt_table.img.height - 1 },
-    });
+    };
 
-    buf_sort(tt_image_array, tt_cmp_image);
+    qsort(tt_image_array, tt_image_count, sizeof (tt_image), tt_cmp_image);
 
-    for_buf(i, tt_image_array) {
+    for (usize i = 0; i < tt_image_count; ++i) {
         tt_image* data = &tt_image_array[i];
-        r2i rect = tt_get_fit(stack, data->img);
+
+        r2i rect = tt_get_fit(data->img);
         v2i size = { data->img.width + 2, data->img.height + 2 };
         v2i offset = rect.min;
 
@@ -210,8 +214,8 @@ tt_end(void) {
                 .max = { rect.max.x, rect.max.y },
             };
 
-            if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { buf_add(stack, a); }
-            if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { buf_add(stack, b); }
+            if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { tt_stack_buf[tt_stack_top++] = a; }
+            if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { tt_stack_buf[tt_stack_top++] = b; }
         }
 
         if (!data->user_provided) {
@@ -219,11 +223,7 @@ tt_end(void) {
         }
     }
 
-    {
-        buf_free(tt_image_array, tt_allocator);
-        tt_image_array = NULL;
-    }
-
-    buf_free(stack, tt_allocator);
+    tt_image_count = 0;
+    tt_stack_top = 0;
 }
 
