@@ -54,7 +54,7 @@ gui_end(gui_layout* layout) {
     if (layout->input.up) layout->index--;
     if (layout->input.down) layout->index++;
 
-    layout->index = clamp(layout->index, 0, layout->item_count - 1);
+    layout->index = Clamp(layout->index, 0, layout->item_count - 1);
 }
 
 static b32
@@ -62,7 +62,7 @@ gui_do_button(gui_layout* layout, const char* text) {
     i32 len = strlen(text);
     r2 rect = {
         .min = layout->pos,
-        .max = v2(layout->pos.x + layout->font_size * len, layout->pos.y + layout->font_size),
+        .max = V2(layout->pos.x + layout->font_size * len, layout->pos.y + layout->font_size),
     };
 
     if (r2_contains(rect, layout->input.cursor_position)) {

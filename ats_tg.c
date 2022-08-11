@@ -87,7 +87,7 @@ sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
             b32 unique = true;
 
             if (it->e == ignore) continue;
-            if (!intersect(rect, it->rect)) continue;
+            if (!r2_intersect(rect, it->rect)) continue;
 
             for_range(i, 0, result.count) {
                 if (result.array[i].e == it->e) {

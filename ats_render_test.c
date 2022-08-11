@@ -202,9 +202,9 @@ r_init(void) {
 
     r_buffer = gl_buffer_create(&(gl_buffer_desc) {
         .layout = {
-            [0] = { 3, GL_FLOAT,         sizeof(struct r_vertex_data), offsetof(struct r_vertex_data, pos) },
-            [1] = { 2, GL_FLOAT,         sizeof(struct r_vertex_data), offsetof(struct r_vertex_data, uv) },
-            [2] = { 4, GL_UNSIGNED_BYTE, sizeof(struct r_vertex_data), offsetof(struct r_vertex_data, color), true },
+            [0] = { 3, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, pos) },
+            [1] = { 2, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, uv) },
+            [2] = { 4, GL_UNSIGNED_BYTE, sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, color), true },
         }
     });
 

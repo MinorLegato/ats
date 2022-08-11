@@ -29,6 +29,7 @@ timer_start(const char* name) {
 static void
 timer_stop(void) {
     timer_entry* entry = timer_stack + (--timer_top);
+
     entry->stop = timer_get_current();
     timer_array[timer_count++] = *entry;
 }

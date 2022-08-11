@@ -5,14 +5,14 @@ static at_entity* at_current_entity = NULL;
 
 static at_entity* at_entity_list = NULL;
 
-static m_allocator at_allocator;
+static mem_allocator at_allocator;
 
 extern void
 at_add_entity(const char* name) {
     assert(name);
     at_current_animation = NULL;
     at_current_frame = NULL;
-    at_entity* entity = m_type(at_allocator, at_entity);
+    at_entity* entity = mem_type(at_allocator, at_entity);
     entity->name = name;
     if (!at_entity_list) {
         at_entity_list = entity;
@@ -26,7 +26,7 @@ extern void
 at_add_animation(const char* name) {
     assert(name);
     at_current_frame = NULL;
-    at_animation* animation = m_type(at_allocator, at_animation);
+    at_animation* animation = mem_type(at_allocator, at_animation);
     animation->name = name;
 
     if (!at_current_entity->animation) {
@@ -40,7 +40,7 @@ at_add_animation(const char* name) {
 extern void
 at_add_frame(const char* name) {
     assert(name);
-    at_frame* frame = m_type(at_allocator, at_frame);
+    at_frame* frame = mem_type(at_allocator, at_frame);
     frame->name = name;
     frame->rect = tt_get(name);
     frame->animation = at_current_animation;
@@ -54,7 +54,7 @@ at_add_frame(const char* name) {
 }
 
 extern void
-at_begin(m_allocator allocator) {
+at_begin(mem_allocator allocator) {
     at_allocator = allocator;
 
     at_entity_list = NULL;

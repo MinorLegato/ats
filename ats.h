@@ -193,6 +193,8 @@ typedef struct {
 
 // ======================================= STATIC FUNCTIONS ==================================== //
 
+#ifndef __cplusplus
+
 #define V2(...) ((v2) { __VA_ARGS__ })
 #define V3(...) ((v3) { __VA_ARGS__ })
 #define V4(...) ((v4) { __VA_ARGS__ })
@@ -203,34 +205,68 @@ typedef struct {
 
 #define Quat(...) ((quat_t) { __VA_ARGS__ })
 
+#define R2(...) ((r2) { __VA_ARGS__ })
+#define R3(...) ((r3) { __VA_ARGS__ })
+
+#define R2i(...) ((r2i) { __VA_ARGS__ })
+#define R3i(...) ((r3i) { __VA_ARGS__ })
+
 #define Circle(...) ((circle_t) { __VA_ARGS__ })
 #define Sphere(...) ((sphere_t) { __VA_ARGS__ })
 
+#define M2(...) ((m2) { __VA_ARGS__ })
+#define M3(...) ((m3) { __VA_ARGS__ })
+#define M4(...) ((m4) { __VA_ARGS__ })
+
+#else
+
+static inline v2 V2(f32 x, f32 y)                       { return { x, y }; }
+static inline v3 V3(f32 x, f32 y, f32 z)                { return { x, y, z }; }
+static inline v4 V4(f32 x, f32 y, f32 z, f32 w)         { return { x, y, z, w }; }
+
+static inline v2i V2i(i32 x, i32 y)                     { return { x, y }; }
+static inline v3i V3i(i32 x, i32 y, i32 z)              { return { x, y, z }; }
+static inline v4i V4i(i32 x, i32 y, i32 z, i32 w)       { return { x, y, z, w }; }
+
+static inline quat_t Quat(f32 x, f32 y, f32 z, f32 w)   { return { x, y, z, w }; }
+
+static inline circle_t Circle(f32 x, f32 y, f32 rad)        { return { x, y, rad }; }
+static inline sphere_t Sphere(f32 x, f32 y, f32 z, f32 rad) { return { x, y, z, rad }; }
+
+#define R2(...) (r2 { __VA_ARGS__ })
+#define R3(...) (r3 { __VA_ARGS__ })
+
+#define R2i(...) (r2i { __VA_ARGS__ })
+#define R3i(...) (r3i { __VA_ARGS__ })
+
+#define M2(...) (m2 { __VA_ARGS__ })
+#define M3(...) (m3 { __VA_ARGS__ })
+#define M4(...) (m4 { __VA_ARGS__ })
+
+#endif
+
 static m2
 m2_identity(void) {
-    return (m2) {
+    return M2(
         1, 0,
-        0, 1
-    };
+        0, 1);
 }
 
 static m3
 m3_identity(void) {
-    return (m3) {
+    return M3(
         1, 0, 0,
         0, 1, 0,
-        0, 0, 1
-    };
+        0, 0, 1);
 }
 
 static m4
 m4_identity(void) {
-    return (m4) {
+    return M4(
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        0, 0, 0, 1
-    };
+        0, 0, 0, 1);
 }
 
 static f32
@@ -488,21 +524,19 @@ static v4i v4i_from_array(const i32* a) { return V4i(a[0], a[1], a[2], a[3]); }
 
 static v3
 v3_unpack_color(u32 color) {
-    return (v3) {
+    return V3(
         ((color & 0x000000ff) >> 0)  / 256.0f,
         ((color & 0x0000ff00) >> 8)  / 256.0f,
-        ((color & 0x00ff0000) >> 16) / 256.0f,
-    };
+        ((color & 0x00ff0000) >> 16) / 256.0f);
 }
 
 static v4
 v4_unpack_color(u32 color) {
-    return (v4) {
+    return V4(
         ((color & 0x000000ff) >> 0)  / 256.0f,
         ((color & 0x0000ff00) >> 8)  / 256.0f,
         ((color & 0x00ff0000) >> 16) / 256.0f,
-        ((color & 0xff000000) >> 24) / 256.0f,
-    };
+        ((color & 0xff000000) >> 24) / 256.0f);
 }
 
 // --------- negate ---------- //
@@ -547,44 +581,40 @@ static v4i v4i_mul(v4i a, v4i b) { return V4i(a.x * b.x, a.y * b.y, a.z * a.z, a
 
 static v2
 m2_mulv(m2 m, v2 u) {
-    return (v2) {
+    return V2(
         m.e[0] * u.x + m.e[2] * u.y,
-        m.e[1] * u.x + m.e[3] * u.y,
-    };
+        m.e[1] * u.x + m.e[3] * u.y);
 }
 
 static v3
 m3_mulv(m3 m, v3 u) {
-    return (v3) {
+    return V3(
         m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
         m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
-        m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z,
-    };
+        m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z);
 }
 
 static v4
 m4_mulv(m4 m, v4 u) {
-    return (v4) {
+    return V4(
         m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
         m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
         m.e[2] * u.x + m.e[6] * u.y + m.e[10] * u.z + m.e[14] * u.w,
-        m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w,
-    };
+        m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w);
 }
 
 static m2
 m2_mul(m2 a, m2 b) {
-    return (m2) {
+    return M2(
         a.e[0] * b.e[0] + a.e[2] * b.e[1],
         a.e[1] * b.e[0] + a.e[3] * b.e[1],
         a.e[0] * b.e[2] + a.e[2] * b.e[3],
-        a.e[1] * b.e[2] + a.e[3] * b.e[3],
-    };
+        a.e[1] * b.e[2] + a.e[3] * b.e[3]);
 }
 
 static m3
 m3_mul(m3 a, m3 b) {
-    return (m3) {
+    return M3(
         a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
         a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
         a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
@@ -595,13 +625,12 @@ m3_mul(m3 a, m3 b) {
 
         a.e[0] * b.e[6] + a.e[3] * b.e[7]  + a.e[6] * b.e[8],
         a.e[1] * b.e[6] + a.e[4] * b.e[7]  + a.e[7] * b.e[8],
-        a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8],
-    };
+        a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8]);
 }
 
 static m4
 m4_mul(m4 a, m4 b) {
-    return (m4) {
+    return M4(
         a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
         a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
         a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
@@ -620,18 +649,16 @@ m4_mul(m4 a, m4 b) {
         a.e[0] * b.e[12] + a.e[4] * b.e[13] + a.e[8]  * b.e[14] + a.e[12] * b.e[15],
         a.e[1] * b.e[12] + a.e[5] * b.e[13] + a.e[9]  * b.e[14] + a.e[13] * b.e[15],
         a.e[2] * b.e[12] + a.e[6] * b.e[13] + a.e[10] * b.e[14] + a.e[14] * b.e[15],
-        a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15],
-    };
+        a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
 }
 
 static quat_t
 quat_mul(quat_t a, quat_t b) {
-    return (quat_t) {
+    return Quat(
         a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
         a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
         a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
-        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
-    };
+        a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
 }
 
 // ------------ divition ------------ //
@@ -746,211 +773,188 @@ static v4 v4_ceil(v4 u) { return V4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.
 
 static v2
 v2_clampf(v2 u, f32 min, f32 max) {
-    return (v2) {
+    return V2(
         Clamp(u.x, min, max),
-        Clamp(u.y, min, max)
-    };
+        Clamp(u.y, min, max));
 }
 
 static v3
 v3_clampf(v3 u, f32 min, f32 max) {
-    return (v3) {
+    return V3(
         Clamp(u.x, min, max),
         Clamp(u.y, min, max),
-        Clamp(u.z, min, max),
-    };
+        Clamp(u.z, min, max));
 }
 
 static v2i
 v2i_clampi(v2i u, f32 min, f32 max) {
-    return (v2i) {
+    return V2i(
         Clamp(u.x, min, max),
-        Clamp(u.y, min, max),
-    };
+        Clamp(u.y, min, max));
 }
 
 static v3i
 v3i_clampi(v3i u, f32 min, f32 max) {
-    return (v3i) {
+    return V3i(
         Clamp(u.x, min, max),
         Clamp(u.y, min, max),
-        Clamp(u.z, min, max),
-    };
+        Clamp(u.z, min, max));
 }
 
 static v2
 v2_clamp(v2 u, r2 r) {
-    return (v2) {
+    return V2(
         Clamp(u.x, r.min.x, r.max.x),
-        Clamp(u.y, r.min.y, r.max.y),
-    };
+        Clamp(u.y, r.min.y, r.max.y));
 }
 
 static v3
 v3_clamp(v3 u, r3 r) {
-    return (v3) {
+    return V3(
         Clamp(u.x, r.min.x, r.max.x),
         Clamp(u.y, r.min.y, r.max.y),
-        Clamp(u.z, r.min.z, r.max.z),
-    };
+        Clamp(u.z, r.min.z, r.max.z));
 }
 
 static v2i
 v2i_clamp(v2i u, r2i r) {
-    return (v2i) {
+    return V2i(
         Clamp(u.x, r.min.x, r.max.x),
-        Clamp(u.y, r.min.y, r.max.y),
-    };
+        Clamp(u.y, r.min.y, r.max.y));
 }
 
 static v3i
 v3i_clamp(v3i u, r3i r) {
-    return (v3i) {
+    return V3i(
         Clamp(u.x, r.min.x, r.max.x),
         Clamp(u.y, r.min.y, r.max.y),
-        Clamp(u.z, r.min.z, r.max.z),
-    };
+        Clamp(u.z, r.min.z, r.max.z));
 }
 
 // ---------------- min ----------------- //
 
 static v2
 v2_min(v2 a, v2 b) {
-    return (v2) {
+    return V2(
         a.x < b.x? a.x : b.x,
-        a.y < b.y? a.y : b.y,
-    };
+        a.y < b.y? a.y : b.y);
 }
 
 static v3
 v3_min(v3 a, v3 b) {
-    return (v3) {
+    return V3(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
-        a.z < b.z? a.z : b.z,
-    };
+        a.z < b.z? a.z : b.z);
 }
 
 static v4
 v4_min(v4 a, v4 b) {
-    return (v4) {
+    return V4(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
         a.z < b.z? a.z : b.z,
-        a.w < b.w? a.w : b.w,
-    };
+        a.w < b.w? a.w : b.w);
 }
 
 static v2i
 v2i_min(v2i a, v2i b) {
-    return (v2i) {
+    return V2i(
         a.x < b.x? a.x : b.x,
-        a.y < b.y? a.y : b.y,
-    };
+        a.y < b.y? a.y : b.y);
 }
 
 static v3i
 v3i_min(v3i a, v3i b) {
-    return (v3i) {
+    return V3i(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
-        a.z < b.z? a.z : b.z,
-    };
+        a.z < b.z? a.z : b.z);
 }
 
 static v4i
 v4i_min(v4i a, v4i b) {
-    return (v4i) {
+    return V4i(
         a.x < b.x? a.x : b.x,
         a.y < b.y? a.y : b.y,
         a.z < b.z? a.z : b.z,
-        a.w < b.w? a.w : b.w,
-    };
+        a.w < b.w? a.w : b.w);
 }
 
 // ---------------- max ----------------- //
 
 static v2
 v2_max(v2 a, v2 b) {
-    return (v2) {
+    return V2(
         a.x > b.x? a.x : b.x,
-        a.y > b.y? a.y : b.y,
-    };
+        a.y > b.y? a.y : b.y);
 }
 
 static v3
 v3_max(v3 a, v3 b) {
-    return (v3) {
+    return V3(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
-        a.z > b.z? a.z : b.z,
-    };
+        a.z > b.z? a.z : b.z);
 }
 
 static v4
 v4_max(v4 a, v4 b) {
-    return (v4) {
+    return V4(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
         a.z > b.z? a.z : b.z,
-        a.w > b.w? a.w : b.w,
-    };
+        a.w > b.w? a.w : b.w);
 }
 
 static v2i
 v2i_max(v2i a, v2i b) {
-    return (v2i) {
+    return V2i(
         a.x > b.x? a.x : b.x,
-        a.y > b.y? a.y : b.y,
-    };
+        a.y > b.y? a.y : b.y);
 }
 
 static v3i
 v3i_max(v3i a, v3i b) {
-    return (v3i) {
+    return V3i(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
-        a.z > b.z? a.z : b.z,
-    };
+        a.z > b.z? a.z : b.z);
 }
 
 static v4i
 v4i_max(v4i a, v4i b) {
-    return (v4i) {
+    return V4i(
         a.x > b.x? a.x : b.x,
         a.y > b.y? a.y : b.y,
         a.z > b.z? a.z : b.z,
-        a.w > b.w? a.w : b.w,
-    };
+        a.w > b.w? a.w : b.w);
 }
 
 // ---------------- lerp ----------------- //
 
 static v2
 v2_lerp(v2 a, v2 b, f32 t) {
-    return (v2) {
+    return V2(
         a.x + t * (b.x - a.x),
-        a.y + t * (b.y - a.y),
-    };
+        a.y + t * (b.y - a.y));
 }
 
 static v3
 v3_lerp(v3 a, v3 b, f32 t) {
-    return (v3) {
+    return V3(
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
-        a.z + t * (b.z - a.z),
-    };
+        a.z + t * (b.z - a.z));
 }
 
 static v4
 v4_lerp(v4 a, v4 b, f32 t) {
-    return (v4) {
+    return V4(
         a.x + t * (b.x - a.x),
         a.y + t * (b.y - a.y),
         a.z + t * (b.z - a.z),
-        a.w + t * (b.w - a.w),
-    };
+        a.w + t * (b.w - a.w));
 }
 
 // -------------- sign (-1, 0, 1) ------------------- //
@@ -967,11 +971,10 @@ static v4i v4i_sign(v4i u) { return V4i(Sign(u.x), Sign(u.y), Sign(u.z), Sign(u.
 
 static v3
 v3_cross(v3 a, v3 b) {
-    return (v3) {
+    return V3(
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x,
-    };
+        a.x * b.y - a.y * b.x);
 }
 
 // --------------- get angle ------------------- //
@@ -1018,7 +1021,7 @@ m2_rotate(f32 angle) {
     f32 c = cosf(angle);
     f32 s = sinf(angle);
 
-    return (m2) { c, s, -s, c };
+    return M2(c, s, -s, c);
 }
 
 static m3
@@ -1030,7 +1033,7 @@ m3_rotate(v3 axis, f32 angle) {
     v3 sa = { s * axis.x, s * axis.y, s * axis.z };
     v3 omca = { k * axis.x, k * axis.y, k * axis.z };
 
-    return (m3) {
+    return M3(
         omca.x * axis.x + c,
         omca.x * axis.y - sa.z,
         omca.x * axis.z + sa.y,
@@ -1039,8 +1042,7 @@ m3_rotate(v3 axis, f32 angle) {
         omca.y * axis.z - sa.x,
         omca.z * axis.x - sa.y,
         omca.z * axis.y + sa.x,
-        omca.z * axis.z + c
-    };
+        omca.z * axis.z + c);
 }
 
 static m4
@@ -1052,12 +1054,11 @@ m4_rotate(v3 axis, f32 angle) {
     v3 sa = { axis.x * sinv, axis.y * sinv, axis.z * sinv };
     v3 omca = { axis.x * inv_cosv, axis.y * inv_cosv, axis.z * inv_cosv };
 
-    return (m4) {
+    return M4(
         omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
         omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
         omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
-        0, 0, 0, 1
-    };
+        0, 0, 0, 1);
 }
 
 static quat_t
@@ -1069,22 +1070,20 @@ quat_rotate(v3 axis, f32 angle) {
 
 static m4
 m4_translate(f32 x, f32 y, f32 z) {
-    return (m4) {
+    return M4(
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
-        x, y, z, 1
-    };
+        x, y, z, 1);
 }
 
 static m4
 m4_scale(f32 x, f32 y, f32 z) {
-    return (m4) {
+    return M4(
         x, 0, 0, 0,
         0, y, 0, 0,
         0, 0, z, 0,
-        0, 0, 0, 1
-    };
+        0, 0, 0, 1);
 }
 
 // --------------- from quat --------------- //
@@ -1101,7 +1100,7 @@ m3_from_quat(quat_t q) {
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return (m3) {
+    return M3(
         2 + b2 - c2 - d2,
         0.0f * (b * c + a * d),
         0.0f * (b * d - a * c),
@@ -1112,8 +1111,7 @@ m3_from_quat(quat_t q) {
 
         2.0f * (b * d + a * c),
         2.0f * (c * d - a * b),
-        a2 - b2 - c2 + d2
-    };
+        a2 - b2 - c2 + d2);
 }
 
 static m4
@@ -1128,7 +1126,7 @@ m4_from_quat(quat_t q) {
 	f32 c2 = c * c;
 	f32 d2 = d * d;
 
-    return (m4) {
+    return M4(
         2 + b2 - c2 - d2,
         0.0f * (b * c + a * d),
         0.0f * (b * d - a * c),
@@ -1147,15 +1145,14 @@ m4_from_quat(quat_t q) {
         0.0f,
         0.0f,
         0.0f,
-        1.0f,
-    };
+        1.0f);
 }
 
 // --------------- view matricies --------------- //
 
 static m4
 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
-    return (m4) {
+    return M4(
         2 / (r - l),
         0,
         0,
@@ -1174,20 +1171,18 @@ m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
         -(r + l) / (r - l),
         -(t + b) / (t - b),
         -(f + n) / (f - n),
-        1,
-    };
+        1);
 }
 
 static m4
 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     f32 a = 1.0f / tanf(y_fov / 2.0f);
 
-    return (m4) {
+    return M4(
         a / aspect, 0, 0, 0,
         0, a, 0, 0,
         0, 0, -((f + n) / (f - n)), -1,
-        0, 0, -((2 * f * n) / (f - n)), 0
-    };
+        0, 0, -((2 * f * n) / (f - n)), 0);
 }
 
 static m4
@@ -1431,41 +1426,37 @@ frustum_intersect_r3(frustum fs, r3 rect) {
 
 static r2
 r2_get_overlap(r2 a, r2 b) {
-    return (r2) {
-        .min = v2_max(a.min, b.min),
-        .max = v2_min(a.max, b.max),
-    };
+    return R2(
+        v2_max(a.min, b.min),
+        v2_min(a.max, b.max));
 }
 
 static r3
 r3_get_overlap(r3 a, r3 b) {
-    return (r3) {
-        .min = v3_max(a.min, b.min),
-        .max = v3_min(a.max, b.max),
-    };
+    return R3(
+        v3_max(a.min, b.min),
+        v3_min(a.max, b.max));
 }
 
 static r2i
 r2i_get_overlap(r2i a, r2i b) {
-    return (r2i) {
-        .min = v2i_max(a.min, b.min),
-        .max = v2i_min(a.max, b.max),
-    };
+    return R2i(
+        v2i_max(a.min, b.min),
+        v2i_min(a.max, b.max));
 }
 
 static r3i
 r3i_get_overlap(r3i a, r3i b) {
-    return (r3i) {
+    return R3i(
         v3i_max(a.min, b.min),
-        v3i_min(a.max, b.max),
-    };
+        v3i_min(a.max, b.max));
 }
 
 // -------------- get intersect vector ---------- //
 
 static v2
 circle_get_intersect_vector(circle_t a, circle_t b) {
-    v2 delta = v2_sub(a.pos, b.pos);
+    v2  delta = v2_sub(a.pos, b.pos);
     f32 depth = v2_len(delta) - (a.rad + b.rad);
 
     return v2_scale(delta, -depth);
@@ -1504,8 +1495,8 @@ static v2i
 v2i_get_intersect_vector(r2i a, r2i b) {
     r2i overlap = r2i_get_overlap(a, b);
     v2i delta = {
-        0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
-        0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
+        (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
+        (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2,
     };
     return v2i_mul(v2i_sub(overlap.max, overlap.min), v2i_sign(delta));
 }
@@ -1514,9 +1505,9 @@ static v3i
 v3i_get_intersect_vector(r3i a, r3i b) {
     r3i overlap = r3i_get_overlap(a, b);
     v3i delta = {
-        0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
-        0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
-        0.5f * (a.min.z + a.max.z) - 0.5f * (b.min.z + b.max.z),
+        (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
+        (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2,
+        (a.min.z + a.max.z) / 2 - (b.min.z + b.max.z) / 2,
     };
     return v3i_mul(v3i_sub(overlap.max, overlap.min), v3i_sign(delta));
 }
@@ -1936,30 +1927,36 @@ typedef struct mem_allocator {
 
 static void*
 mem_alloc(mem_allocator allocator, usize size) {
-    return allocator.proc((mem_alloc_desc) {
-        .tag = mem_tag_alloc,
-        .size = size,
-        .data = allocator.data,
-    });
+    mem_alloc_desc desc = {};
+
+    desc.tag = mem_tag_alloc;
+    desc.size = size;
+    desc.data = allocator.data;
+
+    return allocator.proc(desc);
 }
 
 static void*
 mem_resize(mem_allocator allocator, void* pointer, usize size) {
-    return allocator.proc((mem_alloc_desc) {
-        .tag = mem_tag_resize,
-        .pointer = pointer,
-        .size = size,
-        .data = allocator.data,
-    });
+    mem_alloc_desc desc = {};
+    
+    desc.tag = mem_tag_resize;
+    desc.pointer = pointer;
+    desc.size = size;
+    desc.data = allocator.data;
+
+    return allocator.proc(desc);
 }
 
 static void
 mem_free(mem_allocator allocator, void* pointer) {
-    allocator.proc((mem_alloc_desc) {
-        .tag = mem_tag_free,
-        .pointer = pointer,
-        .data = allocator.data,
-    });
+    mem_alloc_desc desc = {};
+
+    desc.tag = mem_tag_free;
+    desc.pointer = pointer;
+    desc.data = allocator.data;
+
+    allocator.proc(desc);
 }
 
 static void*
@@ -2044,7 +2041,7 @@ mem_arena_validate(mem_arena* ma) {
 
 static
 M_ALLOCATOR_PROC(mem_arena_allocator_proc) {
-    mem_arena* arena = desc.data;
+    mem_arena* arena = (mem_arena*)desc.data;
     switch (desc.tag) {
         case mem_tag_alloc: {
             return mem_arena_alloc(arena, desc.size);
@@ -2055,52 +2052,13 @@ M_ALLOCATOR_PROC(mem_arena_allocator_proc) {
 
 static mem_allocator
 mem_arena_allocator(mem_arena* arena) {
-    return (mem_allocator) {
-        .proc = mem_arena_allocator_proc,
-        .data = arena,
-    };
+    mem_allocator allocator = {};
+
+    allocator.proc = mem_arena_allocator_proc;
+    allocator.data = arena;
+
+    return allocator;
 }
-
-// ===================================== BUFFER STUFF ================================= //
-
-#if 0
-typedef struct buf_header {
-    u32 len;
-    u32 cap;
-
-    u8 data[];
-} buf_header;
-
-#define buf_create(type, n, allocator)  ((type*)_buf_create(sizeof (type), (n), (allocator)))
-
-#define _buf_header(b)                  ((buf_header*)(b) - 1)
-
-#define buf_len(b)                      ((b)? _buf_header(b)->len : 0)
-#define buf_cap(b)                      ((b)? _buf_header(b)->cap : 0)
-#define buf_add(b, ...)                 ((b)[_buf_header(b)->len++] = (__VA_ARGS__))
-#define buf_rem(b, i)                   ((b)? ((b)[(i)] = (b)[--_buf_header(b)->len], 1) : 0)
-#define buf_clear(b)                    ((b)? _buf_header(b)->len = 0 : 0)
-#define buf_sort(b, cmp_func)           qsort((b), buf_len(b), sizeof (*(b)), (cmp_func))
-
-#define for_buf(index, b)               for (u32 index = 0; index < buf_len(b); ++index)
-
-static void
-buf_free(void* buffer, mem_allocator allocator) {
-    if (buffer) {
-        buf_header* header = _buf_header(buffer);
-        mem_free(allocator, header);
-    }
-}
-
-static void*
-_buf_create(u32 element_size, u32 cap, mem_allocator allocator) {
-    buf_header* header = mem_alloc(allocator, sizeof (buf_header) + cap * element_size);
-    assert(header);
-    header->len = 0;
-    header->cap = cap;
-    return header->data;
-}
-#endif
 
 // ====================================== BIT STUFF =================================== //
 
@@ -2140,10 +2098,10 @@ typedef struct string {
 
 static string
 string_create(const char* str) {
-    return (string) {
-        .size = strlen(str),
-        .data = str,
-    };
+    string s = {};
+    s.size = strlen(str);
+    s.data = str;
+    return s;
 }
 
 static b32
