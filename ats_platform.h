@@ -4,9 +4,6 @@
 #include "ext/glad/glad.h"
 #endif
 
-#undef APIENTRY
-#include "ext/GLFW/glfw3.h"
-
 #if defined(ATS_OGL33)
 #define GLSL(...) "#version 330 core\n" #__VA_ARGS__
 #endif

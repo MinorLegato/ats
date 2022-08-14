@@ -45,7 +45,7 @@
     for (isize index = (start); index < (below); ++index)
 
 #define for_array(index, array) \
-    for_range(index, 0, ArrayCount(array))
+    for (usize index = 0; index < ArrayCount(array); ++index)
 
 #define repeat(count) \
     for (isize macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
@@ -193,8 +193,6 @@ typedef struct {
 
 // ======================================= STATIC FUNCTIONS ==================================== //
 
-#ifndef __cplusplus
-
 #define V2(...) ((v2) { __VA_ARGS__ })
 #define V3(...) ((v3) { __VA_ARGS__ })
 #define V4(...) ((v4) { __VA_ARGS__ })
@@ -217,33 +215,6 @@ typedef struct {
 #define M2(...) ((m2) { __VA_ARGS__ })
 #define M3(...) ((m3) { __VA_ARGS__ })
 #define M4(...) ((m4) { __VA_ARGS__ })
-
-#else
-
-static inline v2 V2(f32 x, f32 y)                       { return { x, y }; }
-static inline v3 V3(f32 x, f32 y, f32 z)                { return { x, y, z }; }
-static inline v4 V4(f32 x, f32 y, f32 z, f32 w)         { return { x, y, z, w }; }
-
-static inline v2i V2i(i32 x, i32 y)                     { return { x, y }; }
-static inline v3i V3i(i32 x, i32 y, i32 z)              { return { x, y, z }; }
-static inline v4i V4i(i32 x, i32 y, i32 z, i32 w)       { return { x, y, z, w }; }
-
-static inline quat_t Quat(f32 x, f32 y, f32 z, f32 w)   { return { x, y, z, w }; }
-
-static inline circle_t Circle(f32 x, f32 y, f32 rad)        { return { x, y, rad }; }
-static inline sphere_t Sphere(f32 x, f32 y, f32 z, f32 rad) { return { x, y, z, rad }; }
-
-#define R2(...) (r2 { __VA_ARGS__ })
-#define R3(...) (r3 { __VA_ARGS__ })
-
-#define R2i(...) (r2i { __VA_ARGS__ })
-#define R3i(...) (r3i { __VA_ARGS__ })
-
-#define M2(...) (m2 { __VA_ARGS__ })
-#define M3(...) (m3 { __VA_ARGS__ })
-#define M4(...) (m4 { __VA_ARGS__ })
-
-#endif
 
 static m2
 m2_identity(void) {
@@ -1927,7 +1898,7 @@ typedef struct mem_allocator {
 
 static void*
 mem_alloc(mem_allocator allocator, usize size) {
-    mem_alloc_desc desc = {};
+    mem_alloc_desc desc = {0};
 
     desc.tag = mem_tag_alloc;
     desc.size = size;
@@ -1938,7 +1909,7 @@ mem_alloc(mem_allocator allocator, usize size) {
 
 static void*
 mem_resize(mem_allocator allocator, void* pointer, usize size) {
-    mem_alloc_desc desc = {};
+    mem_alloc_desc desc = {0};
     
     desc.tag = mem_tag_resize;
     desc.pointer = pointer;
@@ -1950,7 +1921,7 @@ mem_resize(mem_allocator allocator, void* pointer, usize size) {
 
 static void
 mem_free(mem_allocator allocator, void* pointer) {
-    mem_alloc_desc desc = {};
+    mem_alloc_desc desc = {0};
 
     desc.tag = mem_tag_free;
     desc.pointer = pointer;
@@ -2052,7 +2023,7 @@ M_ALLOCATOR_PROC(mem_arena_allocator_proc) {
 
 static mem_allocator
 mem_arena_allocator(mem_arena* arena) {
-    mem_allocator allocator = {};
+    mem_allocator allocator = {0};
 
     allocator.proc = mem_arena_allocator_proc;
     allocator.data = arena;
@@ -2098,7 +2069,7 @@ typedef struct string {
 
 static string
 string_create(const char* str) {
-    string s = {};
+    string s = {0};
     s.size = strlen(str);
     s.data = str;
     return s;

@@ -89,7 +89,7 @@ sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
             if (it->e == ignore) continue;
             if (!r2_intersect(rect, it->rect)) continue;
 
-            for_range(i, 0, result.count) {
+            for_range(i, 0, (isize)result.count) {
                 if (result.array[i].e == it->e) {
                     unique = false;
                     break;
@@ -164,7 +164,7 @@ sm_at_position(struct spatial_map* map, v2 pos) {
     u32 index = sm_index(map, V2i(pos.x, pos.y));
 
     for (struct spatial_cell* it = map->table[index]; it; it = it->next) {
-        if (contains(it->rect, pos)) {
+        if (r2_contains(it->rect, pos)) {
             return it->e;
         }
     }

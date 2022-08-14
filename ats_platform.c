@@ -1,19 +1,9 @@
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#pragma comment(lib, "../../ats/lib/glfw3_mt.lib")
-#pragma comment(lib, "opengl32.lib")
-#pragma comment(lib, "gdi32.lib")
-#pragma comment(lib, "shell32.lib")
-#pragma comment(lib, "kernel32.lib")
-#pragma comment(lib, "user32.lib")
-#endif
+#include "ext/GLFW/ats_glfw.h"
 
 #ifdef ATS_OGL33
 #include "ext/glad/glad.c"
 #endif
-
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include "ext/GLFW/glfw3native.h"
 
 struct platform platform;
 

@@ -84,11 +84,11 @@ _tt_add_entry(const char* name, r2i rect) {
 }
 
 static void
-cstr_copy_without_extension(char* out, char* str) {
-    int i = strlen(str) - 1;
-    while (i && str[i] != '.') i--;
-    CopyMemory(out, str, i);
-    out[i] = '\0';
+cstr_copy_without_extension(char* out, const WCHAR* str) {
+    while (*str && *str != '.') {
+        *(out++) = *(str++);
+    }
+    *out = '\0';
 }
 
 static void
@@ -118,25 +118,12 @@ rect_contains_image(r2i rect, image_t image) {
 
 extern void
 tt_load_from_dir(const char* dir_path) {
-    char find_file_str[256] = {0};
-    cstr_concat(find_file_str, dir_path, "*.png*");
-
-    WIN32_FIND_DATA find_data = {0};
-    HANDLE find_handle = FindFirstFile(find_file_str, &find_data);
-    assert(find_handle != INVALID_HANDLE_VALUE);
-
-    do {
+    for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
         tt_image data = {0};
-        
-        char file_path[256];
-        cstr_concat(file_path, dir_path, find_data.cFileName);
-        data.img = file_load_image(file_path);
-        cstr_copy_without_extension(data.name, find_data.cFileName);
-
+        data.img = file_load_image(it.current);
+        cstr_copy_without_extension(data.name, it.data.cFileName);
         tt_image_array[tt_image_count++] = data;
-    } while (FindNextFile(find_handle, &find_data));
-
-    FindClose(find_handle);
+    }
 }
 
 extern void

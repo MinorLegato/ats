@@ -596,7 +596,7 @@ cs_plugin_id_t cs_add_plugin(cs_context_t* ctx, const cs_plugin_interface_t* plu
 
 	#ifndef _WAVEFORMATEX_
 		#include <mmreg.h>
-		#include <mmsystem.h>
+		//#include <mmsystem.h>
 	#endif
 
 	#include <dsound.h>
