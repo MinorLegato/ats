@@ -26,9 +26,5 @@
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "user32.lib")
-//#pragma comment(lib, "winmm.lib")
 #endif
-
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include "include/GLFW/glfw3native.h" 
 

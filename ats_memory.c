@@ -50,7 +50,7 @@ mem_linear_alloc(mem_linear* arena, usize size) {
     arena->memory_used += size;
 
     if (!arena->chunk || (arena->chunk->index + size > arena->chunk_size)) {
-        mem_chunk* chunk = malloc(sizeof (mem_chunk) + max(arena->chunk_size, size));
+        mem_chunk* chunk = malloc(sizeof (mem_chunk) + Max(arena->chunk_size, size));
         assert(chunk);
 
         chunk->index = 0;

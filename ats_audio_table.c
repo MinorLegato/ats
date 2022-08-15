@@ -165,7 +165,7 @@ audio_play_music(audio_id id, f32 volume) {
 extern void
 audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
     f32 sound_distance = v3_dist(pos, source);
-    f32 final_volume = volume * max(1 - sound_distance / max_distance, 0);
+    f32 final_volume = volume * Max(1 - sound_distance / max_distance, 0);
 
     if (final_volume <= 0) return;
 

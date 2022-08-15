@@ -1,7 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
-#undef APIENTRY
 #include <windows.h>
-#undef APIENTRY
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,7 +111,7 @@ typedef struct file_iter {
     const char* path;
 
     HANDLE handle;
-    WIN32_FIND_DATA data;
+    WIN32_FIND_DATAA data;
 } file_iter;
 
 static bool
@@ -122,14 +120,7 @@ file_iter_is_valid(const file_iter* it) {
 }
 
 static inline void
-file_cstr_concat_to_wc(WCHAR* out, const char* a, const char* b) {
-    while (*a) *out++ = *a++;
-    while (*b) *out++ = *b++;
-    *(out) = '\0';
-}
-
-static inline void
-file_cstr_concat_wc(char* out, const char* a, const WCHAR* b) {
+file_cstr_concat(char* out, const char* a, const char* b) {
     while (*a) *out++ = *a++;
     while (*b) *out++ = *b++;
     *(out) = '\0';
@@ -137,10 +128,9 @@ file_cstr_concat_wc(char* out, const char* a, const WCHAR* b) {
 
 static void
 file_iter_advance(file_iter* it) {
-    it->done = !FindNextFile(it->handle, &it->data);
-
+    it->done = !FindNextFileA(it->handle, &it->data);
     if (!it->done) {
-        file_cstr_concat_wc(it->current, it->path, it->data.cFileName);
+        file_cstr_concat(it->current, it->path, it->data.cFileName);
     }
 }
 
@@ -153,14 +143,14 @@ file_iter_create(const char* path, const char* ext) {
 
     it.path = path;
 
-    WCHAR find_file_str[MAX_PATH] = {0};
-    file_cstr_concat_to_wc(find_file_str, path, ext);
+    char find_file_str[MAX_PATH] = {0};
+    file_cstr_concat(find_file_str, path, ext);
 
-    it.handle = FindFirstFile(find_file_str, &it.data);
+    it.handle = FindFirstFileA(find_file_str, &it.data);
     it.done = it.handle == INVALID_HANDLE_VALUE;
 
     if (!it.done) {
-        file_cstr_concat_wc(it.current, it.path, it.data.cFileName);
+        file_cstr_concat(it.current, it.path, it.data.cFileName);
     }
 
     return it;

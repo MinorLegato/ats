@@ -84,7 +84,7 @@ _tt_add_entry(const char* name, r2i rect) {
 }
 
 static void
-cstr_copy_without_extension(char* out, const WCHAR* str) {
+cstr_copy_without_extension(char* out, const char* str) {
     while (*str && *str != '.') {
         *(out++) = *(str++);
     }
