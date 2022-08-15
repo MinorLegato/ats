@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef __ATS_H__
+#define __ATS_H__
+
 #include <math.h>
 #include <string.h>
 #include <float.h>
@@ -2258,4 +2261,6 @@ extern void audio_play(audio_id id, f32 volume);
 extern void* audio_play_looped(audio_id id, f32 volume);
 extern void audio_play_music(audio_id id, f32 volume);
 extern void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance);
+
+#endif // __ATS_H__
 
