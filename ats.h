@@ -2153,6 +2153,283 @@ split_iter_create(const char* cstr, const char* delimiters, const char* separato
     return it;
 }
 
+// =================================================== SPATIAL MAP =================================================== //
+// assumes that 'T' has this function:
+// r2 get_rect(T* e)
+
+#define SPATIAL_MAX (4 * 4 * 4096)
+
+struct spatial_cell {
+    void* e;
+    r2 rect;
+
+    struct spatial_cell* next;
+};
+
+struct spatial_map {
+    struct spatial_cell* table[4096];
+
+    usize count;
+    struct spatial_cell array[SPATIAL_MAX];
+};
+
+static void
+sm_clear(struct spatial_map* map) {
+    memset(map->table, 0, sizeof map->table);
+    map->count = 0;
+}
+
+static u32
+sm_index(const struct spatial_map* map, v2i pos) {
+    u32 hash = hash_v2i(pos);
+    return hash % ArrayCount(map->table);
+}
+
+static void
+sm_add(struct spatial_map* map, void* e, r2 e_rect) {
+    v2 rad = {
+        e_rect.max.x - e_rect.min.x,
+        e_rect.max.y - e_rect.min.y,
+    };
+
+    r2i rect = {
+        e_rect.min.x, e_rect.min.y,
+        e_rect.max.x, e_rect.max.y,
+    };
+
+    for_r2(rect, x, y) {
+        u32 index = sm_index(map, V2i(x, y));
+        struct spatial_cell* cell = map->array + map->count++;
+
+        cell->e = e;
+        cell->rect = e_rect;
+        cell->next = map->table[index];
+
+        map->table[index] = cell;
+    }
+}
+
+struct sm_entry {
+    void* e;
+    r2 rect;
+};
+
+struct sm_result {
+    usize count;
+    struct sm_entry* array;
+};
+
+static struct sm_result
+sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+    static struct sm_entry spatial_array[SPATIAL_MAX];
+
+    struct sm_result result = {0};
+    result.array = spatial_array;
+
+    r2 rect = {
+        pos.x - rad.x, pos.y - rad.y,
+        pos.x + rad.x, pos.y + rad.y,
+    };
+
+    r2i irect = {
+        pos.x - rad.x, pos.y - rad.y,
+        pos.x + rad.x, pos.y + rad.y,
+    };
+
+    for_r2(irect, x, y) {
+        u32 index = sm_index(map, V2i(x, y));
+        for (struct spatial_cell* it = map->table[index]; it; it = it->next) {
+            b32 unique = true;
+
+            if (it->e == ignore) continue;
+            if (!r2_intersect(rect, it->rect)) continue;
+
+            for_range(i, 0, (isize)result.count) {
+                if (result.array[i].e == it->e) {
+                    unique = false;
+                    break;
+                }
+            }
+            if (unique) {
+                result.array[result.count++] = (struct sm_entry) {
+                    .e = it->e,
+                    .rect = it->rect,
+                };
+            }
+        }
+    }
+
+    return result;
+}
+
+struct sm_iter {
+    struct sm_entry* current;
+
+    u32 index;
+    struct sm_result result;
+};
+
+static struct sm_iter
+sm_get_iterator(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+    struct sm_iter it = {0};
+    
+    it.result = sm_in_range(map, pos, rad, ignore);
+    it.current = &it.result.array[0];
+
+    return it;
+}
+
+static b32
+sm_iter_is_valid(const struct sm_iter* it) {
+    return it->index < it->result.count;
+}
+
+static void
+sm_iter_advance(struct sm_iter* it) {
+    it->index++;
+    it->current = &it->result.array[it->index];
+}
+
+static void*
+sm_get_closest(struct spatial_map* map, v2 pos, f32 range, const void* ignore) {
+    void* result = NULL;
+    
+    f32 distance = 2.0f * range;
+    for_iter(sm_iter, it, sm_get_iterator(map, pos, V2(range, range), ignore)) {
+        struct sm_entry* e = it.current;
+
+        v2 pos = {
+            0.5 * e->rect.min.x + e->rect.max.x,
+            0.5 * e->rect.min.y + e->rect.max.y,
+        };
+
+        f32 new_distance = v2_dist(pos, pos);
+
+        if (new_distance < distance) {
+            result = e;
+            distance = new_distance;
+        }
+    }
+
+    return result;
+}
+
+static void*
+sm_at_position(struct spatial_map* map, v2 pos) {
+    u32 index = sm_index(map, V2i(pos.x, pos.y));
+
+    for (struct spatial_cell* it = map->table[index]; it; it = it->next) {
+        if (r2_contains(it->rect, pos)) {
+            return it->e;
+        }
+    }
+    return NULL;
+}
+
+// ============================================ RAYCAST 2D TILEMAP ========================================== //
+
+#define RAY2D_MAP_SIZE      (512)
+#define RAY2D_MOD           (511)
+#define RAY2D_ARRAY_SIZE    (8192) // (512 * 512) / 32
+
+struct ray2D_map {
+    u32 array[RAY2D_ARRAY_SIZE];
+};
+
+static void
+ray2D_init(struct ray2D_map* map) {
+    memset(map, 0, sizeof (struct ray2D_map));
+}
+
+static inline u32
+ray2D_index(const struct ray2D_map* map, u32 x, u32 y) {
+    return (y & RAY2D_MOD) * RAY2D_MAP_SIZE + (x & RAY2D_MOD);
+}
+
+static inline void
+ray2D_set_traversable(struct ray2D_map* map, u32 x, u32 y) {
+    bit_set(map->array, ray2D_index(map, x, y));
+}
+
+static inline b32
+ray2D_is_traversable(const struct ray2D_map* map, u32 x, u32 y) {
+    return bit_get(map->array, ray2D_index(map, x, y));
+}
+
+static v2
+ray2D_cast_dir(const struct ray2D_map* map, v2 pos, v2 dir, f32 max_range) {
+    if (!ray2D_is_traversable(map, pos.x, pos.y)) return pos;
+
+    //which box of the map we're in
+    int map_x = (int)(pos.x);
+    int map_y = (int)(pos.y);
+
+    //length of ray from current position to next x or y-side
+    f32 side_dist_x = 0;
+    f32 side_dist_y = 0;
+
+    //length of ray from one x or y-side to next x or y-side
+    f32 delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabsf(1.0f / dir.x);
+    f32 delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabsf(1.0f / dir.y);
+
+    f32 perp_wall_dist = 0;
+
+    //what direction to step in x or y-direction (either +1 or -1)
+    int step_x = 0;
+    int step_y = 0;
+
+    b32 hit  = false; //was there a wall hit?
+    int side = 0; //was a NS or a EW wall hit?
+
+    //calculate step and initial sideDist
+    if (dir.x < 0) {
+        step_x = -1;
+        side_dist_x = (pos.x - map_x) * delta_dist_x;
+    } else {
+        step_x = 1;
+        side_dist_x = (map_x + 1.0 - pos.x) * delta_dist_x;
+    }
+
+    if (dir.y < 0) {
+        step_y = -1;
+        side_dist_y = (pos.y - map_y) * delta_dist_y;
+    } else {
+        step_y = 1;
+        side_dist_y = (map_y + 1.0 - pos.y) * delta_dist_y;
+    }
+
+    while (!hit) {
+        //jump to next map square, either in x-direction, or in y-direction
+        if (side_dist_x < side_dist_y) {
+            side_dist_x += delta_dist_x;
+            map_x += step_x;
+            side = 0;
+        } else {
+            side_dist_y += delta_dist_y;
+            map_y += step_y;
+            side = 1;
+        }
+
+        if (!ray2D_is_traversable(map, map_x, map_y) || (v2_dist(pos, V2(map_x, map_y)) > (max_range + 1.0f))) {
+            hit = true;
+        }
+    } 
+
+    if (side == 0) perp_wall_dist = (side_dist_x - delta_dist_x);
+    else           perp_wall_dist = (side_dist_y - delta_dist_y);
+
+    return v2_add(pos, v2_scale(dir, (perp_wall_dist > max_range? max_range : perp_wall_dist)));
+}
+
+static v2
+ray2D_cast_angle(const struct ray2D_map* map, v2 from, f32 angle, f32 max_range) {
+    m2 rot = m2_rotate(angle);
+    v2 dir = m2_mulv(rot, V2(0, 1));
+
+    return ray2D_cast_dir(map, from, dir, max_range);
+}
+
+
 // ===================================== EXTERNAL STUFF ===================================== //
 
 // -------------------------------- ats_file.c ----------------------------------- //
@@ -2262,5 +2539,2498 @@ extern void* audio_play_looped(audio_id id, f32 volume);
 extern void audio_play_music(audio_id id, f32 volume);
 extern void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance);
 
+// ------------------------------- platform ---------------------------------- //
+
+#ifdef ATS_OGL33
+#include "ext/glad/glad.h"
+#endif
+
+#if defined(ATS_OGL33)
+#define GLSL(...) "#version 330 core\n" #__VA_ARGS__
+#endif
+
+// ====================================================== API =================================================== //
+
+// ------------------- platform layer ------------------------ //
+
+struct platform;
+extern struct platform platform;
+
+extern void platform_init(const char* title, int width, int height, int samples);
+extern void platform_update(void);
+
+extern f64 timer_get_current(void);
+
+// ---------------- gl helper functions/types ---------------- //
+
+extern void gl_init(void);
+
+extern void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z);
+extern void gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z);
+extern void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic);
+extern void gl_set_light_directed(int index, v3 pos, v3 color);
+extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b);
+
+extern void gl_init_bitmap_font(void);
+extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color);
+extern void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...);
+
+extern void gl_begin(u32 type);
+extern void gl_end(void);
+extern void gl_color(u32 color);
+extern void gl_normal(f32 x, f32 y, f32 z);
+extern void gl_uv(f32 x, f32 y);
+extern void gl_vertex(f32 x, f32 y, f32 z);
+extern void gl_set_matrix(m4 projection, m4 view);
+extern void gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up);
+extern void gl_texture_box(r2i tex_rect, r3 box, u32 color);
+extern void gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color);
+extern void gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y);
+extern void gl_box(r3 box, u32 color);
+extern void gl_rect(r2 rect, f32 z, u32 color);
+
+typedef struct gl_texture {
+    u32 id;
+    i32 width;
+    i32 height;
+} gl_texture;
+
+extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern gl_texture gl_texture_create_from_image(image_t image, int is_smooth);
+extern gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
+
+extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth);
+extern void gl_texture_bind(const gl_texture* texture);
+extern void gl_texture_destroy(gl_texture* texture);
+
+typedef struct gl_shader {
+    u32 id;
+} gl_shader;
+
+typedef struct gl_shader_desc {
+    const char* vs;
+    const char* fs;
+} gl_shader_desc;
+
+extern gl_shader gl_shader_create(const  gl_shader_desc* desc);
+extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocator);
+
+extern void gl_use(const gl_shader* shader);
+extern u32  gl_location(const gl_shader* shader, const char* name);
+
+extern void gl_uniform_i32(u32 location, int u);
+extern void gl_uniform_f32(u32 location, f32 u);
+extern void gl_uniform_v2(u32 location, v2 u);
+extern void gl_uniform_v3(u32 location, v3 u);
+extern void gl_uniform_v4(u32 location, v4 u);
+extern void gl_uniform_m2(u32 location, m2 m);
+extern void gl_uniform_m3(u32 location, m3 m);
+extern void gl_uniform_m4(u32 location, m4 m);
+
+extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview);
+
+typedef struct gl_buffer {
+    u32 vao;
+    u32 vbo;
+} gl_buffer;
+
+typedef struct gl_layout {
+    u32 size;
+    u32 type;
+    u32 stride;
+    u32 offset;
+    b32 normalize;
+} gl_layout;
+
+typedef struct gl_buffer_desc {
+    gl_layout layout[32];
+} gl_buffer_desc;
+
+extern gl_buffer gl_buffer_create(const gl_buffer_desc* desc);
+extern void gl_buffer_bind(const gl_buffer* buffer);
+extern void gl_buffer_send(const gl_buffer* array, const void* data, u32 size);
+
+// ===================================================== KEYS =================================================== //
+
+#define KEY_UNKNOWN            -1
+
+#define KEY_SPACE              32
+#define KEY_APOSTROPHE         39  /* ' */
+#define KEY_COMMA              44  /* , */
+#define KEY_MINUS              45  /* - */
+#define KEY_PERIOD             46  /* . */
+#define KEY_SLASH              47  /* / */
+#define KEY_0                  48
+#define KEY_1                  49
+#define KEY_2                  50
+#define KEY_3                  51
+#define KEY_4                  52
+#define KEY_5                  53
+#define KEY_6                  54
+#define KEY_7                  55
+#define KEY_8                  56
+#define KEY_9                  57
+#define KEY_SEMICOLON          59  /* ; */
+#define KEY_EQUAL              61  /* = */
+#define KEY_A                  65
+#define KEY_B                  66
+#define KEY_C                  67
+#define KEY_D                  68
+#define KEY_E                  69
+#define KEY_F                  70
+#define KEY_G                  71
+#define KEY_H                  72
+#define KEY_I                  73
+#define KEY_J                  74
+#define KEY_K                  75
+#define KEY_L                  76
+#define KEY_M                  77
+#define KEY_N                  78
+#define KEY_O                  79
+#define KEY_P                  80
+#define KEY_Q                  81
+#define KEY_R                  82
+#define KEY_S                  83
+#define KEY_T                  84
+#define KEY_U                  85
+#define KEY_V                  86
+#define KEY_W                  87
+#define KEY_X                  88
+#define KEY_Y                  89
+#define KEY_Z                  90
+#define KEY_LEFT_BRACKET       91  /* [ */
+#define KEY_BACKSLASH          92  /* \ */
+#define KEY_RIGHT_BRACKET      93  /* ] */
+#define KEY_GRAVE_ACCENT       96  /* ` */
+#define KEY_WORLD_1            161 /* non-US #1 */
+#define KEY_WORLD_2            162 /* non-US #2 */
+
+/* Function keys */
+#define KEY_ESCAPE             256
+#define KEY_ENTER              257
+#define KEY_TAB                258
+#define KEY_BACKSPACE          259
+#define KEY_INSERT             260
+#define KEY_DELETE             261
+#define KEY_RIGHT              262
+#define KEY_LEFT               263
+#define KEY_DOWN               264
+#define KEY_UP                 265
+#define KEY_PAGE_UP            266
+#define KEY_PAGE_DOWN          267
+#define KEY_HOME               268
+#define KEY_END                269
+#define KEY_CAPS_LOCK          280
+#define KEY_SCROLL_LOCK        281
+#define KEY_NUM_LOCK           282
+#define KEY_PRINT_SCREEN       283
+#define KEY_PAUSE              284
+#define KEY_F1                 290
+#define KEY_F2                 291
+#define KEY_F3                 292
+#define KEY_F4                 293
+#define KEY_F5                 294
+#define KEY_F6                 295
+#define KEY_F7                 296
+#define KEY_F8                 297
+#define KEY_F9                 298
+#define KEY_F10                299
+#define KEY_F11                300
+#define KEY_F12                301
+#define KEY_F13                302
+#define KEY_F14                303
+#define KEY_F15                304
+#define KEY_F16                305
+#define KEY_F17                306
+#define KEY_F18                307
+#define KEY_F19                308
+#define KEY_F20                309
+#define KEY_F21                310
+#define KEY_F22                311
+#define KEY_F23                312
+#define KEY_F24                313
+#define KEY_F25                314
+#define KEY_KP_0               320
+#define KEY_KP_1               321
+#define KEY_KP_2               322
+#define KEY_KP_3               323
+#define KEY_KP_4               324
+#define KEY_KP_5               325
+#define KEY_KP_6               326
+#define KEY_KP_7               327
+#define KEY_KP_8               328
+#define KEY_KP_9               329
+#define KEY_KP_DECIMAL         330
+#define KEY_KP_DIVIDE          331
+#define KEY_KP_MULTIPLY        332
+#define KEY_KP_SUBTRACT        333
+#define KEY_KP_ADD             334
+#define KEY_KP_ENTER           335
+#define KEY_KP_EQUAL           336
+#define KEY_LEFT_SHIFT         340
+#define KEY_LEFT_CONTROL       341
+#define KEY_LEFT_ALT           342
+#define KEY_LEFT_SUPER         343
+#define KEY_RIGHT_SHIFT        344
+#define KEY_RIGHT_CONTROL      345
+#define KEY_RIGHT_ALT          346
+#define KEY_RIGHT_SUPER        347
+#define KEY_MENU               348
+#define KEY_LAST               KEY_MENU
+
+#define MOUSE_BUTTON_1         0
+#define MOUSE_BUTTON_2         1
+#define MOUSE_BUTTON_3         2
+#define MOUSE_BUTTON_4         3
+#define MOUSE_BUTTON_5         4
+#define MOUSE_BUTTON_6         5
+#define MOUSE_BUTTON_7         6
+#define MOUSE_BUTTON_8         7
+#define MOUSE_BUTTON_LAST      MOUSE_BUTTON_8
+#define MOUSE_BUTTON_LEFT      MOUSE_BUTTON_1
+#define MOUSE_BUTTON_RIGHT     MOUSE_BUTTON_2
+#define MOUSE_BUTTON_MIDDLE    MOUSE_BUTTON_3
+
+#define JOYSTICK_1             0
+#define JOYSTICK_2             1
+#define JOYSTICK_3             2
+#define JOYSTICK_4             3
+#define JOYSTICK_5             4
+#define JOYSTICK_6             5
+#define JOYSTICK_7             6
+#define JOYSTICK_8             7
+#define JOYSTICK_9             8
+#define JOYSTICK_10            9
+#define JOYSTICK_11            10
+#define JOYSTICK_12            11
+#define JOYSTICK_13            12
+#define JOYSTICK_14            13
+#define JOYSTICK_15            14
+#define JOYSTICK_16            15
+#define JOYSTICK_LAST          JOYSTICK_16
+
+#define GAMEPAD_BUTTON_A               0
+#define GAMEPAD_BUTTON_B               1
+#define GAMEPAD_BUTTON_X               2
+#define GAMEPAD_BUTTON_Y               3
+#define GAMEPAD_BUTTON_LEFT_BUMPER     4
+#define GAMEPAD_BUTTON_RIGHT_BUMPER    5
+#define GAMEPAD_BUTTON_BACK            6
+#define GAMEPAD_BUTTON_START           7
+#define GAMEPAD_BUTTON_GUIDE           8
+#define GAMEPAD_BUTTON_LEFT_THUMB      9
+#define GAMEPAD_BUTTON_RIGHT_THUMB     10
+#define GAMEPAD_BUTTON_DPAD_UP         11
+#define GAMEPAD_BUTTON_DPAD_RIGHT      12
+#define GAMEPAD_BUTTON_DPAD_DOWN       13
+#define GAMEPAD_BUTTON_DPAD_LEFT       14
+#define GAMEPAD_BUTTON_LAST            GAMEPAD_BUTTON_DPAD_LEFT
+
+#define GAMEPAD_BUTTON_CROSS       GAMEPAD_BUTTON_A
+#define GAMEPAD_BUTTON_CIRCLE      GAMEPAD_BUTTON_B
+#define GAMEPAD_BUTTON_SQUARE      GAMEPAD_BUTTON_X
+#define GAMEPAD_BUTTON_TRIANGLE    GAMEPAD_BUTTON_Y
+
+#define GAMEPAD_AXIS_LEFT_X        0
+#define GAMEPAD_AXIS_LEFT_Y        1
+#define GAMEPAD_AXIS_RIGHT_X       2
+#define GAMEPAD_AXIS_RIGHT_Y       3
+#define GAMEPAD_AXIS_LEFT_TRIGGER  4
+#define GAMEPAD_AXIS_RIGHT_TRIGGER 5
+#define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
+
+typedef union gamepad_buttons {
+    struct {
+        u32 x : 1;
+        u32 a : 1;
+        u32 b : 1;
+        u32 y : 1;
+
+        u32 left_bumper     : 1;
+        u32 right_bumper    : 1;
+        u32 left_trigger    : 1;
+        u32 right_trigger   : 1;
+        
+        u32 select          : 1;
+        u32 start           : 1;
+        u32 left_stick      : 1;
+        u32 right_stick     : 1;
+
+        u32 up      : 1;
+        u32 right   : 1;
+        u32 down    : 1;
+        u32 left    : 1;
+    } button;
+
+    u32 data;
+} gamepad_buttons;
+
+typedef struct gamepad {
+    b32 active;
+
+    v2 left_stick;
+    v2 right_stick;
+
+    f32 left_trigger;
+    f32 right_trigger;
+
+    gamepad_buttons down;
+    gamepad_buttons pressed;
+    gamepad_buttons released;
+} gamepad;
+
+typedef u32 mouse_mode;
+enum {
+    mouse_mode_normal,
+    mouse_mode_hidden,
+    mouse_mode_disabled
+};
+
+struct platform {
+    b32 close;
+
+    i32 width;
+    i32 height;
+    f32 aspect_ratio;
+
+    void* native;
+
+    b32 fullscreen;
+    b32 _fullscreen_state_last_update;
+
+    struct {
+        f64 total;
+        f32 delta;
+    } time;
+
+    struct {
+        u32 mode;
+
+        b32 is_down : 1;
+        b32 is_pressed : 1;
+        b32 is_released : 1;
+
+        v2 pos;
+        v2 delta;
+        v2 scroll;
+
+        b8 down[MOUSE_BUTTON_LAST + 1];
+        b8 pressed[MOUSE_BUTTON_LAST + 1];
+        b8 released[MOUSE_BUTTON_LAST + 1];
+    } mouse;
+
+    struct {
+        i32 key;
+        i32 ascii;
+
+        b32 is_down : 1;
+        b32 is_pressed : 1;
+        b32 is_repeat : 1;
+        b32 is_released : 1;
+        b32 is_ascii : 1;
+    
+        b8 down[KEY_LAST + 1];
+        b8 pressed[KEY_LAST + 1];
+        b8 repeat[KEY_LAST + 1];
+        b8 released[KEY_LAST + 1];
+    } keyboard;
+
+    gamepad gamepad[JOYSTICK_LAST];
+};
+
+extern struct platform platform;
+
 #endif // __ATS_H__
+
+// ================================================================================================= //
+// ========================================= IMPLEMENTATION ======================================== //
+// ================================================================================================= //
+#ifdef ATS_IMPL
+#ifndef ATS_IMPL_ONCE
+#define ATS_IMPL_ONCE
+
+// ----------------------------------- memory impl ---------------------------------- //
+
+#include <stdlib.h>
+
+// ==================================== HEAP ALLOCATOR ================================ //
+
+static
+M_ALLOCATOR_PROC(mem_heap_allocator_proc) {
+    switch (desc.tag) {
+        case mem_tag_alloc: {
+            return malloc(desc.size);
+        } break;
+
+        case mem_tag_resize: {
+            void* new_pointer = realloc(desc.pointer, desc.size);
+            if (new_pointer != desc.pointer) {
+                free(desc.pointer);
+            }
+            return new_pointer;
+        } break;
+
+        case mem_tag_free: {
+            free(desc.pointer);
+        } break;
+    }
+    return NULL;
+}
+
+extern mem_allocator
+mem_heap_allocator(void) {
+    return (mem_allocator) { .proc = mem_heap_allocator_proc };
+}
+
+// ====================================== LINEAR ALLOCATOR (using chunks) ================================ //
+
+typedef struct mem_chunk {
+    struct mem_chunk* prev;
+    usize index;
+    u8 data[];
+} mem_chunk;
+
+typedef struct mem_linear {
+    usize chunk_size;
+    usize chunk_count;
+    usize memory_used;
+
+    mem_chunk* chunk;
+} mem_linear;
+
+static void*
+mem_linear_alloc(mem_linear* arena, usize size) {
+    arena->memory_used += size;
+
+    if (!arena->chunk || (arena->chunk->index + size > arena->chunk_size)) {
+        mem_chunk* chunk = malloc(sizeof (mem_chunk) + Max(arena->chunk_size, size));
+        assert(chunk);
+
+        chunk->index = 0;
+        chunk->prev = arena->chunk;
+
+        arena->chunk = chunk;
+        arena->chunk_count++;
+    }
+
+    void* memory = arena->chunk->data + arena->chunk->index;
+    arena->chunk->index += size;
+
+    return memory;
+}
+
+static
+M_ALLOCATOR_PROC(mem_linear_allocator_proc) {
+    mem_linear* arena = desc.data;
+
+    switch (desc.tag) {
+        case mem_tag_alloc: {
+            return mem_linear_alloc(arena, desc.size);
+        } break;
+
+        case mem_tag_resize: {
+            void* memory = mem_linear_alloc(arena, desc.size);
+            if (desc.pointer) {
+                memcpy(memory, desc.pointer, desc.size);
+            }
+            return memory;
+        } break;
+    }
+    return NULL;
+}
+
+extern mem_allocator
+mem_linear_allocator(usize chunk_size) {
+    mem_linear* arena = calloc(1, sizeof (mem_linear));
+    assert(arena);
+
+    arena->chunk_size = chunk_size;
+
+    return (mem_allocator) {
+        .proc = mem_linear_allocator_proc,
+        .data = arena,
+    };
+}
+
+// ----------------------------------- platform impl ---------------------------------- //
+
+#include "ext/GLFW/ats_glfw.h"
+
+#ifdef ATS_OGL33
+#include "ext/glad/glad.c"
+#endif
+
+struct platform platform;
+
+static struct {
+    GLFWwindow* window;
+    GLFWmonitor* monitor;
+} platform_internal;
+
+static void
+window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
+    (void)window;
+    (void)a;
+    (void)b;
+
+    switch (action) {
+        case GLFW_PRESS: {
+            platform.keyboard.key = key;
+            platform.keyboard.is_down = 1;
+            platform.keyboard.is_pressed = 1;
+            platform.keyboard.is_repeat = 1;
+            platform.keyboard.down[key] = 1;
+            platform.keyboard.pressed[key] = 1;
+            platform.keyboard.repeat[key] = 1;
+        } break;
+        case GLFW_REPEAT: {
+            platform.keyboard.is_repeat = 1;
+            platform.keyboard.repeat[key] = 1;
+        } break;
+        case GLFW_RELEASE: {
+            platform.keyboard.is_down = 0;
+            platform.keyboard.is_released = 1;
+            
+            platform.keyboard.down[key] = 0;
+            platform.keyboard.released[key] = 1;
+        } break;
+    }
+}
+
+static void
+window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+    platform.keyboard.is_ascii  = 1;
+    platform.keyboard.ascii     = codepoint;
+}
+
+static void
+window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
+    (void)window;
+    (void)a;
+
+    switch (action) {
+        case GLFW_PRESS: {
+            platform.mouse.is_down = 1;
+            platform.mouse.is_pressed = 1;
+            platform.mouse.down[button] = 1;
+            platform.mouse.pressed[button] = 1;
+        } break;
+        case GLFW_RELEASE: {
+            platform.mouse.is_down = 0;
+            platform.mouse.is_released = 1;
+            platform.mouse.down[button] = 0;
+            platform.mouse.released[button] = 1;
+        } break;
+    }
+}
+
+static void
+window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
+    (void)window;
+
+    platform.mouse.scroll.x = (f32)xoffset;
+    platform.mouse.scroll.y = (f32)yoffset;
+}
+
+static void
+window_joystick_callback(int joy, int event) {
+    if (event == GLFW_CONNECTED) {
+        memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
+        platform.gamepad[joy].active = 1;
+    }
+
+    if (event == GLFW_DISCONNECTED) {
+        memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
+    }
+}
+
+extern void
+platform_init(const char* title, int width, int height, int samples) {
+    glfwInit();
+
+    platform_internal.monitor = glfwGetPrimaryMonitor();
+
+    const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
+
+    glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+#if defined(ATS_OGL33)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+
+    glfwWindowHint(GLFW_SAMPLES, samples);
+
+    platform.width  = width;
+    platform.height = height;
+
+    platform_internal.window = glfwCreateWindow(width, height, title, NULL, NULL);
+    platform.native = glfwGetWin32Window(platform_internal.window);
+
+    glfwSetWindowPos(platform_internal.window, (mode->width - width) / 2, (mode->height - height) / 2);
+
+    glfwMakeContextCurrent(platform_internal.window);
+
+#if defined(ATS_OGL33)
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+#endif
+
+    glfwSetKeyCallback(platform_internal.window, window_key_callback);
+    glfwSetCharCallback(platform_internal.window, window_char_callback);
+    glfwSetMouseButtonCallback(platform_internal.window, window_mouse_button_callback);
+    glfwSetScrollCallback(platform_internal.window, window_scroll_callback);
+    glfwSetJoystickCallback(window_joystick_callback);
+
+    // init mouse:
+    {
+        f64 x = 0.0;
+        f64 y = 0.0;
+
+        glfwGetCursorPos(platform_internal.window, &x, &y);
+
+        platform.mouse.pos.x = (f32)x;
+        platform.mouse.pos.y = (f32)y;
+    }
+
+    // init connected controllers
+    for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
+        if (glfwJoystickPresent(i))
+            platform.gamepad[i].active = 1;
+    }
+
+    glfwSetTime(0.0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    platform_update();
+}
+
+extern void
+platform_update(void) {
+    if (glfwWindowShouldClose(platform_internal.window))
+        platform.close = 1;
+
+    if (platform.close)
+        glfwSetWindowShouldClose(platform_internal.window, 1);
+
+    platform.mouse.is_pressed       = 0;
+    platform.mouse.is_released      = 0;
+    platform.keyboard.is_pressed    = 0;
+    platform.keyboard.is_repeat     = 0;
+    platform.keyboard.is_released   = 0;
+    platform.keyboard.is_ascii      = 0;
+
+    // update mouse:
+    {
+        f64 x, y;
+        glfwGetCursorPos(platform_internal.window, &x, &y);
+
+        platform.mouse.delta.x  = (f32)(x - platform.mouse.pos.x);
+        platform.mouse.delta.y  = (f32)(y - platform.mouse.pos.y);
+
+        platform.mouse.pos.x    = (f32)x;
+        platform.mouse.pos.y    = (f32)y;
+
+        platform.mouse.scroll.x = 0;
+        platform.mouse.scroll.y = 0;
+
+        switch (platform.mouse.mode) {
+            case mouse_mode_normal: {
+                glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            } break;
+            case mouse_mode_hidden: {
+                glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            } break;
+            case mouse_mode_disabled: {
+                glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            } break;
+        }
+    }
+
+    // update gamepads:
+    {
+        GLFWgamepadstate state;
+
+        for (int i = 0; i < JOYSTICK_LAST; ++i) {
+            if (platform.gamepad[i].active) {
+                gamepad_buttons old = platform.gamepad[i].down;
+
+                platform.gamepad[i].down.data       = 0;
+                platform.gamepad[i].pressed.data    = 0;
+                platform.gamepad[i].released.data   = 0;
+
+                glfwGetGamepadState(i, &state);
+
+                platform.gamepad[i].left_stick.x    = +state.axes[GAMEPAD_AXIS_LEFT_X];
+                platform.gamepad[i].left_stick.y    = -state.axes[GAMEPAD_AXIS_LEFT_Y];
+                platform.gamepad[i].right_stick.x   = +state.axes[GAMEPAD_AXIS_RIGHT_X];
+                platform.gamepad[i].right_stick.y   = -state.axes[GAMEPAD_AXIS_RIGHT_Y];
+
+                platform.gamepad[i].left_trigger    = 0.5f * (state.axes[GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
+                platform.gamepad[i].right_trigger   = 0.5f * (state.axes[GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
+
+                if (state.buttons[GAMEPAD_BUTTON_X]) platform.gamepad[i].down.button.x = 1;
+                if (state.buttons[GAMEPAD_BUTTON_A]) platform.gamepad[i].down.button.a = 1;
+                if (state.buttons[GAMEPAD_BUTTON_B]) platform.gamepad[i].down.button.b = 1;
+                if (state.buttons[GAMEPAD_BUTTON_Y]) platform.gamepad[i].down.button.y = 1;
+
+                if (state.buttons[GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepad[i].down.button.left_bumper     = 1;
+                if (state.buttons[GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepad[i].down.button.right_bumper    = 1;
+
+                if (platform.gamepad[i].left_trigger  > 0.0f)   platform.gamepad[i].down.button.left_trigger    = 1;
+                if (platform.gamepad[i].right_trigger > 0.0f)   platform.gamepad[i].down.button.right_trigger   = 1;
+
+                if (state.buttons[GAMEPAD_BUTTON_BACK])         platform.gamepad[i].down.button.select      = 1;
+                if (state.buttons[GAMEPAD_BUTTON_START])        platform.gamepad[i].down.button.start       = 1;
+                if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB])   platform.gamepad[i].down.button.left_stick  = 1;
+                if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB])  platform.gamepad[i].down.button.right_stick = 1;
+
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_UP])      platform.gamepad[i].down.button.up      = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT])   platform.gamepad[i].down.button.right   = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN])    platform.gamepad[i].down.button.down    = 1;
+                if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT])    platform.gamepad[i].down.button.left    = 1;
+
+                platform.gamepad[i].pressed.data    =  platform.gamepad[i].down.data & ~old.data;
+                platform.gamepad[i].released.data   = ~platform.gamepad[i].down.data &  old.data;
+            }
+        }
+    }
+
+    if (platform.fullscreen != platform._fullscreen_state_last_update) {
+        const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
+
+        if (platform.fullscreen)
+            glfwSetWindowMonitor(platform_internal.window, platform_internal.monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+        else
+            glfwSetWindowMonitor(platform_internal.window, NULL, 64, 64, mode->width - 256, mode->height - 256, mode->refreshRate);
+    }
+
+    platform._fullscreen_state_last_update = platform.fullscreen;
+
+    glfwGetWindowSize(platform_internal.window, &platform.width, &platform.height);
+    platform.aspect_ratio = (f32)platform.width / (f32)platform.height;
+
+    glViewport(0, 0, platform.width, platform.height);
+
+    memset(platform.keyboard.pressed,  0, sizeof (platform.keyboard.pressed));
+    memset(platform.keyboard.repeat,   0, sizeof (platform.keyboard.repeat));
+    memset(platform.keyboard.released, 0, sizeof (platform.keyboard.released));
+
+    memset(platform.mouse.pressed,  0, sizeof (platform.mouse.pressed));
+    memset(platform.mouse.released, 0, sizeof (platform.mouse.released));
+
+    glfwPollEvents();
+    glfwSwapBuffers(platform_internal.window);
+
+    platform.time.delta = (f32)(glfwGetTime() - platform.time.total);
+    platform.time.total += platform.time.delta;
+}
+
+extern f64
+timer_get_current(void) {
+    return glfwGetTime();
+}
+
+extern gl_texture
+gl_texture_create_from_image(image_t image, int is_smooth) {
+    return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
+}
+
+extern gl_texture
+gl_texture_load_from_file(const char* texture_path, int is_smooth) {
+    image_t img = file_load_image(texture_path);
+    gl_texture texture = gl_texture_create_from_image(img, is_smooth);
+    file_free_image(&img);
+    return texture;
+}
+
+extern void
+gl_texture_destroy(gl_texture* texture) {
+    glDeleteTextures(1, &texture->id);
+    memset(texture, 0, sizeof *texture);
+}
+
+extern v3
+gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
+    GLint viewport[4] = {0};
+    f64 modelview[16] = {0};
+    f64 projection[16] = {0};
+
+    GLfloat win_x, win_y, win_z;
+ 
+    for (i32 i = 0; i < 16; ++i) projection[i]  = in_projection.e[i];
+    for (i32 i = 0; i < 16; ++i) modelview[i]   = in_modelview.e[i];
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+ 
+    win_x = (f64)(x);
+    win_y = (f64)(viewport[3]) - (f64)y;
+
+    glReadPixels(x, (int)(win_y), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &win_z);
+ 
+    f64 result[3];
+    f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
+ 
+    return V3(result[0], result[1], result[2]);
+}
+
+// ------------------------------------- opengl impl ------------------------------------ //
+
+#define BITMAP_COUNT (256)
+
+static const u64 bitascii[BITMAP_COUNT] = {
+    0x0000000000000000,
+    0x7e8199bd81a5817e,
+    0x7effe7c3ffdbff7e,
+    0x00081c3e7f7f7f36,
+    0x00081c3e7f3e1c08,
+    0x1c086b7f7f1c3e1c,
+    0x1c082a7f7f3e1c08,
+    0x0000183c3c180000,
+    0xffffe7c3c3e7ffff,
+    0x003c664242663c00,
+    0xffc399bdbd99c3ff,
+    0x1e333333bef0e0f0,
+    0x187e183c6666663c,
+    0x070f0e0c0c7c6c7c,
+    0x03377666667e667e,
+    0x0018dbff3cffdb18,
+    0x00061e7e7e1e0600,
+    0x0060787e7e786000,
+    0x183c7e18187e3c18,
+    0x0036003636363636,
+    0x00d8d8d8dedbdbfe,
+    0x3e613c66663c867c,
+    0x007e7e0000000000,
+    0xff183c7e187e3c18,
+    0x001818187e3c1800,
+    0x00183c7e18181800,
+    0x0010307e7e301000,
+    0x00080c7e7e0c0800,
+    0x00007e0606000000,
+    0x002466ffff662400,
+    0x007e7e3c3c181800,
+    0x0018183c3c7e7e00,
+    0x0000000000000000,
+    0x00180018183c3c18,
+    0x0000000000143636,
+    0x0036367f367f3636,
+    0x00183e603c067c18,
+    0x0063660c18336300,
+    0x006e333b6e1c361c,
+    0x00000000000c1818,
+    0x00180c0606060c18,
+    0x00060c1818180c06,
+    0x0000361c7f1c3600,
+    0x000018187e181800,
+    0x0c18180000000000,
+    0x000000007e000000,
+    0x0018180000000000,
+    0x0003070e1c387060,
+    0x003c666e7e76663c,
+    0x007e181818181e18,
+    0x007e660c3860663c,
+    0x003c66603860663c,
+    0x0030307f33363c38,
+    0x003c6660603e067e,
+    0x003c66663e060c38,
+    0x000c0c183060667e,
+    0x003c66663c66663c,
+    0x001c30607c66663c,
+    0x0018180018180000,
+    0x0c18180018180000,
+    0x0030180c060c1830,
+    0x0000007e007e0000,
+    0x00060c1830180c06,
+    0x001800183060663c,
+    0x003c06767676663c,
+    0x0066667e66663c18,
+    0x003f66663e66663f,
+    0x003c66030303663c,
+    0x003f36666666363f,
+    0x007f46161e16467f,
+    0x000f06161e16467f,
+    0x007c66730303663c,
+    0x006666667e666666,
+    0x003c18181818183c,
+    0x001e333330303078,
+    0x006766361e366667,
+    0x007f66460606060f,
+    0x006363636b7f7763,
+    0x006363737b6f6763,
+    0x001c36636363361c,
+    0x000f06063e66663f,
+    0x00703c766666663c,
+    0x0067361e3e66663f,
+    0x003c6670380e663c,
+    0x003c181818185a7e,
+    0x007e666666666666,
+    0x00183c6666666666,
+    0x0063777f6b636363,
+    0x006363361c366363,
+    0x003c18183c666666,
+    0x007f63460c19337f,
+    0x003c0c0c0c0c0c3c,
+    0x006070381c0e0703,
+    0x003c30303030303c,
+    0x0000000063361c08,
+    0x7e00000000000000,
+    0x0000000000301818,
+    0x006e333e301e0000,
+    0x003d6666663e0607,
+    0x003c6606663c0000,
+    0x006e33333e303038,
+    0x003c067e663c0000,
+    0x001e0c0c1e0c6c38,
+    0x1f303e33336e0000,
+    0x006766666e360607,
+    0x003c1818181c0018,
+    0x1c363030303c0030,
+    0x0067361e36660607,
+    0x003c18181818181c,
+    0x0063636b7f370000,
+    0x00666666663e0000,
+    0x001e3333331e0000,
+    0x0f063e66663b0000,
+    0x78303e33336e0000,
+    0x001e0c6c6c360000,
+    0x003e603c067c0000,
+    0x00182c0c0c3e0c08,
+    0x006e333333330000,
+    0x00183c6666660000,
+    0x00367f6b63630000,
+    0x0063361c36630000,
+    0x3e607c6666660000,
+    0x007e4c18327e0000,
+    0x00380c0c060c0c38,
+    0x0018181800181818,
+    0x000e18183018180e,
+    0x0000000000003b6e,
+    0x007e66663c180000,
+    0x060c1e330303331e,
+    0x007e333333003300,
+    0x003c067e663c1830,
+    0x00fc667c603cc37e,
+    0x007e333e301e0033,
+    0x007e333e301e0c06,
+    0x00fc667c603c663c,
+    0x0c183c6606663c00,
+    0x003c067e663cc37e,
+    0x003c067e663c0066,
+    0x003c067e663c180c,
+    0x003c1818181c0066,
+    0x003c1818181c633e,
+    0x003c1818181c180c,
+    0x00667e66663c1866,
+    0x00667e663c182418,
+    0x003f061e063f0c18,
+    0x007e337e307e0000,
+    0x007333337f33367c,
+    0x003c66663c00663c,
+    0x003c66663c006600,
+    0x003c66663c00180c,
+    0x007e33333300331e,
+    0x007e333333000c06,
+    0x3e607e6666006600,
+    0x003e6363633e0063,
+    0x003c666666660066,
+    0x18187e03037e1818,
+    0x003f67060f26361c,
+    0x18187e187e3c6666,
+    0x00721a321e22221e,
+    0x000e1b187e18d870,
+    0x007e333e301e0c18,
+    0x003c1818181c1830,
+    0x003c66663c003060,
+    0x007e333333001830,
+    0x003333331f003b6e,
+    0x00333b3f37003b6e,
+    0x00007e007c36363c,
+    0x00007e003c66663c,
+    0x003c66060c180018,
+    0x000006067e000000,
+    0x000060607e000000,
+    0xf03366cc7b3363c3,
+    0xc0f3f6ecdb3363c3,
+    0x183c3c1818001800,
+    0x0000cc663366cc00,
+    0x00003366cc663300,
+    0x8822882288228822,
+    0x55aa55aa55aa55aa,
+    0xeebbeebbeebbeebb,
+    0x1818181818181818,
+    0x1818181f1f181818,
+    0x181f1f18181f1f18,
+    0x6666666767666666,
+    0x6666667f7f000000,
+    0x181f1f18181f1f00,
+    0x6667676060676766,
+    0x6666666666666666,
+    0x66676760607f7f00,
+    0x007f7f6060676766,
+    0x0000007f7f666666,
+    0x001f1f18181f1f18,
+    0x1818181f1f000000,
+    0x000000f8f8181818,
+    0x000000ffff181818,
+    0x181818ffff000000,
+    0x181818f8f8181818,
+    0x000000ffff000000,
+    0x181818ffff181818,
+    0x18f8f81818f8f818,
+    0x666666e6e6666666,
+    0x00fefe0606e6e666,
+    0x66e6e60606fefe00,
+    0x00ffff0000e7e766,
+    0x66e7e70000ffff00,
+    0x66e6e60606e6e666,
+    0x00ffff0000ffff00,
+    0x66e7e70000e7e766,
+    0x00ffff0000ffff18,
+    0x000000ffff666666,
+    0x18ffff0000ffff00,
+    0x666666ffff000000,
+    0x000000fefe666666,
+    0x00f8f81818f8f818,
+    0x18f8f81818f8f800,
+    0x666666fefe000000,
+    0x666666ffff666666,
+    0x18ffff1818ffff18,
+    0x0000001f1f181818,
+    0x181818f8f8000000,
+    0xffffffffffffffff,
+    0xffffffff00000000,
+    0x0f0f0f0f0f0f0f0f,
+    0xf0f0f0f0f0f0f0f0,
+    0x00000000ffffffff,
+    0x00006e3b3b6e0000,
+    0x000c3e663e663c00,
+    0x0000060606667e00,
+    0x0066363636367f00,
+    0x007e460c0c467e00,
+    0x001c3636367c0000,
+    0x03063e6666660000,
+    0x001818183b6e0000,
+    0x007e183c663c187e,
+    0x001c36363e36361c,
+    0x007736366363361c,
+    0x003c66663c180c38,
+    0x00003e6b6b3e0000,
+    0x03063e6b6b3e1830,
+    0x00380c063e060c38,
+    0x0066666666663c00,
+    0x00007e007e007e00,
+    0x003f000c0c3f0c0c,
+    0x003f00060c180c06,
+    0x003f00180c060c18,
+    0x0606060636361c00,
+    0x001c363630303030,
+    0x001818007e001818,
+    0x00003b6e003b6e00,
+    0x000000001c36361c,
+    0x0000001818000000,
+    0x0000001800000000,
+    0x00181c1612101070,
+    0x000000003636361e,
+    0x000000003c18301c,
+    0x007e7e7e7e7e7e00,
+    0x007e424242427e00
+};
+
+#ifndef ATS_OGL33
+
+#include <stdio.h>
+#include <stdarg.h>
+
+extern void
+gl_init(void) {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+    glClearDepth(1.0f);
+
+    glDepthFunc(GL_LESS);
+    glShadeModel(GL_SMOOTH);
+
+    glEnable(GL_DEPTH_TEST);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
+    glAlphaFunc(GL_GREATER, 0.0);
+    glEnable(GL_ALPHA_TEST);
+
+    glEnable(GL_NORMALIZE);
+
+    gl_init_bitmap_font();
+}
+
+extern void
+gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z) {
+    f32 pos[4] = { x, y, z, 1.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4] = { bright, bright, bright, 0.0f };
+    u32 light = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, pos);
+    glLightfv(light, GL_DIFFUSE, c);
+    glLightfv(light, GL_AMBIENT, zero);
+    glLightfv(light, GL_SPECULAR, zero);
+
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+extern void
+gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
+    f32 d = (f32)(1.0f / sqrt32(x * x + y * y + z * z));
+    f32 dir[4] = { x * d, y * d, z * d, 0.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4] = { bright, bright, bright, 0.0f };
+    u32 light = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, dir);
+    glLightfv(light, GL_DIFFUSE, c);
+    glLightfv(light, GL_AMBIENT, zero);
+    glLightfv(light, GL_SPECULAR, zero);
+
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+extern void
+gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
+    f32 pos[4] = { p.x, p.y, p.z, 1.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4] = { color.r, color.g, color.b, 0.0f };
+    u32 light = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, pos);
+    glLightfv(light, GL_DIFFUSE,  c);
+    glLightfv(light, GL_AMBIENT,  zero);
+    glLightfv(light, GL_SPECULAR, zero);
+    
+    glLightf(light, GL_CONSTANT_ATTENUATION, constant);
+    glLightf(light, GL_LINEAR_ATTENUATION, linear);
+    glLightf(light, GL_QUADRATIC_ATTENUATION, quadratic);
+
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+extern void
+gl_set_light_directed(int index, v3 pos, v3 color) {
+    f32 d = (f32)(1.0f / sqrt32(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
+    f32 dir[4] = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
+    f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    f32 c[4] = { color.r, color.g, color.b, 0.0f };
+    u32 light = GL_LIGHT0 + index;
+
+    glLightfv(light, GL_POSITION, dir);
+    glLightfv(light, GL_DIFFUSE, c);
+    glLightfv(light, GL_AMBIENT, zero);
+    glLightfv(light, GL_SPECULAR, zero);
+
+    glEnable(light);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+}
+
+extern void
+gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
+    f32 v[4] = { r, g, b, 0 };
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
+}
+
+extern gl_texture
+gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+    assert(pixels);
+
+    gl_texture texture = {0};
+
+    texture.width = width;
+    texture.height = height;
+
+    glGenTextures(1, &texture.id);
+
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    
+    return texture;
+}
+
+extern void
+gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
+    texture->width  = width;
+    texture->height = height;
+
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+}
+
+extern void
+gl_texture_bind(const gl_texture* texture) {
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
+}
+
+// ======================================= GL ====================================== //
+
+extern void
+gl_begin(u32 type) {
+    glBegin(type);
+}
+
+extern void
+gl_end(void) {
+    glEnd();
+}
+
+extern void
+gl_color(u32 color) {
+    glColor4ubv((const u8*)&color);
+}
+
+extern void
+gl_normal(f32 x, f32 y, f32 z) {
+    glNormal3f(x, y, z);
+}
+
+extern void
+gl_uv(f32 x, f32 y) {
+    glTexCoord2f(x, y);
+}
+
+extern void
+gl_vertex(f32 x, f32 y, f32 z) {
+    glVertex3f(x, y, z);
+}
+
+extern void
+gl_set_matrix(m4 projection, m4 view) {
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(projection.e);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(view.e);
+}
+
+extern void
+gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
+    f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
+    f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
+    f32 az = pos.z - right.z * rad.x - up.z * rad.y;
+
+    f32 bx = pos.x + right.x * rad.x - up.x * rad.y;
+    f32 by = pos.y + right.y * rad.x - up.y * rad.y;
+    f32 bz = pos.z + right.z * rad.x - up.z * rad.y;
+
+    f32 cx = pos.x + right.x * rad.x + up.x * rad.y;
+    f32 cy = pos.y + right.y * rad.x + up.y * rad.y;
+    f32 cz = pos.z + right.z * rad.x + up.z * rad.y;
+
+    f32 dx = pos.x - right.x * rad.x + up.x * rad.y;
+    f32 dy = pos.y - right.y * rad.x + up.y * rad.y;
+    f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
+
+    gl_color(color);
+    gl_normal(normal.x, normal.y, normal.z);
+
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(ax, ay, az);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(bx, by, bz);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(cx, cy, cz);
+
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(cx, cy, cz);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(dx, dy, dz);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(ax, ay, az);
+}
+
+extern void
+gl_texture_box(r2i tex_rect, r3 box, u32 color) {
+    gl_color(color);
+
+    gl_normal(0, 0, -1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+
+    gl_normal(0, 0, +1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+
+    gl_normal(-1, 0, 0);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+
+    gl_normal(+1, 0, 0);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+
+    gl_normal(0, -1, 0);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+
+    gl_normal(0, +1, 0);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+}
+
+extern void
+gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
+    gl_color(color);
+    gl_normal(0, 0, +1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+}
+
+extern void
+gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
+    if (flip_x) { Swap(i32, tex_rect.min.x, tex_rect.max.x); }
+    if (flip_y) { Swap(i32, tex_rect.min.y, tex_rect.max.y); }
+
+    gl_color(color);
+    gl_normal(0, 0, +1);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+}
+
+extern void
+gl_box(r3 box, u32 color) {
+    gl_color(color);
+
+    gl_normal(0, 0, -1);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+
+    gl_normal(0, 0, +1);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+
+    gl_normal(-1, 0, 0);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+
+    gl_normal(+1, 0, 0);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+
+    gl_normal(0, -1, 0);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.min.y, box.min.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.max.x, box.min.y, box.max.z);
+    gl_vertex(box.min.x, box.min.y, box.max.z);
+    gl_vertex(box.min.x, box.min.y, box.min.z);
+
+    gl_normal(0, +1, 0);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.max.x, box.max.y, box.min.z);
+    gl_vertex(box.max.x, box.max.y, box.max.z);
+    gl_vertex(box.min.x, box.max.y, box.min.z);
+    gl_vertex(box.min.x, box.max.y, box.max.z);
+}
+
+extern void
+gl_rect(r2 rect, f32 z, u32 color) {
+    gl_color(color);
+    gl_normal(0, 0, +1);
+    gl_vertex(rect.min.x, rect.min.y, z);
+    gl_vertex(rect.max.x, rect.min.y, z);
+    gl_vertex(rect.max.x, rect.max.y, z);
+    gl_vertex(rect.max.x, rect.max.y, z);
+    gl_vertex(rect.min.x, rect.max.y, z);
+    gl_vertex(rect.min.x, rect.min.y, z);
+}
+
+// ======================================= FONT ====================================== //
+
+static gl_texture bitmap_texture;
+
+extern void
+gl_init_bitmap_font(void) {
+    u32 pixels[8][BITMAP_COUNT * 8] = {0};
+    for (int i = 0; i < BITMAP_COUNT; ++i) {
+        for (int y = 0; y < 8; ++y) {
+            for (int x = 0; x < 8; ++x) {
+                u64 bit = y * 8 + x;
+
+                if (bitascii[i] & (1ull << bit)) {
+                    pixels[7 - y][8 * i + x] = 0xffffffff;
+                }
+            }
+        }
+    }
+    bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, false);
+}
+
+static void
+gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
+    r2 tex_rect = { c * 8 + 0.1, 0.1, c * 8 + 7.9, 7.9 };
+    r2 rect = { x, y, x + sx, y + sy };
+
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
+    gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+}
+
+extern void
+gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+    glEnable(GL_TEXTURE_2D);
+    gl_texture_bind(&bitmap_texture);
+
+    gl_begin(GL_TRIANGLES);
+    gl_color(color);
+    gl_normal(0, 0, +1);
+    for (int i = 0; str[i] != '\0'; i++) {
+        gl_ascii(str[i], x + i * sx, y, z, sx, sy);
+    }
+    gl_end();
+}
+
+extern void
+gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
+    va_list list;
+    char buffer[256];
+
+    va_start(list, fmt);
+    vsnprintf(buffer, 256, fmt, list);
+    gl_string(buffer, x, y, z, sx, sy, color);
+    va_end(list);
+}
+
+#else // ATS_OGL33
+
+extern void
+gl_init(void) {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+    glClearDepth(1.0f);
+
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_DEPTH_TEST);
+    
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+
+    gl_init_bitmap_font();
+}
+
+static u32
+gl_shader_compile(const char* source, unsigned int type) {
+    int success = 0;
+    char info_log[512] = {0};
+    u32 shader = glCreateShader(type);
+
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, NULL, info_log);
+        puts(info_log);
+        exit(EXIT_FAILURE);
+    }
+
+    return shader;
+}
+
+static u32
+gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
+    int success = 0;
+    char info_log[512] = {0};
+    u32 shader = glCreateProgram();
+
+    glAttachShader(shader, vertex_shader);
+    glAttachShader(shader, fragment_shader);
+
+    glLinkProgram(shader);
+
+    glGetProgramiv(shader, GL_LINK_STATUS, &success);
+
+    if (!success) {
+        glGetProgramInfoLog(shader, 512, NULL, info_log);
+        puts(info_log);
+        exit(EXIT_FAILURE);
+    }
+
+    return shader;
+}
+
+extern gl_shader
+gl_shader_create(const gl_shader_desc* desc) {
+    u32 vertex = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
+    u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
+    u32 program = gl_shader_link_program(vertex, fragment);
+
+    glUseProgram(program);
+
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+
+    gl_shader shader = {0};
+    shader.id = program;
+    return shader;
+}
+
+extern gl_shader
+gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocator) {
+    char* vs_content = file_read_str(vs, allocator);
+    char* fs_content = file_read_str(fs, allocator);
+
+    gl_shader program = gl_shader_create(&(gl_shader_desc) {
+        .vs = vs_content,
+        .fs = fs_content,
+    });
+
+    mem_free(allocator, vs_content);
+    mem_free(allocator, fs_content);
+
+    return program;
+}
+
+extern void
+gl_use(const gl_shader* shader) {
+    glUseProgram(shader->id);
+}
+
+extern u32
+gl_location(const gl_shader* shader, const char* name) {
+    return glGetUniformLocation(shader->id, name);
+}
+
+extern void
+gl_uniform_i32(u32 location, i32 i) {
+    glUniform1i(location, i);
+}
+
+extern void
+gl_uniform_f32(u32 location, f32 f) {
+    glUniform1f(location, f);
+}
+
+extern void
+gl_uniform_v2(u32 location, v2 u) {
+    glUniform2f(location, u.x, u.y);
+}
+
+extern void
+gl_uniform_v3(u32 location, v3 u) {
+    glUniform3f(location, u.x, u.y, u.z);
+}
+
+extern void 
+gl_uniform_v4(u32 location, v4 u) {
+    glUniform4f(location, u.x, u.y, u.z, u.w);
+}
+
+extern void
+gl_uniform_m2(u32 location, m2 m) {
+    glUniformMatrix2fv(location, 1, GL_FALSE, m.e);
+}
+
+extern void
+gl_uniform_m3(u32 location, m3 m) {
+    glUniformMatrix3fv(location, 1, GL_FALSE, m.e);
+}
+
+extern void
+gl_uniform_m4(u32 location, m4 m) {
+    glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
+}
+
+extern gl_buffer
+gl_buffer_create(const gl_buffer_desc* desc) {
+    u32 vao = 0;
+    u32 vbo = 0;
+    
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+    
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    for (u32 i = 0; i < ArrayCount(desc->layout); ++i) {
+        const gl_layout* layout = &desc->layout[i];
+
+        if (layout->size) {
+            glEnableVertexAttribArray(i);
+            glVertexAttribPointer(i, layout->size, layout->type, layout->normalize, layout->stride, (void*)(u64)layout->offset);
+        }
+    }
+
+    gl_buffer result = {0};
+
+    result.vao = vao;
+    result.vbo = vbo;
+
+    return result;
+}
+
+extern void
+gl_buffer_bind(const gl_buffer* buffer) {
+    glBindVertexArray(buffer->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
+}
+
+extern void
+gl_buffer_send(const gl_buffer* buffer, const void* data, u32 size) {
+    glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
+    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+}
+
+extern gl_texture
+gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+    assert(pixels);
+
+    gl_texture texture = {0};
+
+    texture.width = width;
+    texture.height = height;
+
+    glGenTextures(1, &texture.id);
+
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    return texture;
+}
+
+extern void
+gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
+    texture->width  = width;
+    texture->height = height;
+
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+extern void
+gl_texture_bind(const gl_texture* texture) {
+    glBindTexture(GL_TEXTURE_2D, texture->id);
+}
+
+// ======================================= FONT ====================================== //
+
+typedef struct bitmap_vertex {
+    v2 pos;
+    v2 uv;
+    u32 color;
+} bitmap_vertex;
+
+static gl_texture   bitmap_texture;
+static gl_shader    bitmap_shader;
+static gl_buffer    bitmap_buffer;
+
+static usize         bitmap_count;
+static bitmap_vertex bitmap_array[1024 * 1024];
+
+extern void
+gl_init_bitmap_font(void) {
+    bitmap_shader = gl_shader_create(&(gl_shader_desc) {
+        .vs = GLSL(
+            layout (location = 0) in vec2 in_pos;
+            layout (location = 1) in vec2 in_uv;
+            layout (location = 2) in vec4 in_color;
+
+            out vec2 frag_uv;
+            out vec4 frag_color;
+
+            uniform mat4 mvp;
+
+            void main() {
+                frag_color  = in_color;
+                frag_uv     = in_uv;
+                gl_Position = mvp * vec4(in_pos, 0, 1);
+            }),
+
+        .fs = GLSL(
+            in vec2 frag_uv;
+            in vec4 frag_color;
+
+            out vec4 out_color;
+
+            uniform sampler2D tex;
+
+            void main() {
+                out_color = frag_color * texture(tex, frag_uv / textureSize(tex, 0));
+            }),
+    });
+
+    bitmap_buffer = gl_buffer_create(&(gl_buffer_desc) {
+        .layout = {
+            [0] = { .size = 2, .type = GL_FLOAT, .stride = sizeof (bitmap_vertex), .offset = offsetof(bitmap_vertex, pos) },
+            [1] = { .size = 2, .type = GL_FLOAT, .stride = sizeof (bitmap_vertex), .offset = offsetof(bitmap_vertex, uv) },
+            [2] = { .size = 4, .type = GL_UNSIGNED_BYTE, .stride = sizeof (bitmap_vertex), .offset = offsetof(bitmap_vertex, color), .normalize = true },
+        },
+    });
+
+    // create and set font texture!
+    {
+        u32 pixels[8][BITMAP_COUNT * 8] = {0};
+        for (int i = 0; i < BITMAP_COUNT; ++i) {
+            for (int y = 0; y < 8; ++y) {
+                for (int x = 0; x < 8; ++x) {
+                    u64 bit = y * 8 + x;
+
+                    if (bitascii[i] & (1ull << bit)) {
+                        pixels[7 - y][8 * i + x] = 0xffffffff;
+                    }
+                }
+            }
+        }
+
+        bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, false);
+    }
+}
+
+static void
+gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+    r2 tex_rect = { c * 8 + 0.1, 0.1, c * 8 + 7.9, 7.9 };
+    r2 rect = { x, y, x + sx, y + sy };
+
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.max.y), .pos = V2(rect.min.x, rect.min.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.max.y), .pos = V2(rect.max.x, rect.min.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.min.y), .pos = V2(rect.max.x, rect.max.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.min.y), .pos = V2(rect.max.x, rect.max.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.min.y), .pos = V2(rect.min.x, rect.max.y), .color = color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.max.y), .pos = V2(rect.min.x, rect.min.y), .color = color };
+}
+
+extern void
+gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+    bitmap_count = 0;
+    gl_use(&bitmap_shader);
+    gl_texture_bind(&bitmap_texture);
+    gl_uniform_m4(gl_location(&bitmap_shader, "mvp"), m4_ortho(0, platform.width, platform.height, 0, -1, 1));
+
+    for (int i = 0; str[i] != '\0'; i++) {
+        gl_ascii(str[i], x + i * sx, y, z, sx, sy, color);
+    }
+
+    gl_buffer_bind(&bitmap_buffer);
+    gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (bitmap_vertex));
+    glDrawArrays(GL_TRIANGLES, 0, bitmap_count);
+    bitmap_count = 0;
+    glUseProgram(0);
+}
+
+extern void
+gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
+    va_list list;
+    char buffer[256];
+
+    va_start(list, fmt);
+    vsnprintf(buffer, 256, fmt, list);
+    gl_string(buffer, x, y, z, sx, sy, color);
+    va_end(list);
+}
+
+#endif // ATS_OGL33
+
+// -------------------------------------- scoped timer ------------------------------------- //
+
+typedef struct timer_entry {
+    const char* name;
+
+    f64 start;
+    f64 stop;
+
+    usize depth;
+} timer_entry;
+
+static usize timer_top;
+static timer_entry timer_stack[512];
+
+static usize timer_count;
+static timer_entry timer_array[512];
+
+#define timer_scope(name) defer(timer_start(name), timer_stop())
+
+static void
+timer_start(const char* name) {
+    timer_entry* entry = timer_stack + (timer_top++);
+
+    entry->name = name;
+    entry->start = timer_get_current();
+    entry->stop = 0;
+    entry->depth = timer_top - 1;
+}
+
+static void
+timer_stop(void) {
+    timer_entry* entry = timer_stack + (--timer_top);
+
+    entry->stop = timer_get_current();
+    timer_array[timer_count++] = *entry;
+}
+
+static void
+timer_reset_all(void) {
+    timer_top = 0;
+    timer_count = 0;
+}
+
+static void
+timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
+    i32 y = 0;
+    for_range(i, 0, timer_count) {
+        timer_entry e = timer_array[i];
+        gl_string_format(px + 4 * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
+        y++;
+    }
+}
+
+// ---------------------------------------- file impl -------------------------------------- //
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "ext/stb_image.h" 
+
+static usize
+file_get_size(FILE* fp) {
+    fseek(fp, 0L, SEEK_END);
+    usize size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    return size;
+}
+
+static FILE*
+file_open(const char* path, const char* mode) {
+    FILE* file = fopen(path, mode);
+    return file;
+}
+
+extern char*
+file_read_str(const char* file_name, mem_allocator allocator) {
+    FILE* fp = NULL;
+    char* buffer = NULL;
+    if (fp = file_open(file_name, "rb")) {
+        usize size = file_get_size(fp);
+        buffer = (char*)mem_alloc(allocator, size + 1);
+        if (buffer) {
+            buffer[size] = 0;
+            if (fread(buffer, 1, size, fp) == 0) {
+                mem_free(allocator, buffer);
+                buffer = NULL;
+            }
+        }
+        fclose(fp);
+    }
+    return buffer;
+}
+
+extern b32
+file_write_str(const char* file_name, const char* buffer) {
+    FILE* fp = NULL;
+    if (fp = file_open(file_name, "w")) {
+        usize size = strlen(buffer);
+        usize n = fwrite(buffer, 1, size, fp);
+        fclose(fp);
+        return n == size;
+    }
+    return false;
+}
+
+extern b32
+file_append_str(const char* file_name, const char* buffer) {
+    FILE* fp = NULL;
+    if (fp = file_open(file_name, "a")) {
+        size_t size = strlen(buffer);
+        size_t n = fwrite(buffer, 1, size, fp);
+        fclose(fp);
+        return n == size;
+    }
+    return false;
+}
+
+extern b32
+file_read_bin(const char* file_name, void* buffer, usize size) {
+    FILE *fp = NULL;
+    if (fp = file_open(file_name, "rb")) {
+        fread(buffer, size, 1, fp);
+        fclose(fp);
+        return true;
+    }
+    return false;
+} 
+
+extern b32
+file_write_bin(const char* file_name, const void* buffer, usize size) {
+    FILE *fp = NULL;
+    if (fp = file_open(file_name, "wb")) {
+        fwrite(buffer, size, 1, fp);
+        fclose(fp);
+        return 1;
+    }
+    return false;
+}
+
+extern image_t
+file_load_image(const char* path) {
+    image_t image = {0};
+    i32 channels = 0;
+    image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
+    assert(image.pixels);
+
+    return image;
+}
+
+extern void
+file_free_image(image_t* img) {
+    stbi_image_free(img->pixels);
+    *img = (image_t) {0};
+}
+
+typedef struct file_iter {
+    char current[MAX_PATH];
+
+    b32 done;
+    const char* path;
+
+    HANDLE handle;
+    WIN32_FIND_DATAA data;
+} file_iter;
+
+static bool
+file_iter_is_valid(const file_iter* it) {
+    return !it->done;
+}
+
+static inline void
+file_cstr_concat(char* out, const char* a, const char* b) {
+    while (*a) *out++ = *a++;
+    while (*b) *out++ = *b++;
+    *(out) = '\0';
+}
+
+static void
+file_iter_advance(file_iter* it) {
+    it->done = !FindNextFileA(it->handle, &it->data);
+    if (!it->done) {
+        file_cstr_concat(it->current, it->path, it->data.cFileName);
+    }
+}
+
+static file_iter
+file_iter_create(const char* path, const char* ext) {
+    if (!path) path = "";
+    if (!ext) ext = "*";
+
+    file_iter it = {0};
+
+    it.path = path;
+
+    char find_file_str[MAX_PATH] = {0};
+    file_cstr_concat(find_file_str, path, ext);
+
+    it.handle = FindFirstFileA(find_file_str, &it.data);
+    it.done = it.handle == INVALID_HANDLE_VALUE;
+
+    if (!it.done) {
+        file_cstr_concat(it.current, it.path, it.data.cFileName);
+    }
+
+    return it;
+}
+
+// ------------------------------------ texture table ------------------------------------- //
+
+typedef struct tt_image {
+    b32 user_provided;
+
+    image_t img;
+    char name[256];
+} tt_image;
+
+static mem_allocator tt_allocator;
+
+static texture_table tt_table;
+
+static usize    tt_image_count;
+static tt_image tt_image_array[1024];
+
+extern texture_table*
+tt_get_texture_table(void) {
+    return &tt_table;
+}
+
+extern void
+tt_add_image(const char* name, image_t img) {
+    tt_image data = {0};
+
+    data.user_provided = true;
+    data.img = img;
+    strcpy(data.name, name);
+
+    tt_image_array[tt_image_count++] = data;
+}
+
+extern image_t
+tt_get_image(void) {
+    return tt_table.img;
+}
+
+extern r2i
+tt_get_rect(texture_id id) {
+    return tt_table.array[id.index].rect;
+}
+
+extern texture_id
+tt_get_id(const char* name) {
+    u32 hash = hash_str(name);
+    u16 index = hash % TEXTURE_TABLE_SIZE;
+    while (tt_table.array[index].in_use) {
+        if ((tt_table.array[index].hash == hash) && (strcmp(tt_table.array[index].name, name) == 0)) {
+            texture_id id = { index };
+            return id;
+        }
+        index = (index + 1) % TEXTURE_TABLE_SIZE;
+    }
+    assert(false);
+    return (texture_id) {0};
+}
+
+extern r2i
+tt_get(const char* name) {
+    return tt_get_rect(tt_get_id(name));
+}
+
+static void
+_tt_add_entry(const char* name, r2i rect) {
+    u32 hash = hash_str(name);
+    u16 index = hash % TEXTURE_TABLE_SIZE;
+
+    while (tt_table.array[index].in_use) {
+        if ((tt_table.array[index].hash == hash) && (strcmp(tt_table.array[index].name, name) == 0))
+            assert(true);
+
+        index = (index + 1) % TEXTURE_TABLE_SIZE;
+    }
+
+    texture_entry* entry = &tt_table.array[index];
+
+    entry->in_use = true;
+    entry->rect = rect;
+    entry->hash = hash;
+
+    strcpy_s(entry->name, 64, name);
+}
+
+static void
+cstr_copy_without_extension(char* out, const char* str) {
+    while (*str && *str != '.') {
+        *(out++) = *(str++);
+    }
+    *out = '\0';
+}
+
+static void
+cstr_concat(char* out, const char* a, const char* b) {
+    while (*a) *out++ = *a++;
+    while (*b) *out++ = *b++;
+    *(out) = '\0';
+}
+
+static int
+tt_cmp_image(const void* va, const void* vb) {
+    tt_image* a = (tt_image*)va;
+    tt_image* b = (tt_image*)vb;
+
+    int dw = b->img.width  - a->img.width;
+    int dh = a->img.height - a->img.height;
+
+    return b->img.width - a->img.width;
+}
+
+extern b32
+rect_contains_image(r2i rect, image_t image) {
+    i32 rect_width  = rect.max.x - rect.min.x;
+    i32 rect_height = rect.max.y - rect.min.y;
+    return image.width <= rect_width && image.height <= rect_height;
+}
+
+extern void
+tt_load_from_dir(const char* dir_path) {
+    for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
+        tt_image data = {0};
+        data.img = file_load_image(it.current);
+        cstr_copy_without_extension(data.name, it.data.cFileName);
+        tt_image_array[tt_image_count++] = data;
+    }
+}
+
+extern void
+tt_begin(int width, int height, mem_allocator allocator) {
+    tt_allocator = allocator;
+    tt_image_count = 0;
+
+    tt_table = (texture_table) {
+        width,
+        height, 
+        (u32*)mem_zero(tt_allocator, width * height * sizeof (u32)),
+    };
+
+    tt_table.array[0].in_use = true;
+
+    for (u32 i = 0; i < width * height; ++i) {
+        tt_table.img.pixels[i] = 0xff000000;
+    }
+}
+
+static usize tt_stack_top; 
+static r2i   tt_stack_buf[4096];
+
+static r2i
+tt_get_fit(image_t img) {
+    u32 j = 0;
+    for (j = 0; j < tt_stack_top; ++j) {
+        if (rect_contains_image(tt_stack_buf[j], img)) {
+            break;
+        }
+    }
+    r2i rect = tt_stack_buf[j];
+    tt_stack_buf[j] = tt_stack_buf[--tt_stack_top];
+    return rect;
+}
+
+extern void
+tt_end(void) {
+    tt_stack_top = 0;
+    tt_stack_buf[tt_stack_top++] = (r2i) {
+        .min = { 0, 0 },
+        .max = { tt_table.img.width - 1, tt_table.img.height - 1 },
+    };
+
+    qsort(tt_image_array, tt_image_count, sizeof (tt_image), tt_cmp_image);
+
+    for (usize i = 0; i < tt_image_count; ++i) {
+        tt_image* data = &tt_image_array[i];
+
+        r2i rect = tt_get_fit(data->img);
+        v2i size = { data->img.width + 2, data->img.height + 2 };
+        v2i offset = rect.min;
+
+        _tt_add_entry(data->name, (r2i) {
+            .min = { offset.x + 1, offset.y + 1 },
+            .max = { offset.x + size.x - 1, offset.y + size.y - 1 },
+        });
+
+        for (i32 y = 0; y < data->img.height; ++y) {
+            for (i32 x = 0; x < data->img.width; ++x) {
+                u32 pixel = image_get(&data->img, x, y);
+
+                image_set(&tt_table.img, x + offset.x + 1, y + offset.y + 1, pixel);
+            }
+        }
+
+        {
+            r2i a = {
+                .min = { rect.min.x, rect.min.y + size.y },
+                .max = { rect.min.x + size.x, rect.max.y },
+            };
+
+            r2i b = {
+                .min = { rect.min.x + size.x, rect.min.y },
+                .max = { rect.max.x, rect.max.y },
+            };
+
+            if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { tt_stack_buf[tt_stack_top++] = a; }
+            if (b.min.x + size.x <= rect.max.x && b.min.y + size.y <= rect.max.y) { tt_stack_buf[tt_stack_top++] = b; }
+        }
+
+        if (!data->user_provided) {
+            file_free_image(&data->img);
+        }
+    }
+
+    tt_image_count = 0;
+    tt_stack_top = 0;
+}
+
+// ---------------------------------------- audio table --------------------------------------- //
+
+#define CUTE_SOUND_IMPLEMENTATION
+#include "ext/cute_sound.h"
+
+#ifndef AUDIO_TABLE_SIZE
+#define AUDIO_TABLE_SIZE (256)
+#endif
+
+#ifndef AUDIO_PATH
+#define AUDIO_PATH "assets/sounds/"
+#endif
+
+static const char* audio_path = AUDIO_PATH;
+
+typedef struct audio_entry {
+    b32 in_use;
+    cs_loaded_sound_t loaded;
+    cs_play_sound_def_t playing;
+    char name[64];
+} audio_entry;
+
+static struct {
+    cs_context_t* context;
+} audio;
+
+static audio_entry audio_table[AUDIO_TABLE_SIZE];
+
+extern void
+audio_init(void* handle) {
+    audio.context = cs_make_context(handle, 44100, 8 * 4096, 1024, NULL);
+    
+    cs_spawn_mix_thread(audio.context);
+    cs_thread_sleep_delay(audio.context, 16);
+}
+
+static b32
+audio_is_valid(audio_id id) {
+    return id.index != 0;
+}
+
+extern audio_id
+audio_get(const char* name) {
+    u32 hash = hash_str(name);
+    u16 index = hash & (AUDIO_TABLE_SIZE - 1);
+
+    if (index == 0) index++;
+    while (audio_table[index].in_use) {
+        if (strcmp(audio_table[index].name, name) == 0) {
+            audio_id id = { index };
+            return id;
+        }
+        index = (index + 1) & (AUDIO_TABLE_SIZE - 1);
+        if (index == 0) index++;
+    }
+    
+    char path[512] = {0};
+
+    {
+        int i = 0;
+        for (i = 0; audio_path[i]; ++i) { path[i] = audio_path[i]; }
+        for (int j = 0; name[j]; ++j, ++i) { path[i] = name[j]; }
+        path[i++] = '.';
+        path[i++] = 'w';
+        path[i++] = 'a';
+        path[i++] = 'v';
+        path[i++] = '\0';
+    }
+
+    audio_entry* entry = &audio_table[index];
+    
+    entry->in_use = true;
+    strcpy_s(entry->name, ArrayCount(entry->name), name);
+    
+    entry->loaded  = cs_load_wav(path);
+    entry->playing = cs_make_def(&entry->loaded);
+
+    if (cs_error_reason) {
+        printf("%s ---- path: %s\n", cs_error_reason, path);
+    }
+
+    audio_id id = { index };
+    return id;
+}
+
+extern void
+audio_pause(b32 pause) {
+    cs_lock(audio.context);
+    cs_playing_sound_t* playing = cs_get_playing(audio.context);
+    while (playing) {
+        cs_pause_sound(playing, pause);
+        playing = playing->next;
+    }
+    cs_unlock(audio.context);
+}
+
+extern void
+audio_kill_all(void) {
+    cs_stop_all_sounds(audio.context);
+}
+
+static audio_entry*
+audio_get_entry(audio_id id) {
+    if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
+    return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
+}
+
+extern void
+audio_play(audio_id id, f32 volume) {
+    struct audio_entry* entry = audio_get_entry(id);
+
+    if (entry) {
+        cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
+        
+        if (!playing) return;
+        
+        cs_lock(audio.context);
+        cs_set_volume(playing, volume, volume);
+        cs_unlock(audio.context);
+    }
+}
+
+extern void*
+audio_play_looped(audio_id id, f32 volume) {
+    struct audio_entry* entry = audio_get_entry(id);
+
+    if (entry) {
+        cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
+        
+        if (!playing)
+            return NULL;
+        
+        cs_lock(audio.context);
+        playing->looped = 1;
+        cs_set_volume(playing, volume, volume);
+        cs_unlock(audio.context);
+        
+        return playing;
+    }
+    
+    return NULL;
+}
+
+extern void
+audio_play_music(audio_id id, f32 volume) {
+    static cs_playing_sound_t* playing = NULL;
+    
+    if (playing && cs_is_active(playing))
+        cs_stop_sound(playing);
+    
+    struct audio_entry* entry = audio_get_entry(id);
+    if (entry) {
+       playing = cs_play_sound(audio.context, entry->playing);
+        
+        if (!playing) return;
+        
+        cs_lock(audio.context);
+
+        playing->looped = true;
+
+        cs_set_volume(playing, volume, volume);
+        cs_unlock(audio.context);
+    }
+}
+
+extern void
+audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
+    f32 sound_distance = v3_dist(pos, source);
+    f32 final_volume = volume * Max(1 - sound_distance / max_distance, 0);
+
+    if (final_volume <= 0) return;
+
+    struct audio_entry* entry = audio_get_entry(id);
+
+    if (entry) {
+        v2 source_dir = {
+            source.x - pos.x,
+            source.y - pos.y,
+        };
+
+        source_dir = v2_norm(source_dir);
+
+        f32 pan = v2_get_angle(dir.xy, source_dir) / PI;
+
+        if (pan > +0.5f) pan = 1.0f - pan;
+        if (pan < -0.5f) pan =-1.0f - pan;
+
+        pan += 0.5f;
+        pan = 1.0f - pan;
+        
+        cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
+        
+        if (!playing) return;
+        
+        cs_lock(audio.context);
+
+        cs_set_pan(playing, pan);
+        cs_set_volume(playing, final_volume, final_volume);
+        
+        cs_unlock(audio.context);
+    }
+}
+
+#endif // ATS_IMPL_ONCE
+#endif // ATS_IMPL
 
