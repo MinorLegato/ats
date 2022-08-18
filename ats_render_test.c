@@ -193,20 +193,23 @@ static void
 r_init(void) {
     gl_init();
 
-    r_post_fx_buffer = gl_buffer_create(&(gl_buffer_desc) {0});
+    gl_buffer_desc fx_buffer_desc = ATS_INIT;
+    r_post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
 
-    r_shader = gl_shader_create(&(gl_shader_desc) {
-        vertex_shader,
-        fragment_shader,
-    });
+    gl_shader_desc shader_desc = ATS_INIT;
 
-    r_buffer = gl_buffer_create(&(gl_buffer_desc) {
-        .layout = {
-            [0] = { 3, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, pos) },
-            [1] = { 2, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, uv) },
-            [2] = { 4, GL_UNSIGNED_BYTE, sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, color), true },
-        }
-    });
+    shader_desc.vs = vertex_shader;
+    shader_desc.fs = fragment_shader;
+
+    r_shader = gl_shader_create(&shader_desc);
+
+    gl_buffer_desc buffer_desc = ATS_INIT;
+
+    buffer_desc.layout[0] = Make(gl_layout) { 3, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, pos) };
+    buffer_desc.layout[1] = Make(gl_layout) { 2, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, uv) };
+    buffer_desc.layout[2] = Make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (struct r_vertex_data), offsetof (struct r_vertex_data, color), true };
+
+    r_buffer = gl_buffer_create(&buffer_desc);
 
     gl_buffer_send(&r_buffer, r_vertex_array, sizeof (r_vertex_array));
 
@@ -438,10 +441,12 @@ static u32
 r_new_target(const char* fragment_shader) {
     struct r_target* target = r_target_array + r_target_count++;
 
-    target->shader = gl_shader_create(&(gl_shader_desc) {
-        r_post_fx_vertex_shader,
-        fragment_shader,
-    });
+    gl_shader_desc shader_desc = ATS_INIT;
+
+    shader_desc.vs = r_post_fx_vertex_shader;
+    shader_desc.fs = fragment_shader;
+
+    target->shader = gl_shader_create(&shader_desc);
 
     glGenFramebuffers(1, &target->framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, target->framebuffer);

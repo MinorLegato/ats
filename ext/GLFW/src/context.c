@@ -354,7 +354,7 @@ GLFWbool _glfwRefreshContextAttribs(_GLFWwindow* window,
     window->context.source = ctxconfig->source;
     window->context.client = GLFW_OPENGL_API;
 
-    previous = _glfwPlatformGetTls(&_glfw.contextSlot);
+    previous = (_GLFWwindow*)_glfwPlatformGetTls(&_glfw.contextSlot);
     glfwMakeContextCurrent((GLFWwindow*) window);
 
     window->context.GetIntegerv = (PFNGLGETINTEGERVPROC)
@@ -613,7 +613,7 @@ GLFWAPI void glfwMakeContextCurrent(GLFWwindow* handle)
 
     _GLFW_REQUIRE_INIT();
 
-    previous = _glfwPlatformGetTls(&_glfw.contextSlot);
+    previous = (_GLFWwindow*)_glfwPlatformGetTls(&_glfw.contextSlot);
 
     if (window && window->context.client == GLFW_NO_API)
     {
@@ -635,7 +635,7 @@ GLFWAPI void glfwMakeContextCurrent(GLFWwindow* handle)
 GLFWAPI GLFWwindow* glfwGetCurrentContext(void)
 {
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    return _glfwPlatformGetTls(&_glfw.contextSlot);
+    return (GLFWwindow*)_glfwPlatformGetTls(&_glfw.contextSlot);
 }
 
 GLFWAPI void glfwSwapBuffers(GLFWwindow* handle)
@@ -661,7 +661,7 @@ GLFWAPI void glfwSwapInterval(int interval)
 
     _GLFW_REQUIRE_INIT();
 
-    window = _glfwPlatformGetTls(&_glfw.contextSlot);
+    window = (_GLFWwindow*)_glfwPlatformGetTls(&_glfw.contextSlot);
     if (!window)
     {
         _glfwInputError(GLFW_NO_CURRENT_CONTEXT,
@@ -679,7 +679,7 @@ GLFWAPI int glfwExtensionSupported(const char* extension)
 
     _GLFW_REQUIRE_INIT_OR_RETURN(GLFW_FALSE);
 
-    window = _glfwPlatformGetTls(&_glfw.contextSlot);
+    window = (_GLFWwindow*)_glfwPlatformGetTls(&_glfw.contextSlot);
     if (!window)
     {
         _glfwInputError(GLFW_NO_CURRENT_CONTEXT,
@@ -745,7 +745,7 @@ GLFWAPI GLFWglproc glfwGetProcAddress(const char* procname)
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
 
-    window = _glfwPlatformGetTls(&_glfw.contextSlot);
+    window = (_GLFWwindow*)_glfwPlatformGetTls(&_glfw.contextSlot);
     if (!window)
     {
         _glfwInputError(GLFW_NO_CURRENT_CONTEXT,

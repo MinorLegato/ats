@@ -196,6 +196,12 @@ typedef struct {
 
 // ======================================= STATIC FUNCTIONS ==================================== //
 
+#ifndef __cplusplus // C stuff
+
+#define ATS_INIT {0}
+
+#define Make(T) (T)
+
 #define V2(...) ((v2) { __VA_ARGS__ })
 #define V3(...) ((v3) { __VA_ARGS__ })
 #define V4(...) ((v4) { __VA_ARGS__ })
@@ -218,6 +224,46 @@ typedef struct {
 #define M2(...) ((m2) { __VA_ARGS__ })
 #define M3(...) ((m3) { __VA_ARGS__ })
 #define M4(...) ((m4) { __VA_ARGS__ })
+
+#else // __cplusplus
+
+#define ATS_INIT {}
+
+#define Make(T) T
+
+static inline v2 V2(f32 x, f32 y)               { return { x, y }; }
+static inline v3 V3(f32 x, f32 y, f32 z)        { return { x, y, z }; }
+static inline v4 V4(f32 x, f32 y, f32 z, f32 w) { return { x, y, z, w }; }
+
+static inline v2i V2i(i32 x, i32 y)               { return { x, y }; }
+static inline v3i V3i(i32 x, i32 y, i32 z)        { return { x, y, z }; }
+static inline v4i V4i(i32 x, i32 y, i32 z, i32 w) { return { x, y, z, w }; }
+
+static inline quat_t Quat(f32 x, f32 y, f32 z, f32 w) { return { x, y, z, w }; }
+
+static inline r2 R2(f32 ax, f32 ay, f32 bx, f32 by) { return { { ax, ay }, { bx, by } }; }
+static inline r2 R2(v2 a, v2 b) { return { a, b }; }
+
+static inline r3 R3(f32 ax, f32 ay, f32 az, f32 bx, f32 by, f32 bz) { return { { ax, ay, az }, { bx, by, bz } }; }
+static inline r3 R3(v3 a, v3 b) { return { a, b }; }
+
+static inline r2i R2i(i32 ax, i32 ay, i32 bx, i32 by) { return { { ax, ay }, { bx, by } }; }
+static inline r2i R2i(v2i a, v2i b) { return { a, b }; }
+
+static inline r3i R3i(i32 ax, i32 ay, i32 az, i32 bx, i32 by, i32 bz) { return { { ax, ay, az }, { bx, by, bz } }; }
+static inline r3i R3i(v3i a, v3i b)  { return { a, b }; }
+
+static inline circle_t Circle(f32 x, f32 y, f32 rad) { return { x, y, rad }; }
+static inline circle_t Circle(v2 p, f32 rad) { return { p, rad }; }
+
+static inline sphere_t Sphere(f32 x, f32 y, f32 z, f32 rad) { return { x, y, z, rad }; }
+static inline sphere_t Sphere(v3 p, f32 rad) { return { p, rad }; }
+
+#define M2(...) (m2 { __VA_ARGS__ })
+#define M3(...) (m3 { __VA_ARGS__ })
+#define M4(...) (m4 { __VA_ARGS__ })
+
+#endif
 
 static m2
 m2_identity(void) {
@@ -523,6 +569,18 @@ static v2i v2i_neg(v2i u) { return V2i(-u.x, -u.y); }
 static v3i v3i_neg(v3i u) { return V3i(-u.x, -u.y, -u.z); }
 static v4i v4i_neg(v4i u) { return V4i(-u.x, -u.y, -u.z, -u.w); }
 
+#ifdef __cplusplus
+
+static v2 operator-(v2 u) { return { -u.x, -u.y }; }
+static v3 operator-(v3 u) { return { -u.x, -u.y, -u.z }; }
+static v4 operator-(v4 u) { return { -u.x, -u.y, -u.z, -u.w }; }
+
+static v2i operator-(v2i u) { return { -u.x, -u.y }; }
+static v3i operator-(v3i u) { return { -u.x, -u.y, -u.z }; }
+static v4i operator-(v4i u) { return { -u.x, -u.y, -u.z, -u.w }; }
+
+#endif
+
 // ---------- addition ---------- //
 
 static v2 v2_add(v2 a, v2 b) { return V2(a.x + b.x, a.y + b.y); }
@@ -533,6 +591,26 @@ static v2i v2i_add(v2i a, v2i b) { return V2i(a.x + b.x, a.y + b.y); }
 static v3i v3i_add(v3i a, v3i b) { return V3i(a.x + b.x, a.y + b.y, a.z + b.z); }
 static v4i v4i_add(v4i a, v4i b) { return V4i(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
 
+#ifdef __cplusplus
+
+static v2 operator+(v2 a, v2 b) { return { a.x + b.x, a.y + b.y }; }
+static v3 operator+(v3 a, v3 b) { return { a.x + b.x, a.y + b.y, a.z + b.z }; }
+static v4 operator+(v4 a, v4 b) { return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w }; }
+
+static v2i operator+(v2i a, v2i b) { return { a.x + b.x, a.y + b.y }; }
+static v3i operator+(v3i a, v3i b) { return { a.x + b.x, a.y + b.y, a.z + b.z }; }
+static v4i operator+(v4i a, v4i b) { return { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w }; }
+
+static v2& operator+=(v2& a, v2 b) { a = a + b; return a; }
+static v3& operator+=(v3& a, v3 b) { a = a + b; return a; }
+static v4& operator+=(v4& a, v4 b) { a = a + b; return a; }
+
+static v2i& operator+=(v2i& a, v2i b) { a = a + b; return a; }
+static v3i& operator+=(v3i& a, v3i b) { a = a + b; return a; }
+static v4i& operator+=(v4i& a, v4i b) { a = a + b; return a; }
+
+#endif
+
 // -------- subtraction ------- //
 
 static v2 v2_sub(v2 a, v2 b) { return V2(a.x - b.x, a.y - b.y); }
@@ -542,6 +620,26 @@ static v4 v4_sub(v4 a, v4 b) { return V4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - 
 static v2i v2i_sub(v2i a, v2i b) { return V2i(a.x - b.x, a.y - b.y); }
 static v3i v3i_sub(v3i a, v3i b) { return V3i(a.x - b.x, a.y - b.y, a.z - b.z); }
 static v4i v4i_sub(v4i a, v4i b) { return V4i(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+
+#ifdef __cplusplus
+
+static v2 operator-(v2 a, v2 b) { return { a.x - b.x, a.y - b.y }; }
+static v3 operator-(v3 a, v3 b) { return { a.x - b.x, a.y - b.y, a.z - b.z }; }
+static v4 operator-(v4 a, v4 b) { return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w }; }
+
+static v2i operator-(v2i a, v2i b) { return { a.x - b.x, a.y - b.y }; }
+static v3i operator-(v3i a, v3i b) { return { a.x - b.x, a.y - b.y, a.z - b.z }; }
+static v4i operator-(v4i a, v4i b) { return { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w }; }
+
+static v2& operator-=(v2& a, v2 b) { a = a - b; return a; }
+static v3& operator-=(v3& a, v3 b) { a = a - b; return a; }
+static v4& operator-=(v4& a, v4 b) { a = a - b; return a; }
+
+static v2i& operator-=(v2i& a, v2i b) { a = a - b; return a; }
+static v3i& operator-=(v3i& a, v3i b) { a = a - b; return a; }
+static v4i& operator-=(v4i& a, v4i b) { a = a - b; return a; }
+
+#endif
 
 // -------- multiplication ------- //
 
@@ -635,6 +733,36 @@ quat_mul(quat_t a, quat_t b) {
         a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
 }
 
+#ifdef __cplusplus
+
+static v2 operator*(v2 a, v2 b) { return { a.x * b.x, a.y * b.y }; }
+static v3 operator*(v3 a, v3 b) { return { a.x * b.x, a.y * b.y, a.z * b.z }; }
+static v4 operator*(v4 a, v4 b) { return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w }; }
+
+static v2i operator*(v2i a, v2i b) { return { a.x * b.x, a.y * b.y }; }
+static v3i operator*(v3i a, v3i b) { return { a.x * b.x, a.y * b.y, a.z * b.z }; }
+static v4i operator*(v4i a, v4i b) { return { a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w }; }
+
+static v2& operator*=(v2& a, v2 b) { a = a * b; return a; }
+static v3& operator*=(v3& a, v3 b) { a = a * b; return a; }
+static v4& operator*=(v4& a, v4 b) { a = a * b; return a; }
+
+static v2i& operator*=(v2i& a, v2i b) { a = a * b; return a; }
+static v3i& operator*=(v3i& a, v3i b) { a = a * b; return a; }
+static v4i& operator*=(v4i& a, v4i b) { a = a * b; return a; }
+
+static v2 operator*(m2 m, v2 u) { return m2_mulv(m, u); }
+static v3 operator*(m3 m, v3 u) { return m3_mulv(m, u); }
+static v4 operator*(m4 m, v4 u) { return m4_mulv(m, u); }
+
+static m2 operator*(m2 a, m2 b) { return m2_mul(a, b); }
+static m3 operator*(m3 a, m3 b) { return m3_mul(a, b); }
+static m4 operator*(m4 a, m4 b) { return m4_mul(a, b); }
+
+static quat_t operator*(quat_t a, quat_t b) { return quat_mul(a, b); }
+
+#endif
+
 // ------------ divition ------------ //
 
 static v2 v2_div(v2 a, v2 b) { return V2(a.x / b.x, a.y / b.y); }
@@ -644,6 +772,26 @@ static v4 v4_div(v4 a, v4 b) { return V4(a.x / b.x, a.y / b.y, a.z / b.z, a.w / 
 static v2i v2i_div(v2i a, v2i b) { return V2i(a.x / b.x, a.y / b.y); }
 static v3i v3i_div(v3i a, v3i b) { return V3i(a.x / b.x, a.y / b.y, a.z / b.z); }
 static v4i v4i_div(v4i a, v4i b) { return V4i(a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w); }
+
+#ifdef __cplusplus
+
+static v2 operator/(v2 a, v2 b) { return { a.x / b.x, a.y / b.y }; }
+static v3 operator/(v3 a, v3 b) { return { a.x / b.x, a.y / b.y, a.z / b.z }; }
+static v4 operator/(v4 a, v4 b) { return { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w }; }
+
+static v2i operator/(v2i a, v2i b) { return { a.x / b.x, a.y / b.y }; }
+static v3i operator/(v3i a, v3i b) { return { a.x / b.x, a.y / b.y, a.z / b.z }; }
+static v4i operator/(v4i a, v4i b) { return { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w }; }
+
+static v2& operator/=(v2& a, v2 b) { a = a / b; return a; }
+static v3& operator/=(v3& a, v3 b) { a = a / b; return a; }
+static v4& operator/=(v4& a, v4 b) { a = a / b; return a; }
+
+static v2i& operator/=(v2i& a, v2i b) { a = a / b; return a; }
+static v3i& operator/=(v3i& a, v3i b) { a = a / b; return a; }
+static v4i& operator/=(v4i& a, v4i b) { a = a / b; return a; }
+
+#endif
 
 // ------------- scaling ------------- //
 
@@ -655,6 +803,34 @@ static v2i v2i_scale(v2i a, i32 s) { return V2i(a.x * s, a.y * s); }
 static v3i v3i_scale(v3i a, i32 s) { return V3i(a.x * s, a.y * s, a.z * s); }
 static v4i v4i_scale(v4i a, i32 s) { return V4i(a.x * s, a.y * s, a.z * s, a.w * s); }
 
+#ifdef __cplusplus
+
+static v2 operator*(v2 a, f32 s) { return { a.x * s, a.y * s }; }
+static v3 operator*(v3 a, f32 s) { return { a.x * s, a.y * s, a.z * s }; }
+static v4 operator*(v4 a, f32 s) { return { a.x * s, a.y * s, a.z * s, a.w * s }; }
+
+static v2 operator*(f32 s, v2 a) { return { a.x * s, a.y * s }; }
+static v3 operator*(f32 s, v3 a) { return { a.x * s, a.y * s, a.z * s }; }
+static v4 operator*(f32 s, v4 a) { return { a.x * s, a.y * s, a.z * s, a.w * s }; }
+
+static v2i operator*(v2i a, i32 s) { return { a.x * s, a.y * s }; }
+static v3i operator*(v3i a, i32 s) { return { a.x * s, a.y * s, a.z * s }; }
+static v4i operator*(v4i a, i32 s) { return { a.x * s, a.y * s, a.z * s, a.w * s }; }
+
+static v2i operator*(i32 s, v2i a) { return { a.x * s, a.y * s }; }
+static v3i operator*(i32 s, v3i a) { return { a.x * s, a.y * s, a.z * s }; }
+static v4i operator*(i32 s, v4i a) { return { a.x * s, a.y * s, a.z * s, a.w * s }; }
+
+static v2& operator*=(v2& a, f32 s) { a = a * s; return a; }
+static v3& operator*=(v3& a, f32 s) { a = a * s; return a; }
+static v4& operator*=(v4& a, f32 s) { a = a * s; return a; }
+
+static v2i& operator*=(v2i& a, f32 s) { a = a * s; return a; }
+static v3i& operator*=(v3i& a, f32 s) { a = a * s; return a; }
+static v4i& operator*=(v4i& a, f32 s) { a = a * s; return a; }
+
+#endif
+
 // ----------- eq ------------ //
 
 static b32 v2i_eq(v2i a, v2i b) { return a.x == b.x && a.y == b.y; }
@@ -664,6 +840,18 @@ static b32 v4i_eq(v4i a, v4i b) { return a.x == b.x && a.y == b.y && a.z == b.z 
 static b32 v2i_neq(v2i a, v2i b) { return a.x != b.x || a.y != b.y; }
 static b32 v3i_neq(v3i a, v3i b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
 static b32 v4i_neq(v4i a, v4i b) { return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w; }
+
+#ifdef __cplusplus
+
+static b32 operator==(v2i a, v2i b) { return a.x == b.x && a.y == b.y; }
+static b32 operator==(v3i a, v3i b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
+static b32 operator==(v4i a, v4i b) { return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w; }
+
+static b32 operator!=(v2i a, v2i b) { return a.x != b.x || a.y != b.y; }
+static b32 operator!=(v3i a, v3i b) { return a.x != b.x || a.y != b.y || a.z != b.z; }
+static b32 operator!=(v4i a, v4i b) { return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w; }
+
+#endif
 
 // ----------- dot product ----------- //
 
@@ -675,6 +863,18 @@ static i32 v2i_dot(v2i a, v2i b) { return a.x * b.x + a.y * b.y; }
 static i32 v3i_dot(v3i a, v3i b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 static i32 v4i_dot(v4i a, v4i b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
 
+#ifdef __cplusplus
+
+static f32 dot(v2 a, v2 b) { return a.x * b.x + a.y * b.y; }
+static f32 dot(v3 a, v3 b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+static f32 dot(v4 a, v4 b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+
+static i32 dot(v2i a, v2i b) { return a.x * b.x + a.y * b.y; }
+static i32 dot(v3i a, v3i b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+static i32 dot(v4i a, v4i b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+
+#endif
+
 // ----------- length squared ----------- //
 
 static f32 v2_len_sq(v2 u) { return v2_dot(u, u); }
@@ -684,6 +884,18 @@ static f32 v4_len_sq(v4 u) { return v4_dot(u, u); }
 static i32 v2i_len_sq(v2i u) { return v2i_dot(u, u); }
 static i32 v3i_len_sq(v3i u) { return v3i_dot(u, u); }
 static i32 v4i_len_sq(v4i u) { return v4i_dot(u, u); }
+
+#ifdef __cplusplus
+
+static f32 len_sq(v2 u) { return v2_dot(u, u); }
+static f32 len_sq(v3 u) { return v3_dot(u, u); }
+static f32 len_sq(v4 u) { return v4_dot(u, u); }
+
+static i32 len_sq(v2i u) { return v2i_dot(u, u); }
+static i32 len_sq(v3i u) { return v3i_dot(u, u); }
+static i32 len_sq(v4i u) { return v4i_dot(u, u); }
+
+#endif
 
 // -------------- length -------------- //
 
@@ -695,6 +907,18 @@ static f32 v2i_len(v2i u) { return sqrt32(v2i_len_sq(u)); }
 static f32 v3i_len(v3i u) { return sqrt32(v3i_len_sq(u)); }
 static f32 v4i_len(v4i u) { return sqrt32(v4i_len_sq(u)); }
 
+#ifdef __cplusplus
+
+static f32 len(v2 u) { return sqrt32(v2_len_sq(u)); }
+static f32 len(v3 u) { return sqrt32(v3_len_sq(u)); }
+static f32 len(v4 u) { return sqrt32(v4_len_sq(u)); }
+
+static f32 len(v2i u) { return sqrt32(v2i_len_sq(u)); }
+static f32 len(v3i u) { return sqrt32(v3i_len_sq(u)); }
+static f32 len(v4i u) { return sqrt32(v4i_len_sq(u)); }
+
+#endif
+
 // -------------- distance squared -------------- //
 
 static f32 v2_dist_sq(v2 a, v2 b) { return v2_len_sq(v2_sub(a, b)); }
@@ -705,11 +929,31 @@ static i32 v2i_dist_sq(v2i a, v2i b) { return v2i_len_sq(v2i_sub(a, b)); }
 static i32 v3i_dist_sq(v3i a, v3i b) { return v3i_len_sq(v3i_sub(a, b)); }
 static i32 v4i_dist_sq(v4i a, v4i b) { return v4i_len_sq(v4i_sub(a, b)); }
 
+#ifdef __cplusplus
+
+static f32 dist_sq(v2 a, v2 b) { return v2_len_sq(v2_sub(a, b)); }
+static f32 dist_sq(v3 a, v3 b) { return v3_len_sq(v3_sub(a, b)); }
+static f32 dist_sq(v4 a, v4 b) { return v4_len_sq(v4_sub(a, b)); }
+
+static i32 dist_sq(v2i a, v2i b) { return v2i_len_sq(v2i_sub(a, b)); }
+static i32 dist_sq(v3i a, v3i b) { return v3i_len_sq(v3i_sub(a, b)); }
+static i32 dist_sq(v4i a, v4i b) { return v4i_len_sq(v4i_sub(a, b)); }
+
+#endif
+
 // ------------------ distance ------------------- //
 
 static f32 v2_dist(v2 a, v2 b) { return sqrt32(v2_dist_sq(a, b)); }
 static f32 v3_dist(v3 a, v3 b) { return sqrt32(v3_dist_sq(a, b)); }
 static f32 v4_dist(v4 a, v4 b) { return sqrt32(v4_dist_sq(a, b)); }
+
+#ifdef __cplusplus
+
+static f32 dist(v2 a, v2 b) { return sqrt32(v2_dist_sq(a, b)); }
+static f32 dist(v3 a, v3 b) { return sqrt32(v3_dist_sq(a, b)); }
+static f32 dist(v4 a, v4 b) { return sqrt32(v4_dist_sq(a, b)); }
+
+#endif
 
 // -------------- manhattan distance -------------- //
 
@@ -725,11 +969,26 @@ v3i_manhattan(v3i a, v3i b) {
     return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y) + (0x7ffffffff & diff.z);
 }
 
+#ifdef __cplusplus
+
+static i32 manhattan(v2i a, v2i b) { return v2i_manhattan(a, b); }
+static i32 manhattan(v3i a, v3i b) { return v3i_manhattan(a, b); }
+
+#endif
+
 // -------------- normalize --------------- //
 
 static v2 v2_norm(v2 u) { return v2_scale(u, rsqrt32(v2_dot(u, u))); }
 static v3 v3_norm(v3 u) { return v3_scale(u, rsqrt32(v3_dot(u, u))); }
 static v4 v4_norm(v4 u) { return v4_scale(u, rsqrt32(v4_dot(u, u))); }
+
+#ifdef __cplusplus
+
+static v2 norm(v2 u) { return v2_scale(u, rsqrt32(v2_dot(u, u))); }
+static v3 norm(v3 u) { return v3_scale(u, rsqrt32(v3_dot(u, u))); }
+static v4 norm(v4 u) { return v4_scale(u, rsqrt32(v4_dot(u, u))); }
+
+#endif
 
 // -------------- floor --------------- //
 
@@ -737,11 +996,27 @@ static v2 v2_floor(v2 u) { return V2(floorf(u.x), floorf(u.y)); }
 static v3 v3_floor(v3 u) { return V3(floorf(u.x), floorf(u.y), floorf(u.z)); }
 static v4 v4_floor(v4 u) { return V4(floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w)); }
 
+#ifdef __cplusplus
+
+static v2 floor(v2 u) { return V2(floorf(u.x), floorf(u.y)); }
+static v3 floor(v3 u) { return V3(floorf(u.x), floorf(u.y), floorf(u.z)); }
+static v4 floor(v4 u) { return V4(floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w)); }
+
+#endif
+
 // -------------- ceil --------------- //
 
 static v2 v2_ceil(v2 u) { return V2(ceilf(u.x), ceilf(u.y)); }
 static v3 v3_ceil(v3 u) { return V3(ceilf(u.x), ceilf(u.y), ceilf(u.z)); }
 static v4 v4_ceil(v4 u) { return V4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w)); }
+
+#ifdef __cplusplus
+
+static v2 ceil(v2 u) { return V2(ceilf(u.x), ceilf(u.y)); }
+static v3 ceil(v3 u) { return V3(ceilf(u.x), ceilf(u.y), ceilf(u.z)); }
+static v4 ceil(v4 u) { return V4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w)); }
+
+#endif
 
 // -------------- clamp --------------- //
 
@@ -763,16 +1038,16 @@ v3_clampf(v3 u, f32 min, f32 max) {
 static v2i
 v2i_clampi(v2i u, f32 min, f32 max) {
     return V2i(
-        Clamp(u.x, min, max),
-        Clamp(u.y, min, max));
+        (i32)Clamp(u.x, min, max),
+        (i32)Clamp(u.y, min, max));
 }
 
 static v3i
 v3i_clampi(v3i u, f32 min, f32 max) {
     return V3i(
-        Clamp(u.x, min, max),
-        Clamp(u.y, min, max),
-        Clamp(u.z, min, max));
+        (i32)Clamp(u.x, min, max),
+        (i32)Clamp(u.y, min, max),
+        (i32)Clamp(u.z, min, max));
 }
 
 static v2
@@ -804,6 +1079,22 @@ v3i_clamp(v3i u, r3i r) {
         Clamp(u.y, r.min.y, r.max.y),
         Clamp(u.z, r.min.z, r.max.z));
 }
+
+#ifdef __cplusplus
+
+static v2 clamp(v2 u, f32 min, f32 max) { return v2_clampf(u, min, max); }
+static v3 clamp(v3 u, f32 min, f32 max) { return v3_clampf(u, min, max); }
+
+static v2i clamp(v2i u, i32 min, i32 max) { return v2i_clampi(u, min, max); }
+static v3i clamp(v3i u, i32 min, i32 max) { return v3i_clampi(u, min, max); }
+
+static v2 clamp(v2 u, r2 r) { return v2_clamp(u, r); }
+static v3 clamp(v3 u, r3 r) { return v3_clamp(u, r); }
+
+static v2i clamp(v2i u, r2i r) { return v2i_clamp(u, r); }
+static v3i clamp(v3i u, r3i r) { return v3i_clamp(u, r); }
+
+#endif
 
 // ---------------- min ----------------- //
 
@@ -855,6 +1146,18 @@ v4i_min(v4i a, v4i b) {
         a.w < b.w? a.w : b.w);
 }
 
+#ifdef __cplusplus
+
+static v2 min(v2 a, v2 b) { return v2_min(a, b); }
+static v3 min(v3 a, v3 b) { return v3_min(a, b); }
+static v4 min(v4 a, v4 b) { return v4_min(a, b); }
+
+static v2i min(v2i a, v2i b) { return v2i_min(a, b); }
+static v3i min(v3i a, v3i b) { return v3i_min(a, b); }
+static v4i min(v4i a, v4i b) { return v4i_min(a, b); }
+
+#endif
+
 // ---------------- max ----------------- //
 
 static v2
@@ -905,6 +1208,18 @@ v4i_max(v4i a, v4i b) {
         a.w > b.w? a.w : b.w);
 }
 
+#ifdef __cplusplus
+
+static v2 max(v2 a, v2 b) { return v2_max(a, b); }
+static v3 max(v3 a, v3 b) { return v3_max(a, b); }
+static v4 max(v4 a, v4 b) { return v4_max(a, b); }
+
+static v2i max(v2i a, v2i b) { return v2i_max(a, b); }
+static v3i max(v3i a, v3i b) { return v3i_max(a, b); }
+static v4i max(v4i a, v4i b) { return v4i_max(a, b); }
+
+#endif
+
 // ---------------- lerp ----------------- //
 
 static v2
@@ -931,15 +1246,35 @@ v4_lerp(v4 a, v4 b, f32 t) {
         a.w + t * (b.w - a.w));
 }
 
+#ifdef __cplusplus
+
+static v2 lerp(v2 a, v2 b, f32 t) { return v2_lerp(a, b, t); }
+static v3 lerp(v3 a, v3 b, f32 t) { return v3_lerp(a, b, t); }
+static v4 lerp(v4 a, v4 b, f32 t) { return v4_lerp(a, b, t); }
+
+#endif
+
 // -------------- sign (-1, 0, 1) ------------------- //
 
-static v2 v2_sign(v2 u) { return V2(Sign(u.x), Sign(u.y)); }
-static v3 v3_sign(v3 u) { return V3(Sign(u.x), Sign(u.y), Sign(u.z)); }
-static v4 v4_sign(v4 u) { return V4(Sign(u.x), Sign(u.y), Sign(u.z), Sign(u.w)); }
+static v2 v2_sign(v2 u) { return V2((f32)Sign(u.x), (f32)Sign(u.y)); }
+static v3 v3_sign(v3 u) { return V3((f32)Sign(u.x), (f32)Sign(u.y), (f32)Sign(u.z)); }
+static v4 v4_sign(v4 u) { return V4((f32)Sign(u.x), (f32)Sign(u.y), (f32)Sign(u.z), (f32)Sign(u.w)); }
 
 static v2i v2i_sign(v2i u) { return V2i(Sign(u.x), Sign(u.y)); }
 static v3i v3i_sign(v3i u) { return V3i(Sign(u.x), Sign(u.y), Sign(u.z)); }
 static v4i v4i_sign(v4i u) { return V4i(Sign(u.x), Sign(u.y), Sign(u.z), Sign(u.w)); }
+
+#ifdef __cplusplus
+
+static v2 sign(v2 u) { return v2_sign(u); }
+static v3 sign(v3 u) { return v3_sign(u); }
+static v4 sign(v4 u) { return v4_sign(u); }
+
+static v2i sign(v2i u) { return v2i_sign(u); }
+static v3i sign(v3i u) { return v3i_sign(u); }
+static v4i sign(v4i u) { return v4i_sign(u); }
+
+#endif
 
 // --------------- cross ------------------- //
 
@@ -951,6 +1286,12 @@ v3_cross(v3 a, v3 b) {
         a.x * b.y - a.y * b.x);
 }
 
+#ifdef __cplusplus
+
+static v3 cross(v3 a, v3 b) { return v3_cross(a, b); }
+
+#endif
+
 // --------------- get angle ------------------- //
 
 static f32
@@ -959,6 +1300,12 @@ v2_get_angle(v2 a, v2 b) {
     f32 dot = a.x * b.x + a.y * b.y;
     return atan2f(det, dot);
 }
+
+#ifdef __cplusplus
+
+static f32 get_angle(v2 a, v2 b) { return v2_get_angle(a, b); }
+
+#endif
 
 // ----------- keep min ---------- //
 
@@ -972,6 +1319,12 @@ v3_keep_min(v3 u) {
     if (dz <= dx && dz <= dy) return V3(0, 0, u.z);
     return u;
 }
+
+#ifdef __cplusplus
+
+static v3 keep_min(v3 u) { return v3_keep_min(u); }
+
+#endif
 
 // ----------- mask min ---------- //
 
@@ -987,6 +1340,12 @@ v3_mask_min(v3 u) {
 
     return V3(1, 1, 1);
 }
+
+#ifdef __cplusplus
+
+static v3 mask_min(v3 u) { return v3_mask_min(u); }
+
+#endif
 
 // ------------------ transform/scale/rotate ------------------ //
 
@@ -1191,19 +1550,19 @@ m4_look_at(v3 eye, v3 center, v3 up) {
 
 // ----------------- plane/frustrum ------------------- //
 
-typedef struct plane {
+typedef struct {
     f32 a;
     f32 b;
     f32 c;
     f32 d;
-} plane;
+} plane_t;
 
-typedef struct frustum {
-    plane planes[6];
-} frustum;
+typedef struct {
+    plane_t planes[6];
+} frustum_t;
 
-static plane
-plane_normalize(plane p) {
+static plane_t
+plane_normalize(plane_t p) {
     f32 r_len = rsqrt32(p.a * p.a + p.b * p.b + p.c * p.c);
 
     p.a = p.a * r_len;
@@ -1214,9 +1573,9 @@ plane_normalize(plane p) {
     return p;
 }
 
-static frustum
+static frustum_t
 frustum_create(m4 m) {
-    frustum result;
+    frustum_t result;
 
     // left clipping plane
     result.planes[0].a = m.e[3]  + m.e[0];
@@ -1309,7 +1668,7 @@ r3i_contains(r3i rect, v3i pos) {
 }
 
 static b32
-frustum_contains(frustum fs, v3 pos) {
+frustum_contains(frustum_t fs, v3 pos) {
     for (i32 i = 0; i < 6; i++) {
 		if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0)
 			return false;
@@ -1317,6 +1676,18 @@ frustum_contains(frustum fs, v3 pos) {
 
 	return true;
 }
+
+#ifdef __cplusplus
+
+static b32 contains(circle_t c, v2 pos) { return circle_contains(c, pos); }
+static b32 contains(sphere_t s, v3 pos) { return sphere_contains(s, pos); }
+static b32 contains(r2 rect, v2 pos)    { return r2_contains(rect, pos); }
+static b32 contains(r3 rect, v3 pos)    { return r3_contains(rect, pos); }
+static b32 contains(r2i rect, v2i pos)  { return r2i_contains(rect, pos); }
+static b32 contains(r3i rect, v3i pos)  { return r3i_contains(rect, pos); }
+static b32 contains(frustum_t fs, v3 pos) { return frustum_contains(fs, pos); }
+
+#endif
 
 // ------------------ intersect ------------------ //
 
@@ -1371,7 +1742,7 @@ r3i_intersect(r3i a, r3i b) {
 }
 
 static b32
-frustum_intersect_sphere(frustum fs, sphere_t sphere) {
+frustum_intersect_sphere(frustum_t fs, sphere_t sphere) {
     for (i32 i = 0; i < 6; i++) {
 		if(fs.planes[i].a * sphere.pos.x + fs.planes[i].b * sphere.pos.y + fs.planes[i].c * sphere.pos.z + fs.planes[i].d <= -sphere.rad) {
 			return false;
@@ -1381,7 +1752,7 @@ frustum_intersect_sphere(frustum fs, sphere_t sphere) {
 }
 
 static b32
-frustum_intersect_r3(frustum fs, r3 rect) {
+frustum_intersect_r3(frustum_t fs, r3 rect) {
     for (int i = 0; i < 6; i++) {
 		if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
 		if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
@@ -1395,6 +1766,19 @@ frustum_intersect_r3(frustum fs, r3 rect) {
 	}
 	return true;
 }
+
+#ifdef __cplusplus
+
+static b32 intersect(circle_t a, circle_t b)        { return circle_intersect(a, b); }
+static b32 intersect(sphere_t a, sphere_t b)        { return sphere_intersect(a, b); }
+static b32 intersect(r2 a, r2 b)                    { return r2_intersect(a, b); }
+static b32 intersect(r3 a, r3 b)                    { return r3_intersect(a, b); }
+static b32 intersect(r2i a, r2i b)                  { return r2i_intersect(a, b); }
+static b32 intersect(r3i a, r3i b)                  { return r3i_intersect(a, b); }
+static b32 intersect(frustum_t fs, sphere_t sphere) { return frustum_intersect_sphere(fs, sphere); }
+static b32 intersect(frustum_t fs, r3 rect)         { return frustum_intersect_r3(fs, rect); }
+
+#endif
 
 // ------------------- get overlap --------------- //
 
@@ -1425,6 +1809,15 @@ r3i_get_overlap(r3i a, r3i b) {
         v3i_max(a.min, b.min),
         v3i_min(a.max, b.max));
 }
+
+#ifdef __cplusplus
+
+static r2  overlap(r2 a, r2 b)   { return r2_get_overlap(a, b); }
+static r3  overlap(r3 a, r3 b)   { return r3_get_overlap(a, b); }
+static r2i overlap(r2i a, r2i b) { return r2i_get_overlap(a, b); }
+static r3i overlap(r3i a, r3i b) { return r3i_get_overlap(a, b); }
+
+#endif
 
 // -------------- get intersect vector ---------- //
 
@@ -1466,7 +1859,7 @@ r3_get_intersect_vector(r3 a, r3 b) {
 }
 
 static v2i
-v2i_get_intersect_vector(r2i a, r2i b) {
+r2i_get_intersect_vector(r2i a, r2i b) {
     r2i overlap = r2i_get_overlap(a, b);
     v2i delta = {
         (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
@@ -1476,7 +1869,7 @@ v2i_get_intersect_vector(r2i a, r2i b) {
 }
 
 static v3i
-v3i_get_intersect_vector(r3i a, r3i b) {
+r3i_get_intersect_vector(r3i a, r3i b) {
     r3i overlap = r3i_get_overlap(a, b);
     v3i delta = {
         (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
@@ -1485,6 +1878,17 @@ v3i_get_intersect_vector(r3i a, r3i b) {
     };
     return v3i_mul(v3i_sub(overlap.max, overlap.min), v3i_sign(delta));
 }
+
+#ifdef __cplusplus
+
+static v2  get_intersect_vector(circle_t a, circle_t b) { return circle_get_intersect_vector(a, b); }
+static v3  get_intersect_vector(sphere_t a, sphere_t b) { return sphere_get_intersect_vector(a, b); }
+static v2  get_intersect_vector(r2 a, r2 b)             { return r2_get_intersect_vector(a, b); }
+static v3  get_intersect_vector(r3 a, r3 b)             { return r3_get_intersect_vector(a, b); }
+static v2i get_intersect_vector(r2i a, r2i b)           { return r2i_get_intersect_vector(a, b); }
+static v3i get_intersect_vector(r3i a, r3i b)           { return r3i_get_intersect_vector(a, b); }
+
+#endif
 
 // ---------------------- random ------------------------ //
 
@@ -1872,14 +2276,15 @@ m_copy(void* dst, const void* src, usize size) {
 
 // --------------------- allocator interface ---------------------- //
 
-typedef enum mem_tag {
+typedef u32 mem_tag;
+enum {
     mem_tag_alloc,
     mem_tag_resize,
     mem_tag_free,
     // mem_tag_free_all,
-} mem_tag;
+};
 
-typedef struct mem_alloc_desc {
+typedef struct {
     mem_tag tag;
 
     usize size;
@@ -1891,7 +2296,7 @@ typedef struct mem_alloc_desc {
 #define M_ALLOCATOR_PROC(name) void* name(mem_alloc_desc desc)
 typedef M_ALLOCATOR_PROC(mem_allocator_proc);
 
-typedef struct mem_allocator {
+typedef struct {
     mem_allocator_proc* proc;
     void* data;
 } mem_allocator;
@@ -1942,7 +2347,7 @@ mem_zero(mem_allocator allocator, usize size) {
 
 // ---------------------- arena allocator ------------------------ //
 
-typedef struct mem_arena {
+typedef struct {
     usize index;
     usize cap;
     u8* buffer;
@@ -2067,7 +2472,7 @@ typedef struct string {
 #define STR_FMT "%.*s"
 #define STR_ARG(s) (int)(s).size, (s).data
 
-#define str(text) (string) { sizeof (text) - 1, text }
+#define str(text) Make(string) { sizeof (text) - 1, text }
 #define STR(text) { sizeof (text) - 1, text }
 
 static string
@@ -2090,6 +2495,13 @@ string_equal_cstr(string a, const char* b) {
     if (a.size != b_size) return false;
     return memcmp(a.data, b, a.size) == 0;
 }
+
+#ifdef __cplusplus
+
+static b32 operator==(string a, string b)       { return string_equal(a, b); }
+static b32 operator==(string a, const char* b)  { return string_equal_cstr(a, b); }
+
+#endif
 
 static b32
 string_empty(string s) {
@@ -2126,7 +2538,7 @@ split_iter_advance(split_iter* it) {
         }
     }
 
-    it->current = (string) {
+    it->current = Make(string) {
         (usize)(it->content - begin),
         begin,
     };
@@ -2159,47 +2571,47 @@ split_iter_create(const char* cstr, const char* delimiters, const char* separato
 
 #define SPATIAL_MAX (4 * 4 * 4096)
 
-struct spatial_cell {
+typedef struct sm_cell {
     void* e;
     r2 rect;
 
-    struct spatial_cell* next;
-};
+    struct sm_cell* next;
+} sm_cell;
 
-struct spatial_map {
-    struct spatial_cell* table[4096];
+typedef struct spatial_map {
+    struct sm_cell* table[4096];
 
     usize count;
-    struct spatial_cell array[SPATIAL_MAX];
-};
+    struct sm_cell array[SPATIAL_MAX];
+} spatial_map;
 
 static void
-sm_clear(struct spatial_map* map) {
+sm_clear(spatial_map* map) {
     memset(map->table, 0, sizeof map->table);
     map->count = 0;
 }
 
 static u32
-sm_index(const struct spatial_map* map, v2i pos) {
+sm_index(const spatial_map* map, v2i pos) {
     u32 hash = hash_v2i(pos);
     return hash % ArrayCount(map->table);
 }
 
 static void
-sm_add(struct spatial_map* map, void* e, r2 e_rect) {
+sm_add(spatial_map* map, void* e, r2 e_rect) {
     v2 rad = {
         e_rect.max.x - e_rect.min.x,
         e_rect.max.y - e_rect.min.y,
     };
 
     r2i rect = {
-        e_rect.min.x, e_rect.min.y,
-        e_rect.max.x, e_rect.max.y,
+        (i32)e_rect.min.x, (i32)e_rect.min.y,
+        (i32)e_rect.max.x, (i32)e_rect.max.y,
     };
 
     for_r2(rect, x, y) {
         u32 index = sm_index(map, V2i(x, y));
-        struct spatial_cell* cell = map->array + map->count++;
+        sm_cell* cell = map->array + map->count++;
 
         cell->e = e;
         cell->rect = e_rect;
@@ -2209,21 +2621,21 @@ sm_add(struct spatial_map* map, void* e, r2 e_rect) {
     }
 }
 
-struct sm_entry {
+typedef struct sm_entry {
     void* e;
     r2 rect;
-};
+} sm_entry;
 
-struct sm_result {
+typedef struct sm_result {
     usize count;
     struct sm_entry* array;
-};
+} sm_result;
 
-static struct sm_result
-sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
-    static struct sm_entry spatial_array[SPATIAL_MAX];
+static sm_result
+sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+    static sm_entry spatial_array[SPATIAL_MAX];
 
-    struct sm_result result = {0};
+    sm_result result = ATS_INIT;
     result.array = spatial_array;
 
     r2 rect = {
@@ -2232,13 +2644,13 @@ sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
     };
 
     r2i irect = {
-        pos.x - rad.x, pos.y - rad.y,
-        pos.x + rad.x, pos.y + rad.y,
+        (i32)(pos.x - rad.x), (i32)(pos.y - rad.y),
+        (i32)(pos.x + rad.x), (i32)(pos.y + rad.y),
     };
 
     for_r2(irect, x, y) {
         u32 index = sm_index(map, V2i(x, y));
-        for (struct spatial_cell* it = map->table[index]; it; it = it->next) {
+        for (sm_cell* it = map->table[index]; it; it = it->next) {
             b32 unique = true;
 
             if (it->e == ignore) continue;
@@ -2251,9 +2663,9 @@ sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
                 }
             }
             if (unique) {
-                result.array[result.count++] = (struct sm_entry) {
-                    .e = it->e,
-                    .rect = it->rect,
+                result.array[result.count++] = Make(sm_entry) {
+                    it->e,
+                    it->rect,
                 };
             }
         }
@@ -2262,16 +2674,16 @@ sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
     return result;
 }
 
-struct sm_iter {
+typedef struct sm_iter {
     struct sm_entry* current;
 
     u32 index;
     struct sm_result result;
-};
+} sm_iter;
 
-static struct sm_iter
-sm_get_iterator(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
-    struct sm_iter it = {0};
+static sm_iter
+sm_get_iterator(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+    sm_iter it = ATS_INIT;
     
     it.result = sm_in_range(map, pos, rad, ignore);
     it.current = &it.result.array[0];
@@ -2280,27 +2692,27 @@ sm_get_iterator(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
 }
 
 static b32
-sm_iter_is_valid(const struct sm_iter* it) {
+sm_iter_is_valid(const sm_iter* it) {
     return it->index < it->result.count;
 }
 
 static void
-sm_iter_advance(struct sm_iter* it) {
+sm_iter_advance(sm_iter* it) {
     it->index++;
     it->current = &it->result.array[it->index];
 }
 
 static void*
-sm_get_closest(struct spatial_map* map, v2 pos, f32 range, const void* ignore) {
+sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore) {
     void* result = NULL;
     
     f32 distance = 2.0f * range;
     for_iter(sm_iter, it, sm_get_iterator(map, pos, V2(range, range), ignore)) {
-        struct sm_entry* e = it.current;
+        sm_entry* e = it.current;
 
         v2 pos = {
-            0.5 * e->rect.min.x + e->rect.max.x,
-            0.5 * e->rect.min.y + e->rect.max.y,
+            0.5f * e->rect.min.x + e->rect.max.x,
+            0.5f * e->rect.min.y + e->rect.max.y,
         };
 
         f32 new_distance = v2_dist(pos, pos);
@@ -2315,10 +2727,10 @@ sm_get_closest(struct spatial_map* map, v2 pos, f32 range, const void* ignore) {
 }
 
 static void*
-sm_at_position(struct spatial_map* map, v2 pos) {
-    u32 index = sm_index(map, V2i(pos.x, pos.y));
+sm_at_position(spatial_map* map, v2 pos) {
+    u32 index = sm_index(map, V2i((i32)pos.x, (i32)pos.y));
 
-    for (struct spatial_cell* it = map->table[index]; it; it = it->next) {
+    for (sm_cell* it = map->table[index]; it; it = it->next) {
         if (r2_contains(it->rect, pos)) {
             return it->e;
         }
@@ -2332,33 +2744,33 @@ sm_at_position(struct spatial_map* map, v2 pos) {
 #define RAY2D_MOD           (511)
 #define RAY2D_ARRAY_SIZE    (8192) // (512 * 512) / 32
 
-struct ray2D_map {
+typedef struct {
     u32 array[RAY2D_ARRAY_SIZE];
-};
+} ray2d_map;
 
 static void
-ray2D_init(struct ray2D_map* map) {
-    memset(map, 0, sizeof (struct ray2D_map));
+ray2d_init(ray2d_map* map) {
+    memset(map, 0, sizeof (ray2d_map));
 }
 
 static inline u32
-ray2D_index(const struct ray2D_map* map, u32 x, u32 y) {
+ray2d_index(const ray2d_map* map, u32 x, u32 y) {
     return (y & RAY2D_MOD) * RAY2D_MAP_SIZE + (x & RAY2D_MOD);
 }
 
 static inline void
-ray2D_set_traversable(struct ray2D_map* map, u32 x, u32 y) {
-    bit_set(map->array, ray2D_index(map, x, y));
+ray2d_set_traversable(ray2d_map* map, u32 x, u32 y) {
+    bit_set(map->array, ray2d_index(map, x, y));
 }
 
 static inline b32
-ray2D_is_traversable(const struct ray2D_map* map, u32 x, u32 y) {
-    return bit_get(map->array, ray2D_index(map, x, y));
+ray2d_is_traversable(const ray2d_map* map, u32 x, u32 y) {
+    return bit_get(map->array, ray2d_index(map, x, y));
 }
 
 static v2
-ray2D_cast_dir(const struct ray2D_map* map, v2 pos, v2 dir, f32 max_range) {
-    if (!ray2D_is_traversable(map, pos.x, pos.y)) return pos;
+ray2d_cast_dir(const ray2d_map* map, v2 pos, v2 dir, f32 max_range) {
+    if (!ray2d_is_traversable(map, pos.x, pos.y)) return pos;
 
     //which box of the map we're in
     int map_x = (int)(pos.x);
@@ -2410,7 +2822,7 @@ ray2D_cast_dir(const struct ray2D_map* map, v2 pos, v2 dir, f32 max_range) {
             side = 1;
         }
 
-        if (!ray2D_is_traversable(map, map_x, map_y) || (v2_dist(pos, V2(map_x, map_y)) > (max_range + 1.0f))) {
+        if (!ray2d_is_traversable(map, map_x, map_y) || (v2_dist(pos, V2((f32)map_x, (f32)map_y)) > (max_range + 1.0f))) {
             hit = true;
         }
     } 
@@ -2422,11 +2834,11 @@ ray2D_cast_dir(const struct ray2D_map* map, v2 pos, v2 dir, f32 max_range) {
 }
 
 static v2
-ray2D_cast_angle(const struct ray2D_map* map, v2 from, f32 angle, f32 max_range) {
+ray2d_cast_angle(const ray2d_map* map, v2 from, f32 angle, f32 max_range) {
     m2 rot = m2_rotate(angle);
     v2 dir = m2_mulv(rot, V2(0, 1));
 
-    return ray2D_cast_dir(map, from, dir, max_range);
+    return ray2d_cast_dir(map, from, dir, max_range);
 }
 
 
@@ -2979,7 +3391,7 @@ M_ALLOCATOR_PROC(mem_heap_allocator_proc) {
 
 extern mem_allocator
 mem_heap_allocator(void) {
-    return (mem_allocator) { .proc = mem_heap_allocator_proc };
+    return Make(mem_allocator) { mem_heap_allocator_proc };
 }
 
 // ====================================== LINEAR ALLOCATOR (using chunks) ================================ //
@@ -3003,7 +3415,7 @@ mem_linear_alloc(mem_linear* arena, usize size) {
     arena->memory_used += size;
 
     if (!arena->chunk || (arena->chunk->index + size > arena->chunk_size)) {
-        mem_chunk* chunk = malloc(sizeof (mem_chunk) + Max(arena->chunk_size, size));
+        mem_chunk* chunk = (mem_chunk*)malloc(sizeof (mem_chunk) + Max(arena->chunk_size, size));
         assert(chunk);
 
         chunk->index = 0;
@@ -3021,7 +3433,7 @@ mem_linear_alloc(mem_linear* arena, usize size) {
 
 static
 M_ALLOCATOR_PROC(mem_linear_allocator_proc) {
-    mem_linear* arena = desc.data;
+    mem_linear* arena = (mem_linear*)desc.data;
 
     switch (desc.tag) {
         case mem_tag_alloc: {
@@ -3041,14 +3453,14 @@ M_ALLOCATOR_PROC(mem_linear_allocator_proc) {
 
 extern mem_allocator
 mem_linear_allocator(usize chunk_size) {
-    mem_linear* arena = calloc(1, sizeof (mem_linear));
+    mem_linear* arena = (mem_linear*)calloc(1, sizeof (mem_linear));
     assert(arena);
 
     arena->chunk_size = chunk_size;
 
-    return (mem_allocator) {
-        .proc = mem_linear_allocator_proc,
-        .data = arena,
+    return Make(mem_allocator) {
+        mem_linear_allocator_proc,
+        arena,
     };
 }
 
@@ -3376,7 +3788,7 @@ gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
     f64 result[3];
     f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
  
-    return V3(result[0], result[1], result[2]);
+    return V3((f32)result[0], (f32)result[1], (f32)result[2]);
 }
 
 // ------------------------------------- opengl impl ------------------------------------ //
@@ -4144,10 +4556,11 @@ gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocato
     char* vs_content = file_read_str(vs, allocator);
     char* fs_content = file_read_str(fs, allocator);
 
-    gl_shader program = gl_shader_create(&(gl_shader_desc) {
-        .vs = vs_content,
-        .fs = fs_content,
-    });
+    gl_shader_desc desc = ATS_INIT;
+    desc.vs = vs_content;
+    desc.fs = fs_content;
+
+    gl_shader program = gl_shader_create(&desc);
 
     mem_free(allocator, vs_content);
     mem_free(allocator, fs_content);
@@ -4303,43 +4716,45 @@ static bitmap_vertex bitmap_array[1024 * 1024];
 
 extern void
 gl_init_bitmap_font(void) {
-    bitmap_shader = gl_shader_create(&(gl_shader_desc) {
-        .vs = GLSL(
-            layout (location = 0) in vec2 in_pos;
-            layout (location = 1) in vec2 in_uv;
-            layout (location = 2) in vec4 in_color;
+    gl_shader_desc shader_desc = ATS_INIT;
 
-            out vec2 frag_uv;
-            out vec4 frag_color;
+    shader_desc.vs = GLSL(
+        layout (location = 0) in vec2 in_pos;
+        layout (location = 1) in vec2 in_uv;
+        layout (location = 2) in vec4 in_color;
 
-            uniform mat4 mvp;
+        out vec2 frag_uv;
+        out vec4 frag_color;
 
-            void main() {
-                frag_color  = in_color;
-                frag_uv     = in_uv;
-                gl_Position = mvp * vec4(in_pos, 0, 1);
-            }),
+        uniform mat4 mvp;
 
-        .fs = GLSL(
-            in vec2 frag_uv;
-            in vec4 frag_color;
+        void main() {
+            frag_color  = in_color;
+            frag_uv     = in_uv;
+            gl_Position = mvp * vec4(in_pos, 0, 1);
+        });
 
-            out vec4 out_color;
+    shader_desc.fs = GLSL(
+        in vec2 frag_uv;
+        in vec4 frag_color;
 
-            uniform sampler2D tex;
+        out vec4 out_color;
 
-            void main() {
-                out_color = frag_color * texture(tex, frag_uv / textureSize(tex, 0));
-            }),
-    });
+        uniform sampler2D tex;
 
-    bitmap_buffer = gl_buffer_create(&(gl_buffer_desc) {
-        .layout = {
-            [0] = { .size = 2, .type = GL_FLOAT, .stride = sizeof (bitmap_vertex), .offset = offsetof(bitmap_vertex, pos) },
-            [1] = { .size = 2, .type = GL_FLOAT, .stride = sizeof (bitmap_vertex), .offset = offsetof(bitmap_vertex, uv) },
-            [2] = { .size = 4, .type = GL_UNSIGNED_BYTE, .stride = sizeof (bitmap_vertex), .offset = offsetof(bitmap_vertex, color), .normalize = true },
-        },
-    });
+        void main() {
+            out_color = frag_color * texture(tex, frag_uv / textureSize(tex, 0));
+        });
+
+    bitmap_shader = gl_shader_create(&shader_desc);
+
+    gl_buffer_desc buffer_desc = ATS_INIT;
+
+    buffer_desc.layout[0] = Make(gl_layout) { 2, GL_FLOAT,          sizeof (bitmap_vertex), offsetof(bitmap_vertex, pos) };
+    buffer_desc.layout[1] = Make(gl_layout) { 2, GL_FLOAT,          sizeof (bitmap_vertex), offsetof(bitmap_vertex, uv) };
+    buffer_desc.layout[2] = Make(gl_layout) { 4, GL_UNSIGNED_BYTE,  sizeof (bitmap_vertex), offsetof(bitmap_vertex, color), true };
+
+    bitmap_buffer = gl_buffer_create(&buffer_desc);
 
     // create and set font texture!
     {
@@ -4362,15 +4777,15 @@ gl_init_bitmap_font(void) {
 
 static void
 gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
-    r2 tex_rect = { c * 8 + 0.1, 0.1, c * 8 + 7.9, 7.9 };
+    r2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
     r2 rect = { x, y, x + sx, y + sy };
 
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.max.y), .pos = V2(rect.min.x, rect.min.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.max.y), .pos = V2(rect.max.x, rect.min.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.min.y), .pos = V2(rect.max.x, rect.max.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.max.x, tex_rect.min.y), .pos = V2(rect.max.x, rect.max.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.min.y), .pos = V2(rect.min.x, rect.max.y), .color = color };
-    bitmap_array[bitmap_count++] = (bitmap_vertex) { .uv = V2(tex_rect.min.x, tex_rect.max.y), .pos = V2(rect.min.x, rect.min.y), .color = color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.min.x, rect.min.y), V2(tex_rect.min.x, tex_rect.max.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.max.x, rect.min.y), V2(tex_rect.max.x, tex_rect.max.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.max.x, rect.max.y), V2(tex_rect.max.x, tex_rect.min.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.max.x, rect.max.y), V2(tex_rect.max.x, tex_rect.min.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.min.x, rect.max.y), V2(tex_rect.min.x, tex_rect.min.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.min.x, rect.min.y), V2(tex_rect.min.x, tex_rect.max.y), color };
 }
 
 extern void
@@ -4559,7 +4974,7 @@ file_load_image(const char* path) {
 extern void
 file_free_image(image_t* img) {
     stbi_image_free(img->pixels);
-    *img = (image_t) {0};
+    *img = Make(image_t) ATS_INIT;
 }
 
 typedef struct file_iter {
@@ -4668,7 +5083,7 @@ tt_get_id(const char* name) {
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
     assert(false);
-    return (texture_id) {0};
+    return Make(texture_id) ATS_INIT;
 }
 
 extern r2i
@@ -4745,7 +5160,7 @@ tt_begin(int width, int height, mem_allocator allocator) {
     tt_allocator = allocator;
     tt_image_count = 0;
 
-    tt_table = (texture_table) {
+    tt_table = Make(texture_table) {
         width,
         height, 
         (u32*)mem_zero(tt_allocator, width * height * sizeof (u32)),
@@ -4777,9 +5192,9 @@ tt_get_fit(image_t img) {
 extern void
 tt_end(void) {
     tt_stack_top = 0;
-    tt_stack_buf[tt_stack_top++] = (r2i) {
-        .min = { 0, 0 },
-        .max = { tt_table.img.width - 1, tt_table.img.height - 1 },
+    tt_stack_buf[tt_stack_top++] = Make(r2i) {
+        { 0, 0 },
+        { tt_table.img.width - 1, tt_table.img.height - 1 },
     };
 
     qsort(tt_image_array, tt_image_count, sizeof (tt_image), tt_cmp_image);
@@ -4791,9 +5206,9 @@ tt_end(void) {
         v2i size = { data->img.width + 2, data->img.height + 2 };
         v2i offset = rect.min;
 
-        _tt_add_entry(data->name, (r2i) {
-            .min = { offset.x + 1, offset.y + 1 },
-            .max = { offset.x + size.x - 1, offset.y + size.y - 1 },
+        _tt_add_entry(data->name, Make(r2i) {
+            { offset.x + 1, offset.y + 1 },
+            { offset.x + size.x - 1, offset.y + size.y - 1 },
         });
 
         for (i32 y = 0; y < data->img.height; ++y) {
@@ -4806,13 +5221,13 @@ tt_end(void) {
 
         {
             r2i a = {
-                .min = { rect.min.x, rect.min.y + size.y },
-                .max = { rect.min.x + size.x, rect.max.y },
+                { rect.min.x, rect.min.y + size.y },
+                { rect.min.x + size.x, rect.max.y },
             };
 
             r2i b = {
-                .min = { rect.min.x + size.x, rect.min.y },
-                .max = { rect.max.x, rect.max.y },
+                { rect.min.x + size.x, rect.min.y },
+                { rect.max.x, rect.max.y },
             };
 
             if (a.min.x + size.x <= rect.max.x && a.min.y + size.y <= rect.max.y) { tt_stack_buf[tt_stack_top++] = a; }

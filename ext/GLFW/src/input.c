@@ -409,7 +409,7 @@ void _glfwInitGamepadMappings(void)
     int jid;
     size_t i;
     const size_t count = sizeof(_glfwDefaultMappings) / sizeof(char*);
-    _glfw.mappings = calloc(count, sizeof(_GLFWmapping));
+    _glfw.mappings = (_GLFWmapping*)calloc(count, sizeof(_GLFWmapping));
 
     for (i = 0;  i < count;  i++)
     {
@@ -447,9 +447,9 @@ _GLFWjoystick* _glfwAllocJoystick(const char* name,
 
     js = _glfw.joysticks + jid;
     js->allocated   = GLFW_TRUE;
-    js->axes        = calloc(axisCount, sizeof(float));
-    js->buttons     = calloc(buttonCount + (size_t) hatCount * 4, 1);
-    js->hats        = calloc(hatCount, 1);
+    js->axes        = (float*)calloc(axisCount, sizeof(float));
+    js->buttons     = (unsigned char*)calloc(buttonCount + (size_t) hatCount * 4, 1);
+    js->hats        = (unsigned char*)calloc(hatCount, 1);
     js->axisCount   = axisCount;
     js->buttonCount = buttonCount;
     js->hatCount    = hatCount;
@@ -758,7 +758,7 @@ GLFWAPI GLFWcursor* glfwCreateCursor(const GLFWimage* image, int xhot, int yhot)
         return NULL;
     }
 
-    cursor = calloc(1, sizeof(_GLFWcursor));
+    cursor = (_GLFWcursor*)calloc(1, sizeof(_GLFWcursor));
     cursor->next = _glfw.cursorListHead;
     _glfw.cursorListHead = cursor;
 
@@ -788,7 +788,7 @@ GLFWAPI GLFWcursor* glfwCreateStandardCursor(int shape)
         return NULL;
     }
 
-    cursor = calloc(1, sizeof(_GLFWcursor));
+    cursor = (_GLFWcursor*)calloc(1, sizeof(_GLFWcursor));
     cursor->next = _glfw.cursorListHead;
     _glfw.cursorListHead = cursor;
 
@@ -855,7 +855,7 @@ GLFWAPI GLFWkeyfun glfwSetKeyCallback(GLFWwindow* handle, GLFWkeyfun cbfun)
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.key, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWkeyfun, window->callbacks.key, cbfun);
     return cbfun;
 }
 
@@ -865,7 +865,7 @@ GLFWAPI GLFWcharfun glfwSetCharCallback(GLFWwindow* handle, GLFWcharfun cbfun)
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.character, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWcharfun, window->callbacks.character, cbfun);
     return cbfun;
 }
 
@@ -875,7 +875,7 @@ GLFWAPI GLFWcharmodsfun glfwSetCharModsCallback(GLFWwindow* handle, GLFWcharmods
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.charmods, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWcharmodsfun, window->callbacks.charmods, cbfun);
     return cbfun;
 }
 
@@ -886,7 +886,7 @@ GLFWAPI GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* handle,
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.mouseButton, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWmousebuttonfun, window->callbacks.mouseButton, cbfun);
     return cbfun;
 }
 
@@ -897,7 +897,7 @@ GLFWAPI GLFWcursorposfun glfwSetCursorPosCallback(GLFWwindow* handle,
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.cursorPos, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWcursorposfun, window->callbacks.cursorPos, cbfun);
     return cbfun;
 }
 
@@ -908,7 +908,7 @@ GLFWAPI GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* handle,
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.cursorEnter, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWcursorenterfun, window->callbacks.cursorEnter, cbfun);
     return cbfun;
 }
 
@@ -919,7 +919,7 @@ GLFWAPI GLFWscrollfun glfwSetScrollCallback(GLFWwindow* handle,
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.scroll, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWscrollfun, window->callbacks.scroll, cbfun);
     return cbfun;
 }
 
@@ -929,7 +929,7 @@ GLFWAPI GLFWdropfun glfwSetDropCallback(GLFWwindow* handle, GLFWdropfun cbfun)
     assert(window != NULL);
 
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(window->callbacks.drop, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWdropfun, window->callbacks.drop, cbfun);
     return cbfun;
 }
 
@@ -1131,7 +1131,7 @@ GLFWAPI void* glfwGetJoystickUserPointer(int jid)
 GLFWAPI GLFWjoystickfun glfwSetJoystickCallback(GLFWjoystickfun cbfun)
 {
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
-    _GLFW_SWAP_POINTERS(_glfw.callbacks.joystick, cbfun);
+    _GLFW_SWAP_POINTERS(GLFWjoystickfun, _glfw.callbacks.joystick, cbfun);
     return cbfun;
 }
 
@@ -1169,8 +1169,8 @@ GLFWAPI int glfwUpdateGamepadMappings(const char* string)
                     {
                         _glfw.mappingCount++;
                         _glfw.mappings =
-                            realloc(_glfw.mappings,
-                                    sizeof(_GLFWmapping) * _glfw.mappingCount);
+                            (_GLFWmapping*)realloc(_glfw.mappings,
+                                                   sizeof(_GLFWmapping) * _glfw.mappingCount);
                         _glfw.mappings[_glfw.mappingCount - 1] = mapping;
                     }
                 }
