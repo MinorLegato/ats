@@ -81,9 +81,10 @@ static const char* fragment_shader = GLSL(
 
     void main() {
         vec4 color;
+        vec2 tex_scale = 1.0 / textureSize(tex, 0);
 
         if (texture_enabled) {
-            color = frag_color * texture(tex, frag_uv / textureSize(tex, 0));
+            color = frag_color * texture(tex, frag_uv * tex_scale);
         } else {
             color = frag_color;
         }
@@ -124,7 +125,7 @@ static const char* r_post_fx_blur = GLSL(
 
     uniform sampler2D tex;
 
-    const float offset = 1.0 / 300.0;  
+    const float offset = 1.0 / 600.0;
 
     void main() {
         vec2 offsets[9] = vec2[](

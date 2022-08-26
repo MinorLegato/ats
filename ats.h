@@ -2569,7 +2569,7 @@ split_iter_create(const char* cstr, const char* delimiters, const char* separato
 // assumes that 'T' has this function:
 // r2 get_rect(T* e)
 
-#define SPATIAL_MAX (4 * 4 * 4096)
+#define SPATIAL_MAX (8 * 4096)
 
 typedef struct sm_cell {
     void* e;
@@ -2599,11 +2599,6 @@ sm_index(const spatial_map* map, v2i pos) {
 
 static void
 sm_add(spatial_map* map, void* e, r2 e_rect) {
-    v2 rad = {
-        e_rect.max.x - e_rect.min.x,
-        e_rect.max.y - e_rect.min.y,
-    };
-
     r2i rect = {
         (i32)e_rect.min.x, (i32)e_rect.min.y,
         (i32)e_rect.max.x, (i32)e_rect.max.y,
@@ -2699,26 +2694,30 @@ sm_iter_is_valid(const sm_iter* it) {
 static void
 sm_iter_advance(sm_iter* it) {
     it->index++;
-    it->current = &it->result.array[it->index];
+    it->current = it->result.array + it->index;
 }
 
 static void*
-sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore) {
+sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
     void* result = NULL;
-    
-    f32 distance = 2.0f * range;
+    f32 distance = range;
+
     for_iter(sm_iter, it, sm_get_iterator(map, pos, V2(range, range), ignore)) {
         sm_entry* e = it.current;
 
-        v2 pos = {
-            0.5f * e->rect.min.x + e->rect.max.x,
-            0.5f * e->rect.min.y + e->rect.max.y,
+        if (condition_proc && !condition_proc(e->e)) {
+            continue;
+        }
+
+        v2 e_pos = {
+            0.5f * (e->rect.min.x + e->rect.max.x),
+            0.5f * (e->rect.min.y + e->rect.max.y),
         };
 
-        f32 new_distance = v2_dist(pos, pos);
+        f32 new_distance = v2_dist(e_pos, pos);
 
-        if (new_distance < distance) {
-            result = e;
+        if (new_distance <= distance) {
+            result = e->e;
             distance = new_distance;
         }
     }
