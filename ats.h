@@ -729,16 +729,6 @@ m4_mul(m4 a, m4 b) {
         a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
 }
 
-#if 0
-static quat_t
-quat_mul(quat_t a, quat_t b) {
-    return Quat(
-        a.x * b.w - a.y * b.z + a.z * b.y + b.w * a.x,
-        a.x * b.z - a.y * b.w + a.z * b.x + b.w * a.y,
-        a.x * b.y - a.y * b.x + a.z * b.w + b.w * a.z,
-        a.x * b.x - a.y * b.y - a.z * b.z - a.w * b.w);
-}
-#else
 static quat_t
 quat_mul(quat_t a, quat_t b) {
     return Quat(
@@ -747,7 +737,6 @@ quat_mul(quat_t a, quat_t b) {
         a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
         a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
 }
-#endif
 
 #ifdef __cplusplus
 
