@@ -180,16 +180,16 @@ typedef struct {
     v3i max;
 } r3i;
 
-typedef struct {
+typedef struct quat {
     f32 x, y, z, w;
 } quat_t;
 
-typedef struct {
+typedef struct circle {
     v2 pos;
     f32 rad;
 } circle_t;
 
-typedef struct {
+typedef struct sphere {
     v3 pos;
     f32 rad;
 } sphere_t;
@@ -287,6 +287,11 @@ m4_identity(void) {
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1);
+}
+
+static quat_t
+quat_identity() {
+    return Quat(0, 0, 0, 1);
 }
 
 static f32
@@ -724,6 +729,16 @@ m4_mul(m4 a, m4 b) {
         a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
 }
 
+#if 0
+static quat_t
+quat_mul(quat_t a, quat_t b) {
+    return Quat(
+        a.x * b.w - a.y * b.z + a.z * b.y + b.w * a.x,
+        a.x * b.z - a.y * b.w + a.z * b.x + b.w * a.y,
+        a.x * b.y - a.y * b.x + a.z * b.w + b.w * a.z,
+        a.x * b.x - a.y * b.y - a.z * b.z - a.w * b.w);
+}
+#else
 static quat_t
 quat_mul(quat_t a, quat_t b) {
     return Quat(
@@ -732,6 +747,7 @@ quat_mul(quat_t a, quat_t b) {
         a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
         a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
 }
+#endif
 
 #ifdef __cplusplus
 
@@ -1434,13 +1450,13 @@ m3_from_quat(quat_t q) {
 	f32 d2 = d * d;
 
     return M3(
-        2 + b2 - c2 - d2,
-        0.0f * (b * c + a * d),
-        0.0f * (b * d - a * c),
+        a2 + b2 - c2 - d2,
+        2.0f * (b * c + a * d),
+        2.0f * (b * d - a * c),
 
-        0.0f * (b * c - a * d),
-        2 - b2 + c2 - d2,
-        0.0f * (c * d + a * b),
+        2.0f * (b * c - a * d),
+        a2 - b2 + c2 - d2,
+        2.0f * (c * d + a * b),
 
         2.0f * (b * d + a * c),
         2.0f * (c * d - a * b),
@@ -1460,14 +1476,14 @@ m4_from_quat(quat_t q) {
 	f32 d2 = d * d;
 
     return M4(
-        2 + b2 - c2 - d2,
-        0.0f * (b * c + a * d),
-        0.0f * (b * d - a * c),
+        a2 + b2 - c2 - d2,
+        2.0f * (b * c + a * d),
+        2.0f * (b * d - a * c),
         0.0f,
 
-        0.0f * (b * c - a * d),
-        2 - b2 + c2 - d2,
-        0.0f * (c * d + a * b),
+        2.0f * (b * c - a * d),
+        a2 - b2 + c2 - d2,
+        2.0f * (c * d + a * b),
         0.0f,
 
         2.0f * (b * d + a * c),
@@ -1557,7 +1573,7 @@ typedef struct {
     f32 d;
 } plane_t;
 
-typedef struct {
+typedef struct frustum {
     plane_t planes[6];
 } frustum_t;
 
@@ -2229,7 +2245,7 @@ f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64
 
 // ===================================== IMAGE STUFF ================================= //
 
-typedef struct {
+typedef struct image {
     i32 width;
     i32 height;
     u32* pixels;
@@ -2291,22 +2307,22 @@ typedef struct {
     void* pointer;
 
     void* data;
-} mem_alloc_desc;
+} mem_alloc_desc_t;
 
-#define M_ALLOCATOR_PROC(name) void* name(mem_alloc_desc desc)
-typedef M_ALLOCATOR_PROC(mem_allocator_proc);
+#define M_ALLOCATOR_PROC(name) void* name(mem_alloc_desc_t desc)
+typedef M_ALLOCATOR_PROC(mem_allocator_proc_t);
 
-typedef struct {
-    mem_allocator_proc* proc;
+typedef struct mem_allocator {
+    mem_allocator_proc_t* proc;
     void* data;
-} mem_allocator;
+} mem_allocator_t;
 
 #define mem_type(allocator, type)         (type*)mem_zero(allocator, sizeof (type))
 #define mem_array(allocator, type, size)  (type*)mem_zero(allocator, (size) * sizeof (type))
 
 static void*
-mem_alloc(mem_allocator allocator, usize size) {
-    mem_alloc_desc desc = {0};
+mem_alloc(mem_allocator_t allocator, usize size) {
+    mem_alloc_desc_t desc = ATS_INIT;
 
     desc.tag = mem_tag_alloc;
     desc.size = size;
@@ -2316,8 +2332,8 @@ mem_alloc(mem_allocator allocator, usize size) {
 }
 
 static void*
-mem_resize(mem_allocator allocator, void* pointer, usize size) {
-    mem_alloc_desc desc = {0};
+mem_resize(mem_allocator_t allocator, void* pointer, usize size) {
+    mem_alloc_desc_t desc = ATS_INIT;
     
     desc.tag = mem_tag_resize;
     desc.pointer = pointer;
@@ -2328,8 +2344,8 @@ mem_resize(mem_allocator allocator, void* pointer, usize size) {
 }
 
 static void
-mem_free(mem_allocator allocator, void* pointer) {
-    mem_alloc_desc desc = {0};
+mem_free(mem_allocator_t allocator, void* pointer) {
+    mem_alloc_desc_t desc = ATS_INIT;
 
     desc.tag = mem_tag_free;
     desc.pointer = pointer;
@@ -2339,7 +2355,7 @@ mem_free(mem_allocator allocator, void* pointer) {
 }
 
 static void*
-mem_zero(mem_allocator allocator, usize size) {
+mem_zero(mem_allocator_t allocator, usize size) {
     void* memory = mem_alloc(allocator, size);
     memset(memory, 0, size);
     return memory;
@@ -2347,7 +2363,7 @@ mem_zero(mem_allocator allocator, usize size) {
 
 // ---------------------- arena allocator ------------------------ //
 
-typedef struct {
+typedef struct mem_arena {
     usize index;
     usize cap;
     u8* buffer;
@@ -2357,21 +2373,21 @@ typedef struct {
 
     usize lock;
     usize max;
-} mem_arena;
+} mem_arena_t;
 
 #define mem_arena_type(ma, t)           (t*)mem_arena_zero(ma, sizeof (t))
 #define mem_arena_array(ma, t, count)   (t*)mem_arena_zero(ma, (count) * sizeof (t))
 
-static mem_arena
+static mem_arena_t
 mem_arena_create(u8* buffer, usize size) {
-    mem_arena ma = {0};
+    mem_arena_t ma = {0};
     ma.cap = size;
     ma.buffer = buffer;
     return ma;
 }
 
 static void*
-mem_arena_alloc(mem_arena* ma, usize byte_size) {
+mem_arena_alloc(mem_arena_t* ma, usize byte_size) {
     byte_size = AlignUp(byte_size, 16);
     assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
 
@@ -2383,44 +2399,44 @@ mem_arena_alloc(mem_arena* ma, usize byte_size) {
 }
 
 static void*
-mem_arena_zero(mem_arena* ma, usize byte_size) {
+mem_arena_zero(mem_arena_t* ma, usize byte_size) {
     void* ptr = mem_arena_alloc(ma, byte_size);;
     memset(ptr, 0, byte_size);
     return ptr;
 }
 
 static void*
-mem_arena_begin(mem_arena* ma) {
+mem_arena_begin(mem_arena_t* ma) {
     ma->lock = true;
     return ma->buffer + ma->index;
 }
 
 static void
-mem_arena_end(mem_arena* ma, usize byte_size) {
+mem_arena_end(mem_arena_t* ma, usize byte_size) {
     ma->index += AlignUp(byte_size, 16);
     ma->lock = false;
 }
 
 static void
-mem_arena_save(mem_arena* ma) {
+mem_arena_save(mem_arena_t* ma) {
     assert(ma->top < ma->cap);
     ma->stack[ma->top++] = ma->index;
 }
 
 static void
-mem_arena_restore(mem_arena* ma) {
+mem_arena_restore(mem_arena_t* ma) {
     assert(ma->top > 0);
     ma->index = ma->stack[--ma->top];
 }
 
 static void
-mem_arena_validate(mem_arena* ma) {
+mem_arena_validate(mem_arena_t* ma) {
     assert(ma->top == 0);
 }
 
 static
 M_ALLOCATOR_PROC(mem_arena_allocator_proc) {
-    mem_arena* arena = (mem_arena*)desc.data;
+    mem_arena_t* arena = (mem_arena_t*)desc.data;
     switch (desc.tag) {
         case mem_tag_alloc: {
             return mem_arena_alloc(arena, desc.size);
@@ -2429,9 +2445,9 @@ M_ALLOCATOR_PROC(mem_arena_allocator_proc) {
     return NULL;
 }
 
-static mem_allocator
-mem_arena_allocator(mem_arena* arena) {
-    mem_allocator allocator = {0};
+static mem_allocator_t
+mem_arena_allocator(mem_arena_t* arena) {
+    mem_allocator_t allocator = {0};
 
     allocator.proc = mem_arena_allocator_proc;
     allocator.data = arena;
@@ -2600,8 +2616,8 @@ sm_index(const spatial_map* map, v2i pos) {
 static void
 sm_add(spatial_map* map, void* e, r2 e_rect) {
     r2i rect = {
-        (i32)e_rect.min.x, (i32)e_rect.min.y,
-        (i32)e_rect.max.x, (i32)e_rect.max.y,
+        (i32)e_rect.min.x - 1, (i32)e_rect.min.y - 1,
+        (i32)e_rect.max.x + 1, (i32)e_rect.max.y + 1,
     };
 
     for_r2(rect, x, y) {
@@ -2639,8 +2655,8 @@ sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
     };
 
     r2i irect = {
-        (i32)(pos.x - rad.x), (i32)(pos.y - rad.y),
-        (i32)(pos.x + rad.x), (i32)(pos.y + rad.y),
+        (i32)(pos.x - rad.x - 1), (i32)(pos.y - rad.y - 1),
+        (i32)(pos.x + rad.x + 1), (i32)(pos.y + rad.y + 1),
     };
 
     for_r2(irect, x, y) {
@@ -2743,32 +2759,32 @@ sm_at_position(spatial_map* map, v2 pos) {
 #define RAY2D_MOD           (511)
 #define RAY2D_ARRAY_SIZE    (8192) // (512 * 512) / 32
 
-typedef struct {
+typedef struct ray2d_map {
     u32 array[RAY2D_ARRAY_SIZE];
-} ray2d_map;
+} ray2d_map_t;
 
 static void
-ray2d_init(ray2d_map* map) {
-    memset(map, 0, sizeof (ray2d_map));
+ray2d_init(ray2d_map_t* map) {
+    memset(map, 0, sizeof (ray2d_map_t));
 }
 
 static inline u32
-ray2d_index(const ray2d_map* map, u32 x, u32 y) {
+ray2d_index(const ray2d_map_t* map, u32 x, u32 y) {
     return (y & RAY2D_MOD) * RAY2D_MAP_SIZE + (x & RAY2D_MOD);
 }
 
 static inline void
-ray2d_set_traversable(ray2d_map* map, u32 x, u32 y) {
+ray2d_set_traversable(ray2d_map_t* map, u32 x, u32 y) {
     bit_set(map->array, ray2d_index(map, x, y));
 }
 
 static inline b32
-ray2d_is_traversable(const ray2d_map* map, u32 x, u32 y) {
+ray2d_is_traversable(const ray2d_map_t* map, u32 x, u32 y) {
     return bit_get(map->array, ray2d_index(map, x, y));
 }
 
 static v2
-ray2d_cast_dir(const ray2d_map* map, v2 pos, v2 dir, f32 max_range) {
+ray2d_cast_dir(const ray2d_map_t* map, v2 pos, v2 dir, f32 max_range) {
     if (!ray2d_is_traversable(map, pos.x, pos.y)) return pos;
 
     //which box of the map we're in
@@ -2833,7 +2849,7 @@ ray2d_cast_dir(const ray2d_map* map, v2 pos, v2 dir, f32 max_range) {
 }
 
 static v2
-ray2d_cast_angle(const ray2d_map* map, v2 from, f32 angle, f32 max_range) {
+ray2d_cast_angle(const ray2d_map_t* map, v2 from, f32 angle, f32 max_range) {
     m2 rot = m2_rotate(angle);
     v2 dir = m2_mulv(rot, V2(0, 1));
 
@@ -2845,7 +2861,7 @@ ray2d_cast_angle(const ray2d_map* map, v2 from, f32 angle, f32 max_range) {
 
 // -------------------------------- ats_file.c ----------------------------------- //
 
-extern char* file_read_str(const char* file_name, mem_allocator allocator);
+extern char* file_read_str(const char* file_name, mem_allocator_t allocator);
 extern b32 file_write_str(const char* file_name, const char* buffer);
 extern b32 file_append_str(const char* file_name, const char* buffer);
 
@@ -2857,68 +2873,71 @@ extern void file_free_image(image_t* img);
 
 // ------------------------------- ats_memory.c --------------------------------- //
 
-extern mem_allocator mem_heap_allocator(void);
-extern mem_allocator mem_linear_allocator(usize size);
+extern mem_allocator_t mem_heap_allocator(void);
+extern mem_allocator_t mem_linear_allocator(usize size);
 
 // --------------------------- ats_texture_table.c ------------------------------ //
 
 #define TEXTURE_TABLE_SIZE (1024)
 
-typedef struct texture_id {
+typedef struct tt_id {
     u16 index;
-} texture_id;
+} tt_id_t;
 
-typedef struct texture_entry {
+typedef struct tt_entry {
     b32 in_use;
     u32 hash;
     r2i rect;
     char name[64];
-} texture_entry;
+} tt_entry_t;
 
 typedef struct texture_table {
     image_t img;
-    texture_entry array[TEXTURE_TABLE_SIZE];
-} texture_table;
+    tt_entry_t array[TEXTURE_TABLE_SIZE];
+} texture_table_t;
 
-extern void tt_begin(int width, int height, mem_allocator allocator);
+extern void tt_begin(int width, int height, mem_allocator_t allocator);
 extern void tt_end(void);
 extern void tt_add_image(const char* name, image_t img);
 extern void tt_load_from_dir(const char* dir_path);
 
-extern texture_table* tt_get_texture_table(void);
+extern texture_table_t* tt_get_texture_table(void);
 
-extern texture_id tt_get_id(const char* name);
-extern r2i tt_get_rect(texture_id id);
+extern tt_id_t tt_get_id(const char* name);
+extern r2i tt_get_rect(tt_id_t id);
 extern r2i tt_get(const char* name);
 
 extern image_t tt_get_image(void);
 
 // -------------------------- ats_animation.c ----------------------------- //
 
-typedef struct at_frame at_frame;
-typedef struct at_animation at_animation;
-typedef struct at_entity at_entity;
+typedef struct at_frame at_frame_t;
+typedef struct at_animation at_animation_t;
+typedef struct at_entity at_entity_t;
 
 struct at_frame {
     const char* name;
     r2i rect;
-    at_frame* next;
-    at_animation* animation;
+
+    struct at_frame* next;
+    struct at_animation* animation;
 };
 
 struct at_animation {
     const char* name;
-    at_frame* frame;
-    at_animation* next;
+
+    struct at_frame* frame;
+    struct at_animation* next;
 };
 
 struct at_entity {
     const char* name;
-    at_animation* animation;
-    at_entity* next;
+
+    struct at_animation* animation;
+    struct at_entity* next;
 };
 
-extern void at_begin(mem_allocator allocator);
+extern void at_begin(mem_allocator_t allocator);
 extern void at_end(void);
 
 extern void at_add_entity(const char* name);
@@ -2926,29 +2945,29 @@ extern void at_add_animation(const char* name);
 extern void at_add_frame(const char* name);
 
 typedef struct at_asset {
-    at_entity* entity;
-    at_frame* frame;
+    at_entity_t* entity;
+    at_frame_t* frame;
     f32 duration;
-} at_asset;
+} at_asset_t;
 
-extern at_asset at_get(const char* name);
-extern void at_set(at_asset* asset, const char* name);
-extern void at_update(at_asset* asset, f32 dt);
+extern at_asset_t at_get(const char* name);
+extern void at_set(at_asset_t* asset, const char* name);
+extern void at_update(at_asset_t* asset, f32 dt);
 
 // -------------------------- ats_audio_table.c ----------------------------- //
 
 typedef struct audio_id {
     u16 index;
-} audio_id;
+} audio_id_t;
 
 extern void audio_init(void* handle);
-extern audio_id audio_get(const char* name);
+extern audio_id_t audio_get(const char* name);
 extern void audio_pause(b32 pause);
 extern void audio_kill_all(void);
-extern void audio_play(audio_id id, f32 volume);
-extern void* audio_play_looped(audio_id id, f32 volume);
-extern void audio_play_music(audio_id id, f32 volume);
-extern void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance);
+extern void audio_play(audio_id_t id, f32 volume);
+extern void* audio_play_looped(audio_id_t id, f32 volume);
+extern void audio_play_music(audio_id_t id, f32 volume);
+extern void audio_play_from_source(audio_id_t id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance);
 
 // ------------------------------- platform ---------------------------------- //
 
@@ -2964,8 +2983,8 @@ extern void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 v
 
 // ------------------- platform layer ------------------------ //
 
-struct platform;
-extern struct platform platform;
+struct platform_t;
+extern struct platform_t platform;
 
 extern void platform_init(const char* title, int width, int height, int samples);
 extern void platform_update(void);
@@ -3004,30 +3023,30 @@ typedef struct gl_texture {
     u32 id;
     i32 width;
     i32 height;
-} gl_texture;
+} gl_texture_t;
 
-extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern gl_texture gl_texture_create_from_image(image_t image, int is_smooth);
-extern gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern gl_texture_t gl_texture_create_from_image(image_t image, int is_smooth);
+extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
 
-extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth);
-extern void gl_texture_bind(const gl_texture* texture);
-extern void gl_texture_destroy(gl_texture* texture);
+extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
+extern void gl_texture_bind(const gl_texture_t* texture);
+extern void gl_texture_destroy(gl_texture_t* texture);
 
 typedef struct gl_shader {
     u32 id;
-} gl_shader;
+} gl_shader_t;
 
 typedef struct gl_shader_desc {
     const char* vs;
     const char* fs;
-} gl_shader_desc;
+} gl_shader_desc_t;
 
-extern gl_shader gl_shader_create(const  gl_shader_desc* desc);
-extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocator);
+extern gl_shader_t gl_shader_create(const  gl_shader_desc_t* desc);
+extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator_t allocator);
 
-extern void gl_use(const gl_shader* shader);
-extern u32  gl_location(const gl_shader* shader, const char* name);
+extern void gl_use(const gl_shader_t* shader);
+extern u32  gl_location(const gl_shader_t* shader, const char* name);
 
 extern void gl_uniform_i32(u32 location, int u);
 extern void gl_uniform_f32(u32 location, f32 u);
@@ -3043,7 +3062,7 @@ extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
 typedef struct gl_buffer {
     u32 vao;
     u32 vbo;
-} gl_buffer;
+} gl_buffer_t;
 
 typedef struct gl_layout {
     u32 size;
@@ -3051,15 +3070,15 @@ typedef struct gl_layout {
     u32 stride;
     u32 offset;
     b32 normalize;
-} gl_layout;
+} gl_layout_t;
 
 typedef struct gl_buffer_desc {
-    gl_layout layout[32];
-} gl_buffer_desc;
+    gl_layout_t layout[32];
+} gl_buffer_desc_t;
 
-extern gl_buffer gl_buffer_create(const gl_buffer_desc* desc);
-extern void gl_buffer_bind(const gl_buffer* buffer);
-extern void gl_buffer_send(const gl_buffer* array, const void* data, u32 size);
+extern gl_buffer_t gl_buffer_create(const gl_buffer_desc_t* desc);
+extern void gl_buffer_bind(const gl_buffer_t* buffer);
+extern void gl_buffer_send(const gl_buffer_t* array, const void* data, u32 size);
 
 // ===================================================== KEYS =================================================== //
 
@@ -3274,7 +3293,7 @@ typedef union gamepad_buttons {
     } button;
 
     u32 data;
-} gamepad_buttons;
+} gamepad_buttons_t;
 
 typedef struct gamepad {
     b32 active;
@@ -3285,19 +3304,19 @@ typedef struct gamepad {
     f32 left_trigger;
     f32 right_trigger;
 
-    gamepad_buttons down;
-    gamepad_buttons pressed;
-    gamepad_buttons released;
-} gamepad;
+    gamepad_buttons_t down;
+    gamepad_buttons_t pressed;
+    gamepad_buttons_t released;
+} gamepad_t;
 
-typedef u32 mouse_mode;
+typedef u32 mouse_mode_t;
 enum {
     mouse_mode_normal,
     mouse_mode_hidden,
     mouse_mode_disabled
 };
 
-struct platform {
+struct platform_t {
     b32 close;
 
     i32 width;
@@ -3346,10 +3365,10 @@ struct platform {
         b8 released[KEY_LAST + 1];
     } keyboard;
 
-    gamepad gamepad[JOYSTICK_LAST];
+    gamepad_t gamepad[JOYSTICK_LAST];
 };
 
-extern struct platform platform;
+extern struct platform_t platform;
 
 #endif // __ATS_H__
 
@@ -3388,33 +3407,33 @@ M_ALLOCATOR_PROC(mem_heap_allocator_proc) {
     return NULL;
 }
 
-extern mem_allocator
+extern mem_allocator_t
 mem_heap_allocator(void) {
-    return Make(mem_allocator) { mem_heap_allocator_proc };
+    return Make(mem_allocator_t) { mem_heap_allocator_proc };
 }
 
 // ====================================== LINEAR ALLOCATOR (using chunks) ================================ //
 
-typedef struct mem_chunk {
-    struct mem_chunk* prev;
+typedef struct mem_chunk_t {
+    struct mem_chunk_t* prev;
     usize index;
     u8 data[];
-} mem_chunk;
+} mem_chunk_t;
 
-typedef struct mem_linear {
+typedef struct mem_linear_t {
     usize chunk_size;
     usize chunk_count;
     usize memory_used;
 
-    mem_chunk* chunk;
-} mem_linear;
+    mem_chunk_t* chunk;
+} mem_linear_t;
 
 static void*
-mem_linear_alloc(mem_linear* arena, usize size) {
+mem_linear_alloc(mem_linear_t* arena, usize size) {
     arena->memory_used += size;
 
     if (!arena->chunk || (arena->chunk->index + size > arena->chunk_size)) {
-        mem_chunk* chunk = (mem_chunk*)malloc(sizeof (mem_chunk) + Max(arena->chunk_size, size));
+        mem_chunk_t* chunk = (mem_chunk_t*)malloc(sizeof (mem_chunk_t) + Max(arena->chunk_size, size));
         assert(chunk);
 
         chunk->index = 0;
@@ -3432,7 +3451,7 @@ mem_linear_alloc(mem_linear* arena, usize size) {
 
 static
 M_ALLOCATOR_PROC(mem_linear_allocator_proc) {
-    mem_linear* arena = (mem_linear*)desc.data;
+    mem_linear_t* arena = (mem_linear_t*)desc.data;
 
     switch (desc.tag) {
         case mem_tag_alloc: {
@@ -3450,14 +3469,14 @@ M_ALLOCATOR_PROC(mem_linear_allocator_proc) {
     return NULL;
 }
 
-extern mem_allocator
+extern mem_allocator_t
 mem_linear_allocator(usize chunk_size) {
-    mem_linear* arena = (mem_linear*)calloc(1, sizeof (mem_linear));
+    mem_linear_t* arena = (mem_linear_t*)calloc(1, sizeof (mem_linear_t));
     assert(arena);
 
     arena->chunk_size = chunk_size;
 
-    return Make(mem_allocator) {
+    return Make(mem_allocator_t) {
         mem_linear_allocator_proc,
         arena,
     };
@@ -3471,7 +3490,7 @@ mem_linear_allocator(usize chunk_size) {
 #include "ext/glad/glad.c"
 #endif
 
-struct platform platform;
+struct platform_t platform;
 
 static struct {
     GLFWwindow* window;
@@ -3669,7 +3688,7 @@ platform_update(void) {
 
         for (int i = 0; i < JOYSTICK_LAST; ++i) {
             if (platform.gamepad[i].active) {
-                gamepad_buttons old = platform.gamepad[i].down;
+                gamepad_buttons_t old = platform.gamepad[i].down;
 
                 platform.gamepad[i].down.data       = 0;
                 platform.gamepad[i].pressed.data    = 0;
@@ -3747,21 +3766,21 @@ timer_get_current(void) {
     return glfwGetTime();
 }
 
-extern gl_texture
+extern gl_texture_t
 gl_texture_create_from_image(image_t image, int is_smooth) {
     return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
 }
 
-extern gl_texture
+extern gl_texture_t
 gl_texture_load_from_file(const char* texture_path, int is_smooth) {
     image_t img = file_load_image(texture_path);
-    gl_texture texture = gl_texture_create_from_image(img, is_smooth);
+    gl_texture_t texture = gl_texture_create_from_image(img, is_smooth);
     file_free_image(&img);
     return texture;
 }
 
 extern void
-gl_texture_destroy(gl_texture* texture) {
+gl_texture_destroy(gl_texture_t* texture) {
     glDeleteTextures(1, &texture->id);
     memset(texture, 0, sizeof *texture);
 }
@@ -4160,11 +4179,11 @@ gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern gl_texture
+extern gl_texture_t
 gl_texture_create(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
-    gl_texture texture = {0};
+    gl_texture_t texture = {0};
 
     texture.width = width;
     texture.height = height;
@@ -4181,7 +4200,7 @@ gl_texture_create(void *pixels, int width, int height, int is_smooth) {
 }
 
 extern void
-gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
+gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width  = width;
     texture->height = height;
 
@@ -4193,7 +4212,7 @@ gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int 
 }
 
 extern void
-gl_texture_bind(const gl_texture* texture) {
+gl_texture_bind(const gl_texture_t* texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 
     glMatrixMode(GL_TEXTURE);
@@ -4418,7 +4437,7 @@ gl_rect(r2 rect, f32 z, u32 color) {
 
 // ======================================= FONT ====================================== //
 
-static gl_texture bitmap_texture;
+static gl_texture_t bitmap_texture;
 
 extern void
 gl_init_bitmap_font(void) {
@@ -4534,8 +4553,8 @@ gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
     return shader;
 }
 
-extern gl_shader
-gl_shader_create(const gl_shader_desc* desc) {
+extern gl_shader_t
+gl_shader_create(const gl_shader_desc_t* desc) {
     u32 vertex = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
     u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
     u32 program = gl_shader_link_program(vertex, fragment);
@@ -4545,21 +4564,22 @@ gl_shader_create(const gl_shader_desc* desc) {
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 
-    gl_shader shader = {0};
+    gl_shader_t shader = ATS_INIT;
     shader.id = program;
     return shader;
 }
 
-extern gl_shader
-gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocator) {
+extern gl_shader_t
+gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator_t allocator) {
     char* vs_content = file_read_str(vs, allocator);
     char* fs_content = file_read_str(fs, allocator);
 
-    gl_shader_desc desc = ATS_INIT;
+    gl_shader_desc_t desc = ATS_INIT;
+
     desc.vs = vs_content;
     desc.fs = fs_content;
 
-    gl_shader program = gl_shader_create(&desc);
+    gl_shader_t program = gl_shader_create(&desc);
 
     mem_free(allocator, vs_content);
     mem_free(allocator, fs_content);
@@ -4568,12 +4588,12 @@ gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator allocato
 }
 
 extern void
-gl_use(const gl_shader* shader) {
+gl_use(const gl_shader_t* shader) {
     glUseProgram(shader->id);
 }
 
 extern u32
-gl_location(const gl_shader* shader, const char* name) {
+gl_location(const gl_shader_t* shader, const char* name) {
     return glGetUniformLocation(shader->id, name);
 }
 
@@ -4617,8 +4637,8 @@ gl_uniform_m4(u32 location, m4 m) {
     glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-extern gl_buffer
-gl_buffer_create(const gl_buffer_desc* desc) {
+extern gl_buffer_t
+gl_buffer_create(const gl_buffer_desc_t* desc) {
     u32 vao = 0;
     u32 vbo = 0;
     
@@ -4629,7 +4649,7 @@ gl_buffer_create(const gl_buffer_desc* desc) {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     for (u32 i = 0; i < ArrayCount(desc->layout); ++i) {
-        const gl_layout* layout = &desc->layout[i];
+        const gl_layout_t* layout = &desc->layout[i];
 
         if (layout->size) {
             glEnableVertexAttribArray(i);
@@ -4637,7 +4657,7 @@ gl_buffer_create(const gl_buffer_desc* desc) {
         }
     }
 
-    gl_buffer result = {0};
+    gl_buffer_t result = {0};
 
     result.vao = vao;
     result.vbo = vbo;
@@ -4646,22 +4666,22 @@ gl_buffer_create(const gl_buffer_desc* desc) {
 }
 
 extern void
-gl_buffer_bind(const gl_buffer* buffer) {
+gl_buffer_bind(const gl_buffer_t* buffer) {
     glBindVertexArray(buffer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
 }
 
 extern void
-gl_buffer_send(const gl_buffer* buffer, const void* data, u32 size) {
+gl_buffer_send(const gl_buffer_t* buffer, const void* data, u32 size) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
     glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-extern gl_texture
+extern gl_texture_t
 gl_texture_create(void *pixels, int width, int height, int is_smooth) {
     assert(pixels);
 
-    gl_texture texture = {0};
+    gl_texture_t texture = {0};
 
     texture.width = width;
     texture.height = height;
@@ -4680,7 +4700,7 @@ gl_texture_create(void *pixels, int width, int height, int is_smooth) {
 }
 
 extern void
-gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
+gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
     texture->width  = width;
     texture->height = height;
 
@@ -4694,7 +4714,7 @@ gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int 
 }
 
 extern void
-gl_texture_bind(const gl_texture* texture) {
+gl_texture_bind(const gl_texture_t* texture) {
     glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
@@ -4704,18 +4724,18 @@ typedef struct bitmap_vertex {
     v2 pos;
     v2 uv;
     u32 color;
-} bitmap_vertex;
+} bitmap_vertex_t;
 
-static gl_texture   bitmap_texture;
-static gl_shader    bitmap_shader;
-static gl_buffer    bitmap_buffer;
+static gl_texture_t     bitmap_texture;
+static gl_shader_t      bitmap_shader;
+static gl_buffer_t      bitmap_buffer;
 
-static usize         bitmap_count;
-static bitmap_vertex bitmap_array[1024 * 1024];
+static usize            bitmap_count;
+static bitmap_vertex_t  bitmap_array[1024 * 1024];
 
 extern void
 gl_init_bitmap_font(void) {
-    gl_shader_desc shader_desc = ATS_INIT;
+    gl_shader_desc_t shader_desc = ATS_INIT;
 
     shader_desc.vs = GLSL(
         layout (location = 0) in vec2 in_pos;
@@ -4747,11 +4767,11 @@ gl_init_bitmap_font(void) {
 
     bitmap_shader = gl_shader_create(&shader_desc);
 
-    gl_buffer_desc buffer_desc = ATS_INIT;
+    gl_buffer_desc_t buffer_desc = ATS_INIT;
 
-    buffer_desc.layout[0] = Make(gl_layout) { 2, GL_FLOAT,          sizeof (bitmap_vertex), offsetof(bitmap_vertex, pos) };
-    buffer_desc.layout[1] = Make(gl_layout) { 2, GL_FLOAT,          sizeof (bitmap_vertex), offsetof(bitmap_vertex, uv) };
-    buffer_desc.layout[2] = Make(gl_layout) { 4, GL_UNSIGNED_BYTE,  sizeof (bitmap_vertex), offsetof(bitmap_vertex, color), true };
+    buffer_desc.layout[0] = Make(gl_layout_t) { 2, GL_FLOAT,          sizeof (bitmap_vertex_t), offsetof(bitmap_vertex_t, pos) };
+    buffer_desc.layout[1] = Make(gl_layout_t) { 2, GL_FLOAT,          sizeof (bitmap_vertex_t), offsetof(bitmap_vertex_t, uv) };
+    buffer_desc.layout[2] = Make(gl_layout_t) { 4, GL_UNSIGNED_BYTE,  sizeof (bitmap_vertex_t), offsetof(bitmap_vertex_t, color), true };
 
     bitmap_buffer = gl_buffer_create(&buffer_desc);
 
@@ -4779,12 +4799,12 @@ gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
     r2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
     r2 rect = { x, y, x + sx, y + sy };
 
-    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.min.x, rect.min.y), V2(tex_rect.min.x, tex_rect.max.y), color };
-    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.max.x, rect.min.y), V2(tex_rect.max.x, tex_rect.max.y), color };
-    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.max.x, rect.max.y), V2(tex_rect.max.x, tex_rect.min.y), color };
-    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.max.x, rect.max.y), V2(tex_rect.max.x, tex_rect.min.y), color };
-    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.min.x, rect.max.y), V2(tex_rect.min.x, tex_rect.min.y), color };
-    bitmap_array[bitmap_count++] = Make(bitmap_vertex) { V2(rect.min.x, rect.min.y), V2(tex_rect.min.x, tex_rect.max.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { V2(rect.min.x, rect.min.y), V2(tex_rect.min.x, tex_rect.max.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { V2(rect.max.x, rect.min.y), V2(tex_rect.max.x, tex_rect.max.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { V2(rect.max.x, rect.max.y), V2(tex_rect.max.x, tex_rect.min.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { V2(rect.max.x, rect.max.y), V2(tex_rect.max.x, tex_rect.min.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { V2(rect.min.x, rect.max.y), V2(tex_rect.min.x, tex_rect.min.y), color };
+    bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { V2(rect.min.x, rect.min.y), V2(tex_rect.min.x, tex_rect.max.y), color };
 }
 
 extern void
@@ -4799,7 +4819,7 @@ gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
     }
 
     gl_buffer_bind(&bitmap_buffer);
-    gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (bitmap_vertex));
+    gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (bitmap_vertex_t));
     glDrawArrays(GL_TRIANGLES, 0, bitmap_count);
     bitmap_count = 0;
     glUseProgram(0);
@@ -4827,19 +4847,19 @@ typedef struct timer_entry {
     f64 stop;
 
     usize depth;
-} timer_entry;
+} timer_entry_t;
 
 static usize timer_top;
-static timer_entry timer_stack[512];
+static timer_entry_t timer_stack[512];
 
 static usize timer_count;
-static timer_entry timer_array[512];
+static timer_entry_t timer_array[512];
 
 #define timer_scope(name) defer(timer_start(name), timer_stop())
 
 static void
 timer_start(const char* name) {
-    timer_entry* entry = timer_stack + (timer_top++);
+    timer_entry_t* entry = timer_stack + timer_top++;
 
     entry->name = name;
     entry->start = timer_get_current();
@@ -4849,7 +4869,7 @@ timer_start(const char* name) {
 
 static void
 timer_stop(void) {
-    timer_entry* entry = timer_stack + (--timer_top);
+    timer_entry_t* entry = timer_stack + (--timer_top);
 
     entry->stop = timer_get_current();
     timer_array[timer_count++] = *entry;
@@ -4865,7 +4885,7 @@ static void
 timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
     i32 y = 0;
     for_range(i, 0, timer_count) {
-        timer_entry e = timer_array[i];
+        timer_entry_t e = timer_array[i];
         gl_string_format(px + 4 * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
         y++;
     }
@@ -4896,7 +4916,7 @@ file_open(const char* path, const char* mode) {
 }
 
 extern char*
-file_read_str(const char* file_name, mem_allocator allocator) {
+file_read_str(const char* file_name, mem_allocator_t allocator) {
     FILE* fp = NULL;
     char* buffer = NULL;
     if (fp = file_open(file_name, "rb")) {
@@ -5030,28 +5050,28 @@ file_iter_create(const char* path, const char* ext) {
 
 // ------------------------------------ texture table ------------------------------------- //
 
-typedef struct tt_image {
+typedef struct tt_image_t {
     b32 user_provided;
 
     image_t img;
     char name[256];
-} tt_image;
+} tt_image_t;
 
-static mem_allocator tt_allocator;
+static mem_allocator_t tt_allocator;
 
-static texture_table tt_table;
+static texture_table_t tt_table;
 
-static usize    tt_image_count;
-static tt_image tt_image_array[1024];
+static usize      tt_image_count;
+static tt_image_t tt_image_array[1024];
 
-extern texture_table*
+extern texture_table_t*
 tt_get_texture_table(void) {
     return &tt_table;
 }
 
 extern void
 tt_add_image(const char* name, image_t img) {
-    tt_image data = {0};
+    tt_image_t data = ATS_INIT;
 
     data.user_provided = true;
     data.img = img;
@@ -5066,23 +5086,23 @@ tt_get_image(void) {
 }
 
 extern r2i
-tt_get_rect(texture_id id) {
+tt_get_rect(tt_id_t id) {
     return tt_table.array[id.index].rect;
 }
 
-extern texture_id
+extern tt_id_t
 tt_get_id(const char* name) {
     u32 hash = hash_str(name);
     u16 index = hash % TEXTURE_TABLE_SIZE;
     while (tt_table.array[index].in_use) {
         if ((tt_table.array[index].hash == hash) && (strcmp(tt_table.array[index].name, name) == 0)) {
-            texture_id id = { index };
+            tt_id_t id = { index };
             return id;
         }
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
     assert(false);
-    return Make(texture_id) ATS_INIT;
+    return Make(tt_id_t) ATS_INIT;
 }
 
 extern r2i
@@ -5102,7 +5122,7 @@ _tt_add_entry(const char* name, r2i rect) {
         index = (index + 1) % TEXTURE_TABLE_SIZE;
     }
 
-    texture_entry* entry = &tt_table.array[index];
+    tt_entry_t* entry = &tt_table.array[index];
 
     entry->in_use = true;
     entry->rect = rect;
@@ -5128,8 +5148,8 @@ cstr_concat(char* out, const char* a, const char* b) {
 
 static int
 tt_cmp_image(const void* va, const void* vb) {
-    tt_image* a = (tt_image*)va;
-    tt_image* b = (tt_image*)vb;
+    tt_image_t* a = (tt_image_t*)va;
+    tt_image_t* b = (tt_image_t*)vb;
 
     int dw = b->img.width  - a->img.width;
     int dh = a->img.height - a->img.height;
@@ -5147,7 +5167,8 @@ rect_contains_image(r2i rect, image_t image) {
 extern void
 tt_load_from_dir(const char* dir_path) {
     for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
-        tt_image data = {0};
+        tt_image_t data = ATS_INIT;
+
         data.img = file_load_image(it.current);
         cstr_copy_without_extension(data.name, it.data.cFileName);
         tt_image_array[tt_image_count++] = data;
@@ -5155,11 +5176,11 @@ tt_load_from_dir(const char* dir_path) {
 }
 
 extern void
-tt_begin(int width, int height, mem_allocator allocator) {
+tt_begin(int width, int height, mem_allocator_t allocator) {
     tt_allocator = allocator;
     tt_image_count = 0;
 
-    tt_table = Make(texture_table) {
+    tt_table = Make(texture_table_t) {
         width,
         height, 
         (u32*)mem_zero(tt_allocator, width * height * sizeof (u32)),
@@ -5196,10 +5217,10 @@ tt_end(void) {
         { tt_table.img.width - 1, tt_table.img.height - 1 },
     };
 
-    qsort(tt_image_array, tt_image_count, sizeof (tt_image), tt_cmp_image);
+    qsort(tt_image_array, tt_image_count, sizeof (tt_image_t), tt_cmp_image);
 
     for (usize i = 0; i < tt_image_count; ++i) {
-        tt_image* data = &tt_image_array[i];
+        tt_image_t* data = &tt_image_array[i];
 
         r2i rect = tt_get_fit(data->img);
         v2i size = { data->img.width + 2, data->img.height + 2 };
@@ -5244,20 +5265,20 @@ tt_end(void) {
 
 // -------------------------------------- animation table --------------------------------------- //
 
-static at_frame* at_current_frame = NULL;
-static at_animation* at_current_animation = NULL;
-static at_entity* at_current_entity = NULL;
+static at_frame_t* at_current_frame = NULL;
+static at_animation_t* at_current_animation = NULL;
+static at_entity_t* at_current_entity = NULL;
 
-static at_entity* at_entity_list = NULL;
+static at_entity_t* at_entity_list = NULL;
 
-static mem_allocator at_allocator;
+static mem_allocator_t at_allocator;
 
 extern void
 at_add_entity(const char* name) {
     assert(name);
     at_current_animation = NULL;
     at_current_frame = NULL;
-    at_entity* entity = mem_type(at_allocator, at_entity);
+    at_entity_t* entity = mem_type(at_allocator, at_entity_t);
     entity->name = name;
     if (!at_entity_list) {
         at_entity_list = entity;
@@ -5271,7 +5292,7 @@ extern void
 at_add_animation(const char* name) {
     assert(name);
     at_current_frame = NULL;
-    at_animation* animation = mem_type(at_allocator, at_animation);
+    at_animation_t* animation = mem_type(at_allocator, at_animation_t);
     animation->name = name;
 
     if (!at_current_entity->animation) {
@@ -5285,7 +5306,7 @@ at_add_animation(const char* name) {
 extern void
 at_add_frame(const char* name) {
     assert(name);
-    at_frame* frame = mem_type(at_allocator, at_frame);
+    at_frame_t* frame = mem_type(at_allocator, at_frame_t);
     frame->name = name;
     frame->rect = tt_get(name);
     frame->animation = at_current_animation;
@@ -5299,7 +5320,7 @@ at_add_frame(const char* name) {
 }
 
 extern void
-at_begin(mem_allocator allocator) {
+at_begin(mem_allocator_t allocator) {
     at_allocator = allocator;
 
     at_entity_list = NULL;
@@ -5323,10 +5344,10 @@ at_cstr_equal(const char* a, const char* b) {
 }
 
 extern void
-at_set(at_asset* asset, const char* name) {
+at_set(at_asset_t* asset, const char* name) {
     if (at_cstr_equal(asset->frame->animation->name, name)) return;
 
-    at_animation* animation = asset->entity->animation;
+    at_animation_t* animation = asset->entity->animation;
     while (animation && !at_cstr_equal(animation->name, name)) {
         animation = animation->next;
     }
@@ -5338,7 +5359,7 @@ at_set(at_asset* asset, const char* name) {
 }
 
 extern void
-at_update(at_asset* asset, f32 dt) {
+at_update(at_asset_t* asset, f32 dt) {
     asset->duration += dt;
     if (asset->duration >= 1.0) {
         asset->frame = asset->frame->next;
@@ -5346,18 +5367,18 @@ at_update(at_asset* asset, f32 dt) {
     }
 }
 
-static at_entity*
+static at_entity_t*
 at_get_entity(const char* name) {
-    at_entity* entity = at_entity_list;
+    at_entity_t* entity = at_entity_list;
     while (entity && !at_cstr_equal(entity->name, name)) {
         entity = entity->next;
     }
     return entity? entity : NULL;
 }
 
-extern at_asset
+extern at_asset_t
 at_get(const char* name) {
-    at_asset state = {0};
+    at_asset_t state = ATS_INIT;
     state.entity = at_get_entity(name);
     state.frame = state.entity->animation->frame;
     return state;
@@ -5378,18 +5399,18 @@ at_get(const char* name) {
 
 static const char* audio_path = AUDIO_PATH;
 
-typedef struct audio_entry {
+typedef struct {
     b32 in_use;
     cs_loaded_sound_t loaded;
     cs_play_sound_def_t playing;
     char name[64];
-} audio_entry;
+} audio_entry_t;
 
 static struct {
     cs_context_t* context;
 } audio;
 
-static audio_entry audio_table[AUDIO_TABLE_SIZE];
+static audio_entry_t audio_table[AUDIO_TABLE_SIZE];
 
 extern void
 audio_init(void* handle) {
@@ -5400,11 +5421,11 @@ audio_init(void* handle) {
 }
 
 static b32
-audio_is_valid(audio_id id) {
+audio_is_valid(audio_id_t id) {
     return id.index != 0;
 }
 
-extern audio_id
+extern audio_id_t
 audio_get(const char* name) {
     u32 hash = hash_str(name);
     u16 index = hash & (AUDIO_TABLE_SIZE - 1);
@@ -5412,7 +5433,7 @@ audio_get(const char* name) {
     if (index == 0) index++;
     while (audio_table[index].in_use) {
         if (strcmp(audio_table[index].name, name) == 0) {
-            audio_id id = { index };
+            audio_id_t id = { index };
             return id;
         }
         index = (index + 1) & (AUDIO_TABLE_SIZE - 1);
@@ -5432,7 +5453,7 @@ audio_get(const char* name) {
         path[i++] = '\0';
     }
 
-    audio_entry* entry = &audio_table[index];
+    audio_entry_t* entry = &audio_table[index];
     
     entry->in_use = true;
     strcpy_s(entry->name, ArrayCount(entry->name), name);
@@ -5444,7 +5465,7 @@ audio_get(const char* name) {
         printf("%s ---- path: %s\n", cs_error_reason, path);
     }
 
-    audio_id id = { index };
+    audio_id_t id = { index };
     return id;
 }
 
@@ -5464,15 +5485,15 @@ audio_kill_all(void) {
     cs_stop_all_sounds(audio.context);
 }
 
-static audio_entry*
-audio_get_entry(audio_id id) {
+static audio_entry_t*
+audio_get_entry(audio_id_t id) {
     if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
     return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
 extern void
-audio_play(audio_id id, f32 volume) {
-    struct audio_entry* entry = audio_get_entry(id);
+audio_play(audio_id_t id, f32 volume) {
+    audio_entry_t* entry = audio_get_entry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -5486,8 +5507,8 @@ audio_play(audio_id id, f32 volume) {
 }
 
 extern void*
-audio_play_looped(audio_id id, f32 volume) {
-    struct audio_entry* entry = audio_get_entry(id);
+audio_play_looped(audio_id_t id, f32 volume) {
+    audio_entry_t* entry = audio_get_entry(id);
 
     if (entry) {
         cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -5507,13 +5528,13 @@ audio_play_looped(audio_id id, f32 volume) {
 }
 
 extern void
-audio_play_music(audio_id id, f32 volume) {
+audio_play_music(audio_id_t id, f32 volume) {
     static cs_playing_sound_t* playing = NULL;
     
     if (playing && cs_is_active(playing))
         cs_stop_sound(playing);
     
-    struct audio_entry* entry = audio_get_entry(id);
+    audio_entry_t* entry = audio_get_entry(id);
     if (entry) {
        playing = cs_play_sound(audio.context, entry->playing);
         
@@ -5529,13 +5550,13 @@ audio_play_music(audio_id id, f32 volume) {
 }
 
 extern void
-audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
+audio_play_from_source(audio_id_t id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
     f32 sound_distance = v3_dist(pos, source);
     f32 final_volume = volume * Max(1 - sound_distance / max_distance, 0);
 
     if (final_volume <= 0) return;
 
-    struct audio_entry* entry = audio_get_entry(id);
+    audio_entry_t* entry = audio_get_entry(id);
 
     if (entry) {
         v2 source_dir = {
