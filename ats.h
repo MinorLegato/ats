@@ -2071,6 +2071,62 @@ pack_color_v3(v3 color, f32 a) {
   return pack_color_f32(color.r, color.g, color.b, a);
 }
 
+// -------------------- priority queue ------------------- //
+
+struct queue_node {
+  f32 weight;
+  v2i e;
+};
+
+struct priority_queue {
+  u32 len;
+  struct queue_node* array;
+};
+
+static b32
+pq_empty(const struct priority_queue* queue) {
+  return queue->len == 0;
+}
+
+static void
+pq_clear(struct priority_queue* queue) {
+  queue->len = 0;
+}
+
+static void
+pq_push(struct priority_queue* queue, v2i e, f32 weight) {
+  struct queue_node node = { weight, e };
+  int i = queue->len + 1;
+  int j = i / 2;
+  while (i > 1 && queue->array[j].weight > node.weight) {
+    queue->array[i] = queue->array[j];
+    i = j;
+    j = j / 2;
+  }
+  queue->array[i] = node;
+  queue->len++;
+}
+
+static f32
+pq_pop(v2i* out, struct priority_queue* queue) {
+  struct queue_node data = queue->array[1];
+  queue->array[1] = queue->array[queue->len];
+  queue->len--;
+  int i = 1;
+  while (i != queue->len + 1) {
+    int k = queue->len + 1;
+    int j = 2 * i;
+    if (j <= queue->len && queue->array[j].weight < queue->array[k].weight)
+      k = j;
+    if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight)
+      k = j + 1;
+    queue->array[i] = queue->array[k];
+    i = k;
+  }
+  *out = data.e;
+  return data.weight;
+}
+
 // -------------------- f64 matrix funcs ------------------- //
 
 static void
