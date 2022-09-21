@@ -995,6 +995,29 @@ static v4 norm(v4 u) { return v4_scale(u, rsqrt32(v4_dot(u, u))); }
 
 #endif
 
+// -------------- project --------------- //
+
+static v2
+v2_project(v2 a, v2 b) {
+  f32 d = v2_dot(b, b);
+  if (d == 0) return V2(0);
+  return v2_scale(b, v2_dot(a, b) / d);
+}
+
+static v3
+v3_project(v3 a, v3 b) {
+  f32 d = v3_dot(b, b);
+  if (d == 0) return V3(0);
+  return v3_scale(b, v3_dot(a, b) / d);
+}
+
+#ifdef __cplusplus
+
+struct v2 project(v2 a, v2 b) { return v2_project(a, b); }
+struct v3 project(v3 a, v3 b) { return v3_project(a, b); }
+
+#endif
+
 // -------------- floor --------------- //
 
 static v2 v2_floor(v2 u) { return V2(floorf(u.x), floorf(u.y)); }
@@ -2509,7 +2532,7 @@ bit_set(u32* array, u32 index) {
   array[idx] |= (1 << bit);
 }
 
-static bool
+static b32
 bit_get(const u32* array, u32 index) {
   u32 idx = index >> 5;
   u32 bit = index & 31;
@@ -2661,8 +2684,8 @@ sm_index(const spatial_map* map, v2i pos) {
 static void
 sm_add(spatial_map* map, void* e, r2 e_rect) {
   r2i rect = {
-    (i32)e_rect.min.x - 1, (i32)e_rect.min.y - 1,
-    (i32)e_rect.max.x + 1, (i32)e_rect.max.y + 1,
+    (i32)e_rect.min.x, (i32)e_rect.min.y,
+    (i32)e_rect.max.x, (i32)e_rect.max.y,
   };
 
   for_r2(rect, x, y) {
@@ -2700,8 +2723,8 @@ sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
   };
 
   r2i irect = {
-    (i32)(pos.x - rad.x - 1), (i32)(pos.y - rad.y - 1),
-    (i32)(pos.x + rad.x + 1), (i32)(pos.y + rad.y + 1),
+    (i32)(pos.x - rad.x), (i32)(pos.y - rad.y),
+    (i32)(pos.x + rad.x), (i32)(pos.y + rad.y),
   };
 
   for_r2(irect, x, y) {
@@ -2830,8 +2853,11 @@ ray2d_is_traversable(const ray2d_map_t* map, u32 x, u32 y) {
 
 static v2
 ray2d_cast_dir(const ray2d_map_t* map, v2 pos, v2 dir, f32 max_range) {
-  if (!ray2d_is_traversable(map, pos.x, pos.y)) return pos;
-
+#if 0
+  //if (!ray2d_is_traversable(map, pos.x, pos.y)) return pos;
+#endif
+  b32 kill_on_wall_hit = ray2d_is_traversable(map, pos.x, pos.y);
+  
   //which box of the map we're in
   int map_x = (int)(pos.x);
   int map_y = (int)(pos.y);
@@ -2882,8 +2908,14 @@ ray2d_cast_dir(const ray2d_map_t* map, v2 pos, v2 dir, f32 max_range) {
       side = 1;
     }
 
-    if (!ray2d_is_traversable(map, map_x, map_y) || (v2_dist(pos, V2((f32)map_x, (f32)map_y)) > (max_range + 1.0f))) {
+    if (v2_dist(pos, V2((f32)map_x, (f32)map_y)) > (max_range + 1.0f)) {
       hit = true;
+    }
+
+    if (kill_on_wall_hit) {
+      if (!ray2d_is_traversable(map, map_x, map_y)) {
+        hit = true;
+      }
     }
   } 
 
@@ -4931,11 +4963,13 @@ timer_reset_all(void) {
 static void
 timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
   i32 y = 0;
-  for_range(i, 0, timer_count) {
+  // @TODO: fix render order within scopes!
+  for (i32 i = timer_count - 1; i >= 0; --i) {
     timer_entry_t e = timer_array[i];
-    gl_string_format(px + 4 * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
+    gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
     y++;
   }
+  timer_reset_all();
 }
 
 // ---------------------------------------- file impl -------------------------------------- //
@@ -5281,7 +5315,6 @@ tt_end(void) {
     for (i32 y = 0; y < data->img.height; ++y) {
       for (i32 x = 0; x < data->img.width; ++x) {
         u32 pixel = image_get(&data->img, x, y);
-
         image_set(&tt_table.img, x + offset.x + 1, y + offset.y + 1, pixel);
       }
     }

@@ -155,14 +155,14 @@ static const char* r_post_fx_blur = GLSL(
     out_color = col;
   });
 
-typedef struct r_vertex_t {
+typedef struct r_vertex {
   v3 pos;
   v2 uv;
 
   u32 color;
 } r_vertex_t;
 
-typedef struct r_target_t {
+typedef struct r_target {
   gl_shader_t shader;
 
   u32 framebuffer;
@@ -297,73 +297,88 @@ r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
   f32 dy = pos.y - right.y * rad.x + up.y * rad.y;
   f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
 
+  r2 tr = {
+    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
+    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+  };
+
   r_color(color);
 
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(ax, ay, az);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(bx, by, bz);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(cx, cy, cz);
+  r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, az);
+  r_uv(tr.max.x, tr.max.y); r_vertex(bx, by, bz);
+  r_uv(tr.max.x, tr.min.y); r_vertex(cx, cy, cz);
 
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(cx, cy, cz);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(dx, dy, dz);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(ax, ay, az);
+  r_uv(tr.max.x, tr.min.y); r_vertex(cx, cy, cz);
+  r_uv(tr.min.x, tr.min.y); r_vertex(dx, dy, dz);
+  r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, az);
 }
 
 static void
 r_texture_box(r2i tex_rect, r3 box, u32 color) {
+  r2 tr = {
+    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
+    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+  };
+
   r_color(color);
 
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.min.z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(box.min.x, box.max.y, box.min.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.min.z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.min.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(box.min.x, box.max.y, box.min.z);
 
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(box.max.x, box.min.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.max.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.max.z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(box.max.x, box.min.y, box.max.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.max.z);
 
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(box.min.x, box.max.y, box.min.z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(box.min.x, box.min.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(box.min.x, box.max.y, box.min.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(box.min.x, box.min.y, box.max.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
 
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(box.max.x, box.min.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(box.max.x, box.max.y, box.min.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(box.max.x, box.min.y, box.max.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(box.max.x, box.max.y, box.min.z);
 
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.min.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.min.y, box.max.z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(box.min.x, box.min.y, box.max.z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(box.max.x, box.min.y, box.min.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.min.y, box.max.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.min.y, box.max.z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(box.min.x, box.min.y, box.max.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.min.y, box.min.z);
 
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.max.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(box.max.x, box.max.y, box.min.z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(box.min.x, box.max.y, box.min.z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.max.y, box.min.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(box.max.x, box.max.y, box.min.z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(box.max.x, box.max.y, box.max.z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(box.min.x, box.max.y, box.min.z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
 }
 
 static void
 r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
+  r2 tr = {
+    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
+    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+  };
+
   r_color(color);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(rect.min.x, rect.min.y, z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(rect.max.x, rect.min.y, z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(rect.max.x, rect.max.y, z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(rect.max.x, rect.max.y, z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(rect.min.x, rect.max.y, z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(rect.min.x, rect.min.y, z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(rect.max.x, rect.min.y, z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(rect.max.x, rect.max.y, z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(rect.max.x, rect.max.y, z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(rect.min.x, rect.max.y, z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
 }
 
 static void
@@ -371,13 +386,81 @@ r_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool f
   if (flip_x) { Swap(f32, tex_rect.min.x, tex_rect.max.x); }
   if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
 
+  r2 tr = {
+    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
+    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+  };
+
   r_color(color);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(rect.min.x, rect.min.y, z);
-  r_uv(tex_rect.max.x, tex_rect.max.y); r_vertex(rect.max.x, rect.min.y, z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(rect.max.x, rect.max.y, z);
-  r_uv(tex_rect.max.x, tex_rect.min.y); r_vertex(rect.max.x, rect.max.y, z);
-  r_uv(tex_rect.min.x, tex_rect.min.y); r_vertex(rect.min.x, rect.max.y, z);
-  r_uv(tex_rect.min.x, tex_rect.max.y); r_vertex(rect.min.x, rect.min.y, z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(rect.max.x, rect.min.y, z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(rect.max.x, rect.max.y, z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(rect.max.x, rect.max.y, z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(rect.min.x, rect.max.y, z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
+}
+
+static void
+r_rotated_texture(r2i tex_rect, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
+  if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
+
+  r2 tr = {
+    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
+    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+  };
+
+  m2 rot_matrix = m2_rotate(rot);
+
+  v2 u = m2_mulv(rot_matrix, V2(0, 1));
+  v2 r = m2_mulv(rot_matrix, V2(1, 0));
+
+  f32 ax = pos.x - rad.x * r.x - rad.y * u.x;
+  f32 ay = pos.y - rad.x * r.y - rad.y * u.y;
+
+  f32 bx = pos.x + rad.x * r.x - rad.y * u.x;
+  f32 by = pos.y + rad.x * r.y - rad.y * u.y;
+
+  f32 cx = pos.x + rad.x * r.x + rad.y * u.x;
+  f32 cy = pos.y + rad.x * r.y + rad.y * u.y;
+
+  f32 dx = pos.x - rad.x * r.x + rad.y * u.x;
+  f32 dy = pos.y - rad.x * r.y + rad.y * u.y;
+
+  r_color(color);
+  r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, z);
+  r_uv(tr.max.x, tr.max.y); r_vertex(bx, by, z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(cx, cy, z);
+  r_uv(tr.max.x, tr.min.y); r_vertex(cx, cy, z);
+  r_uv(tr.min.x, tr.min.y); r_vertex(dx, dy, z);
+  r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, z);
+}
+
+static void
+r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
+  m2 rot_matrix = m2_rotate(rot);
+
+  v2 u = m2_mulv(rot_matrix, V2(0, 1));
+  v2 r = m2_mulv(rot_matrix, V2(1, 0));
+
+  f32 ax = pos.x - rad.x * r.x - rad.y * u.x;
+  f32 ay = pos.y - rad.x * r.y - rad.y * u.y;
+
+  f32 bx = pos.x + rad.x * r.x - rad.y * u.x;
+  f32 by = pos.y + rad.x * r.y - rad.y * u.y;
+
+  f32 cx = pos.x + rad.x * r.x + rad.y * u.x;
+  f32 cy = pos.y + rad.x * r.y + rad.y * u.y;
+
+  f32 dx = pos.x - rad.x * r.x + rad.y * u.x;
+  f32 dy = pos.y - rad.x * r.y + rad.y * u.y;
+
+  r_color(color);
+  r_vertex(ax, ay, z);
+  r_vertex(bx, by, z);
+  r_vertex(cx, cy, z);
+  r_vertex(cx, cy, z);
+  r_vertex(dx, dy, z);
+  r_vertex(ax, ay, z);
 }
 
 static void
