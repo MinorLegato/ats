@@ -2650,8 +2650,6 @@ split_iter_create(const char* cstr, const char* delimiters, const char* separato
 }
 
 // =================================================== SPATIAL MAP =================================================== //
-// assumes that 'T' has this function:
-// r2 get_rect(T* e)
 
 #define SPATIAL_MAX (8 * 4096)
 
@@ -2660,29 +2658,29 @@ typedef struct sm_cell {
   r2 rect;
 
   struct sm_cell* next;
-} sm_cell;
+} sm_cell_t;
 
 typedef struct spatial_map {
-  struct sm_cell* table[4096];
+  sm_cell_t* table[4096];
 
   usize count;
-  struct sm_cell array[SPATIAL_MAX];
-} spatial_map;
+  sm_cell_t array[SPATIAL_MAX];
+} spatial_map_t;
 
 static void
-sm_clear(spatial_map* map) {
+sm_clear(spatial_map_t* map) {
   memset(map->table, 0, sizeof map->table);
   map->count = 0;
 }
 
 static u32
-sm_index(const spatial_map* map, v2i pos) {
+sm_index(const spatial_map_t* map, v2i pos) {
   u32 hash = hash_v2i(pos);
   return hash % ArrayCount(map->table);
 }
 
 static void
-sm_add(spatial_map* map, void* e, r2 e_rect) {
+sm_add(spatial_map_t* map, void* e, r2 e_rect) {
   r2i rect = {
     (i32)e_rect.min.x, (i32)e_rect.min.y,
     (i32)e_rect.max.x, (i32)e_rect.max.y,
@@ -2690,7 +2688,7 @@ sm_add(spatial_map* map, void* e, r2 e_rect) {
 
   for_r2(rect, x, y) {
     u32 index = sm_index(map, V2i(x, y));
-    sm_cell* cell = map->array + map->count++;
+    sm_cell_t* cell = map->array + map->count++;
 
     cell->e = e;
     cell->rect = e_rect;
@@ -2703,18 +2701,18 @@ sm_add(spatial_map* map, void* e, r2 e_rect) {
 typedef struct sm_entry {
   void* e;
   r2 rect;
-} sm_entry;
+} sm_entry_t;
 
 typedef struct sm_result {
   usize count;
-  struct sm_entry* array;
-} sm_result;
+  sm_entry_t* array;
+} sm_result_t;
 
-static sm_result
-sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
-  static sm_entry spatial_array[SPATIAL_MAX];
+static sm_result_t
+sm_in_range(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
+  static sm_entry_t spatial_array[SPATIAL_MAX];
 
-  sm_result result = ATS_INIT;
+  sm_result_t result = ATS_INIT;
   result.array = spatial_array;
 
   r2 rect = {
@@ -2729,7 +2727,7 @@ sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
 
   for_r2(irect, x, y) {
     u32 index = sm_index(map, V2i(x, y));
-    for (sm_cell* it = map->table[index]; it; it = it->next) {
+    for (sm_cell_t* it = map->table[index]; it; it = it->next) {
       b32 unique = true;
 
       if (it->e == ignore) continue;
@@ -2742,7 +2740,7 @@ sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
         }
       }
       if (unique) {
-        result.array[result.count++] = Make(sm_entry) {
+        result.array[result.count++] = Make(sm_entry_t) {
           it->e,
           it->rect,
         };
@@ -2754,14 +2752,14 @@ sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
 }
 
 typedef struct sm_iter {
-  struct sm_entry* current;
+  sm_entry_t* current;
 
   u32 index;
-  struct sm_result result;
+  sm_result_t result;
 } sm_iter;
 
 static sm_iter
-sm_get_iterator(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+sm_get_iterator(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
   sm_iter it = ATS_INIT;
 
   it.result = sm_in_range(map, pos, rad, ignore);
@@ -2782,12 +2780,12 @@ sm_iter_advance(sm_iter* it) {
 }
 
 static void*
-sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
+sm_get_closest(spatial_map_t* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
   void* result = NULL;
   f32 distance = range;
 
   for_iter(sm_iter, it, sm_get_iterator(map, pos, V2(range, range), ignore)) {
-    sm_entry* e = it.current;
+    sm_entry_t* e = it.current;
 
     if (condition_proc && !condition_proc(e->e)) {
       continue;
@@ -2810,10 +2808,10 @@ sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*co
 }
 
 static void*
-sm_at_position(spatial_map* map, v2 pos) {
+sm_at_position(spatial_map_t* map, v2 pos) {
   u32 index = sm_index(map, V2i((i32)pos.x, (i32)pos.y));
 
-  for (sm_cell* it = map->table[index]; it; it = it->next) {
+  for (sm_cell_t* it = map->table[index]; it; it = it->next) {
     if (r2_contains(it->rect, pos)) {
       return it->e;
     }
