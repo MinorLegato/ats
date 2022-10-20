@@ -2807,7 +2807,7 @@ extern void     audio_play_from_source(AudioID id, V3 pos, V3 dir, V3 source, f3
 #endif
 
 #if defined(ATS_OGL33)
-#define GLSL(...) "#version 330 core\n" #__VA_ARGS__
+#define GLSL(...) "#version 460 core\n" #__VA_ARGS__
 #endif
 
 // ====================================================== API =================================================== //
@@ -3311,8 +3311,8 @@ extern void platform_init(const char* title, int width, int height, int samples)
   glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
 #if defined(ATS_OGL33)
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
