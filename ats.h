@@ -2874,7 +2874,7 @@ typedef struct gl_shader_desc {
   const char* fs;
 } GLShaderDesc;
 
-extern GLShader gl_shader_create(const  GLShaderDesc* desc);
+extern GLShader gl_shader_create(const GLShaderDesc* desc);
 extern GLShader gl_shader_load_from_file(const char *vs, const char *fs,  MemArena* ma);
 
 extern void gl_use(const GLShader* shader);
