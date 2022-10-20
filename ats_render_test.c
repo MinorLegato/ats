@@ -145,11 +145,11 @@ static const char* r_post_fx_blur = GLSL(
       1.0 / 16, 2.0 / 16, 1.0 / 16);
 
     vec4 sample_tex[9];
-    for(int i = 0; i < 9; i++) {
+    for (int i = 0; i < 9; i++) {
       sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
     }
     vec4 col = vec4(0.0);
-    for(int i = 0; i < 9; i++)
+    for (int i = 0; i < 9; i++)
       col += sample_tex[i] * kernel[i];
 
     out_color = col;
@@ -184,14 +184,12 @@ static u32 r_vertex_count;
 static r_vertex_t r_current;
 static r_vertex_t r_vertex_array[R_VERTEX_MAX];
 
-static void
-r_set_matrix(m4 mvp) {
+static void r_set_matrix(m4 mvp) {
   gl_use(&r_shader);
   gl_uniform_m4(gl_location(&r_shader, "mvp"), mvp);
 }
 
-static void
-r_init(void) {
+static void r_init(void) {
   gl_init();
 
   gl_buffer_desc_t fx_buffer_desc = ATS_INIT;
@@ -217,41 +215,34 @@ r_init(void) {
   glEnable(GL_DEPTH_TEST);
 }
 
-static void
-r_begin_frame(void) {
+static void r_begin_frame(void) {
   gl_use(&r_shader);
   r_set_matrix(m4_identity());
 }
 
-static void
-r_end_frame(void) {
+static void r_end_frame(void) {
   //
 }
 
-static void
-r_begin(u32 type) {
+static void r_begin(u32 type) {
   r_type = type;
   r_vertex_count = 0;
 }
 
-static void
-r_uv(f32 x, f32 y) {
+static void r_uv(f32 x, f32 y) {
   r_current.uv = V2(x, y);
 }
 
-static void
-r_color(u32 color) {
+static void r_color(u32 color) {
   r_current.color = color;
 }
 
-static void
-r_vertex(f32 x, f32 y, f32 z) {
+static void r_vertex(f32 x, f32 y, f32 z) {
   r_current.pos = V3(x, y, z);
   r_vertex_array[r_vertex_count++] = r_current;
 }
 
-static void
-r_end(void) {
+static void r_end(void) {
   gl_use(&r_shader);
   gl_buffer_bind(&r_buffer);
   gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (r_vertex_t));
@@ -259,28 +250,24 @@ r_end(void) {
   glDrawArrays(r_type, 0, r_vertex_count);
 }
 
-static void
-r_set_texture(const gl_texture_t* texture) {
+static void r_set_texture(const gl_texture_t* texture) {
   gl_use(&r_shader);
   gl_texture_bind(texture);
 
   r_current_texture = *texture;
 }
 
-static void
-r_enable_textures(void) {
+static void r_enable_textures(void) {
   gl_use(&r_shader);
   gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), true);
 }
 
-static void
-r_disable_textures(void) {
+static void r_disable_textures(void) {
   gl_use(&r_shader);
   gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), false);
 }
 
-static void
-r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
+static void r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
   f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
   f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
   f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -313,8 +300,7 @@ r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
   r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, az);
 }
 
-static void
-r_texture_box(r2i tex_rect, r3 box, u32 color) {
+static void r_texture_box(r2i tex_rect, r3 box, u32 color) {
   r2 tr = {
     .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
     .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
@@ -365,8 +351,7 @@ r_texture_box(r2i tex_rect, r3 box, u32 color) {
   r_uv(tr.min.x, tr.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void
-r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
+static void r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
   r2 tr = {
     .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
     .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
@@ -381,8 +366,7 @@ r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
   r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void
-r_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
+static void r_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
   if (flip_x) { Swap(f32, tex_rect.min.x, tex_rect.max.x); }
   if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
 
@@ -400,8 +384,7 @@ r_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool f
   r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void
-r_rotated_texture(r2i tex_rect, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
+static void r_rotated_texture(r2i tex_rect, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
   if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
 
   r2 tr = {
@@ -435,8 +418,7 @@ r_rotated_texture(r2i tex_rect, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 f
   r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, z);
 }
 
-static void
-r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
+static void r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
   m2 rot_matrix = m2_rotate(rot);
 
   v2 u = m2_mulv(rot_matrix, V2(0, 1));
@@ -463,8 +445,7 @@ r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
   r_vertex(ax, ay, z);
 }
 
-static void
-r_box(r3 box, u32 color) {
+static void r_box(r3 box, u32 color) {
   r_color(color);
 
   r_vertex(box.min.x, box.min.y, box.min.z);
@@ -510,8 +491,7 @@ r_box(r3 box, u32 color) {
   r_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void
-r_rect(r2 rect, f32 z, u32 color) {
+static void r_rect(r2 rect, f32 z, u32 color) {
   r_color(color);
   r_vertex(rect.min.x, rect.min.y, z);
   r_vertex(rect.max.x, rect.min.y, z);
@@ -521,8 +501,7 @@ r_rect(r2 rect, f32 z, u32 color) {
   r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static u32
-r_new_target(const char* fragment_shader) {
+static u32 r_new_target(const char* fragment_shader) {
   r_target_t* target = r_target_array + r_target_count++;
 
   gl_shader_desc_t shader_desc = ATS_INIT;
@@ -551,8 +530,7 @@ r_new_target(const char* fragment_shader) {
 
 static r_target_t* r_current_target = NULL;
 
-static void
-r_begin_pass(u32 target) {
+static void r_begin_pass(u32 target) {
   r_current_target = r_target_array + target;
 
   glBindFramebuffer(GL_FRAMEBUFFER, r_current_target->framebuffer);
@@ -566,8 +544,7 @@ r_begin_pass(u32 target) {
   r_set_texture(&r_current_texture);
 }
 
-static void
-r_end_pass(void) {
+static void r_end_pass(void) {
   glDisable(GL_DEPTH_TEST);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

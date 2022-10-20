@@ -40,7 +40,7 @@
 #define join_token(a, b) join_helper(a, b)
 #define macro_var(a) join_token(a, __LINE__)
 
-#define defer(start, end) for (int macro_var(i) = ((start), 0); !macro_var(i); (macro_var(i)++, (end)))
+#define scope_guard(start, end) for (int macro_var(i) = ((start), 0); !macro_var(i); (macro_var(i)++, (end)))
 
 #define def(_val, _def) ((_val) == 0? (_def) : (_val))
 
@@ -81,7 +81,6 @@
 #define Max(a, b)           ((a) > (b)? (a) : (b))
 #define Lerp(a, b, t)       ((a) + (f32)(t) * ((b) - (a)))
 #define Sign(n)             ((n) == 0? 0 : ((n) < 0? -1 : 1))
-
 
 // =========================================== API-TYPES ====================================== //
 
@@ -265,23 +264,20 @@ static inline sphere_t Sphere(v3 p, f32 rad) { return { p, rad }; }
 
 #endif
 
-static m2
-m2_identity(void) {
+static m2 m2_identity(void) {
   return M2(
     1, 0,
     0, 1);
 }
 
-static m3
-m3_identity(void) {
+static m3 m3_identity(void) {
   return M3(
     1, 0, 0,
     0, 1, 0,
     0, 0, 1);
 }
 
-static m4
-m4_identity(void) {
+static m4 m4_identity(void) {
   return M4(
     1, 0, 0, 0,
     0, 1, 0, 0,
@@ -289,13 +285,11 @@ m4_identity(void) {
     0, 0, 0, 1);
 }
 
-static quat_t
-quat_identity() {
+static quat_t quat_identity(void) {
   return Quat(0, 0, 0, 1);
 }
 
-static f32
-sqrt32(f32 n) {
+static f32 sqrt32(f32 n) {
   f32 x = n * 0.5f;
   f32 y = n;
   int i = *(int*)&y;
@@ -307,8 +301,7 @@ sqrt32(f32 n) {
   return n * y;
 }
 
-static f32
-rsqrt32(f32 n) {
+static f32 rsqrt32(f32 n) {
   f32 x2 = n * 0.5f;
   f32 y  = n;
   int i  = *(long*)&y;           // evil floating point bit level hacking
@@ -320,150 +313,140 @@ rsqrt32(f32 n) {
   return y;
 }
 
-static f32
-shortest_angle_distance(f32 a, f32 b) {
+static f32 cos_turn(f32 turns) {
+  return cosf(TAU * turns);
+}
+
+static f32 sin_turn(f32 turns) {
+  return sinf(TAU * turns);
+}
+
+static f32 cos_turn01(f32 turns) {
+  return 0.5 + 0.5 * cos_turn(turns);
+}
+
+static f32 sin_turn01(f32 turns) {
+  return 0.5 + 0.5 * sin_turn(turns);
+}
+
+static f32 shortest_angle_distance(f32 a, f32 b) {
   f32 max = 2.0f * PI;
   f32 da  = fmodf(b - a, max);
 
   return fmodf(2.0f * da, max) - da;
 }
 
-static f32
-lerp_angle(f32 a, f32 b, f32 t) {
+static f32 lerp_angle(f32 a, f32 b, f32 t) {
   return a + shortest_angle_distance(a, b) * t;
 }
 
-static f32
-sine_ease_in(f32 t) {
+static f32 sine_ease_in(f32 t) {
   return 1 - cosf((t * PI) / 2);
 }
 
-static f32
-sine_ease_out(f32 t) {
+static f32 sine_ease_out(f32 t) {
   return sinf((t * PI) / 2);
 }
 
-static f32
-sine_ease_in_out(f32 t) {
+static f32 sine_ease_in_out(f32 t) {
   return -0.5 * (cosf(PI * t) - 1);
 }
 
-static f32
-quad_ease_in(f32 t) {
+static f32 quad_ease_in(f32 t) {
   return t * t;
 }
 
-static f32
-quad_ease_out(f32 t) {
+static f32 quad_ease_out(f32 t) {
   return 1 - (1 - t) * (1 - t);
 }
 
-static f32
-quad_ease_in_out(f32 t) {
+static f32 quad_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
   return (t < 0.5)? (2 * t * t) : (1 - 0.5 * k * k);
 }
 
-static f32
-cubic_ease_in(f32 t) {
+static f32 cubic_ease_in(f32 t) {
   return t * t * t;
 }
 
-static f32
-cubic_ease_out(f32 t) {
+static f32 cubic_ease_out(f32 t) {
   f32 k = 1 - t;
   return 1 - k * k * k;
 }
 
-static f32
-cubic_ease_in_out(f32 t) {
+static f32 cubic_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
   return (t < 0.5)? (4 * t * t * t) : (1 - 0.5 * k * k * k);
 }
 
-static f32
-quart_ease_in(f32 t) {
+static f32 quart_ease_in(f32 t) {
   return t * t * t * t;
 }
 
-static f32
-quart_ease_out(f32 t) {
+static f32 quart_ease_out(f32 t) {
   f32 k = 1 - t; 
   return 1 - k * k * k * k;
 }
 
-static f32
-quart_ease_in_out(f32 t) {
+static f32 quart_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
   return (t < 0.5)? (8 * t * t * t * t) : (1 - 0.5 * k * k * k * k);
 }
 
-static f32
-quint_ease_in(f32 t) {
+static f32 quint_ease_in(f32 t) {
   return t * t * t * t * t;
 }
 
-static f32
-quint_ease_out(f32 t) {
+static f32 quint_ease_out(f32 t) {
   f32 k = 1 - t;
   return 1 - k * k * k * k * k;
 }
 
-static f32
-quint_ease_in_out(f32 t) {
+static f32 quint_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
   return (t < 0.5)? (16 * t * t * t * t * t) : (1 - 0.5 * k * k * k * k * k);
 }
 
-static f32
-expo_ease_in(f32 t) {
+static f32 expo_ease_in(f32 t) {
   return (t == 0)? 0 : powf(2, 10 * t - 10);
 }
 
-static f32
-expo_ease_out(f32 t) {
+static f32 expo_ease_out(f32 t) {
   return (t == 1)? 1 : (1 - powf(2, -10 * t));
 }
 
-static f32
-expo_ease_in_out(f32 t) {
+static f32 expo_ease_in_out(f32 t) {
   return (t == 0)? 0 : (t == 1)? 1 : t < 0.5? powf(2, 20 * t - 10) / 2 : (2 - powf(2, -20 * t + 10)) / 2;
 }
 
-static f32
-circ_ease_in(f32 t) {
+static f32 circ_ease_in(f32 t) {
   return 1 - sqrt32(1 - (t * t));
 }
 
-static f32
-circ_ease_out(f32 t) {
+static f32 circ_ease_out(f32 t) {
   return sqrt32(1 - (t - 1) * (t - 1));
 }
 
-static f32
-circ_ease_in_out(f32 t) {
+static f32 circ_ease_in_out(f32 t) {
   f32 k = 2 * t;
   f32 l = -2 * t + 2;
   return (t < 0.5)? 0.5 * (1 - sqrt32(1 - k * k)) : 0.5 * (sqrt32(1 - l * l) + 1);
 }
 
-static f32
-back_ease_in(f32 t) {
+static f32 back_ease_in(f32 t) {
   f32 c1 = 1.70158;
   f32 c3 = c1 + 1;
   return c3 * t * t * t - c1 * t * t;
 }
 
-static f32
-back_ease_out(f32 t) {
+static f32 back_ease_out(f32 t) {
   f32 c1 = 1.70158;
   f32 c3 = c1 + 1;
   f32 k = t - 1;
   return 1 + c3 * k * k * k + c1 * k * k;
 }
 
-static f32
-back_ease_in_out(f32 t) {
+static f32 back_ease_in_out(f32 t) {
   f32 c1 = 1.70158;
   f32 c2 = c1 * 1.525;
 
@@ -472,10 +455,8 @@ back_ease_in_out(f32 t) {
     0.5 * (pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2);
 }
 
-static f32
-elastic_ease_in(f32 t) {
+static f32 elastic_ease_in(f32 t) {
   f32 c4 = (2 * PI) / 3;
-
   return (t == 0)?
     0 :
     (t == 1)?
@@ -483,8 +464,7 @@ elastic_ease_in(f32 t) {
     -powf(2, 10 * t - 10) * sinf((t * 10 - 10.75) * c4);
 }
 
-static f32
-elastic_ease_out(f32 t) {
+static f32 elastic_ease_out(f32 t) {
   f32 c4 = (2 * PI) / 3;
   return t == 0?
     0 :
@@ -493,8 +473,7 @@ elastic_ease_out(f32 t) {
     powf(2, -10 * t) * sinf((t * 10 - 0.75) * c4) + 1;
 }
 
-static f32
-elastic_ease_inout(f32 t) {
+static f32 elastic_ease_inout(f32 t) {
   f32 c5 = (2 * PI) / 4.5;
   return t == 0?
     0 :
@@ -505,8 +484,7 @@ elastic_ease_inout(f32 t) {
     +0.5 * (powf(2, -20 * t + 10) * sinf((20 * t - 11.125) * c5)) + 1;
 }
 
-static f32
-bounce_ease_out(f32 t) {
+static f32 bounce_ease_out(f32 t) {
   f32 n1 = 7.5625;
   f32 d1 = 2.75;
   if (t < 1 / d1) {
@@ -523,13 +501,11 @@ bounce_ease_out(f32 t) {
   }
 }
 
-static f32
-bounce_ease_in(f32 t) {
+static f32 bounce_ease_in(f32 t) {
   return 1 - bounce_ease_out(t);
 }
 
-static f32
-bounce_ease_in_out(f32 t) {
+static f32 bounce_ease_in_out(f32 t) {
   return t < 0.5?
     0.5 * (1 - bounce_ease_out(1 - 2 * t)) :
     0.5 * (1 + bounce_ease_out(2 * t - 1));
@@ -547,16 +523,14 @@ static v4i v4i_from_array(const i32* a) { return V4i(a[0], a[1], a[2], a[3]); }
 
 // ---------- unpack color ------------ //
 
-static v3
-v3_unpack_color(u32 color) {
+static v3 v3_unpack_color(u32 color) {
   return V3(
     ((color & 0x000000ff) >> 0)  / 256.0f,
     ((color & 0x0000ff00) >> 8)  / 256.0f,
     ((color & 0x00ff0000) >> 16) / 256.0f);
 }
 
-static v4
-v4_unpack_color(u32 color) {
+static v4 v4_unpack_color(u32 color) {
   return V4(
     ((color & 0x000000ff) >> 0)  / 256.0f,
     ((color & 0x0000ff00) >> 8)  / 256.0f,
@@ -656,23 +630,20 @@ static v2i v2i_mul(v2i a, v2i b) { return V2i(a.x * b.x, a.y * b.y); }
 static v3i v3i_mul(v3i a, v3i b) { return V3i(a.x * b.x, a.y * b.y, a.z * a.z); }
 static v4i v4i_mul(v4i a, v4i b) { return V4i(a.x * b.x, a.y * b.y, a.z * a.z, a.w * a.w); }
 
-static v2
-m2_mulv(m2 m, v2 u) {
+static v2 m2_mulv(m2 m, v2 u) {
   return V2(
     m.e[0] * u.x + m.e[2] * u.y,
     m.e[1] * u.x + m.e[3] * u.y);
 }
 
-static v3
-m3_mulv(m3 m, v3 u) {
+static v3 m3_mulv(m3 m, v3 u) {
   return V3(
     m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
     m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
     m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z);
 }
 
-static v4
-m4_mulv(m4 m, v4 u) {
+static v4 m4_mulv(m4 m, v4 u) {
   return V4(
     m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
     m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
@@ -680,8 +651,7 @@ m4_mulv(m4 m, v4 u) {
     m.e[3] * u.x + m.e[7] * u.y + m.e[11] * u.z + m.e[15] * u.w);
 }
 
-static m2
-m2_mul(m2 a, m2 b) {
+static m2 m2_mul(m2 a, m2 b) {
   return M2(
     a.e[0] * b.e[0] + a.e[2] * b.e[1],
     a.e[1] * b.e[0] + a.e[3] * b.e[1],
@@ -689,8 +659,7 @@ m2_mul(m2 a, m2 b) {
     a.e[1] * b.e[2] + a.e[3] * b.e[3]);
 }
 
-static m3
-m3_mul(m3 a, m3 b) {
+static m3 m3_mul(m3 a, m3 b) {
   return M3(
     a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
     a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
@@ -705,8 +674,7 @@ m3_mul(m3 a, m3 b) {
     a.e[2] * b.e[6] + a.e[5] * b.e[7]  + a.e[8] * b.e[8]);
 }
 
-static m4
-m4_mul(m4 a, m4 b) {
+static m4 m4_mul(m4 a, m4 b) {
   return M4(
     a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
     a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
@@ -729,8 +697,7 @@ m4_mul(m4 a, m4 b) {
     a.e[3] * b.e[12] + a.e[7] * b.e[13] + a.e[11] * b.e[14] + a.e[15] * b.e[15]);
 }
 
-static quat_t
-quat_mul(quat_t a, quat_t b) {
+static quat_t quat_mul(quat_t a, quat_t b) {
   return Quat(
     a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
     a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -962,14 +929,12 @@ static f32 dist(v4 a, v4 b) { return sqrt32(v4_dist_sq(a, b)); }
 
 // -------------- manhattan distance -------------- //
 
-static i32
-v2i_manhattan(v2i a, v2i b) {
+static i32 v2i_manhattan(v2i a, v2i b) {
   v2i diff = v2i_sub(a, b);
   return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y);
 }
 
-static i32
-v3i_manhattan(v3i a, v3i b) {
+static i32 v3i_manhattan(v3i a, v3i b) {
   v3i diff = v3i_sub(a, b);
   return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y) + (0x7ffffffff & diff.z);
 }
@@ -997,24 +962,22 @@ static v4 norm(v4 u) { return v4_scale(u, rsqrt32(v4_dot(u, u))); }
 
 // -------------- project --------------- //
 
-static v2
-v2_project(v2 a, v2 b) {
+static v2 v2_project(v2 a, v2 b) {
   f32 d = v2_dot(b, b);
-  if (d == 0) return V2(0);
+  if (d == 0) return V2(0, 0);
   return v2_scale(b, v2_dot(a, b) / d);
 }
 
-static v3
-v3_project(v3 a, v3 b) {
+static v3 v3_project(v3 a, v3 b) {
   f32 d = v3_dot(b, b);
-  if (d == 0) return V3(0);
+  if (d == 0) return V3(0, 0, 0);
   return v3_scale(b, v3_dot(a, b) / d);
 }
 
 #ifdef __cplusplus
 
-struct v2 project(v2 a, v2 b) { return v2_project(a, b); }
-struct v3 project(v3 a, v3 b) { return v3_project(a, b); }
+static v2 project(v2 a, v2 b) { return v2_project(a, b); }
+static v3 project(v3 a, v3 b) { return v3_project(a, b); }
 
 #endif
 
@@ -1048,60 +1011,52 @@ static v4 ceil(v4 u) { return V4(ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w))
 
 // -------------- clamp --------------- //
 
-static v2
-v2_clampf(v2 u, f32 min, f32 max) {
+static v2 v2_clampf(v2 u, f32 min, f32 max) {
   return V2(
     Clamp(u.x, min, max),
     Clamp(u.y, min, max));
 }
 
-static v3
-v3_clampf(v3 u, f32 min, f32 max) {
+static v3 v3_clampf(v3 u, f32 min, f32 max) {
   return V3(
     Clamp(u.x, min, max),
     Clamp(u.y, min, max),
     Clamp(u.z, min, max));
 }
 
-static v2i
-v2i_clampi(v2i u, f32 min, f32 max) {
+static v2i v2i_clampi(v2i u, f32 min, f32 max) {
   return V2i(
     (i32)Clamp(u.x, min, max),
     (i32)Clamp(u.y, min, max));
 }
 
-static v3i
-v3i_clampi(v3i u, f32 min, f32 max) {
+static v3i v3i_clampi(v3i u, f32 min, f32 max) {
   return V3i(
     (i32)Clamp(u.x, min, max),
     (i32)Clamp(u.y, min, max),
     (i32)Clamp(u.z, min, max));
 }
 
-static v2
-v2_clamp(v2 u, r2 r) {
+static v2 v2_clamp(v2 u, r2 r) {
   return V2(
     Clamp(u.x, r.min.x, r.max.x),
     Clamp(u.y, r.min.y, r.max.y));
 }
 
-static v3
-v3_clamp(v3 u, r3 r) {
+static v3 v3_clamp(v3 u, r3 r) {
   return V3(
     Clamp(u.x, r.min.x, r.max.x),
     Clamp(u.y, r.min.y, r.max.y),
     Clamp(u.z, r.min.z, r.max.z));
 }
 
-static v2i
-v2i_clamp(v2i u, r2i r) {
+static v2i v2i_clamp(v2i u, r2i r) {
   return V2i(
     Clamp(u.x, r.min.x, r.max.x),
     Clamp(u.y, r.min.y, r.max.y));
 }
 
-static v3i
-v3i_clamp(v3i u, r3i r) {
+static v3i v3i_clamp(v3i u, r3i r) {
   return V3i(
     Clamp(u.x, r.min.x, r.max.x),
     Clamp(u.y, r.min.y, r.max.y),
@@ -1126,23 +1081,20 @@ static v3i clamp(v3i u, r3i r) { return v3i_clamp(u, r); }
 
 // ---------------- min ----------------- //
 
-static v2
-v2_min(v2 a, v2 b) {
+static v2 v2_min(v2 a, v2 b) {
   return V2(
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y);
 }
 
-static v3
-v3_min(v3 a, v3 b) {
+static v3 v3_min(v3 a, v3 b) {
   return V3(
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z);
 }
 
-static v4
-v4_min(v4 a, v4 b) {
+static v4 v4_min(v4 a, v4 b) {
   return V4(
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
@@ -1150,23 +1102,20 @@ v4_min(v4 a, v4 b) {
     a.w < b.w? a.w : b.w);
 }
 
-static v2i
-v2i_min(v2i a, v2i b) {
+static v2i v2i_min(v2i a, v2i b) {
   return V2i(
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y);
 }
 
-static v3i
-v3i_min(v3i a, v3i b) {
+static v3i v3i_min(v3i a, v3i b) {
   return V3i(
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z);
 }
 
-static v4i
-v4i_min(v4i a, v4i b) {
+static v4i v4i_min(v4i a, v4i b) {
   return V4i(
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
@@ -1188,23 +1137,20 @@ static v4i min(v4i a, v4i b) { return v4i_min(a, b); }
 
 // ---------------- max ----------------- //
 
-static v2
-v2_max(v2 a, v2 b) {
+static v2 v2_max(v2 a, v2 b) {
   return V2(
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y);
 }
 
-static v3
-v3_max(v3 a, v3 b) {
+static v3 v3_max(v3 a, v3 b) {
   return V3(
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z);
 }
 
-static v4
-v4_max(v4 a, v4 b) {
+static v4 v4_max(v4 a, v4 b) {
   return V4(
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
@@ -1212,23 +1158,20 @@ v4_max(v4 a, v4 b) {
     a.w > b.w? a.w : b.w);
 }
 
-static v2i
-v2i_max(v2i a, v2i b) {
+static v2i v2i_max(v2i a, v2i b) {
   return V2i(
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y);
 }
 
-static v3i
-v3i_max(v3i a, v3i b) {
+static v3i v3i_max(v3i a, v3i b) {
   return V3i(
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z);
 }
 
-static v4i
-v4i_max(v4i a, v4i b) {
+static v4i v4i_max(v4i a, v4i b) {
   return V4i(
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
@@ -1250,23 +1193,20 @@ static v4i max(v4i a, v4i b) { return v4i_max(a, b); }
 
 // ---------------- lerp ----------------- //
 
-static v2
-v2_lerp(v2 a, v2 b, f32 t) {
+static v2 v2_lerp(v2 a, v2 b, f32 t) {
   return V2(
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y));
 }
 
-static v3
-v3_lerp(v3 a, v3 b, f32 t) {
+static v3 v3_lerp(v3 a, v3 b, f32 t) {
   return V3(
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
     a.z + t * (b.z - a.z));
 }
 
-static v4
-v4_lerp(v4 a, v4 b, f32 t) {
+static v4 v4_lerp(v4 a, v4 b, f32 t) {
   return V4(
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
@@ -1306,8 +1246,7 @@ static v4i sign(v4i u) { return v4i_sign(u); }
 
 // --------------- cross ------------------- //
 
-static v3
-v3_cross(v3 a, v3 b) {
+static v3 v3_cross(v3 a, v3 b) {
   return V3(
     a.y * b.z - a.z * b.y,
     a.z * b.x - a.x * b.z,
@@ -1322,8 +1261,7 @@ static v3 cross(v3 a, v3 b) { return v3_cross(a, b); }
 
 // --------------- get angle ------------------- //
 
-static f32
-v2_get_angle(v2 a, v2 b) {
+static f32 v2_get_angle(v2 a, v2 b) {
   f32 det = a.x * b.y - b.x * a.y;
   f32 dot = a.x * b.x + a.y * b.y;
   return atan2f(det, dot);
@@ -1337,8 +1275,7 @@ static f32 get_angle(v2 a, v2 b) { return v2_get_angle(a, b); }
 
 // ----------- keep min ---------- //
 
-static v3
-v3_keep_min(v3 u) {
+static v3 v3_keep_min(v3 u) {
   f32 dx = fabsf(u.x);
   f32 dy = fabsf(u.y);
   f32 dz = fabsf(u.z);
@@ -1356,8 +1293,7 @@ static v3 keep_min(v3 u) { return v3_keep_min(u); }
 
 // ----------- mask min ---------- //
 
-static v3
-v3_mask_min(v3 u) {
+static v3 v3_mask_min(v3 u) {
   f32 dx = fabsf(u.x);
   f32 dy = fabsf(u.y);
   f32 dz = fabsf(u.z);
@@ -1377,16 +1313,14 @@ static v3 mask_min(v3 u) { return v3_mask_min(u); }
 
 // ------------------ transform/scale/rotate ------------------ //
 
-static m2
-m2_rotate(f32 angle) {
+static m2 m2_rotate(f32 angle) {
   f32 c = cosf(angle);
   f32 s = sinf(angle);
 
   return M2(c, s, -s, c);
 }
 
-static m3
-m3_rotate(v3 axis, f32 angle) {
+static m3 m3_rotate(v3 axis, f32 angle) {
   f32 c = cosf(angle);
   f32 s = sinf(angle);
   f32 k = 1.0f - c;
@@ -1406,8 +1340,7 @@ m3_rotate(v3 axis, f32 angle) {
     omca.z * axis.z + c);
 }
 
-static m4
-m4_rotate(v3 axis, f32 angle) {
+static m4 m4_rotate(v3 axis, f32 angle) {
   f32 cosv = cosf(angle);
   f32 sinv = sinf(angle);
   f32 inv_cosv = 1.0f - cosv;
@@ -1422,15 +1355,13 @@ m4_rotate(v3 axis, f32 angle) {
     0, 0, 0, 1);
 }
 
-static quat_t
-quat_rotate(v3 axis, f32 angle) {
+static quat_t quat_rotate(v3 axis, f32 angle) {
   f32 s = sinf(0.5f * angle);
   v3 v = { s * axis.x, s * axis.y, s * axis.z };
   return Quat(v.x, v.y, v.z, cosf(0.5f * angle));
 }
 
-static m4
-m4_translate(f32 x, f32 y, f32 z) {
+static m4 m4_translate(f32 x, f32 y, f32 z) {
   return M4(
     1, 0, 0, 0,
     0, 1, 0, 0,
@@ -1438,8 +1369,7 @@ m4_translate(f32 x, f32 y, f32 z) {
     x, y, z, 1);
 }
 
-static m4
-m4_scale(f32 x, f32 y, f32 z) {
+static m4 m4_scale(f32 x, f32 y, f32 z) {
   return M4(
     x, 0, 0, 0,
     0, y, 0, 0,
@@ -1449,8 +1379,7 @@ m4_scale(f32 x, f32 y, f32 z) {
 
 // --------------- from quat --------------- //
 
-static m3
-m3_from_quat(quat_t q) {
+static m3 m3_from_quat(quat_t q) {
   f32 a = q.w;
   f32 b = q.x;
   f32 c = q.y;
@@ -1475,8 +1404,7 @@ m3_from_quat(quat_t q) {
     a2 - b2 - c2 + d2);
 }
 
-static m4
-m4_from_quat(quat_t q) {
+static m4 m4_from_quat(quat_t q) {
   f32 a = q.w;
   f32 b = q.x;
   f32 c = q.y;
@@ -1511,32 +1439,15 @@ m4_from_quat(quat_t q) {
 
 // --------------- view matricies --------------- //
 
-static m4
-m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
+static m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
   return M4(
-    2 / (r - l),
-    0,
-    0,
-    0,
-
-    0,
-    2 / (t - b),
-    0,
-    0,
-
-    0,
-    0, 
-    -2 / (f - n),
-    0,
-
-    -(r + l) / (r - l),
-    -(t + b) / (t - b),
-    -(f + n) / (f - n),
-    1);
+    2 / (r - l), 0, 0, 0,
+    0, 2 / (t - b), 0, 0,
+    0, 0, -2 / (f - n), 0,
+    -(r + l) / (r - l), -(t + b) / (t - b), -(f + n) / (f - n), 1);
 }
 
-static m4
-m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
+static m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
   f32 a = 1.0f / tanf(y_fov / 2.0f);
 
   return M4(
@@ -1546,8 +1457,7 @@ m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
     0, 0, -((2 * f * n) / (f - n)), 0);
 }
 
-static m4
-m4_look_at(v3 eye, v3 center, v3 up) {
+static m4 m4_look_at(v3 eye, v3 center, v3 up) {
   v3 f = v3_norm(v3_sub(center, eye));
   v3 s = v3_norm(v3_cross(f, up));
   v3 t = v3_cross(s, f);
@@ -1589,8 +1499,7 @@ typedef struct frustum {
   plane_t planes[6];
 } frustum_t;
 
-static plane_t
-plane_normalize(plane_t p) {
+static plane_t plane_normalize(plane_t p) {
   f32 r_len = rsqrt32(p.a * p.a + p.b * p.b + p.c * p.c);
 
   p.a = p.a * r_len;
@@ -1601,8 +1510,7 @@ plane_normalize(plane_t p) {
   return p;
 }
 
-static frustum_t
-frustum_create(m4 m) {
+static frustum_t frustum_create(m4 m) {
   frustum_t result;
 
   // left clipping plane
@@ -1653,50 +1561,43 @@ frustum_create(m4 m) {
 
 // ------------------ contains ------------------ //
 
-static b32
-circle_contains(circle_t c, v2 pos) {
+static b32 circle_contains(circle_t c, v2 pos) {
   f32 distance = v2_dist_sq(c.pos, pos);
   return distance < (c.rad * c.rad);
 }
 
-static b32
-sphere_contains(sphere_t s, v3 pos) {
+static b32 sphere_contains(sphere_t s, v3 pos) {
   f32 distance = v3_dist_sq(s.pos, pos);
   return distance < (s.rad * s.rad);
 }
 
-static b32
-r2_contains(r2 rect, v2 pos) {
+static b32 r2_contains(r2 rect, v2 pos) {
   if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
   if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
   return true;
 }
 
-static b32
-r3_contains(r3 rect, v3 pos) {
-  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-  if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
-  return true;
-}
-
-static b32
-r2i_contains(r2i rect, v2i pos) {
-  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-  return true;
-}
-
-static b32
-r3i_contains(r3i rect, v3i pos) {
+static b32 r3_contains(r3 rect, v3 pos) {
   if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
   if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
   if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
   return true;
 }
 
-static b32
-frustum_contains(frustum_t fs, v3 pos) {
+static b32 r2i_contains(r2i rect, v2i pos) {
+  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+  return true;
+}
+
+static b32 r3i_contains(r3i rect, v3i pos) {
+  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
+  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
+  if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
+  return true;
+}
+
+static b32 frustum_contains(frustum_t fs, v3 pos) {
   for (i32 i = 0; i < 6; i++) {
     if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0)
       return false;
@@ -1719,16 +1620,14 @@ static b32 contains(frustum_t fs, v3 pos) { return frustum_contains(fs, pos); }
 
 // ------------------ intersect ------------------ //
 
-static b32
-circle_intersect(circle_t a, circle_t b) {
+static b32 circle_intersect(circle_t a, circle_t b) {
   f32 dx  = b.pos.x - a.pos.x;
   f32 dy  = b.pos.y - a.pos.y;
   f32 rt  = a.rad + b.rad;
   return (dx * dx + dy * dy) < (rt * rt);
 }
 
-static b32
-sphere_intersect(sphere_t a, sphere_t b) {
+static b32 sphere_intersect(sphere_t a, sphere_t b) {
   f32 dx = b.pos.x - a.pos.x;
   f32 dy = b.pos.y - a.pos.y;
   f32 dz = b.pos.z - a.pos.z;
@@ -1736,32 +1635,13 @@ sphere_intersect(sphere_t a, sphere_t b) {
   return (dx * dx + dy * dy) < (rt * rt);
 }
 
-static b32
-r2_intersect(r2 a, r2 b) {
+static b32 r2_intersect(r2 a, r2 b) {
   if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
   if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
   return true;
 }
 
-static b32
-r3_intersect(r3 a, r3 b) {
-  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-  if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
-
-  return true;
-}
-
-static b32
-r2i_intersect(r2i a, r2i b) {
-  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-
-  return true;
-}
-
-static b32
-r3i_intersect(r3i a, r3i b) {
+static b32 r3_intersect(r3 a, r3 b) {
   if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
   if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
   if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
@@ -1769,8 +1649,22 @@ r3i_intersect(r3i a, r3i b) {
   return true;
 }
 
-static b32
-frustum_intersect_sphere(frustum_t fs, sphere_t sphere) {
+static b32 r2i_intersect(r2i a, r2i b) {
+  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+
+  return true;
+}
+
+static b32 r3i_intersect(r3i a, r3i b) {
+  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
+  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
+  if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
+
+  return true;
+}
+
+static b32 frustum_intersect_sphere(frustum_t fs, sphere_t sphere) {
   for (i32 i = 0; i < 6; i++) {
     if(fs.planes[i].a * sphere.pos.x + fs.planes[i].b * sphere.pos.y + fs.planes[i].c * sphere.pos.z + fs.planes[i].d <= -sphere.rad) {
       return false;
@@ -1779,8 +1673,7 @@ frustum_intersect_sphere(frustum_t fs, sphere_t sphere) {
   return true;
 }
 
-static b32
-frustum_intersect_r3(frustum_t fs, r3 rect) {
+static b32 frustum_intersect_r3(frustum_t fs, r3 rect) {
   for (int i = 0; i < 6; i++) {
     if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
@@ -1810,29 +1703,25 @@ static b32 intersect(frustum_t fs, r3 rect)         { return frustum_intersect_r
 
 // ------------------- get overlap --------------- //
 
-static r2
-r2_get_overlap(r2 a, r2 b) {
+static r2 r2_get_overlap(r2 a, r2 b) {
   return R2(
     v2_max(a.min, b.min),
     v2_min(a.max, b.max));
 }
 
-static r3
-r3_get_overlap(r3 a, r3 b) {
+static r3 r3_get_overlap(r3 a, r3 b) {
   return R3(
     v3_max(a.min, b.min),
     v3_min(a.max, b.max));
 }
 
-static r2i
-r2i_get_overlap(r2i a, r2i b) {
+static r2i r2i_get_overlap(r2i a, r2i b) {
   return R2i(
     v2i_max(a.min, b.min),
     v2i_min(a.max, b.max));
 }
 
-static r3i
-r3i_get_overlap(r3i a, r3i b) {
+static r3i r3i_get_overlap(r3i a, r3i b) {
   return R3i(
     v3i_max(a.min, b.min),
     v3i_min(a.max, b.max));
@@ -1849,24 +1738,21 @@ static r3i overlap(r3i a, r3i b) { return r3i_get_overlap(a, b); }
 
 // -------------- get intersect vector ---------- //
 
-static v2
-circle_get_intersect_vector(circle_t a, circle_t b) {
+static v2 circle_get_intersect_vector(circle_t a, circle_t b) {
   v2  delta = v2_sub(a.pos, b.pos);
   f32 depth = v2_len(delta) - (a.rad + b.rad);
 
   return v2_scale(delta, -depth);
 }
 
-static v3
-sphere_get_intersect_vector(sphere_t a, sphere_t b) {
+static v3 sphere_get_intersect_vector(sphere_t a, sphere_t b) {
   v3 delta = v3_sub(a.pos, b.pos);
   f32 depth = v3_len(delta) - (a.rad + b.rad);
 
   return v3_scale(delta, -depth);
 }
 
-static v2
-r2_get_intersect_vector(r2 a, r2 b) {
+static v2 r2_get_intersect_vector(r2 a, r2 b) {
   r2 overlap  = r2_get_overlap(a, b);
   v2 delta = {
     0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
@@ -1875,8 +1761,7 @@ r2_get_intersect_vector(r2 a, r2 b) {
   return v2_mul(v2_sub(overlap.max, overlap.min), v2_sign(delta));
 }
 
-static v3
-r3_get_intersect_vector(r3 a, r3 b) {
+static v3 r3_get_intersect_vector(r3 a, r3 b) {
   r3 overlap = r3_get_overlap(a, b);
   v3 delta = {
     0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
@@ -1886,8 +1771,7 @@ r3_get_intersect_vector(r3 a, r3 b) {
   return v3_mul(v3_sub(overlap.max, overlap.min), v3_sign(delta));
 }
 
-static v2i
-r2i_get_intersect_vector(r2i a, r2i b) {
+static v2i r2i_get_intersect_vector(r2i a, r2i b) {
   r2i overlap = r2i_get_overlap(a, b);
   v2i delta = {
     (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
@@ -1896,8 +1780,7 @@ r2i_get_intersect_vector(r2i a, r2i b) {
   return v2i_mul(v2i_sub(overlap.max, overlap.min), v2i_sign(delta));
 }
 
-static v3i
-r3i_get_intersect_vector(r3i a, r3i b) {
+static v3i r3i_get_intersect_vector(r3i a, r3i b) {
   r3i overlap = r3i_get_overlap(a, b);
   v3i delta = {
     (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
@@ -1920,8 +1803,7 @@ static v3i get_intersect_vector(r3i a, r3i b)           { return r3i_get_interse
 
 // ---------------------- random ------------------------ //
 
-static u32
-rand_u32(u32* state) {
+static u32 rand_u32(u32* state) {
   u32 x = *state;
   x ^= x << 13;
   x ^= x >> 17;
@@ -1930,43 +1812,36 @@ rand_u32(u32* state) {
 }
 
 // [min, max)
-static i32
-rand_i32(u32* state, i32 min, i32 max) {
+static i32 rand_i32(u32* state, i32 min, i32 max) {
   assert(min < max);
   return min + rand_u32(state) % (max - min);
 }
 
-static f32
-rand_f32(u32* state, f32 min, f32 max) {
+static f32 rand_f32(u32* state, f32 min, f32 max) {
   return min + ((f32)rand_u32(state) / (f32)0xffffffff) * (max - min); 
 }
 
-static v2
-rand_unit_v2(u32* state) {
+static v2 rand_unit_v2(u32* state) {
   v2 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
   return v2_norm(out);
 }
 
-static v3
-rand_unit_v3(u32* state) {
+static v3 rand_unit_v3(u32* state) {
   v3 out = { rand_f32(state, -1, 1), rand_f32(state, -1, 1), rand_f32(state, -1, 1) };
   return v3_norm(out);
 }
 
-static v2
-rand_v2(u32* state, f32 min, f32 max) {
+static v2 rand_v2(u32* state, f32 min, f32 max) {
   return v2_scale(rand_unit_v2(state), rand_f32(state, min, max));
 }
 
-static v3
-rand_v3(u32* state, f32 min, f32 max) {
+static v3 rand_v3(u32* state, f32 min, f32 max) {
   return v3_scale(rand_unit_v3(state), rand_f32(state, min, max));
 }
 
 // ----------------------- hash ------------------------- //
 
-static u32
-hash_u32(u32 a) {
+static u32 hash_u32(u32 a) {
   a = (a ^ 61) ^ (a >> 16);
   a = a + (a << 3);
   a = a ^ (a >> 4);
@@ -1976,15 +1851,13 @@ hash_u32(u32 a) {
   return a;
 }
 
-static u32
-hash_i32(i32 a) {
+static u32 hash_i32(i32 a) {
   union { u32 u; i32 i; } convert;
   convert.i = a;
   return hash_u32(convert.u);
 }
 
-static u32
-hash_str(const char* str) {
+static u32 hash_str(const char* str) {
   u32 hash = 0;
   while (*str) {
     hash = (hash << 7) + (hash >> 25) + *str++;
@@ -2027,8 +1900,7 @@ static const u32 crc_table[] = {
   0xafb010b1, 0xab710d06, 0xa6322bdf, 0xa2f33668, 0xbcb4666d, 0xb8757bda, 0xb5365d03, 0xb1f740b4
 };
 
-static u32
-hash_mem(const void *data, u32 size) {
+static u32 hash_mem(const void *data, u32 size) {
   const u8 *d = (const u8*)data;
   u32 crc = 0xFFFFFFFF;
   while (size--) {
@@ -2043,23 +1915,20 @@ hash_mem(const void *data, u32 size) {
 #define HASH_PRIME2 4280703257u
 #define HASH_PRIME3 1609059329u
 
-static u32
-hash_v2i(v2i k) {
+static u32 hash_v2i(v2i k) {
   u32 a = hash_i32(k.x);
   u32 b = hash_i32(k.y);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
-static u32
-hash_v3i(v3i k) {
+static u32 hash_v3i(v3i k) {
   u32 a = hash_i32(k.x);
   u32 b = hash_i32(k.y);
   u32 c = hash_i32(k.z);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
 }
 
-static u32
-hash_v4i(v4i k) {
+static u32 hash_v4i(v4i k) {
   u32 a = hash_i32(k.x);
   u32 b = hash_i32(k.y);
   u32 c = hash_i32(k.z);
@@ -2069,8 +1938,7 @@ hash_v4i(v4i k) {
 
 // --------------------- packed color u32 -------------------- //
 
-static u32
-pack_color_u8(u8 r, u8 g, u8 b, u8 a) {
+static u32 pack_color_u8(u8 r, u8 g, u8 b, u8 a) {
   u32 color = 0;
   color |= (u32)(r) << 0;
   color |= (u32)(g) << 8;
@@ -2079,18 +1947,15 @@ pack_color_u8(u8 r, u8 g, u8 b, u8 a) {
   return color;
 }
 
-static u32
-pack_color_f32(f32 r, f32 g, f32 b, f32 a) {
+static u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a) {
   return pack_color_u8((u8)(255 * r), (u8)(255 * g), (u8)(255 * b), (u8)(255 * a));
 }
 
-static u32
-pack_color_v4(v4 color) {
+static u32 pack_color_v4(v4 color) {
   return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
-static u32
-pack_color_v3(v3 color, f32 a) {
+static u32 pack_color_v3(v3 color, f32 a) {
   return pack_color_f32(color.r, color.g, color.b, a);
 }
 
@@ -2106,18 +1971,15 @@ struct priority_queue {
   struct queue_node* array;
 };
 
-static b32
-pq_empty(const struct priority_queue* queue) {
+static b32 pq_empty(const struct priority_queue* queue) {
   return queue->len == 0;
 }
 
-static void
-pq_clear(struct priority_queue* queue) {
+static void pq_clear(struct priority_queue* queue) {
   queue->len = 0;
 }
 
-static void
-pq_push(struct priority_queue* queue, v2i e, f32 weight) {
+static void pq_push(struct priority_queue* queue, v2i e, f32 weight) {
   struct queue_node node = { weight, e };
   int i = queue->len + 1;
   int j = i / 2;
@@ -2130,8 +1992,7 @@ pq_push(struct priority_queue* queue, v2i e, f32 weight) {
   queue->len++;
 }
 
-static f32
-pq_pop(v2i* out, struct priority_queue* queue) {
+static f32 pq_pop(v2i* out, struct priority_queue* queue) {
   struct queue_node data = queue->array[1];
   queue->array[1] = queue->array[queue->len];
   queue->len--;
@@ -2139,10 +2000,12 @@ pq_pop(v2i* out, struct priority_queue* queue) {
   while (i != queue->len + 1) {
     int k = queue->len + 1;
     int j = 2 * i;
-    if (j <= queue->len && queue->array[j].weight < queue->array[k].weight)
+    if (j <= queue->len && queue->array[j].weight < queue->array[k].weight) {
       k = j;
-    if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight)
+    }
+    if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight) {
       k = j + 1;
+    }
     queue->array[i] = queue->array[k];
     i = k;
   }
@@ -2152,8 +2015,7 @@ pq_pop(v2i* out, struct priority_queue* queue) {
 
 // -------------------- f64 matrix funcs ------------------- //
 
-static void
-f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
+static void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
   f64 M[16];
 
   M[0]  = a[0] * b[0]  + a[4] * b[1]  + a[8]  * b[2]  + a[12] * b[3];
@@ -2197,8 +2059,7 @@ f4x4_mul_64(f64 *R, const f64 *a, const f64 *b) {
   R[15] = M[15];
 }
 
-static void
-f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
+static void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
   f64 r[4];
 
   r[0] = M[0] * v[0] + M[4] * v[1] + M[8]  * v[2] + M[12] * v[3];
@@ -2212,8 +2073,7 @@ f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v) {
   out[3] = r[3];
 }
 
-static void
-f4x4_invert_64(f64* T, const f64* M) {
+static void f4x4_invert_64(f64* T, const f64* M) {
   f64 s[6], c[6];
 
   s[0] = M[0] * M[5] - M[4] * M[1];
@@ -2254,8 +2114,7 @@ f4x4_invert_64(f64* T, const f64* M) {
   T[15] = ( M[8]  * s[3] - M[9]  * s[1] + M[10] * s[0]) * idet;
 }
 
-static b32
-f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
+static b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* projection, int* viewport) {
   f64 fTempo[8];
 
   fTempo[0] = modelview[0] * objx + modelview[4] * objy + modelview[8]  * objz + modelview[12];
@@ -2284,8 +2143,7 @@ f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* modelview, f64* 
   return true;
 }
 
-static b32
-f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
+static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport) {
   f64 m[16], A[16];
   f64 in[4], out[4];
 
@@ -2319,16 +2177,14 @@ typedef struct image {
   u32* pixels;
 } image_t;
 
-static u32
-image_get(const image_t* img, i32 x, i32 y) {
+static u32 image_get(const image_t* img, i32 x, i32 y) {
   assert(x >= 0 && x < img->width);
   assert(y >= 0 && y < img->height);
 
   return img->pixels[y * img->width + x];
 }
 
-static void
-image_set(image_t* img, i32 x, i32 y, u32 pixel) {
+static void image_set(image_t* img, i32 x, i32 y, u32 pixel) {
   assert(x >= 0 && x < img->width);
   assert(y >= 0 && y < img->height);
   img->pixels[y * img->width + x] = pixel;
@@ -2336,22 +2192,19 @@ image_set(image_t* img, i32 x, i32 y, u32 pixel) {
 
 // ===================================== MEM STUFF ================================= //
 
-static void
-m_clear(void* data, usize size) {
+static void m_clear(void* data, usize size) {
   volatile u8* d = (u8*)data;
   while (size--)
     *(d++) = 0;
 }
 
-static void
-m_set(void* data, u8 value, usize size) {
+static void m_set(void* data, u8 value, usize size) {
   volatile u8* d = (u8*)data;
   while (size--)
     *(d++) = value;
 }
 
-static void
-m_copy(void* dst, const void* src, usize size) {
+static void m_copy(void* dst, const void* src, usize size) {
   volatile u8* d = (u8*)dst;
   volatile const u8* s = (u8*)src;
   while (size--)
@@ -2360,6 +2213,7 @@ m_copy(void* dst, const void* src, usize size) {
 
 // --------------------- allocator interface ---------------------- //
 
+#if 0
 typedef u32 mem_tag;
 enum {
   mem_tag_alloc,
@@ -2388,8 +2242,7 @@ typedef struct mem_allocator {
 #define mem_type(allocator, type)         (type*)mem_zero(allocator, sizeof (type))
 #define mem_array(allocator, type, size)  (type*)mem_zero(allocator, (size) * sizeof (type))
 
-static void*
-mem_alloc(mem_allocator_t allocator, usize size) {
+static void* mem_alloc(mem_allocator_t allocator, usize size) {
   mem_alloc_desc_t desc = ATS_INIT;
 
   desc.tag = mem_tag_alloc;
@@ -2399,8 +2252,7 @@ mem_alloc(mem_allocator_t allocator, usize size) {
   return allocator.proc(desc);
 }
 
-static void*
-mem_resize(mem_allocator_t allocator, void* pointer, usize size) {
+static void* mem_resize(mem_allocator_t allocator, void* pointer, usize size) {
   mem_alloc_desc_t desc = ATS_INIT;
 
   desc.tag = mem_tag_resize;
@@ -2411,8 +2263,7 @@ mem_resize(mem_allocator_t allocator, void* pointer, usize size) {
   return allocator.proc(desc);
 }
 
-static void
-mem_free(mem_allocator_t allocator, void* pointer) {
+static void mem_free(mem_allocator_t allocator, void* pointer) {
   mem_alloc_desc_t desc = ATS_INIT;
 
   desc.tag = mem_tag_free;
@@ -2422,13 +2273,13 @@ mem_free(mem_allocator_t allocator, void* pointer) {
   allocator.proc(desc);
 }
 
-static void*
-mem_zero(mem_allocator_t allocator, usize size) {
+static void* mem_zero(mem_allocator_t allocator, usize size) {
   void* memory = mem_alloc(allocator, size);
   memset(memory, 0, size);
   return memory;
 }
 
+#endif
 // ---------------------- arena allocator ------------------------ //
 
 typedef struct mem_arena {
@@ -2443,19 +2294,17 @@ typedef struct mem_arena {
   usize max;
 } mem_arena_t;
 
-#define mem_arena_type(ma, t)           (t*)mem_arena_zero(ma, sizeof (t))
-#define mem_arena_array(ma, t, count)   (t*)mem_arena_zero(ma, (count) * sizeof (t))
+#define mem_type(ma, type_t)           (type_t*)mem_zero(ma, sizeof (type_t))
+#define mem_array(ma, type_t, count)   (type_t*)mem_zero(ma, (count) * sizeof (type_t))
+#define mem_scope(ma)                   scope_guard(mem_save(ma), mem_restore(ma))
 
-static mem_arena_t
-mem_arena_create(u8* buffer, usize size) {
-  mem_arena_t ma = {0};
-  ma.cap = size;
-  ma.buffer = buffer;
-  return ma;
+static void mem_init(mem_arena_t* ma, u8* buffer, usize size) {
+  memset(ma, 0, sizeof *ma);
+  ma->cap = size;
+  ma->buffer = buffer;
 }
 
-static void*
-mem_arena_alloc(mem_arena_t* ma, usize byte_size) {
+static void* mem_alloc(mem_arena_t* ma, usize byte_size) {
   byte_size = AlignUp(byte_size, 16);
   assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
 
@@ -2466,81 +2315,51 @@ mem_arena_alloc(mem_arena_t* ma, usize byte_size) {
   return memory;
 }
 
-static void*
-mem_arena_zero(mem_arena_t* ma, usize byte_size) {
-  void* ptr = mem_arena_alloc(ma, byte_size);;
+static void* mem_zero(mem_arena_t* ma, usize byte_size) {
+  void* ptr = mem_alloc(ma, byte_size);;
   memset(ptr, 0, byte_size);
   return ptr;
 }
 
-static void*
-mem_arena_begin(mem_arena_t* ma) {
+static void* mem_begin(mem_arena_t* ma) {
   ma->lock = true;
   return ma->buffer + ma->index;
 }
 
-static void
-mem_arena_end(mem_arena_t* ma, usize byte_size) {
+static void mem_end(mem_arena_t* ma, usize byte_size) {
   ma->index += AlignUp(byte_size, 16);
   ma->lock = false;
 }
 
-static void
-mem_arena_save(mem_arena_t* ma) {
+static void mem_save(mem_arena_t* ma) {
   assert(ma->top < ma->cap);
   ma->stack[ma->top++] = ma->index;
 }
 
-static void
-mem_arena_restore(mem_arena_t* ma) {
+static void mem_restore(mem_arena_t* ma) {
   assert(ma->top > 0);
   ma->index = ma->stack[--ma->top];
 }
 
-static void
-mem_arena_validate(mem_arena_t* ma) {
+static void mem_validate(mem_arena_t* ma) {
   assert(ma->top == 0);
-}
-
-static
-M_ALLOCATOR_PROC(mem_arena_allocator_proc) {
-  mem_arena_t* arena = (mem_arena_t*)desc.data;
-  switch (desc.tag) {
-    case mem_tag_alloc: {
-      return mem_arena_alloc(arena, desc.size);
-    } break;
-  }
-  return NULL;
-}
-
-static mem_allocator_t
-mem_arena_allocator(mem_arena_t* arena) {
-  mem_allocator_t allocator = {0};
-
-  allocator.proc = mem_arena_allocator_proc;
-  allocator.data = arena;
-
-  return allocator;
 }
 
 // ====================================== BIT STUFF =================================== //
 
-static void
-bit_set(u32* array, u32 index) {
+static void bit_set(u32* array, u32 index) {
   u32 idx = index >> 5;
   u32 bit = index & 31;
   array[idx] |= (1 << bit);
 }
 
-static b32
-bit_get(const u32* array, u32 index) {
+static b32 bit_get(const u32* array, u32 index) {
   u32 idx = index >> 5;
   u32 bit = index & 31;
   return array[idx] & (1 << bit);
 }
 
-static void
-bit_clr(u32* array, u32 index) {
+static void bit_clr(u32* array, u32 index) {
   u32 idx = index >> 5;
   u32 bit = index & 31;
   array[idx] &= ~(1 << bit);
@@ -2559,22 +2378,19 @@ typedef struct string {
 #define str(text) Make(string) { sizeof (text) - 1, text }
 #define STR(text) { sizeof (text) - 1, text }
 
-static string
-string_create(const char* str) {
+static string string_create(const char* str) {
   string s = {0};
   s.size = strlen(str);
   s.data = str;
   return s;
 }
 
-static b32
-string_equal(string a, string b) {
+static b32 string_equal(string a, string b) {
   if (a.size != b.size) return false;
   return memcmp(a.data, b.data, a.size) == 0;
 }
 
-static b32
-string_equal_cstr(string a, const char* b) {
+static b32 string_equal_cstr(string a, const char* b) {
   usize b_size = strlen(b);
   if (a.size != b_size) return false;
   return memcmp(a.data, b, a.size) == 0;
@@ -2587,8 +2403,7 @@ static b32 operator==(string a, const char* b)  { return string_equal_cstr(a, b)
 
 #endif
 
-static b32
-string_empty(string s) {
+static b32 string_empty(string s) {
   return s.size == 0;
 }
 
@@ -2601,13 +2416,11 @@ typedef struct split_iter {
   u32 sep_table[8];
 } split_iter;
 
-static b32
-split_iter_is_valid(const split_iter* it) {
+static b32 split_iter_is_valid(const split_iter* it) {
   return it->current.size;
 }
 
-static void
-split_iter_advance(split_iter* it) {
+static void split_iter_advance(split_iter* it) {
   while (*it->content && bit_get(it->del_table, *it->content) && !bit_get(it->sep_table, *it->content)) {
     it->content++;
   }
@@ -2628,8 +2441,7 @@ split_iter_advance(split_iter* it) {
   };
 }
 
-static split_iter
-split_iter_create(const char* cstr, const char* delimiters, const char* separators) {
+static split_iter split_iter_create(const char* cstr, const char* delimiters, const char* separators) {
   assert(delimiters);
   if (!separators) separators = "";
 
@@ -2667,20 +2479,17 @@ typedef struct spatial_map {
   sm_cell_t array[SPATIAL_MAX];
 } spatial_map_t;
 
-static void
-sm_clear(spatial_map_t* map) {
+static void sm_clear(spatial_map_t* map) {
   memset(map->table, 0, sizeof map->table);
   map->count = 0;
 }
 
-static u32
-sm_index(const spatial_map_t* map, v2i pos) {
+static u32 sm_index(const spatial_map_t* map, v2i pos) {
   u32 hash = hash_v2i(pos);
   return hash % ArrayCount(map->table);
 }
 
-static void
-sm_add(spatial_map_t* map, void* e, r2 e_rect) {
+static void sm_add(spatial_map_t* map, void* e, r2 e_rect) {
   r2i rect = {
     (i32)e_rect.min.x, (i32)e_rect.min.y,
     (i32)e_rect.max.x, (i32)e_rect.max.y,
@@ -2708,8 +2517,7 @@ typedef struct sm_result {
   sm_entry_t* array;
 } sm_result_t;
 
-static sm_result_t
-sm_in_range(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
+static sm_result_t sm_in_range(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
   static sm_entry_t spatial_array[SPATIAL_MAX];
 
   sm_result_t result = ATS_INIT;
@@ -2758,8 +2566,7 @@ typedef struct sm_iter {
   sm_result_t result;
 } sm_iter;
 
-static sm_iter
-sm_get_iterator(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
+static sm_iter sm_get_iterator(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
   sm_iter it = ATS_INIT;
 
   it.result = sm_in_range(map, pos, rad, ignore);
@@ -2768,19 +2575,16 @@ sm_get_iterator(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
   return it;
 }
 
-static b32
-sm_iter_is_valid(const sm_iter* it) {
+static b32 sm_iter_is_valid(const sm_iter* it) {
   return it->index < it->result.count;
 }
 
-static void
-sm_iter_advance(sm_iter* it) {
+static void sm_iter_advance(sm_iter* it) {
   it->index++;
   it->current = it->result.array + it->index;
 }
 
-static void*
-sm_get_closest(spatial_map_t* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
+static void* sm_get_closest(spatial_map_t* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
   void* result = NULL;
   f32 distance = range;
 
@@ -2807,8 +2611,7 @@ sm_get_closest(spatial_map_t* map, v2 pos, f32 range, const void* ignore, b32 (*
   return result;
 }
 
-static void*
-sm_at_position(spatial_map_t* map, v2 pos) {
+static void* sm_at_position(spatial_map_t* map, v2 pos) {
   u32 index = sm_index(map, V2i((i32)pos.x, (i32)pos.y));
 
   for (sm_cell_t* it = map->table[index]; it; it = it->next) {
@@ -2821,40 +2624,35 @@ sm_at_position(spatial_map_t* map, v2 pos) {
 
 // ============================================ RAYCAST 2D TILEMAP ========================================== //
 
-#define RAY2D_MAP_SIZE      (512)
-#define RAY2D_MOD           (511)
-#define RAY2D_ARRAY_SIZE    (8192) // (512 * 512) / 32
+#define TRAVERSE_MAP_SIZE   (512)
+#define TRAVERSE_MOD        (511)
+#define TRAVERSE_ARRAY_SIZE (8192) // (512 * 512) / 32
 
-typedef struct ray2d_map {
-  u32 array[RAY2D_ARRAY_SIZE];
-} ray2d_map_t;
+typedef struct traverse_map {
+  u32 array[TRAVERSE_ARRAY_SIZE];
+} traverse_map_t;
 
-static void
-ray2d_init(ray2d_map_t* map) {
-  memset(map, 0, sizeof (ray2d_map_t));
+static void tm_clear(traverse_map_t* map) {
+  memset(map, 0, sizeof (traverse_map_t));
 }
 
-static inline u32
-ray2d_index(const ray2d_map_t* map, u32 x, u32 y) {
-  return (y & RAY2D_MOD) * RAY2D_MAP_SIZE + (x & RAY2D_MOD);
+static inline u32 tm_index(const traverse_map_t* map, u32 x, u32 y) {
+  return (y & TRAVERSE_MOD) * TRAVERSE_MAP_SIZE + (x & TRAVERSE_MOD);
 }
 
-static inline void
-ray2d_set_traversable(ray2d_map_t* map, u32 x, u32 y) {
-  bit_set(map->array, ray2d_index(map, x, y));
+static inline void tm_set_traversable(traverse_map_t* map, u32 x, u32 y) {
+  bit_set(map->array, tm_index(map, x, y));
 }
 
-static inline b32
-ray2d_is_traversable(const ray2d_map_t* map, u32 x, u32 y) {
-  return bit_get(map->array, ray2d_index(map, x, y));
+static inline b32 tm_is_traversable(const traverse_map_t* map, u32 x, u32 y) {
+  return bit_get(map->array, tm_index(map, x, y));
 }
 
-static v2
-ray2d_cast_dir(const ray2d_map_t* map, v2 pos, v2 dir, f32 max_range) {
+static v2 tm_cast_dir(const traverse_map_t* map, v2 pos, v2 dir, f32 max_range) {
 #if 0
-  //if (!ray2d_is_traversable(map, pos.x, pos.y)) return pos;
+  //if (!tm_is_traversable(map, pos.x, pos.y)) return pos;
 #endif
-  b32 kill_on_wall_hit = ray2d_is_traversable(map, pos.x, pos.y);
+  b32 kill_on_wall_hit = tm_is_traversable(map, pos.x, pos.y);
   
   //which box of the map we're in
   int map_x = (int)(pos.x);
@@ -2911,7 +2709,7 @@ ray2d_cast_dir(const ray2d_map_t* map, v2 pos, v2 dir, f32 max_range) {
     }
 
     if (kill_on_wall_hit) {
-      if (!ray2d_is_traversable(map, map_x, map_y)) {
+      if (!tm_is_traversable(map, map_x, map_y)) {
         hit = true;
       }
     }
@@ -2923,20 +2721,18 @@ ray2d_cast_dir(const ray2d_map_t* map, v2 pos, v2 dir, f32 max_range) {
   return v2_add(pos, v2_scale(dir, (perp_wall_dist > max_range? max_range : perp_wall_dist)));
 }
 
-static v2
-ray2d_cast_angle(const ray2d_map_t* map, v2 from, f32 angle, f32 max_range) {
+static v2 tm_cast_angle(const traverse_map_t* map, v2 from, f32 angle, f32 max_range) {
   m2 rot = m2_rotate(angle);
   v2 dir = m2_mulv(rot, V2(0, 1));
 
-  return ray2d_cast_dir(map, from, dir, max_range);
+  return tm_cast_dir(map, from, dir, max_range);
 }
-
 
 // ===================================== EXTERNAL STUFF ===================================== //
 
 // -------------------------------- ats_file.c ----------------------------------- //
 
-extern char* file_read_str(const char* file_name, mem_allocator_t allocator);
+extern char* file_read_str(const char* file_name, mem_arena_t* ma);
 extern b32 file_write_str(const char* file_name, const char* buffer);
 extern b32 file_append_str(const char* file_name, const char* buffer);
 
@@ -2945,11 +2741,6 @@ extern b32 file_write_bin(const char* file_name, const void* buffer, usize size)
 
 extern image_t file_load_image(const char* path);
 extern void file_free_image(image_t* img);
-
-// ------------------------------- ats_memory.c --------------------------------- //
-
-extern mem_allocator_t mem_heap_allocator(void);
-extern mem_allocator_t mem_linear_allocator(usize size);
 
 // --------------------------- ats_texture_table.c ------------------------------ //
 
@@ -2971,7 +2762,7 @@ typedef struct texture_table {
   tt_entry_t array[TEXTURE_TABLE_SIZE];
 } texture_table_t;
 
-extern void tt_begin(int width, int height, mem_allocator_t allocator);
+extern void tt_begin(int width, int height, mem_arena_t* ma);
 extern void tt_end(void);
 extern void tt_add_image(const char* name, image_t img);
 extern void tt_load_from_dir(const char* dir_path);
@@ -3012,7 +2803,7 @@ struct at_entity {
   struct at_entity* next;
 };
 
-extern void at_begin(mem_allocator_t allocator);
+extern void at_begin(mem_arena_t* mem);
 extern void at_end(void);
 
 extern void at_add_entity(const char* name);
@@ -3105,6 +2896,7 @@ extern gl_texture_t gl_texture_create_from_image(image_t image, int is_smooth);
 extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
 
 extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
+
 extern void gl_texture_bind(const gl_texture_t* texture);
 extern void gl_texture_destroy(gl_texture_t* texture);
 
@@ -3118,7 +2910,7 @@ typedef struct gl_shader_desc {
 } gl_shader_desc_t;
 
 extern gl_shader_t gl_shader_create(const  gl_shader_desc_t* desc);
-extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator_t allocator);
+extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs,  mem_arena_t* ma);
 
 extern void gl_use(const gl_shader_t* shader);
 extern u32  gl_location(const gl_shader_t* shader, const char* name);
@@ -3454,109 +3246,6 @@ extern struct platform_t platform;
 #ifndef ATS_IMPL_ONCE
 #define ATS_IMPL_ONCE
 
-// ----------------------------------- memory impl ---------------------------------- //
-
-#include <stdlib.h>
-
-// ==================================== HEAP ALLOCATOR ================================ //
-
-static
-M_ALLOCATOR_PROC(mem_heap_allocator_proc) {
-  switch (desc.tag) {
-    case mem_tag_alloc: {
-      return malloc(desc.size);
-    } break;
-
-    case mem_tag_resize: {
-      void* new_pointer = realloc(desc.pointer, desc.size);
-      if (new_pointer != desc.pointer) {
-        free(desc.pointer);
-      }
-      return new_pointer;
-    } break;
-
-    case mem_tag_free: {
-      free(desc.pointer);
-    } break;
-  }
-  return NULL;
-}
-
-extern mem_allocator_t
-mem_heap_allocator(void) {
-  return Make(mem_allocator_t) { mem_heap_allocator_proc };
-}
-
-// ====================================== LINEAR ALLOCATOR (using chunks) ================================ //
-
-typedef struct mem_chunk_t {
-  struct mem_chunk_t* prev;
-  usize index;
-  u8 data[];
-} mem_chunk_t;
-
-typedef struct mem_linear_t {
-  usize chunk_size;
-  usize chunk_count;
-  usize memory_used;
-
-  mem_chunk_t* chunk;
-} mem_linear_t;
-
-static void*
-mem_linear_alloc(mem_linear_t* arena, usize size) {
-  arena->memory_used += size;
-
-  if (!arena->chunk || (arena->chunk->index + size > arena->chunk_size)) {
-    mem_chunk_t* chunk = (mem_chunk_t*)malloc(sizeof (mem_chunk_t) + Max(arena->chunk_size, size));
-    assert(chunk);
-
-    chunk->index = 0;
-    chunk->prev = arena->chunk;
-
-    arena->chunk = chunk;
-    arena->chunk_count++;
-  }
-
-  void* memory = arena->chunk->data + arena->chunk->index;
-  arena->chunk->index += size;
-
-  return memory;
-}
-
-static
-M_ALLOCATOR_PROC(mem_linear_allocator_proc) {
-  mem_linear_t* arena = (mem_linear_t*)desc.data;
-
-  switch (desc.tag) {
-    case mem_tag_alloc: {
-      return mem_linear_alloc(arena, desc.size);
-    } break;
-
-    case mem_tag_resize: {
-      void* memory = mem_linear_alloc(arena, desc.size);
-      if (desc.pointer) {
-        memcpy(memory, desc.pointer, desc.size);
-      }
-      return memory;
-    } break;
-  }
-  return NULL;
-}
-
-extern mem_allocator_t
-mem_linear_allocator(usize chunk_size) {
-  mem_linear_t* arena = (mem_linear_t*)calloc(1, sizeof (mem_linear_t));
-  assert(arena);
-
-  arena->chunk_size = chunk_size;
-
-  return Make(mem_allocator_t) {
-    mem_linear_allocator_proc,
-    arena,
-  };
-}
-
 // ----------------------------------- platform impl ---------------------------------- //
 
 #include "ext/GLFW/ats_glfw.h"
@@ -3572,8 +3261,7 @@ static struct {
   GLFWmonitor* monitor;
 } platform_internal;
 
-static void
-window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
+static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
   (void)window;
   (void)a;
   (void)b;
@@ -3602,14 +3290,12 @@ window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
   }
 }
 
-static void
-window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+static void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
   platform.keyboard.is_ascii  = 1;
   platform.keyboard.ascii     = codepoint;
 }
 
-static void
-window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
+static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
   (void)window;
   (void)a;
 
@@ -3629,16 +3315,14 @@ window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) 
   }
 }
 
-static void
-window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
+static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
   (void)window;
 
   platform.mouse.scroll.x = (f32)xoffset;
   platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void
-window_joystick_callback(int joy, int event) {
+static void window_joystick_callback(int joy, int event) {
   if (event == GLFW_CONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     platform.gamepad[joy].active = 1;
@@ -3649,8 +3333,7 @@ window_joystick_callback(int joy, int event) {
   }
 }
 
-extern void
-platform_init(const char* title, int width, int height, int samples) {
+extern void platform_init(const char* title, int width, int height, int samples) {
   glfwInit();
 
   platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -3715,8 +3398,7 @@ platform_init(const char* title, int width, int height, int samples) {
   platform_update();
 }
 
-extern void
-platform_update(void) {
+extern void platform_update(void) {
   if (glfwWindowShouldClose(platform_internal.window))
     platform.close = 1;
 
@@ -3836,32 +3518,27 @@ platform_update(void) {
   platform.time.total += platform.time.delta;
 }
 
-extern f64
-timer_get_current(void) {
+extern f64 timer_get_current(void) {
   return glfwGetTime();
 }
 
-extern gl_texture_t
-gl_texture_create_from_image(image_t image, int is_smooth) {
+extern gl_texture_t gl_texture_create_from_image(image_t image, int is_smooth) {
   return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
 }
 
-extern gl_texture_t
-gl_texture_load_from_file(const char* texture_path, int is_smooth) {
+extern gl_texture_t gl_texture_load_from_file(const char* texture_path, int is_smooth) {
   image_t img = file_load_image(texture_path);
   gl_texture_t texture = gl_texture_create_from_image(img, is_smooth);
   file_free_image(&img);
   return texture;
 }
 
-extern void
-gl_texture_destroy(gl_texture_t* texture) {
+extern void gl_texture_destroy(gl_texture_t* texture) {
   glDeleteTextures(1, &texture->id);
   memset(texture, 0, sizeof *texture);
 }
 
-extern v3
-gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
+extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
   GLint viewport[4] = {0};
   f64 modelview[16] = {0};
   f64 projection[16] = {0};
@@ -4152,8 +3829,7 @@ static const u64 bitascii[BITMAP_COUNT] = {
 #include <stdio.h>
 #include <stdarg.h>
 
-extern void
-gl_init(void) {
+extern void gl_init(void) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
   glClearDepth(1.0f);
 
@@ -4173,8 +3849,7 @@ gl_init(void) {
   gl_init_bitmap_font();
 }
 
-extern void
-gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z) {
+extern void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z) {
   f32 pos[4] = { x, y, z, 1.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
   f32 c[4] = { bright, bright, bright, 0.0f };
@@ -4190,8 +3865,7 @@ gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z) {
   glEnable(GL_COLOR_MATERIAL);
 }
 
-extern void
-gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
+extern void gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
   f32 d = (f32)(1.0f / sqrt32(x * x + y * y + z * z));
   f32 dir[4] = { x * d, y * d, z * d, 0.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -4208,8 +3882,7 @@ gl_set_simple_light_directed(int index, f32 bright, f32 x, f32 y, f32 z) {
   glEnable(GL_COLOR_MATERIAL);
 }
 
-extern void
-gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
+extern void gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
   f32 pos[4] = { p.x, p.y, p.z, 1.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
   f32 c[4] = { color.r, color.g, color.b, 0.0f };
@@ -4229,8 +3902,7 @@ gl_set_light_emitter(int index, v3 p, v3 color, f32 constant, f32 linear, f32 qu
   glEnable(GL_COLOR_MATERIAL);
 }
 
-extern void
-gl_set_light_directed(int index, v3 pos, v3 color) {
+extern void gl_set_light_directed(int index, v3 pos, v3 color) {
   f32 d = (f32)(1.0f / sqrt32(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
   f32 dir[4] = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -4247,14 +3919,12 @@ gl_set_light_directed(int index, v3 pos, v3 color) {
   glEnable(GL_COLOR_MATERIAL);
 }
 
-extern void
-gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
+extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
   f32 v[4] = { r, g, b, 0 };
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern gl_texture_t
-gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   assert(pixels);
 
   gl_texture_t texture = {0};
@@ -4273,8 +3943,7 @@ gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   return texture;
 }
 
-extern void
-gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -4285,8 +3954,7 @@ gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, in
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
 }
 
-extern void
-gl_texture_bind(const gl_texture_t* texture) {
+extern void gl_texture_bind(const gl_texture_t* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 
   glMatrixMode(GL_TEXTURE);
@@ -4296,46 +3964,38 @@ gl_texture_bind(const gl_texture_t* texture) {
 
 // ======================================= GL ====================================== //
 
-extern void
-gl_begin(u32 type) {
+extern void gl_begin(u32 type) {
   glBegin(type);
 }
 
-extern void
-gl_end(void) {
+extern void gl_end(void) {
   glEnd();
 }
 
-extern void
-gl_color(u32 color) {
+extern void gl_color(u32 color) {
   glColor4ubv((const u8*)&color);
 }
 
-extern void
-gl_normal(f32 x, f32 y, f32 z) {
+extern void gl_normal(f32 x, f32 y, f32 z) {
   glNormal3f(x, y, z);
 }
 
-extern void
-gl_uv(f32 x, f32 y) {
+extern void gl_uv(f32 x, f32 y) {
   glTexCoord2f(x, y);
 }
 
-extern void
-gl_vertex(f32 x, f32 y, f32 z) {
+extern void gl_vertex(f32 x, f32 y, f32 z) {
   glVertex3f(x, y, z);
 }
 
-extern void
-gl_set_matrix(m4 projection, m4 view) {
+extern void gl_set_matrix(m4 projection, m4 view) {
   glMatrixMode(GL_PROJECTION);
   glLoadMatrixf(projection.e);
   glMatrixMode(GL_MODELVIEW);
   glLoadMatrixf(view.e);
 }
 
-extern void
-gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
+extern void gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
   f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
   f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
   f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -4364,8 +4024,7 @@ gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up
   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(ax, ay, az);
 }
 
-extern void
-gl_texture_box(r2i tex_rect, r3 box, u32 color) {
+extern void gl_texture_box(r2i tex_rect, r3 box, u32 color) {
   gl_color(color);
 
   gl_normal(0, 0, -1);
@@ -4417,8 +4076,7 @@ gl_texture_box(r2i tex_rect, r3 box, u32 color) {
   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-extern void
-gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
+extern void gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
   gl_color(color);
   gl_normal(0, 0, +1);
   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
@@ -4429,8 +4087,7 @@ gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-extern void
-gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
+extern void gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
   if (flip_x) { Swap(i32, tex_rect.min.x, tex_rect.max.x); }
   if (flip_y) { Swap(i32, tex_rect.min.y, tex_rect.max.y); }
 
@@ -4444,8 +4101,7 @@ gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool 
   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-extern void
-gl_box(r3 box, u32 color) {
+extern void gl_box(r3 box, u32 color) {
   gl_color(color);
 
   gl_normal(0, 0, -1);
@@ -4497,8 +4153,7 @@ gl_box(r3 box, u32 color) {
   gl_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-extern void
-gl_rect(r2 rect, f32 z, u32 color) {
+extern void gl_rect(r2 rect, f32 z, u32 color) {
   gl_color(color);
   gl_normal(0, 0, +1);
   gl_vertex(rect.min.x, rect.min.y, z);
@@ -4513,8 +4168,7 @@ gl_rect(r2 rect, f32 z, u32 color) {
 
 static gl_texture_t bitmap_texture;
 
-extern void
-gl_init_bitmap_font(void) {
+extern void gl_init_bitmap_font(void) {
   u32 pixels[8][BITMAP_COUNT * 8] = {0};
   for (int i = 0; i < BITMAP_COUNT; ++i) {
     for (int y = 0; y < 8; ++y) {
@@ -4530,9 +4184,8 @@ gl_init_bitmap_font(void) {
   bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, false);
 }
 
-static void
-gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
-  r2 tex_rect = { c * 8 + 0.1, 0.1, c * 8 + 7.9, 7.9 };
+static void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
+  r2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
   r2 rect = { x, y, x + sx, y + sy };
 
   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
@@ -4543,8 +4196,7 @@ gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-extern void
-gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   glEnable(GL_TEXTURE_2D);
   gl_texture_bind(&bitmap_texture);
 
@@ -4557,8 +4209,7 @@ gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   gl_end();
 }
 
-extern void
-gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
+extern void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
   va_list list;
   char buffer[256];
 
@@ -4570,8 +4221,7 @@ gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt
 
 #else // ATS_OGL33
 
-extern void
-gl_init(void) {
+extern void gl_init(void) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
   glClearDepth(1.0f);
 
@@ -4585,8 +4235,7 @@ gl_init(void) {
   gl_init_bitmap_font();
 }
 
-static u32
-gl_shader_compile(const char* source, unsigned int type) {
+static u32 gl_shader_compile(const char* source, unsigned int type) {
   int success = 0;
   char info_log[512] = {0};
   u32 shader = glCreateShader(type);
@@ -4605,8 +4254,7 @@ gl_shader_compile(const char* source, unsigned int type) {
   return shader;
 }
 
-static u32
-gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
+static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
   int success = 0;
   char info_log[512] = {0};
   u32 shader = glCreateProgram();
@@ -4627,11 +4275,10 @@ gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
   return shader;
 }
 
-extern gl_shader_t
-gl_shader_create(const gl_shader_desc_t* desc) {
-  u32 vertex = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
+extern gl_shader_t gl_shader_create(const gl_shader_desc_t* desc) {
+  u32 vertex   = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
   u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
-  u32 program = gl_shader_link_program(vertex, fragment);
+  u32 program  = gl_shader_link_program(vertex, fragment);
 
   glUseProgram(program);
 
@@ -4643,76 +4290,65 @@ gl_shader_create(const gl_shader_desc_t* desc) {
   return shader;
 }
 
-extern gl_shader_t
-gl_shader_load_from_file(const char *vs, const char *fs,  mem_allocator_t allocator) {
-  char* vs_content = file_read_str(vs, allocator);
-  char* fs_content = file_read_str(fs, allocator);
+extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs,  mem_arena_t* ma) {
+  gl_shader_t shader = ATS_INIT;
 
-  gl_shader_desc_t desc = ATS_INIT;
+  mem_scope(ma) {
+    char* vs_content = file_read_str(vs, ma);
+    char* fs_content = file_read_str(fs, ma);
 
-  desc.vs = vs_content;
-  desc.fs = fs_content;
+    gl_shader_desc_t desc = ATS_INIT;
 
-  gl_shader_t program = gl_shader_create(&desc);
+    desc.vs = vs_content;
+    desc.fs = fs_content;
 
-  mem_free(allocator, vs_content);
-  mem_free(allocator, fs_content);
+    shader = gl_shader_create(&desc);
+  }
 
-  return program;
+  return shader;
 }
 
-extern void
-gl_use(const gl_shader_t* shader) {
+extern void gl_use(const gl_shader_t* shader) {
   glUseProgram(shader->id);
 }
 
-extern u32
-gl_location(const gl_shader_t* shader, const char* name) {
+extern u32 gl_location(const gl_shader_t* shader, const char* name) {
   return glGetUniformLocation(shader->id, name);
 }
 
-extern void
-gl_uniform_i32(u32 location, i32 i) {
+extern void gl_uniform_i32(u32 location, i32 i) {
   glUniform1i(location, i);
 }
 
-extern void
-gl_uniform_f32(u32 location, f32 f) {
+extern void gl_uniform_f32(u32 location, f32 f) {
   glUniform1f(location, f);
 }
 
-extern void
-gl_uniform_v2(u32 location, v2 u) {
+extern void gl_uniform_v2(u32 location, v2 u) {
   glUniform2f(location, u.x, u.y);
 }
 
-extern void
-gl_uniform_v3(u32 location, v3 u) {
+extern void gl_uniform_v3(u32 location, v3 u) {
   glUniform3f(location, u.x, u.y, u.z);
 }
 
-extern void 
-gl_uniform_v4(u32 location, v4 u) {
+extern void  gl_uniform_v4(u32 location, v4 u) {
   glUniform4f(location, u.x, u.y, u.z, u.w);
 }
 
-extern void
-gl_uniform_m2(u32 location, m2 m) {
+extern void gl_uniform_m2(u32 location, m2 m) {
   glUniformMatrix2fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void
-gl_uniform_m3(u32 location, m3 m) {
+extern void gl_uniform_m3(u32 location, m3 m) {
   glUniformMatrix3fv(location, 1, GL_FALSE, m.e);
 }
 
-extern void
-gl_uniform_m4(u32 location, m4 m) {
+extern void gl_uniform_m4(u32 location, m4 m) {
   glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-extern gl_buffer_t
-gl_buffer_create(const gl_buffer_desc_t* desc) {
+extern gl_buffer_t gl_buffer_create(const gl_buffer_desc_t* desc) {
   u32 vao = 0;
   u32 vbo = 0;
 
@@ -4739,20 +4375,17 @@ gl_buffer_create(const gl_buffer_desc_t* desc) {
   return result;
 }
 
-extern void
-gl_buffer_bind(const gl_buffer_t* buffer) {
+extern void gl_buffer_bind(const gl_buffer_t* buffer) {
   glBindVertexArray(buffer->vao);
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
 }
 
-extern void
-gl_buffer_send(const gl_buffer_t* buffer, const void* data, u32 size) {
+extern void gl_buffer_send(const gl_buffer_t* buffer, const void* data, u32 size) {
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-extern gl_texture_t
-gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   assert(pixels);
 
   gl_texture_t texture = {0};
@@ -4773,8 +4406,7 @@ gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   return texture;
 }
 
-extern void
-gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -4787,8 +4419,7 @@ gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, in
   glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-extern void
-gl_texture_bind(const gl_texture_t* texture) {
+extern void gl_texture_bind(const gl_texture_t* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
@@ -4807,8 +4438,7 @@ static gl_buffer_t      bitmap_buffer;
 static usize            bitmap_count;
 static bitmap_vertex_t  bitmap_array[1024 * 1024];
 
-extern void
-gl_init_bitmap_font(void) {
+extern void gl_init_bitmap_font(void) {
   gl_shader_desc_t shader_desc = ATS_INIT;
 
   shader_desc.vs = GLSL(
@@ -4868,8 +4498,7 @@ gl_init_bitmap_font(void) {
   }
 }
 
-static void
-gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+static void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   r2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
   r2 rect = { x, y, x + sx, y + sy };
 
@@ -4881,8 +4510,7 @@ gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { V2(rect.min.x, rect.min.y), V2(tex_rect.min.x, tex_rect.max.y), color };
 }
 
-extern void
-gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
+extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   bitmap_count = 0;
 
   gl_use(&bitmap_shader);
@@ -4902,8 +4530,7 @@ gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   bitmap_count = 0;
 }
 
-extern void
-gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
+extern void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
   va_list list;
   char buffer[256];
 
@@ -4932,10 +4559,9 @@ static timer_entry_t timer_stack[512];
 static usize timer_count;
 static timer_entry_t timer_array[512];
 
-#define timer_scope(name) defer(timer_start(name), timer_stop())
+#define timer_scope(name) scope_guard(timer_start(name), timer_stop())
 
-static void
-timer_start(const char* name) {
+static void timer_start(const char* name) {
   timer_entry_t* entry = timer_stack + timer_top++;
 
   entry->name = name;
@@ -4944,22 +4570,19 @@ timer_start(const char* name) {
   entry->depth = timer_top - 1;
 }
 
-static void
-timer_stop(void) {
+static void timer_stop(void) {
   timer_entry_t* entry = timer_stack + (--timer_top);
 
   entry->stop = timer_get_current();
   timer_array[timer_count++] = *entry;
 }
 
-static void
-timer_reset_all(void) {
+static void timer_reset_all(void) {
   timer_top = 0;
   timer_count = 0;
 }
 
-static void
-timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
+static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
   i32 y = 0;
   // @TODO: fix render order within scopes!
   for (i32 i = timer_count - 1; i >= 0; --i) {
@@ -4979,8 +4602,7 @@ timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
 #define STB_IMAGE_IMPLEMENTATION
 #include "ext/stb_image.h" 
 
-static usize
-file_get_size(FILE* fp) {
+static usize file_get_size(FILE* fp) {
   fseek(fp, 0L, SEEK_END);
   usize size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
@@ -4988,23 +4610,20 @@ file_get_size(FILE* fp) {
   return size;
 }
 
-static FILE*
-file_open(const char* path, const char* mode) {
+static FILE* file_open(const char* path, const char* mode) {
   FILE* file = fopen(path, mode);
   return file;
 }
 
-extern char*
-file_read_str(const char* file_name, mem_allocator_t allocator) {
+extern char* file_read_str(const char* file_name, mem_arena_t* ma) {
   FILE* fp = NULL;
   char* buffer = NULL;
   if (fp = file_open(file_name, "rb")) {
     usize size = file_get_size(fp);
-    buffer = (char*)mem_alloc(allocator, size + 1);
+    buffer = (char*)mem_alloc(ma, size + 1);
     if (buffer) {
       buffer[size] = 0;
       if (fread(buffer, 1, size, fp) == 0) {
-        mem_free(allocator, buffer);
         buffer = NULL;
       }
     }
@@ -5013,8 +4632,7 @@ file_read_str(const char* file_name, mem_allocator_t allocator) {
   return buffer;
 }
 
-extern b32
-file_write_str(const char* file_name, const char* buffer) {
+extern b32 file_write_str(const char* file_name, const char* buffer) {
   FILE* fp = NULL;
   if (fp = file_open(file_name, "w")) {
     usize size = strlen(buffer);
@@ -5025,8 +4643,7 @@ file_write_str(const char* file_name, const char* buffer) {
   return false;
 }
 
-extern b32
-file_append_str(const char* file_name, const char* buffer) {
+extern b32 file_append_str(const char* file_name, const char* buffer) {
   FILE* fp = NULL;
   if (fp = file_open(file_name, "a")) {
     size_t size = strlen(buffer);
@@ -5037,8 +4654,7 @@ file_append_str(const char* file_name, const char* buffer) {
   return false;
 }
 
-extern b32
-file_read_bin(const char* file_name, void* buffer, usize size) {
+extern b32 file_read_bin(const char* file_name, void* buffer, usize size) {
   FILE *fp = NULL;
   if (fp = file_open(file_name, "rb")) {
     fread(buffer, size, 1, fp);
@@ -5048,8 +4664,7 @@ file_read_bin(const char* file_name, void* buffer, usize size) {
   return false;
 } 
 
-extern b32
-file_write_bin(const char* file_name, const void* buffer, usize size) {
+extern b32 file_write_bin(const char* file_name, const void* buffer, usize size) {
   FILE *fp = NULL;
   if (fp = file_open(file_name, "wb")) {
     fwrite(buffer, size, 1, fp);
@@ -5059,8 +4674,7 @@ file_write_bin(const char* file_name, const void* buffer, usize size) {
   return false;
 }
 
-extern image_t
-file_load_image(const char* path) {
+extern image_t file_load_image(const char* path) {
   image_t image = {0};
   i32 channels = 0;
   image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
@@ -5069,8 +4683,7 @@ file_load_image(const char* path) {
   return image;
 }
 
-extern void
-file_free_image(image_t* img) {
+extern void file_free_image(image_t* img) {
   stbi_image_free(img->pixels);
   *img = Make(image_t) ATS_INIT;
 }
@@ -5085,28 +4698,24 @@ typedef struct file_iter {
   WIN32_FIND_DATAA data;
 } file_iter;
 
-static bool
-file_iter_is_valid(const file_iter* it) {
+static bool file_iter_is_valid(const file_iter* it) {
   return !it->done;
 }
 
-static inline void
-file_cstr_concat(char* out, const char* a, const char* b) {
+static inline void file_cstr_concat(char* out, const char* a, const char* b) {
   while (*a) *out++ = *a++;
   while (*b) *out++ = *b++;
   *(out) = '\0';
 }
 
-static void
-file_iter_advance(file_iter* it) {
+static void file_iter_advance(file_iter* it) {
   it->done = !FindNextFileA(it->handle, &it->data);
   if (!it->done) {
     file_cstr_concat(it->current, it->path, it->data.cFileName);
   }
 }
 
-static file_iter
-file_iter_create(const char* path, const char* ext) {
+static file_iter file_iter_create(const char* path, const char* ext) {
   if (!path) path = "";
   if (!ext) ext = "*";
 
@@ -5136,11 +4745,12 @@ typedef struct tt_image_t {
   char name[256];
 } tt_image_t;
 
-static mem_allocator_t tt_allocator;
+// @TODO: maybe wont be needed!
+static mem_arena_t* tt_arena;
 
 static texture_table_t tt_table;
 
-static usize      tt_image_count;
+static usize tt_image_count;
 static tt_image_t tt_image_array[1024];
 
 extern texture_table_t*
@@ -5148,8 +4758,7 @@ tt_get_texture_table(void) {
   return &tt_table;
 }
 
-extern void
-tt_add_image(const char* name, image_t img) {
+extern void tt_add_image(const char* name, image_t img) {
   tt_image_t data = ATS_INIT;
 
   data.user_provided = true;
@@ -5159,18 +4768,15 @@ tt_add_image(const char* name, image_t img) {
   tt_image_array[tt_image_count++] = data;
 }
 
-extern image_t
-tt_get_image(void) {
+extern image_t tt_get_image(void) {
   return tt_table.img;
 }
 
-extern r2i
-tt_get_rect(tt_id_t id) {
+extern r2i tt_get_rect(tt_id_t id) {
   return tt_table.array[id.index].rect;
 }
 
-extern tt_id_t
-tt_get_id(const char* name) {
+extern tt_id_t tt_get_id(const char* name) {
   u32 hash = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
   while (tt_table.array[index].in_use) {
@@ -5184,13 +4790,11 @@ tt_get_id(const char* name) {
   return Make(tt_id_t) ATS_INIT;
 }
 
-extern r2i
-tt_get(const char* name) {
+extern r2i tt_get(const char* name) {
   return tt_get_rect(tt_get_id(name));
 }
 
-static void
-_tt_add_entry(const char* name, r2i rect) {
+static void _tt_add_entry(const char* name, r2i rect) {
   u32 hash = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
@@ -5210,23 +4814,20 @@ _tt_add_entry(const char* name, r2i rect) {
   strcpy_s(entry->name, 64, name);
 }
 
-static void
-cstr_copy_without_extension(char* out, const char* str) {
+static void cstr_copy_without_extension(char* out, const char* str) {
   while (*str && *str != '.') {
     *(out++) = *(str++);
   }
   *out = '\0';
 }
 
-static void
-cstr_concat(char* out, const char* a, const char* b) {
+static void cstr_concat(char* out, const char* a, const char* b) {
   while (*a) *out++ = *a++;
   while (*b) *out++ = *b++;
   *(out) = '\0';
 }
 
-static int
-tt_cmp_image(const void* va, const void* vb) {
+static int tt_cmp_image(const void* va, const void* vb) {
   tt_image_t* a = (tt_image_t*)va;
   tt_image_t* b = (tt_image_t*)vb;
 
@@ -5236,15 +4837,13 @@ tt_cmp_image(const void* va, const void* vb) {
   return b->img.width - a->img.width;
 }
 
-extern b32
-rect_contains_image(r2i rect, image_t image) {
+extern b32 rect_contains_image(r2i rect, image_t image) {
   i32 rect_width  = rect.max.x - rect.min.x;
   i32 rect_height = rect.max.y - rect.min.y;
   return image.width <= rect_width && image.height <= rect_height;
 }
 
-extern void
-tt_load_from_dir(const char* dir_path) {
+extern void tt_load_from_dir(const char* dir_path) {
   for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
     tt_image_t data = ATS_INIT;
 
@@ -5254,15 +4853,14 @@ tt_load_from_dir(const char* dir_path) {
   }
 }
 
-extern void
-tt_begin(int width, int height, mem_allocator_t allocator) {
-  tt_allocator = allocator;
+extern void tt_begin(int width, int height, mem_arena_t* ma) {
+  tt_arena = ma;
   tt_image_count = 0;
 
   tt_table = Make(texture_table_t) {
     width,
     height, 
-    (u32*)mem_zero(tt_allocator, width * height * sizeof (u32)),
+    (u32*)mem_zero(tt_arena, width * height * sizeof (u32)),
   };
 
   tt_table.array[0].in_use = true;
@@ -5273,10 +4871,9 @@ tt_begin(int width, int height, mem_allocator_t allocator) {
 }
 
 static usize tt_stack_top; 
-static r2i   tt_stack_buf[4096];
+static r2i tt_stack_buf[4096];
 
-static r2i
-tt_get_fit(image_t img) {
+static r2i tt_get_fit(image_t img) {
   u32 j = 0;
   for (j = 0; j < tt_stack_top; ++j) {
     if (rect_contains_image(tt_stack_buf[j], img)) {
@@ -5288,8 +4885,7 @@ tt_get_fit(image_t img) {
   return rect;
 }
 
-extern void
-tt_end(void) {
+extern void tt_end(void) {
   tt_stack_top = 0;
   tt_stack_buf[tt_stack_top++] = Make(r2i) {
     { 0, 0 },
@@ -5349,14 +4945,13 @@ static at_entity_t* at_current_entity = NULL;
 
 static at_entity_t* at_entity_list = NULL;
 
-static mem_allocator_t at_allocator;
+static mem_arena_t* at_arena;
 
-extern void
-at_add_entity(const char* name) {
+extern void at_add_entity(const char* name) {
   assert(name);
   at_current_animation = NULL;
   at_current_frame = NULL;
-  at_entity_t* entity = mem_type(at_allocator, at_entity_t);
+  at_entity_t* entity = mem_type(at_arena, at_entity_t);
   entity->name = name;
   if (!at_entity_list) {
     at_entity_list = entity;
@@ -5366,11 +4961,10 @@ at_add_entity(const char* name) {
   at_current_entity = entity;
 }
 
-extern void
-at_add_animation(const char* name) {
+extern void at_add_animation(const char* name) {
   assert(name);
   at_current_frame = NULL;
-  at_animation_t* animation = mem_type(at_allocator, at_animation_t);
+  at_animation_t* animation = mem_type(at_arena, at_animation_t);
   animation->name = name;
 
   if (!at_current_entity->animation) {
@@ -5381,10 +4975,9 @@ at_add_animation(const char* name) {
   at_current_animation = animation;
 }
 
-extern void
-at_add_frame(const char* name) {
+extern void at_add_frame(const char* name) {
   assert(name);
-  at_frame_t* frame = mem_type(at_allocator, at_frame_t);
+  at_frame_t* frame = mem_type(at_arena, at_frame_t);
   frame->name = name;
   frame->rect = tt_get(name);
   frame->animation = at_current_animation;
@@ -5397,9 +4990,8 @@ at_add_frame(const char* name) {
   at_current_frame->next = at_current_animation->frame;
 }
 
-extern void
-at_begin(mem_allocator_t allocator) {
-  at_allocator = allocator;
+extern void at_begin(mem_arena_t* ma) {
+  at_arena = ma;
 
   at_entity_list = NULL;
   at_current_entity = NULL;
@@ -5407,13 +4999,11 @@ at_begin(mem_allocator_t allocator) {
   at_current_animation = NULL;
 }
 
-extern void
-at_end(void) {
+extern void at_end(void) {
   // @NOTE: do some cool shit here!
 }
 
-static inline b32
-at_cstr_equal(const char* a, const char* b) {
+static inline b32 at_cstr_equal(const char* a, const char* b) {
   while (*a && *a == *b) {
     a++;
     b++;
@@ -5421,8 +5011,7 @@ at_cstr_equal(const char* a, const char* b) {
   return *a == *b;
 }
 
-extern void
-at_set(at_asset_t* asset, const char* name) {
+extern void at_set(at_asset_t* asset, const char* name) {
   if (at_cstr_equal(asset->frame->animation->name, name)) return;
 
   at_animation_t* animation = asset->entity->animation;
@@ -5436,8 +5025,7 @@ at_set(at_asset_t* asset, const char* name) {
   }
 }
 
-extern void
-at_update(at_asset_t* asset, f32 dt) {
+extern void at_update(at_asset_t* asset, f32 dt) {
   asset->duration += dt;
   if (asset->duration >= 1.0) {
     asset->frame = asset->frame->next;
@@ -5445,8 +5033,7 @@ at_update(at_asset_t* asset, f32 dt) {
   }
 }
 
-static at_entity_t*
-at_get_entity(const char* name) {
+static at_entity_t* at_get_entity(const char* name) {
   at_entity_t* entity = at_entity_list;
   while (entity && !at_cstr_equal(entity->name, name)) {
     entity = entity->next;
@@ -5454,8 +5041,7 @@ at_get_entity(const char* name) {
   return entity? entity : NULL;
 }
 
-extern at_asset_t
-at_get(const char* name) {
+extern at_asset_t at_get(const char* name) {
   at_asset_t state = ATS_INIT;
   state.entity = at_get_entity(name);
   state.frame = state.entity->animation->frame;
@@ -5490,21 +5076,18 @@ static struct {
 
 static audio_entry_t audio_table[AUDIO_TABLE_SIZE];
 
-extern void
-audio_init(void* handle) {
+extern void audio_init(void* handle) {
   audio.context = cs_make_context(handle, 44100, 8 * 4096, 1024, NULL);
 
   cs_spawn_mix_thread(audio.context);
   cs_thread_sleep_delay(audio.context, 16);
 }
 
-static b32
-audio_is_valid(audio_id_t id) {
+static b32 audio_is_valid(audio_id_t id) {
   return id.index != 0;
 }
 
-extern audio_id_t
-audio_get(const char* name) {
+extern audio_id_t audio_get(const char* name) {
   u32 hash = hash_str(name);
   u16 index = hash & (AUDIO_TABLE_SIZE - 1);
 
@@ -5547,8 +5130,7 @@ audio_get(const char* name) {
   return id;
 }
 
-extern void
-audio_pause(b32 pause) {
+extern void audio_pause(b32 pause) {
   cs_lock(audio.context);
   cs_playing_sound_t* playing = cs_get_playing(audio.context);
   while (playing) {
@@ -5558,19 +5140,16 @@ audio_pause(b32 pause) {
   cs_unlock(audio.context);
 }
 
-extern void
-audio_kill_all(void) {
+extern void audio_kill_all(void) {
   cs_stop_all_sounds(audio.context);
 }
 
-static audio_entry_t*
-audio_get_entry(audio_id_t id) {
+static audio_entry_t* audio_get_entry(audio_id_t id) {
   if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
   return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-extern void
-audio_play(audio_id_t id, f32 volume) {
+extern void audio_play(audio_id_t id, f32 volume) {
   audio_entry_t* entry = audio_get_entry(id);
 
   if (entry) {
@@ -5584,8 +5163,7 @@ audio_play(audio_id_t id, f32 volume) {
   }
 }
 
-extern void*
-audio_play_looped(audio_id_t id, f32 volume) {
+extern void* audio_play_looped(audio_id_t id, f32 volume) {
   audio_entry_t* entry = audio_get_entry(id);
 
   if (entry) {
@@ -5605,8 +5183,7 @@ audio_play_looped(audio_id_t id, f32 volume) {
   return NULL;
 }
 
-extern void
-audio_play_music(audio_id_t id, f32 volume) {
+extern void audio_play_music(audio_id_t id, f32 volume) {
   static cs_playing_sound_t* playing = NULL;
 
   if (playing && cs_is_active(playing))
@@ -5627,8 +5204,7 @@ audio_play_music(audio_id_t id, f32 volume) {
   }
 }
 
-extern void
-audio_play_from_source(audio_id_t id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
+extern void audio_play_from_source(audio_id_t id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
   f32 sound_distance = v3_dist(pos, source);
   f32 final_volume = volume * Max(1 - sound_distance / max_distance, 0);
 
@@ -5664,6 +5240,177 @@ audio_play_from_source(audio_id_t id, v3 pos, v3 dir, v3 source, f32 volume, f32
     cs_unlock(audio.context);
   }
 }
+
+// ----------------------------------------- atomics ------------------------------------------ //
+
+#if 0
+static inline void atomic_store(i32* out, i32 n) {
+  InterlockedExchange(out, n);
+}
+
+static inline int atomic_load(const i32* value) {
+  return InterlockedOr((i32*)value, 0); // shady stuff!
+}
+
+static inline void atomic_inc(i32* value) {
+  InterlockedIncrement(value);
+}
+
+static inline void atomic_dec(i32* value) {
+  InterlockedDecrement(value);
+}
+
+static inline i32 atomic_add(i32* out, i32 n) {
+  return InterlockedExchangeAdd(out, n);
+}
+
+static inline i32 atomic_sub(i32* out, i32 n) {
+  return InterlockedExchangeSub(out, n);
+}
+
+static inline i32 atomic_or(i32* out, i32 n) {
+  return InterlockedOr(out, n);
+}
+
+static inline i32 atomic_and(i32* out, i32 n) {
+  return InterlockedAnd(out, n);
+}
+
+static i32 atomic_xor(i32* out, i32 n) {
+  return InterlockedXor(out, n);
+}
+
+// ----------------------------------------- threads ------------------------------------------ //
+
+struct thread {
+  HANDLE id;
+};
+
+typedef int thread_proc_t(void* args);
+
+static struct thread thread_create(thread_proc_t* proc, void* args) {
+  struct thread thread = {0};
+  thread.id = CreateThread(NULL, 0, proc, args, 0, NULL);
+  return thread;
+}
+
+static int thread_join(struct thread* thread) {
+  WaitForSingleObject(thread->id, INFINITE);
+  DWORD exit_code = 0;
+  GetExitCodeThread(thread->id, &exit_code);
+  return exit_code;
+}
+
+static void thread_destroy(struct thread* thread) {
+  CloseHandle(thread->id);
+}
+
+static void thread_yield(void) {
+  SwitchToThread();
+}
+
+static void thread_sleep(u32 milliseconds) {
+  Sleep(milliseconds);
+}
+
+static void thread_exit(int exit_code) {
+  ExitThread(exit_code);
+}
+
+//----------------------------------------- task queue -------------------------------------------- //
+
+typedef void task_proc_t(void* data);
+
+struct task {
+  task_proc_t* proc;
+  void* data;
+};
+
+#define TASK_QUEUE_MAX (64)
+#define TASK_QUEUE_MOD (63)
+
+struct task_queue {
+  struct thread thread;
+
+  u32 begin;
+  u32 end;
+  struct task array[TASK_QUEUE_MAX];
+};
+
+static int task_queue_thread(void* data) {
+  struct task_queue* queue = data;
+
+  while (true) {
+    if (queue->begin == queue->end) {
+      thread_yield();
+    } else {
+      struct task* task = queue->array + queue->begin;
+      task->proc(task->data);
+
+      atomic_inc(&queue->begin);
+      atomic_and(&queue->begin, TASK_QUEUE_MOD);
+    }
+  }
+
+  return 0;
+}
+
+static void task_queue_init(struct task_queue* queue) {
+  memset(queue, 0, sizeof *queue);
+  queue->thread = thread_create(task_queue_thread, queue);
+}
+
+static void task_queue_push(struct task_queue* queue, task_proc_t* proc, void* data) {
+  queue->array[queue->end] = (struct task) {
+    .proc = proc,
+    .data = data,
+  };
+
+  atomic_inc(&queue->end);
+  atomic_and(&queue->end, TASK_QUEUE_MOD);
+}
+
+static void task_queue_wait(struct task_queue* queue) {
+  while (queue->begin != queue->end) {
+    thread_yield();
+  }
+}
+
+//----------------------------------------- task queue -------------------------------------------- //
+
+#define TASK_SYSTEM_MAX_THREADS (32)
+
+struct task_system {
+  u32 thread_count;
+  u32 next;
+  struct task_queue queue[TASK_SYSTEM_MAX_THREADS];
+};
+
+static void task_system_init(struct task_system* ts, u32 thread_count) {
+  if (!thread_count) {
+    struct _SYSTEM_INFO info = {0};
+    GetSystemInfo(&info);
+    ts->thread_count = ClampMax(info.dwNumberOfProcessors, TASK_SYSTEM_MAX_THREADS);
+  } else {
+    ts->thread_count = thread_count;
+  }
+
+  for (int i = 0; i < ts->thread_count; ++i) {
+    task_queue_init(&ts->queue[i]);
+  }
+}
+
+static void task_system_push(struct task_system* ts, task_proc_t* proc, void* data) {
+  task_queue_push(&ts->queue[ts->next], proc, data);
+  ts->next = (ts->next + 1) % ts->thread_count;
+}
+
+static void task_system_wait(struct task_system* ts) {
+  for (int i = 0; i < ts->thread_count; ++i) {
+    task_queue_wait(&ts->queue[i]);
+  }
+}
+#endif
 
 #endif // ATS_IMPL_ONCE
 #endif // ATS_IMPL
