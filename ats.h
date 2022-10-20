@@ -53,6 +53,17 @@
 #define repeat(count) \
   for (isize macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
 
+#define for_r2(rect, ix, iy) \
+  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+
+#define for_r3(rect, ix, iy, iz) \
+  for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
+  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+
+
+#ifndef __cplusplus
 #define for_iter(iter_type, iter_name, ...) \
   for (struct iter_type iter_name = (__VA_ARGS__); \
        iter_type##_is_valid(&iter_name); \
@@ -63,15 +74,7 @@
   for (struct type##_iter macro_var(it) = (__VA_ARGS__); \
        (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
        type##_iter_advance(&macro_var(it)))
-
-#define for_r2(rect, ix, iy) \
-  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
-
-#define for_r3(rect, ix, iy, iz) \
-  for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
-  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+#endif // __cplusplus
 
 #define ClampMin(n, min)    ((n) < (min)? (min) : (n))
 #define ClampMax(n, max)    ((n) > (max)? (max) : (n))
@@ -101,7 +104,7 @@ typedef unsigned int uint;
 typedef long long isize;
 typedef unsigned long long usize;
 
-typedef u8 b8;
+typedef u8  b8;
 typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;
