@@ -156,35 +156,35 @@ static const char* r_post_fx_blur = GLSL(
   });
 
 typedef struct r_vertex {
-  v3 pos;
-  v2 uv;
+  V3 pos;
+  V2 uv;
 
   u32 color;
-} r_vertex_t;
+} RVertex;
 
 typedef struct r_target {
-  gl_shader_t shader;
+  GLShader shader;
 
   u32 framebuffer;
   u32 texture;
-} r_target_t;
+} RTarget;
 
-static gl_buffer_t r_post_fx_buffer;
+static GLBuffer r_post_fx_buffer;
 
-static gl_texture_t r_current_texture;
+static GLTexture r_current_texture;
 
 static usize r_target_count;
-static r_target_t r_target_array[R_TARGET_MAX];
+static RTarget r_target_array[R_TARGET_MAX];
 
-static gl_shader_t r_shader;
-static gl_buffer_t r_buffer;
+static GLShader r_shader;
+static GLBuffer r_buffer;
 
 static u32 r_type;
 static u32 r_vertex_count;
-static r_vertex_t r_current;
-static r_vertex_t r_vertex_array[R_VERTEX_MAX];
+static RVertex r_current;
+static RVertex r_vertex_array[R_VERTEX_MAX];
 
-static void r_set_matrix(m4 mvp) {
+static void r_set_matrix(M4 mvp) {
   gl_use(&r_shader);
   gl_uniform_m4(gl_location(&r_shader, "mvp"), mvp);
 }
@@ -192,21 +192,21 @@ static void r_set_matrix(m4 mvp) {
 static void r_init(void) {
   gl_init();
 
-  gl_buffer_desc_t fx_buffer_desc = ATS_INIT;
+  GLBufferDesc fx_buffer_desc = ATS_INIT;
   r_post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
 
-  gl_shader_desc_t shader_desc = ATS_INIT;
+  GLShaderDesc shader_desc = ATS_INIT;
 
   shader_desc.vs = vertex_shader;
   shader_desc.fs = fragment_shader;
 
   r_shader = gl_shader_create(&shader_desc);
 
-  gl_buffer_desc_t buffer_desc = ATS_INIT;
+  GLBufferDesc buffer_desc = ATS_INIT;
 
-  buffer_desc.layout[0] = Make(gl_layout_t) { 3, GL_FLOAT,         sizeof (r_vertex_t), offsetof (r_vertex_t, pos) };
-  buffer_desc.layout[1] = Make(gl_layout_t) { 2, GL_FLOAT,         sizeof (r_vertex_t), offsetof (r_vertex_t, uv) };
-  buffer_desc.layout[2] = Make(gl_layout_t) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_t), offsetof (r_vertex_t, color), true };
+  buffer_desc.layout[0] = Make(GLLayout) { 3, GL_FLOAT,         sizeof (RVertex), offsetof(RVertex, pos) };
+  buffer_desc.layout[1] = Make(GLLayout) { 2, GL_FLOAT,         sizeof (RVertex), offsetof(RVertex, uv) };
+  buffer_desc.layout[2] = Make(GLLayout) { 4, GL_UNSIGNED_BYTE, sizeof (RVertex), offsetof(RVertex, color), true };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -230,7 +230,7 @@ static void r_begin(u32 type) {
 }
 
 static void r_uv(f32 x, f32 y) {
-  r_current.uv = V2(x, y);
+  r_current.uv = v2(x, y);
 }
 
 static void r_color(u32 color) {
@@ -238,19 +238,19 @@ static void r_color(u32 color) {
 }
 
 static void r_vertex(f32 x, f32 y, f32 z) {
-  r_current.pos = V3(x, y, z);
+  r_current.pos = v3(x, y, z);
   r_vertex_array[r_vertex_count++] = r_current;
 }
 
 static void r_end(void) {
   gl_use(&r_shader);
   gl_buffer_bind(&r_buffer);
-  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (r_vertex_t));
+  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (RVertex));
 
   glDrawArrays(r_type, 0, r_vertex_count);
 }
 
-static void r_set_texture(const gl_texture_t* texture) {
+static void r_set_texture(const GLTexture* texture) {
   gl_use(&r_shader);
   gl_texture_bind(texture);
 
@@ -267,7 +267,7 @@ static void r_disable_textures(void) {
   gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), false);
 }
 
-static void r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
+static void r_billboard(R2i tex_rect, V3 pos, V2 rad, u32 color, V3 right, V3 up) {
   f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
   f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
   f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -284,7 +284,7 @@ static void r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up
   f32 dy = pos.y - right.y * rad.x + up.y * rad.y;
   f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
 
-  r2 tr = {
+  R2 tr = {
     .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
     .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
   };
@@ -300,8 +300,8 @@ static void r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up
   r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, az);
 }
 
-static void r_texture_box(r2i tex_rect, r3 box, u32 color) {
-  r2 tr = {
+static void r_texture_box(R2i tex_rect, R3 box, u32 color) {
+  R2 tr = {
     .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
     .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
   };
@@ -351,8 +351,8 @@ static void r_texture_box(r2i tex_rect, r3 box, u32 color) {
   r_uv(tr.min.x, tr.min.y); r_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
-  r2 tr = {
+static void r_texture_rect(R2i tex_rect, R2 rect, f32 z, u32 color) {
+  R2 tr = {
     .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
     .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
   };
@@ -366,11 +366,11 @@ static void r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
   r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void r_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
+static void r_texture_rect_flip(R2i tex_rect, R2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
   if (flip_x) { Swap(f32, tex_rect.min.x, tex_rect.max.x); }
   if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
 
-  r2 tr = {
+  R2 tr = {
     .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
     .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
   };
@@ -384,18 +384,18 @@ static void r_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool fl
   r_uv(tr.min.x, tr.max.y); r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void r_rotated_texture(r2i tex_rect, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
+static void r_rotated_texture(R2i tex_rect, V2 pos, f32 z, V2 rad, f32 rot, u32 color, b32 flip_y) {
   if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
 
-  r2 tr = {
+  R2 tr = {
     .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
     .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
   };
 
-  m2 rot_matrix = m2_rotate(rot);
+  M2 rot_matrix = m2_rotate(rot);
 
-  v2 u = m2_mulv(rot_matrix, V2(0, 1));
-  v2 r = m2_mulv(rot_matrix, V2(1, 0));
+  V2 u = m2_mulv(rot_matrix, v2(0, 1));
+  V2 r = m2_mulv(rot_matrix, v2(1, 0));
 
   f32 ax = pos.x - rad.x * r.x - rad.y * u.x;
   f32 ay = pos.y - rad.x * r.y - rad.y * u.y;
@@ -418,11 +418,11 @@ static void r_rotated_texture(r2i tex_rect, v2 pos, f32 z, v2 rad, f32 rot, u32 
   r_uv(tr.min.x, tr.max.y); r_vertex(ax, ay, z);
 }
 
-static void r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
-  m2 rot_matrix = m2_rotate(rot);
+static void r_rotated(V2 pos, f32 z, V2 rad, f32 rot, u32 color) {
+  M2 rot_matrix = m2_rotate(rot);
 
-  v2 u = m2_mulv(rot_matrix, V2(0, 1));
-  v2 r = m2_mulv(rot_matrix, V2(1, 0));
+  V2 u = m2_mulv(rot_matrix, v2(0, 1));
+  V2 r = m2_mulv(rot_matrix, v2(1, 0));
 
   f32 ax = pos.x - rad.x * r.x - rad.y * u.x;
   f32 ay = pos.y - rad.x * r.y - rad.y * u.y;
@@ -445,7 +445,7 @@ static void r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
   r_vertex(ax, ay, z);
 }
 
-static void r_box(r3 box, u32 color) {
+static void r_box(R3 box, u32 color) {
   r_color(color);
 
   r_vertex(box.min.x, box.min.y, box.min.z);
@@ -491,7 +491,7 @@ static void r_box(r3 box, u32 color) {
   r_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void r_rect(r2 rect, f32 z, u32 color) {
+static void r_rect(R2 rect, f32 z, u32 color) {
   r_color(color);
   r_vertex(rect.min.x, rect.min.y, z);
   r_vertex(rect.max.x, rect.min.y, z);
@@ -502,9 +502,9 @@ static void r_rect(r2 rect, f32 z, u32 color) {
 }
 
 static u32 r_new_target(const char* fragment_shader) {
-  r_target_t* target = r_target_array + r_target_count++;
+  RTarget* target = r_target_array + r_target_count++;
 
-  gl_shader_desc_t shader_desc = ATS_INIT;
+  GLShaderDesc shader_desc = ATS_INIT;
 
   shader_desc.vs = r_post_fx_vertex_shader;
   shader_desc.fs = fragment_shader;
@@ -528,7 +528,7 @@ static u32 r_new_target(const char* fragment_shader) {
   return r_target_count - 1;
 }
 
-static r_target_t* r_current_target = NULL;
+static RTarget* r_current_target = NULL;
 
 static void r_begin_pass(u32 target) {
   r_current_target = r_target_array + target;
