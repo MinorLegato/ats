@@ -62,7 +62,6 @@
   for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
   for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
-
 #define for_iter(iter_type, iter_name, ...) \
   for (struct iter_type iter_name = (__VA_ARGS__); \
        iter_type##_is_valid(&iter_name); \
@@ -2003,23 +2002,23 @@ static u32 pack_color_v3(V3 color, f32 a) {
 typedef struct queue_node {
   f32 weight;
   V2i e;
-} QueueNode;
+} Queue_Node;
 
 typedef struct priority_queue {
   u32 len;
-  QueueNode* array;
-} PriorityQueue;
+  Queue_Node* array;
+} Priority_Queue;
 
-static b32 pq_empty(const PriorityQueue* queue) {
+static b32 pq_empty(const Priority_Queue* queue) {
   return queue->len == 0;
 }
 
-static void pq_clear(PriorityQueue* queue) {
+static void pq_clear(Priority_Queue* queue) {
   queue->len = 0;
 }
 
-static void pq_push(PriorityQueue* queue, V2i e, f32 weight) {
-  QueueNode node = { weight, e };
+static void pq_push(Priority_Queue* queue, V2i e, f32 weight) {
+  Queue_Node node = { weight, e };
   int i = queue->len + 1;
   int j = i / 2;
   while (i > 1 && queue->array[j].weight > node.weight) {
@@ -2031,8 +2030,8 @@ static void pq_push(PriorityQueue* queue, V2i e, f32 weight) {
   queue->len++;
 }
 
-static f32 pq_pop(V2i* out, PriorityQueue* queue) {
-  QueueNode data = queue->array[1];
+static f32 pq_pop(V2i* out, Priority_Queue* queue) {
+  Queue_Node data = queue->array[1];
   queue->array[1] = queue->array[queue->len];
   queue->len--;
   int i = 1;
@@ -2262,19 +2261,19 @@ typedef struct mem_arena {
 
   usize lock;
   usize max;
-} MemArena;
+} Mem_Arena;
 
 #define mem_type(ma, type_t)           (type_t*)mem_zero(ma, sizeof (type_t))
 #define mem_array(ma, type_t, count)   (type_t*)mem_zero(ma, (count) * sizeof (type_t))
 #define mem_scope(ma)                   scope_guard(mem_save(ma), mem_restore(ma))
 
-static void mem_init(MemArena* ma, u8* buffer, usize size) {
+static void mem_init(Mem_Arena* ma, u8* buffer, usize size) {
   memset(ma, 0, sizeof *ma);
   ma->cap = size;
   ma->buffer = buffer;
 }
 
-static void* mem_alloc(MemArena* ma, usize byte_size) {
+static void* mem_alloc(Mem_Arena* ma, usize byte_size) {
   byte_size = AlignUp(byte_size, 16);
   assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
 
@@ -2285,33 +2284,33 @@ static void* mem_alloc(MemArena* ma, usize byte_size) {
   return memory;
 }
 
-static void* mem_zero(MemArena* ma, usize byte_size) {
+static void* mem_zero(Mem_Arena* ma, usize byte_size) {
   void* ptr = mem_alloc(ma, byte_size);;
   memset(ptr, 0, byte_size);
   return ptr;
 }
 
-static void* mem_begin(MemArena* ma) {
+static void* mem_begin(Mem_Arena* ma) {
   ma->lock = true;
   return ma->buffer + ma->index;
 }
 
-static void mem_end(MemArena* ma, usize byte_size) {
+static void mem_end(Mem_Arena* ma, usize byte_size) {
   ma->index += AlignUp(byte_size, 16);
   ma->lock = false;
 }
 
-static void mem_save(MemArena* ma) {
+static void mem_save(Mem_Arena* ma) {
   assert(ma->top < ma->cap);
   ma->stack[ma->top++] = ma->index;
 }
 
-static void mem_restore(MemArena* ma) {
+static void mem_restore(Mem_Arena* ma) {
   assert(ma->top > 0);
   ma->index = ma->stack[--ma->top];
 }
 
-static void mem_validate(MemArena* ma) {
+static void mem_validate(Mem_Arena* ma) {
   assert(ma->top == 0);
 }
 
@@ -2702,7 +2701,7 @@ static V2 tm_cast_angle(const TraverseMap* map, V2 from, f32 angle, f32 max_rang
 
 // -------------------------------- ats_file.c ----------------------------------- //
 
-extern char*  file_read_str(const char* file_name, MemArena* ma);
+extern char*  file_read_str(const char* file_name, Mem_Arena* ma);
 extern b32    file_write_str(const char* file_name, const char* buffer);
 extern b32    file_append_str(const char* file_name, const char* buffer);
 
@@ -2718,58 +2717,58 @@ extern void   file_free_image(Image* img);
 
 typedef struct tt_id {
   u16 index;
-} TTID;
+} TT_ID;
 
 typedef struct tt_entry {
   b32   in_use;
   u32   hash;
   R2i   rect;
   char  name[64];
-} TTEntry;
+} TT_Entry;
 
 typedef struct texture_table {
-  Image   img;
-  TTEntry array[TEXTURE_TABLE_SIZE];
-} TextureTable;
+  Image     img;
+  TT_Entry  array[TEXTURE_TABLE_SIZE];
+} Texture_Table;
 
-extern void tt_begin(int width, int height, MemArena* ma);
+extern void tt_begin(int width, int height, Mem_Arena* ma);
 extern void tt_end(void);
 extern void tt_add_image(const char* name, Image img);
 extern void tt_load_from_dir(const char* dir_path);
 
-extern TextureTable* tt_get_texture_table(void);
+extern Texture_Table* tt_get_texture_table(void);
 
-extern TTID   tt_get_id(const char* name);
-extern R2i    tt_get_rect(TTID id);
+extern TT_ID  tt_get_id(const char* name);
+extern R2i    tt_get_rect(TT_ID id);
 extern R2i    tt_get(const char* name);
 extern Image  tt_get_image(void);
 
 // -------------------------- ats_animation.c ----------------------------- //
 
-typedef struct at_frame       ATFrame;
-typedef struct at_animation   ATAnimation;
-typedef struct at_entity      ATEntity;
+typedef struct at_frame       AT_Frame;
+typedef struct at_animation   AT_Animation;
+typedef struct at_entity      AT_Entity;
 
 struct at_frame {
-  const char*   name;
-  R2i           rect;
-  ATFrame*      next;
-  ATAnimation*  animation;
+  const char*     name;
+  R2i             rect;
+  AT_Frame*       next;
+  AT_Animation*   animation;
 };
 
 struct at_animation {
-  const char*   name;
-  ATFrame*      frame;
-  ATAnimation*  next;
+  const char*     name;
+  AT_Frame*       frame;
+  AT_Animation*   next;
 };
 
 struct at_entity {
-  const char*   name;
-  ATAnimation*  animation;
-  ATEntity*     next;
+  const char*     name;
+  AT_Animation*   animation;
+  AT_Entity*      next;
 };
 
-extern void at_begin(MemArena* mem);
+extern void at_begin(Mem_Arena* mem);
 extern void at_end(void);
 
 extern void at_add_entity(const char* name);
@@ -2777,29 +2776,29 @@ extern void at_add_animation(const char* name);
 extern void at_add_frame(const char* name);
 
 typedef struct at_asset {
-  ATEntity*   entity;
-  ATFrame*    frame;
+  AT_Entity*  entity;
+  AT_Frame*   frame;
   f32         duration;
-} ATAsset;
+} AT_Asset;
 
-extern ATAsset  at_get(const char* name);
-extern void     at_set(ATAsset* asset, const char* name);
-extern void     at_update(ATAsset* asset, f32 dt);
+extern AT_Asset at_get(const char* name);
+extern void     at_set(AT_Asset* asset, const char* name);
+extern void     at_update(AT_Asset* asset, f32 dt);
 
 // -------------------------- ats_audio_table.c ----------------------------- //
 
 typedef struct audio_id {
   u16 index;
-} AudioID;
+} Audio_ID;
 
 extern void     audio_init(void* handle);
-extern AudioID  audio_get(const char* name);
+extern Audio_ID audio_get(const char* name);
 extern void     audio_pause(b32 pause);
 extern void     audio_kill_all(void);
-extern void     audio_play(AudioID id, f32 volume);
-extern void*    audio_play_looped(AudioID id, f32 volume);
-extern void     audio_play_music(AudioID id, f32 volume);
-extern void     audio_play_from_source(AudioID id, V3 pos, V3 dir, V3 source, f32 volume, f32 max_distance);
+extern void     audio_play(Audio_ID id, f32 volume);
+extern void*    audio_play_looped(Audio_ID id, f32 volume);
+extern void     audio_play_music(Audio_ID id, f32 volume);
+extern void     audio_play_from_source(Audio_ID id, V3 pos, V3 dir, V3 source, f32 volume, f32 max_distance);
 
 // ------------------------------- platform ---------------------------------- //
 
@@ -2855,31 +2854,31 @@ typedef struct gl_texture {
   u32 id;
   i32 width;
   i32 height;
-} GLTexture;
+} GL_Texture;
 
-extern GLTexture gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern GLTexture gl_texture_create_from_image(Image image, int is_smooth);
-extern GLTexture gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern GL_Texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern GL_Texture gl_texture_create_from_image(Image image, int is_smooth);
+extern GL_Texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
 
-extern void gl_texture_update(GLTexture* texture, void *pixels, int width, int height, int is_smooth);
+extern void gl_texture_update(GL_Texture* texture, void *pixels, int width, int height, int is_smooth);
 
-extern void gl_texture_bind(const GLTexture* texture);
-extern void gl_texture_destroy(GLTexture* texture);
+extern void gl_texture_bind(const GL_Texture* texture);
+extern void gl_texture_destroy(GL_Texture* texture);
 
 typedef struct gl_shader {
   u32 id;
-} GLShader;
+} GL_Shader;
 
 typedef struct gl_shader_desc {
   const char* vs;
   const char* fs;
-} GLShaderDesc;
+} GL_Shader_Desc;
 
-extern GLShader gl_shader_create(GLShaderDesc desc);
-extern GLShader gl_shader_load_from_file(const char *vs, const char *fs,  MemArena* ma);
+extern GL_Shader gl_shader_create(GL_Shader_Desc desc);
+extern GL_Shader gl_shader_load_from_file(const char *vs, const char *fs,  Mem_Arena* ma);
 
-extern void gl_use(const GLShader* shader);
-extern u32  gl_location(const GLShader* shader, const char* name);
+extern void gl_use(const GL_Shader* shader);
+extern u32  gl_location(const GL_Shader* shader, const char* name);
 
 extern void gl_uniform_i32(u32 location, int u);
 extern void gl_uniform_f32(u32 location, f32 u);
@@ -2895,7 +2894,7 @@ extern V3 gl_get_world_position(int x, int y, M4 in_projection, M4 in_modelview)
 typedef struct gl_buffer {
   u32 vao;
   u32 vbo;
-} GLBuffer;
+} GL_Buffer;
 
 typedef struct gl_layout {
   u32 size;
@@ -2903,15 +2902,15 @@ typedef struct gl_layout {
   u32 stride;
   u32 offset;
   b32 normalize;
-} GLLayout;
+} GL_Layout;
 
 typedef struct gl_buffer_desc {
-  GLLayout layout[32];
-} GLBufferDesc;
+  GL_Layout layout[32];
+} GL_Buffer_Desc;
 
-extern GLBuffer gl_buffer_create(const GLBufferDesc* desc);
-extern void     gl_buffer_bind(const GLBuffer* buffer);
-extern void     gl_buffer_send(const GLBuffer* array, const void* data, u32 size);
+extern GL_Buffer  gl_buffer_create(const GL_Buffer_Desc* desc);
+extern void       gl_buffer_bind(const GL_Buffer* buffer);
+extern void       gl_buffer_send(const GL_Buffer* array, const void* data, u32 size);
 
 // ===================================================== KEYS =================================================== //
 
@@ -3126,7 +3125,7 @@ typedef union gamepad_buttons {
   } button;
 
   u32 data;
-} GamepadButtons;
+} Gamepad_Buttons;
 
 typedef struct gamepad {
   b32 active;
@@ -3137,16 +3136,16 @@ typedef struct gamepad {
   f32 left_trigger;
   f32 right_trigger;
 
-  GamepadButtons down;
-  GamepadButtons pressed;
-  GamepadButtons released;
+  Gamepad_Buttons down;
+  Gamepad_Buttons pressed;
+  Gamepad_Buttons released;
 } Gamepad;
 
-typedef u32 MouseMode;
+typedef u32 Mouse_Mode;
 enum {
-  MouseMode_Normal,
-  MouseMode_Hidden,
-  MouseMode_Disabled,
+  MOUSE_MODE_NORMAL,
+  MOUSE_MODE_HIDDEN,
+  MOUSE_MODE_DISABLED,
 };
 
 struct Platform {
@@ -3393,13 +3392,15 @@ extern void platform_update(void) {
     platform.mouse.scroll.y = 0;
 
     switch (platform.mouse.mode) {
-      case MouseMode_Normal: {
+      case MOUSE_MODE_NORMAL: {
         glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
       } break;
-      case MouseMode_Hidden: {
+
+      case MOUSE_MODE_HIDDEN: {
         glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
       } break;
-      case MouseMode_Disabled: {
+      
+      case MOUSE_MODE_DISABLED: {
         glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
       } break;
     }
@@ -3411,7 +3412,7 @@ extern void platform_update(void) {
 
     for (int i = 0; i < JOYSTICK_LAST; ++i) {
       if (platform.gamepad[i].active) {
-        GamepadButtons old = platform.gamepad[i].down;
+        Gamepad_Buttons old = platform.gamepad[i].down;
 
         platform.gamepad[i].down.data       = 0;
         platform.gamepad[i].pressed.data    = 0;
@@ -3488,18 +3489,18 @@ extern f64 timer_get_current(void) {
   return glfwGetTime();
 }
 
-extern GLTexture gl_texture_create_from_image(Image image, int is_smooth) {
+extern GL_Texture gl_texture_create_from_image(Image image, int is_smooth) {
   return gl_texture_create(image.pixels, image.width, image.height, is_smooth);
 }
 
-extern GLTexture gl_texture_load_from_file(const char* texture_path, int is_smooth) {
+extern GL_Texture gl_texture_load_from_file(const char* texture_path, int is_smooth) {
   Image img = file_load_image(texture_path);
-  GLTexture texture = gl_texture_create_from_image(img, is_smooth);
+  GL_Texture texture = gl_texture_create_from_image(img, is_smooth);
   file_free_image(&img);
   return texture;
 }
 
-extern void gl_texture_destroy(GLTexture* texture) {
+extern void gl_texture_destroy(GL_Texture* texture) {
   glDeleteTextures(1, &texture->id);
   memset(texture, 0, sizeof *texture);
 }
@@ -3890,10 +3891,10 @@ extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern GLTexture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern GL_Texture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   assert(pixels);
 
-  GLTexture texture = {0};
+  GL_Texture texture = {0};
 
   texture.width = width;
   texture.height = height;
@@ -3909,7 +3910,7 @@ extern GLTexture gl_texture_create(void *pixels, int width, int height, int is_s
   return texture;
 }
 
-extern void gl_texture_update(GLTexture* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(GL_Texture* texture, void *pixels, int width, int height, int is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -3920,7 +3921,7 @@ extern void gl_texture_update(GLTexture* texture, void *pixels, int width, int h
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
 }
 
-extern void gl_texture_bind(const GLTexture* texture) {
+extern void gl_texture_bind(const GL_Texture* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 
   glMatrixMode(GL_TEXTURE);
@@ -4132,7 +4133,7 @@ extern void gl_rect(R2 rect, f32 z, u32 color) {
 
 // ======================================= FONT ====================================== //
 
-static GLTexture bitmap_texture;
+static GL_Texture bitmap_texture;
 
 extern void gl_init_bitmap_font(void) {
   u32 pixels[8][BITMAP_COUNT * 8] = {0};
@@ -4241,7 +4242,7 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
   return shader;
 }
 
-extern GLShader gl_shader_create(GLShaderDesc desc) {
+extern GL_Shader gl_shader_create(GL_Shader_Desc desc) {
   u32 vertex   = gl_shader_compile(desc.vs, GL_VERTEX_SHADER);
   u32 fragment = gl_shader_compile(desc.fs, GL_FRAGMENT_SHADER);
   u32 program  = gl_shader_link_program(vertex, fragment);
@@ -4251,19 +4252,19 @@ extern GLShader gl_shader_create(GLShaderDesc desc) {
   glDeleteShader(vertex);
   glDeleteShader(fragment);
 
-  GLShader shader = ATS_INIT;
+  GL_Shader shader = ATS_INIT;
   shader.id = program;
   return shader;
 }
 
-extern GLShader gl_shader_load_from_file(const char *vs, const char *fs, MemArena* ma) {
-  GLShader shader = ATS_INIT;
+extern GL_Shader gl_shader_load_from_file(const char *vs, const char *fs, Mem_Arena* ma) {
+  GL_Shader shader = ATS_INIT;
 
   mem_scope(ma) {
     char* vs_content = file_read_str(vs, ma);
     char* fs_content = file_read_str(fs, ma);
 
-    GLShaderDesc desc = ATS_INIT;
+    GL_Shader_Desc desc = ATS_INIT;
 
     desc.vs = vs_content;
     desc.fs = fs_content;
@@ -4274,11 +4275,11 @@ extern GLShader gl_shader_load_from_file(const char *vs, const char *fs, MemAren
   return shader;
 }
 
-extern void gl_use(const GLShader* shader) {
+extern void gl_use(const GL_Shader* shader) {
   glUseProgram(shader->id);
 }
 
-extern u32 gl_location(const GLShader* shader, const char* name) {
+extern u32 gl_location(const GL_Shader* shader, const char* name) {
   return glGetUniformLocation(shader->id, name);
 }
 
@@ -4314,7 +4315,7 @@ extern void gl_uniform_m4(u32 location, M4 m) {
   glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-extern GLBuffer gl_buffer_create(const GLBufferDesc* desc) {
+extern GL_Buffer gl_buffer_create(const GL_Buffer_Desc* desc) {
   u32 vao = 0;
   u32 vbo = 0;
 
@@ -4325,7 +4326,7 @@ extern GLBuffer gl_buffer_create(const GLBufferDesc* desc) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
   for (u32 i = 0; i < ArrayCount(desc->layout); ++i) {
-    const GLLayout* layout = &desc->layout[i];
+    const GL_Layout* layout = &desc->layout[i];
 
     if (layout->size) {
       glEnableVertexAttribArray(i);
@@ -4333,7 +4334,7 @@ extern GLBuffer gl_buffer_create(const GLBufferDesc* desc) {
     }
   }
 
-  GLBuffer result = {0};
+  GL_Buffer result = {0};
 
   result.vao = vao;
   result.vbo = vbo;
@@ -4341,20 +4342,20 @@ extern GLBuffer gl_buffer_create(const GLBufferDesc* desc) {
   return result;
 }
 
-extern void gl_buffer_bind(const GLBuffer* buffer) {
+extern void gl_buffer_bind(const GL_Buffer* buffer) {
   glBindVertexArray(buffer->vao);
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
 }
 
-extern void gl_buffer_send(const GLBuffer* buffer, const void* data, u32 size) {
+extern void gl_buffer_send(const GL_Buffer* buffer, const void* data, u32 size) {
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-extern GLTexture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern GL_Texture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   assert(pixels);
 
-  GLTexture texture = {0};
+  GL_Texture texture = {0};
 
   texture.width = width;
   texture.height = height;
@@ -4372,7 +4373,7 @@ extern GLTexture gl_texture_create(void *pixels, int width, int height, int is_s
   return texture;
 }
 
-extern void gl_texture_update(GLTexture* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(GL_Texture* texture, void *pixels, int width, int height, int is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -4385,7 +4386,7 @@ extern void gl_texture_update(GLTexture* texture, void *pixels, int width, int h
   glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-extern void gl_texture_bind(const GLTexture* texture) {
+extern void gl_texture_bind(const GL_Texture* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
@@ -4395,17 +4396,17 @@ typedef struct bitmap_vertex {
   V2 pos;
   V2 uv;
   u32 color;
-} BitmapVertex;
+} Bitmap_Vertex;
 
-static GLTexture    bitmap_texture;
-static GLShader     bitmap_shader;
-static GLBuffer     bitmap_buffer;
+static GL_Texture     bitmap_texture;
+static GL_Shader      bitmap_shader;
+static GL_Buffer      bitmap_buffer;
 
-static usize        bitmap_count;
-static BitmapVertex bitmap_array[1024 * 1024];
+static usize          bitmap_count;
+static Bitmap_Vertex  bitmap_array[1024 * 1024];
 
 extern void gl_init_bitmap_font(void) {
-  GLShaderDesc shader_desc = ATS_INIT;
+  GL_Shader_Desc shader_desc = ATS_INIT;
 
   shader_desc.vs = GLSL(
     layout (location = 0) in vec2 in_pos;
@@ -4437,11 +4438,11 @@ extern void gl_init_bitmap_font(void) {
 
   bitmap_shader = gl_shader_create(shader_desc);
 
-  GLBufferDesc buffer_desc = ATS_INIT;
+  GL_Buffer_Desc buffer_desc = ATS_INIT;
 
-  buffer_desc.layout[0] = Make(GLLayout) { 2, GL_FLOAT,          sizeof (BitmapVertex), offsetof(BitmapVertex, pos) };
-  buffer_desc.layout[1] = Make(GLLayout) { 2, GL_FLOAT,          sizeof (BitmapVertex), offsetof(BitmapVertex, uv) };
-  buffer_desc.layout[2] = Make(GLLayout) { 4, GL_UNSIGNED_BYTE,  sizeof (BitmapVertex), offsetof(BitmapVertex, color), true };
+  buffer_desc.layout[0] = Make(GL_Layout) { 2, GL_FLOAT,          sizeof (Bitmap_Vertex), offsetof(Bitmap_Vertex, pos) };
+  buffer_desc.layout[1] = Make(GL_Layout) { 2, GL_FLOAT,          sizeof (Bitmap_Vertex), offsetof(Bitmap_Vertex, uv) };
+  buffer_desc.layout[2] = Make(GL_Layout) { 4, GL_UNSIGNED_BYTE,  sizeof (Bitmap_Vertex), offsetof(Bitmap_Vertex, color), true };
 
   bitmap_buffer = gl_buffer_create(&buffer_desc);
 
@@ -4468,12 +4469,12 @@ static void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   R2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
   R2 rect = { x, y, x + sx, y + sy };
 
-  bitmap_array[bitmap_count++] = Make(BitmapVertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
-  bitmap_array[bitmap_count++] = Make(BitmapVertex) { v2(rect.max.x, rect.min.y), v2(tex_rect.max.x, tex_rect.max.y), color };
-  bitmap_array[bitmap_count++] = Make(BitmapVertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = Make(BitmapVertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = Make(BitmapVertex) { v2(rect.min.x, rect.max.y), v2(tex_rect.min.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = Make(BitmapVertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
+  bitmap_array[bitmap_count++] = Make(Bitmap_Vertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
+  bitmap_array[bitmap_count++] = Make(Bitmap_Vertex) { v2(rect.max.x, rect.min.y), v2(tex_rect.max.x, tex_rect.max.y), color };
+  bitmap_array[bitmap_count++] = Make(Bitmap_Vertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
+  bitmap_array[bitmap_count++] = Make(Bitmap_Vertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
+  bitmap_array[bitmap_count++] = Make(Bitmap_Vertex) { v2(rect.min.x, rect.max.y), v2(tex_rect.min.x, tex_rect.min.y), color };
+  bitmap_array[bitmap_count++] = Make(Bitmap_Vertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
 }
 
 extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
@@ -4489,7 +4490,7 @@ extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
   }
 
   gl_buffer_bind(&bitmap_buffer);
-  gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (BitmapVertex));
+  gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (Bitmap_Vertex));
   glDrawArrays(GL_TRIANGLES, 0, bitmap_count);
   glUseProgram(0);
 
@@ -4581,7 +4582,7 @@ static FILE* file_open(const char* path, const char* mode) {
   return file;
 }
 
-extern char* file_read_str(const char* file_name, MemArena* ma) {
+extern char* file_read_str(const char* file_name, Mem_Arena* ma) {
   FILE* fp = NULL;
   char* buffer = NULL;
   if (fp = file_open(file_name, "rb")) {
@@ -4708,20 +4709,20 @@ typedef struct tt_image_t {
   b32   user_provided;
   Image img;
   char  name[256];
-} TTImage;
+} TT_Image;
 
 // @TODO: maybe wont be needed!
-static MemArena*    tt_arena;
-static TextureTable tt_table;
-static usize        tt_image_count;
-static TTImage      tt_image_array[1024];
+static Mem_Arena*     tt_arena;
+static Texture_Table  tt_table;
+static usize          tt_image_count;
+static TT_Image       tt_image_array[1024];
 
-extern TextureTable* tt_get_texture_table(void) {
+extern Texture_Table* tt_get_texture_table(void) {
   return &tt_table;
 }
 
 extern void tt_add_image(const char* name, Image img) {
-  TTImage data = ATS_INIT;
+  TT_Image data = ATS_INIT;
 
   data.user_provided = true;
   data.img = img;
@@ -4734,24 +4735,24 @@ extern Image tt_get_image(void) {
   return tt_table.img;
 }
 
-extern R2i tt_get_rect(TTID id) {
+extern R2i tt_get_rect(TT_ID id) {
   return tt_table.array[id.index].rect;
 }
 
-extern TTID tt_get_id(const char* name) {
+extern TT_ID tt_get_id(const char* name) {
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
   while (tt_table.array[index].in_use) {
     if ((tt_table.array[index].hash == hash) && (strcmp(tt_table.array[index].name, name) == 0)) {
-      TTID id = { index };
+      TT_ID id = { index };
       return id;
     }
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
 
   assert(false);
-  return Make(TTID) ATS_INIT;
+  return Make(TT_ID) ATS_INIT;
 }
 
 extern R2i tt_get(const char* name) {
@@ -4769,7 +4770,7 @@ static void _tt_add_entry(const char* name, R2i rect) {
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
 
-  TTEntry* entry = &tt_table.array[index];
+  TT_Entry* entry = &tt_table.array[index];
 
   entry->in_use = true;
   entry->rect = rect;
@@ -4792,8 +4793,8 @@ static void cstr_concat(char* out, const char* a, const char* b) {
 }
 
 static int tt_cmp_image(const void* va, const void* vb) {
-  TTImage* a = (TTImage*)va;
-  TTImage* b = (TTImage*)vb;
+  TT_Image* a = (TT_Image*)va;
+  TT_Image* b = (TT_Image*)vb;
 
   int dw = b->img.width  - a->img.width;
   int dh = a->img.height - a->img.height;
@@ -4809,7 +4810,7 @@ extern b32 rect_contains_image(R2i rect, Image image) {
 
 extern void tt_load_from_dir(const char* dir_path) {
   for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
-    TTImage data = ATS_INIT;
+    TT_Image data = ATS_INIT;
 
     data.img = file_load_image(it.current);
     cstr_copy_without_extension(data.name, it.data.cFileName);
@@ -4817,11 +4818,11 @@ extern void tt_load_from_dir(const char* dir_path) {
   }
 }
 
-extern void tt_begin(int width, int height, MemArena* ma) {
+extern void tt_begin(int width, int height, Mem_Arena* ma) {
   tt_arena = ma;
   tt_image_count = 0;
 
-  tt_table = Make(TextureTable) {
+  tt_table = Make(Texture_Table) {
     width,
     height, 
     (u32*)mem_zero(tt_arena, width * height * sizeof (u32)),
@@ -4856,10 +4857,10 @@ extern void tt_end(void) {
     { tt_table.img.width - 1, tt_table.img.height - 1 },
   };
 
-  qsort(tt_image_array, tt_image_count, sizeof (TTImage), tt_cmp_image);
+  qsort(tt_image_array, tt_image_count, sizeof (TT_Image), tt_cmp_image);
 
   for (usize i = 0; i < tt_image_count; ++i) {
-    TTImage* data = &tt_image_array[i];
+    TT_Image* data = &tt_image_array[i];
 
     R2i rect = tt_get_fit(data->img);
     V2i size = { data->img.width + 2, data->img.height + 2 };
@@ -4903,18 +4904,18 @@ extern void tt_end(void) {
 
 // -------------------------------------- animation table --------------------------------------- //
 
-static ATFrame*     at_current_frame      = NULL;
-static ATAnimation* at_current_animation  = NULL;
-static ATEntity*    at_current_entity     = NULL;
-static ATEntity*    at_entity_list        = NULL;
-static MemArena*    at_arena              = NULL;
+static AT_Frame*     at_current_frame      = NULL;
+static AT_Animation* at_current_animation  = NULL;
+static AT_Entity*    at_current_entity     = NULL;
+static AT_Entity*    at_entity_list        = NULL;
+static Mem_Arena*    at_arena              = NULL;
 
 extern void at_add_entity(const char* name) {
   assert(name);
   at_current_animation  = NULL;
   at_current_frame      = NULL;
 
-  ATEntity* entity = mem_type(at_arena, ATEntity);
+  AT_Entity* entity = mem_type(at_arena, AT_Entity);
   entity->name = name;
 
   if (!at_entity_list) {
@@ -4930,7 +4931,7 @@ extern void at_add_animation(const char* name) {
   assert(name);
   at_current_frame = NULL;
 
-  ATAnimation* animation = mem_type(at_arena, ATAnimation);
+  AT_Animation* animation = mem_type(at_arena, AT_Animation);
   animation->name = name;
 
   if (!at_current_entity->animation) {
@@ -4945,7 +4946,7 @@ extern void at_add_animation(const char* name) {
 extern void at_add_frame(const char* name) {
   assert(name);
 
-  ATFrame* frame = mem_type(at_arena, ATFrame);
+  AT_Frame* frame = mem_type(at_arena, AT_Frame);
   frame->name = name;
   frame->rect = tt_get(name);
   frame->animation = at_current_animation;
@@ -4960,7 +4961,7 @@ extern void at_add_frame(const char* name) {
   at_current_frame->next = at_current_animation->frame;
 }
 
-extern void at_begin(MemArena* ma) {
+extern void at_begin(Mem_Arena* ma) {
   at_arena              = ma;
   at_entity_list        = NULL;
   at_current_entity     = NULL;
@@ -4980,10 +4981,10 @@ static inline b32 at_cstr_equal(const char* a, const char* b) {
   return *a == *b;
 }
 
-extern void at_set(ATAsset* asset, const char* name) {
+extern void at_set(AT_Asset* asset, const char* name) {
   if (at_cstr_equal(asset->frame->animation->name, name)) return;
 
-  ATAnimation* animation = asset->entity->animation;
+  AT_Animation* animation = asset->entity->animation;
 
   while (animation && !at_cstr_equal(animation->name, name)) {
     animation = animation->next;
@@ -4995,7 +4996,7 @@ extern void at_set(ATAsset* asset, const char* name) {
   }
 }
 
-extern void at_update(ATAsset* asset, f32 dt) {
+extern void at_update(AT_Asset* asset, f32 dt) {
   asset->duration += dt;
 
   if (asset->duration >= 1.0) {
@@ -5004,8 +5005,8 @@ extern void at_update(ATAsset* asset, f32 dt) {
   }
 }
 
-static ATEntity* at_get_entity(const char* name) {
-  ATEntity* entity = at_entity_list;
+static AT_Entity* at_get_entity(const char* name) {
+  AT_Entity* entity = at_entity_list;
 
   while (entity && !at_cstr_equal(entity->name, name)) {
     entity = entity->next;
@@ -5014,8 +5015,8 @@ static ATEntity* at_get_entity(const char* name) {
   return entity? entity : NULL;
 }
 
-extern ATAsset at_get(const char* name) {
-  ATAsset state = ATS_INIT;
+extern AT_Asset at_get(const char* name) {
+  AT_Asset state = ATS_INIT;
   state.entity = at_get_entity(name);
   state.frame  = state.entity->animation->frame;
   return state;
@@ -5041,13 +5042,13 @@ typedef struct {
   cs_loaded_sound_t loaded;
   cs_play_sound_def_t playing;
   char name[64];
-} AudioEntry;
+} Audio_Entry;
 
 static struct {
   cs_context_t* context;
 } audio;
 
-static AudioEntry audio_table[AUDIO_TABLE_SIZE];
+static Audio_Entry audio_table[AUDIO_TABLE_SIZE];
 
 extern void audio_init(void* handle) {
   audio.context = cs_make_context(handle, 44100, 8 * 4096, 1024, NULL);
@@ -5056,11 +5057,11 @@ extern void audio_init(void* handle) {
   cs_thread_sleep_delay(audio.context, 16);
 }
 
-static b32 audio_is_valid(AudioID id) {
+static b32 audio_is_valid(Audio_ID id) {
   return id.index != 0;
 }
 
-extern AudioID audio_get(const char* name) {
+extern Audio_ID audio_get(const char* name) {
   u32 hash  = hash_str(name);
   u16 index = hash & (AUDIO_TABLE_SIZE - 1);
 
@@ -5068,7 +5069,7 @@ extern AudioID audio_get(const char* name) {
 
   while (audio_table[index].in_use) {
     if (strcmp(audio_table[index].name, name) == 0) {
-      AudioID id = { index };
+      Audio_ID id = { index };
       return id;
     }
 
@@ -5089,7 +5090,7 @@ extern AudioID audio_get(const char* name) {
     path[i++] = '\0';
   }
 
-  AudioEntry* entry = &audio_table[index];
+  Audio_Entry* entry = &audio_table[index];
 
   entry->in_use = true;
   strcpy_s(entry->name, ArrayCount(entry->name), name);
@@ -5101,7 +5102,7 @@ extern AudioID audio_get(const char* name) {
     printf("%s ---- path: %s\n", cs_error_reason, path);
   }
 
-  AudioID id = { index };
+  Audio_ID id = { index };
   return id;
 }
 
@@ -5119,13 +5120,13 @@ extern void audio_kill_all(void) {
   cs_stop_all_sounds(audio.context);
 }
 
-static AudioEntry* audio_get_entry(AudioID id) {
+static Audio_Entry* audio_get_entry(Audio_ID id) {
   if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
   return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-extern void audio_play(AudioID id, f32 volume) {
-  AudioEntry* entry = audio_get_entry(id);
+extern void audio_play(Audio_ID id, f32 volume) {
+  Audio_Entry* entry = audio_get_entry(id);
 
   if (entry) {
     cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -5138,8 +5139,8 @@ extern void audio_play(AudioID id, f32 volume) {
   }
 }
 
-extern void* audio_play_looped(AudioID id, f32 volume) {
-  AudioEntry* entry = audio_get_entry(id);
+extern void* audio_play_looped(Audio_ID id, f32 volume) {
+  Audio_Entry* entry = audio_get_entry(id);
 
   if (entry) {
     cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
@@ -5158,13 +5159,13 @@ extern void* audio_play_looped(AudioID id, f32 volume) {
   return NULL;
 }
 
-extern void audio_play_music(AudioID id, f32 volume) {
+extern void audio_play_music(Audio_ID id, f32 volume) {
   static cs_playing_sound_t* playing = NULL;
 
   if (playing && cs_is_active(playing))
     cs_stop_sound(playing);
 
-  AudioEntry* entry = audio_get_entry(id);
+  Audio_Entry* entry = audio_get_entry(id);
   if (entry) {
     playing = cs_play_sound(audio.context, entry->playing);
 
@@ -5179,13 +5180,13 @@ extern void audio_play_music(AudioID id, f32 volume) {
   }
 }
 
-extern void audio_play_from_source(AudioID id, V3 pos, V3 dir, V3 source, f32 volume, f32 max_distance) {
+extern void audio_play_from_source(Audio_ID id, V3 pos, V3 dir, V3 source, f32 volume, f32 max_distance) {
   f32 sound_distance = v3_dist(pos, source);
   f32 final_volume = volume * Max(1 - sound_distance / max_distance, 0);
 
   if (final_volume <= 0) return;
 
-  AudioEntry* entry = audio_get_entry(id);
+  Audio_Entry* entry = audio_get_entry(id);
 
   if (entry) {
     V2 source_dir = {
