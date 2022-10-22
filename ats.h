@@ -234,6 +234,7 @@ typedef struct sphere {
 static inline V2 v2(f32 x, f32 y)               { return { x, y }; }
 static inline V3 v3(f32 x, f32 y, f32 z)        { return { x, y, z }; }
 static inline V4 v4(f32 x, f32 y, f32 z, f32 w) { return { x, y, z, w }; }
+static inline V4 v4(V3 u, f32 w)                { return { u.x, u.y, u.z, w }; }
 
 static inline V2i v2i(i32 x, i32 y)               { return { x, y }; }
 static inline V3i v3i(i32 x, i32 y, i32 z)        { return { x, y, z }; }
@@ -2874,7 +2875,7 @@ typedef struct gl_shader_desc {
   const char* fs;
 } GLShaderDesc;
 
-extern GLShader gl_shader_create(const GLShaderDesc* desc);
+extern GLShader gl_shader_create(GLShaderDesc desc);
 extern GLShader gl_shader_load_from_file(const char *vs, const char *fs,  MemArena* ma);
 
 extern void gl_use(const GLShader* shader);
@@ -4240,9 +4241,9 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
   return shader;
 }
 
-extern GLShader gl_shader_create(const GLShaderDesc* desc) {
-  u32 vertex   = gl_shader_compile(desc->vs, GL_VERTEX_SHADER);
-  u32 fragment = gl_shader_compile(desc->fs, GL_FRAGMENT_SHADER);
+extern GLShader gl_shader_create(GLShaderDesc desc) {
+  u32 vertex   = gl_shader_compile(desc.vs, GL_VERTEX_SHADER);
+  u32 fragment = gl_shader_compile(desc.fs, GL_FRAGMENT_SHADER);
   u32 program  = gl_shader_link_program(vertex, fragment);
 
   glUseProgram(program);
@@ -4267,7 +4268,7 @@ extern GLShader gl_shader_load_from_file(const char *vs, const char *fs, MemAren
     desc.vs = vs_content;
     desc.fs = fs_content;
 
-    shader = gl_shader_create(&desc);
+    shader = gl_shader_create(desc);
   }
 
   return shader;
@@ -4434,7 +4435,7 @@ extern void gl_init_bitmap_font(void) {
       out_color = frag_color * texture(tex, frag_uv / textureSize(tex, 0));
     });
 
-  bitmap_shader = gl_shader_create(&shader_desc);
+  bitmap_shader = gl_shader_create(shader_desc);
 
   GLBufferDesc buffer_desc = ATS_INIT;
 
