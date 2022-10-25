@@ -201,28 +201,28 @@ typedef struct sphere {
 
 #define Make(T) (T)
 
-#define v2(...) ((V2) { __VA_ARGS__ })
-#define v3(...) ((V3) { __VA_ARGS__ })
-#define v4(...) ((V4) { __VA_ARGS__ })
+#define v2(...) ((v2) { __VA_ARGS__ })
+#define v3(...) ((v3) { __VA_ARGS__ })
+#define v4(...) ((v4) { __VA_ARGS__ })
 
-#define v2i(...) ((V2i) { __VA_ARGS__ })
-#define v3i(...) ((V3i) { __VA_ARGS__ })
-#define v4i(...) ((V4i) { __VA_ARGS__ })
+#define v2i(...) ((v2i) { __VA_ARGS__ })
+#define v3i(...) ((v3i) { __VA_ARGS__ })
+#define v4i(...) ((v4i) { __VA_ARGS__ })
 
-#define quat(...) ((Quat) { __VA_ARGS__ })
+#define quat(...) ((quat) { __VA_ARGS__ })
 
-#define r2(...) ((R2) { __VA_ARGS__ })
-#define r3(...) ((R3) { __VA_ARGS__ })
+#define r2(...) ((r2) { __VA_ARGS__ })
+#define r3(...) ((r3) { __VA_ARGS__ })
 
-#define r2i(...) ((R2i) { __VA_ARGS__ })
-#define r3i(...) ((R3i) { __VA_ARGS__ })
+#define r2i(...) ((r2i) { __VA_ARGS__ })
+#define r3i(...) ((r3i) { __VA_ARGS__ })
 
-#define circle(...) ((Circle) { __VA_ARGS__ })
-#define sphere(...) ((Sphere) { __VA_ARGS__ })
+#define circle(...) ((circle) { __VA_ARGS__ })
+#define sphere(...) ((sphere) { __VA_ARGS__ })
 
-#define m2(...) ((M2) { __VA_ARGS__ })
-#define m3(...) ((M3) { __VA_ARGS__ })
-#define m4(...) ((M4) { __VA_ARGS__ })
+#define m2(...) ((m2) { __VA_ARGS__ })
+#define m3(...) ((m3) { __VA_ARGS__ })
+#define m4(...) ((m4) { __VA_ARGS__ })
 
 #else // __cplusplus
 
@@ -230,10 +230,17 @@ typedef struct sphere {
 
 #define Make(T) T
 
-static inline v2 _v2(f32 x, f32 y)               { return { x, y }; }
-static inline v3 _v3(f32 x, f32 y, f32 z)        { return { x, y, z }; }
-static inline v4 _v4(f32 x, f32 y, f32 z, f32 w) { return { x, y, z, w }; }
-static inline v4 _v4(v3 u, f32 w)                { return { u.x, u.y, u.z, w }; }
+static inline v2 _v2(f32 x)         { return { x, x }; }
+static inline v2 _v2(f32 x, f32 y)  { return { x, y }; }
+
+static inline v3 _v3(f32 x)               { return { x, x, x }; }
+static inline v3 _v3(f32 x, f32 y, f32 z) { return { x, y, z }; }
+static inline v3 _v3(v2 u)                { return { u.x, u.y, 0 }; }
+static inline v3 _v3(v2 u, f32 z)         { return { u.x, u.y, z }; }
+
+static inline v4 _v4(f32 x)                       { return { x, x, x, x }; }
+static inline v4 _v4(f32 x, f32 y, f32 z, f32 w)  { return { x, y, z, w }; }
+static inline v4 _v4(v3 u, f32 w)                 { return { u.x, u.y, u.z, w }; }
 
 static inline v2i _v2i(i32 x, i32 y)               { return { x, y }; }
 static inline v3i _v3i(i32 x, i32 y, i32 z)        { return { x, y, z }; }
@@ -2232,16 +2239,16 @@ typedef struct image {
   i32 width;
   i32 height;
   u32* pixels;
-} Image;
+} image;
 
-static u32 image_get(const Image* img, i32 x, i32 y) {
+static u32 image_get(const image* img, i32 x, i32 y) {
   assert(x >= 0 && x < img->width);
   assert(y >= 0 && y < img->height);
 
   return img->pixels[y * img->width + x];
 }
 
-static void image_set(Image* img, i32 x, i32 y, u32 pixel) {
+static void image_set(image* img, i32 x, i32 y, u32 pixel) {
   assert(x >= 0 && x < img->width);
   assert(y >= 0 && y < img->height);
   img->pixels[y * img->width + x] = pixel;
@@ -2727,8 +2734,8 @@ extern b32    file_append_str(const char* file_name, const char* buffer);
 extern b32    file_read_bin(const char* file_name, void* buffer, usize size);
 extern b32    file_write_bin(const char* file_name, const void* buffer, usize size);
 
-extern Image  file_load_image(const char* path);
-extern void   file_free_image(Image* img);
+extern image  file_load_image(const char* path);
+extern void   file_free_image(image* img);
 
 // --------------------------- ats_texture_table.c ------------------------------ //
 
@@ -4660,18 +4667,17 @@ extern b32 file_write_bin(const char* file_name, const void* buffer, usize size)
   return false;
 }
 
-extern Image file_load_image(const char* path) {
-  Image image = {0};
+extern image file_load_image(const char* path) {
+  image img = ATS_INIT;
   i32 channels = 0;
-  image.pixels = (u32*)stbi_load(path, &image.width, &image.height, &channels, 4);
-  assert(image.pixels);
-
-  return image;
+  img.pixels = (u32*)stbi_load(path, &img.width, &img.height, &channels, 4);
+  assert(img.pixels);
+  return img;
 }
 
-extern void file_free_image(Image* img) {
+extern void file_free_image(image* img) {
   stbi_image_free(img->pixels);
-  *img = Make(Image) ATS_INIT;
+  *img = Make(image) ATS_INIT;
 }
 
 typedef struct file_iter {
@@ -4682,9 +4688,9 @@ typedef struct file_iter {
 
   HANDLE handle;
   WIN32_FIND_DATAA data;
-} FileIter;
+} file_iter;
 
-static bool file_iter_is_valid(const FileIter* it) {
+static bool file_iter_is_valid(const file_iter* it) {
   return !it->done;
 }
 
@@ -4694,18 +4700,18 @@ static inline void file_cstr_concat(char* out, const char* a, const char* b) {
   *(out) = '\0';
 }
 
-static void file_iter_advance(FileIter* it) {
+static void file_iter_advance(file_iter* it) {
   it->done = !FindNextFileA(it->handle, &it->data);
   if (!it->done) {
     file_cstr_concat(it->current, it->path, it->data.cFileName);
   }
 }
 
-static FileIter file_iter_create(const char* path, const char* ext) {
+static file_iter file_iter_create(const char* path, const char* ext) {
   if (!path) path = "";
   if (!ext) ext = "*";
 
-  FileIter it = ATS_INIT;
+  file_iter it = ATS_INIT;
 
   it.path = path;
 
