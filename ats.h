@@ -82,7 +82,7 @@
 #define Lerp(a, b, t)       ((a) + (f32)(t) * ((b) - (a)))
 #define Sign(n)             ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
-// =========================================== API-TYPES ====================================== //
+// =========================================== BASE-TYPES ========================================= //
 
 typedef float f32;
 typedef double f64;
@@ -105,8 +105,6 @@ typedef u8  b8;
 typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;
-
-// =========================================== TYPES ========================================= //
 
 typedef union {
   struct { f32 x, y; };
@@ -193,6 +191,141 @@ typedef struct sphere {
   f32 rad;
 } sphere;
 
+// =============================================== ROUTINES ========================================== //
+// Ad-hoc coroutines:
+// copied and modefied from: https://gist.github.com/NoelFB/7a5fa66fc29dd7ed1c11042c30f1b00e
+
+typedef struct routine {
+  i32 at;
+  f32 wait_for;
+  f32 repeat_for;
+} routine;
+
+#define RT_LABEL_OFFSET 1147483647
+
+#define rt_hash(tag) RT_LABEL_OFFSET + tag
+
+#define rt_begin(rt, dt) \
+  if (rt.wait_for > 0) { \
+    rt.wait_for -= (dt); \
+  } else { \
+    routine* __rt = &(rt); \
+    f32 __dt = dt; \
+    b32 __mn = true; \
+    switch (__rt->at) { \
+      case 0: { \
+
+#define rt_step() \
+      } if (__mn) __rt->at = __LINE__; \
+      break;  \
+      case __LINE__: { \
+
+#define rt_label(name) \
+      } if (__mn) __rt->at = rt_hash(name);  \
+      break; \
+      case rt_hash(name): { \
+
+#define rt_for(time) \
+        rt_step(); \
+        if (__rt->repeat_for < time) {  \
+          __rt->repeat_for += __dt; \
+          __mn = __rt->repeat_for >= time; \
+          if (__mn) __rt->repeat_for = 0; \
+        } \
+
+#define rt_while(condition) \
+      } if (__mn) __rt->at = __LINE__; \
+      break; \
+      case __LINE__: if (condition) { \
+        __mn = false \
+
+#define rt_until(condition) \
+            } if (__mn) __rt->at = ((condition) ? __LINE__ : -__LINE__); \
+            break; \
+        case -__LINE__: \
+            if (condition) __rt->at = __LINE__; \
+            break; \
+        case __LINE__: { \
+
+#define rt_wait(time) \
+        } if (__mn) { \
+          __rt->wait_for = time; \
+          __rt->at = __LINE__; \
+        } \
+      break; \
+        case __LINE__: { \
+
+#define rt_end() \
+        } if (__mn) __rt->at = -1; \
+      break; \
+    } \
+  } \
+  goto rt_end_of_routine;  \
+  rt_end_of_routine: \
+
+// Flow Statements:
+// These can be used anywhere between rt_begin and rt_end,
+// including if statements, while loops, etc.
+
+// Repeats the block that this is contained within
+// Skips the remainder of the block
+#define rt_repeat() \
+  goto rt_end_of_routine \
+
+// Goes to a given block labeled with `rt_label`
+#define rt_goto(name) \
+  do { \
+    __rt->at = rt_hash(name); \
+    goto rt_end_of_routine; \
+  } while(0) \
+
+// Restarts the entire Coroutine;
+// Jumps back to `rt_begin` on the next frame
+#define rt_restart() \
+  do { \
+    __rt->at = 0; \
+    __rt->wait_for = 0; \
+    __rt->repeat_for = 0; \
+    goto rt_end_of_routine; \
+  } while(0) \
+
+// Example:
+// // Assuming you have a `routine` variable stored somewhere
+// rt_begin(routine);
+// {
+//     // stuff that happens frame 1
+// }
+// rt_wait(1.0f);
+// {
+//     // after 1.0s, this block runs
+// }
+// rt_for(0.25f);
+// {
+//     // this block repeats for 0.25s
+// }
+// rt_step();
+// {
+//     // the following frame, this block is run
+// }
+// rt_label(0);
+// {
+//     if (something)
+//         rt_repeat();
+//
+//     // not run if rt_repeat() was called
+//     something_else();
+// }
+// rt_step();
+// {
+//     if (another) rt_goto(0); // jumps to label 0
+//     if (another2) rt_restart();  // jumps to rt_begin
+//     // otherwise the next block will be run next frame
+// }
+// rt_while(condition_is_true);
+// {
+//     // this is repeated until condition_is_true is false
+// }
+// rt_end();
 // ======================================= STATIC FUNCTIONS ==================================== //
 
 #ifndef __cplusplus // C stuff
@@ -503,7 +636,7 @@ static f32 elastic_ease_out(f32 t) {
     powf(2, -10 * t) * sinf((t * 10 - 0.75) * c4) + 1;
 }
 
-static f32 elastic_ease_inout(f32 t) {
+static f32 elastic_ease_in_out(f32 t) {
   f32 c5 = (2 * PI) / 4.5;
   return t == 0?
     0 :
@@ -2631,16 +2764,16 @@ static void tm_clear(traverse_map* map) {
   memset(map, 0, sizeof (traverse_map));
 }
 
-static inline u32 tm_index(const traverse_map* map, u32 x, u32 y) {
+static inline u32 tm_get_index(const traverse_map* map, u32 x, u32 y) {
   return (y & TRAVERSE_MOD) * TRAVERSE_MAP_SIZE + (x & TRAVERSE_MOD);
 }
 
 static inline void tm_set_traversable(traverse_map* map, u32 x, u32 y) {
-  bit_set(map->array, tm_index(map, x, y));
+  bit_set(map->array, tm_get_index(map, x, y));
 }
 
 static inline b32 tm_is_traversable(const traverse_map* map, u32 x, u32 y) {
-  return bit_get(map->array, tm_index(map, x, y));
+  return bit_get(map->array, tm_get_index(map, x, y));
 }
 
 static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
@@ -4393,6 +4526,9 @@ extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   glGenerateMipmap(GL_TEXTURE_2D);
 
