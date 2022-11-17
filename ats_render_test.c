@@ -156,31 +156,31 @@ static const char* r_post_fx_blur = GLSL(
   });
 
 typedef struct r_vertex_data {
-  v3    pos;
-  v2    uv;
-  u32   color;
-} r_vertex_data;
+  v3 pos;
+  v2 uv;
+  u32 color;
+} r_vertex_data_t;
 
 typedef struct r_target {
-  gl_shader   shader;
-  u32         framebuffer;
-  u32         texture;
-} r_target;
+  gl_shader_t shader;
+  u32 framebuffer;
+  u32 texture;
+} r_target_t;
 
-static gl_buffer r_post_fx_buffer;
+static gl_buffer_t r_post_fx_buffer;
 
-static gl_texture r_current_texture;
+static gl_texture_t r_current_texture;
 
-static usize    r_target_count;
-static r_target r_target_array[R_TARGET_MAX];
+static usize r_target_count;
+static r_target_t r_target_array[R_TARGET_MAX];
 
-static gl_shader r_shader;
-static gl_buffer r_buffer;
+static gl_shader_t r_shader;
+static gl_buffer_t r_buffer;
 
-static u32            r_type;
-static r_vertex_data  r_current;
-static u32            r_vertex_count;
-static r_vertex_data  r_vertex_array[R_VERTEX_MAX];
+static u32 r_type;
+static r_vertex_data_t r_current;
+static u32 r_vertex_count;
+static r_vertex_data_t r_vertex_array[R_VERTEX_MAX];
 
 static void r_set_matrix(m4 mvp) {
   gl_use(&r_shader);
@@ -283,8 +283,8 @@ static void r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up
   f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
 
   r2 tr = {
-    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
-    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+    { tex_rect.min.x + 0.08f, tex_rect.min.y + 0.08f },
+    { tex_rect.max.x - 0.08f, tex_rect.max.y - 0.08f },
   };
 
   r_color(color);
@@ -300,8 +300,8 @@ static void r_billboard(r2i tex_rect, v3 pos, v2 rad, u32 color, v3 right, v3 up
 
 static void r_texture_box(r2i tex_rect, r3 box, u32 color) {
   r2 tr = {
-    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
-    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+    { tex_rect.min.x + 0.08f, tex_rect.min.y + 0.08f },
+    { tex_rect.max.x - 0.08f, tex_rect.max.y - 0.08f },
   };
 
   r_color(color);
@@ -351,8 +351,8 @@ static void r_texture_box(r2i tex_rect, r3 box, u32 color) {
 
 static void r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
   r2 tr = {
-    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
-    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+    { tex_rect.min.x + 0.08f, tex_rect.min.y + 0.08f },
+    { tex_rect.max.x - 0.08f, tex_rect.max.y - 0.08f },
   };
 
   r_color(color);
@@ -369,8 +369,8 @@ static void r_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool fl
   if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
 
   r2 tr = {
-    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
-    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+    { tex_rect.min.x + 0.08f, tex_rect.min.y + 0.08f },
+    { tex_rect.max.x - 0.08f, tex_rect.max.y - 0.08f },
   };
 
   r_color(color);
@@ -386,8 +386,8 @@ static void r_rotated_texture(r2i tex_rect, v2 pos, f32 z, v2 rad, f32 rot, u32 
   if (flip_y) { Swap(f32, tex_rect.min.y, tex_rect.max.y); }
 
   r2 tr = {
-    .min = { tex_rect.min.x + 0.08, tex_rect.min.y + 0.08 },
-    .max = { tex_rect.max.x - 0.08, tex_rect.max.y - 0.08 },
+    { tex_rect.min.x + 0.08f, tex_rect.min.y + 0.08f },
+    { tex_rect.max.x - 0.08f, tex_rect.max.y - 0.08f },
   };
 
   m2 rot_matrix = m2_rotate(rot);
