@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ats_base.h"
+
 typedef struct image {
   i32 width;
   i32 height;

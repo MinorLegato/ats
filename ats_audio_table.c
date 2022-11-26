@@ -13,22 +13,17 @@ static const char* audio_path = AUDIO_PATH;
 
 typedef struct {
   b32 in_use;
-  cs_loaded_sound_t loaded;
-  cs_play_sound_def_t playing;
+  cs_audio_source_t* source;
   char name[64];
 } audio_entry_t;
-
-static struct {
-  cs_context_t* context;
-} audio;
 
 static audio_entry_t audio_table[AUDIO_TABLE_SIZE];
 
 extern void audio_init(void* handle) {
-  audio.context = cs_make_context(handle, 44100, 8 * 4096, 1024, NULL);
+  cs_init(handle, 44100, 2 * 1024, NULL);
 
-  cs_spawn_mix_thread(audio.context);
-  cs_thread_sleep_delay(audio.context, 16);
+  cs_spawn_mix_thread();
+  cs_mix_thread_sleep_delay(7);
 }
 
 static b32 audio_is_valid(audio_id_t id) {
@@ -69,11 +64,12 @@ extern audio_id_t audio_get(const char* name) {
   entry->in_use = true;
   strcpy_s(entry->name, ArrayCount(entry->name), name);
 
-  entry->loaded  = cs_load_wav(path);
-  entry->playing = cs_make_def(&entry->loaded);
+  cs_error_t error = CUTE_SOUND_ERROR_NONE;
+  entry->source = cs_load_wav(path, &error);
+  //entry->playing = cs_make_def(&entry->source);
 
-  if (cs_error_reason) {
-    printf("%s ---- path: %s\n", cs_error_reason, path);
+  if (error) {
+    printf("%s ---- path: %s\n", cs_error_as_string(error), path);
   }
 
   audio_id_t id = { index };
@@ -81,17 +77,11 @@ extern audio_id_t audio_get(const char* name) {
 }
 
 extern void audio_pause(b32 pause) {
-  cs_lock(audio.context);
-  cs_playing_sound_t* playing = cs_get_playing(audio.context);
-  while (playing) {
-    cs_pause_sound(playing, pause);
-    playing = playing->next;
-  }
-  cs_unlock(audio.context);
+  cs_set_global_pause(pause);
 }
 
 extern void audio_kill_all(void) {
-  cs_stop_all_sounds(audio.context);
+  cs_stop_all_playing_sounds();
 }
 
 static audio_entry_t* audio_get_entry(audio_id_t id) {
@@ -103,57 +93,22 @@ extern void audio_play(audio_id_t id, f32 volume) {
   audio_entry_t* entry = audio_get_entry(id);
 
   if (entry) {
-    cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
-
-    if (!playing) return;
-
-    cs_lock(audio.context);
-    cs_set_volume(playing, volume, volume);
-    cs_unlock(audio.context);
+    cs_play_sound(entry->source, (cs_sound_params_t) {
+      .volume = volume,
+      .pan = 0.4,
+    });
   }
-}
-
-extern void* audio_play_looped(audio_id_t id, f32 volume) {
-  audio_entry_t* entry = audio_get_entry(id);
-
-  if (entry) {
-    cs_playing_sound_t* playing = cs_play_sound(audio.context, entry->playing);
-
-    if (!playing)
-      return NULL;
-
-    cs_lock(audio.context);
-    playing->looped = 1;
-    cs_set_volume(playing, volume, volume);
-    cs_unlock(audio.context);
-
-    return playing;
-  }
-
-  return NULL;
 }
 
 extern void audio_play_music(audio_id_t id, f32 volume) {
-  static cs_playing_sound_t* playing = NULL;
-
-  if (playing && cs_is_active(playing))
-    cs_stop_sound(playing);
-
   audio_entry_t* entry = audio_get_entry(id);
   if (entry) {
-    playing = cs_play_sound(audio.context, entry->playing);
-
-    if (!playing) return;
-
-    cs_lock(audio.context);
-
-    playing->looped = true;
-
-    cs_set_volume(playing, volume, volume);
-    cs_unlock(audio.context);
+    cs_music_stop(0);
+    cs_music_play(entry->source, 0);
   }
 }
 
+#if 0
 extern void audio_play_from_source(audio_id_t id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
   f32 sound_distance = v3_dist(pos, source);
   f32 final_volume = volume * Max(1 - sound_distance / max_distance, 0);
@@ -190,4 +145,4 @@ extern void audio_play_from_source(audio_id_t id, v3 pos, v3 dir, v3 source, f32
     cs_unlock(audio.context);
   }
 }
-
+#endif

@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "ats_base.h"
+
 // ====================================== BIT STUFF =================================== //
 
 static void bit_set(u32* array, u32 index) {
@@ -53,8 +55,8 @@ static b32 string_equal_cstr(string_t a, const char* b) {
 
 #ifdef __cplusplus
 
-static b32 operator==(string_t a, string_t b)       { return string_equal(a, b); }
-static b32 operator==(string_t a, const char* b)  { return string_equal_cstr(a, b); }
+static b32 operator==(string_t a, string_t b) { return string_equal(a, b); }
+static b32 operator==(string_t a, const char* b) { return string_equal_cstr(a, b); }
 
 #endif
 

@@ -95,6 +95,8 @@ extern void platform_init(const char* title, int width, int height, int samples)
   glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 
+  platform.refresh_rate = mode->refreshRate;
+
 #if defined(ATS_OGL33)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);

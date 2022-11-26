@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ats_base.h"
+
 typedef union {
   struct { f32 x, y; };
   f32 e[2];

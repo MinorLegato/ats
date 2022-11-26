@@ -67,3 +67,4 @@ static void mem_restore(mem_arena_t* ma) {
 static void mem_validate(mem_arena_t* ma) {
   assert(ma->top == 0);
 }
+

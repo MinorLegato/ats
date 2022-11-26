@@ -1,5 +1,8 @@
 #pragma once
 
+#include "ats_base.h"
+#include "ats_image.h"
+
 #define TEXTURE_TABLE_SIZE (1024)
 
 typedef struct tt_id {

@@ -4,8 +4,8 @@
 #define __ATS_H__
 
 #include "ats_base.h"
-#include "ats_routine.h"
 #include "ats_math.h"
+#include "ats_routine.h"
 #include "ats_mem.h"
 #include "ats_ds.h"
 #include "ats_image.h"
@@ -19,7 +19,6 @@
 #include "ats_platform.h"
 #include "ats_thread.h"
 
-// ---------------- gl helper functions/types ---------------- //
 #endif // __ATS_H__
 
 #ifdef ATS_IMPL

@@ -261,6 +261,7 @@ struct platform {
 
   i32 width;
   i32 height;
+  i32 refresh_rate;
   f32 aspect_ratio;
 
   void* native;
@@ -307,8 +308,6 @@ struct platform {
 
   gamepad_t gamepad[JOYSTICK_LAST];
 };
-
-extern struct platform platform;
 
 typedef struct timer_entry {
   const char* name;
