@@ -19,6 +19,7 @@ static FILE* file_open(const char* path, const char* mode) {
 
 extern usize file_get_size(const char* path) {
   FILE* fp = fopen(path, "rb");
+  if (!fp) return 0;
   usize size = _file_get_size(fp);
   fclose(fp);
   return size;

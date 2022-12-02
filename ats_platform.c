@@ -1,3 +1,9 @@
+
+#ifdef ATS_OGL33
+#include "ext/glad/glad.h"
+#define GLSL(...) "#version 460 core\n" #__VA_ARGS__
+#endif
+
 #include "ext/GLFW/ats_glfw.h"
 
 #ifdef ATS_OGL33

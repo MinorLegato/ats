@@ -2,14 +2,6 @@
 
 #include "ats_gl.h"
 
-#ifdef ATS_OGL33
-#include "ext/glad/glad.h"
-#endif
-
-#if defined(ATS_OGL33)
-#define GLSL(...) "#version 460 core\n" #__VA_ARGS__
-#endif
-
 // ------------------- platform layer ------------------------ //
 
 struct platform;

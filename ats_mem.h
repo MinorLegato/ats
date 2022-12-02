@@ -7,7 +7,7 @@
 typedef struct mem_arena {
   usize index;
   usize cap;
-  u8* buffer;
+  u8* buf;
 
   usize top;
   usize stack[16];
@@ -24,14 +24,14 @@ typedef struct mem_arena {
 static void mem_init(mem_arena_t* ma, u8* buffer, usize size) {
   memset(ma, 0, sizeof *ma);
   ma->cap = size;
-  ma->buffer = buffer;
+  ma->buf = buffer;
 }
 
 static void* mem_alloc(mem_arena_t* ma, usize byte_size) {
   byte_size = AlignUp(byte_size, 16);
   assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
 
-  void* memory = ma->buffer + ma->index;
+  void* memory = ma->buf + ma->index;
   ma->index += byte_size;
   ma->max = ma->max > ma->index? ma->max : ma->index;
 
@@ -46,7 +46,7 @@ static void* mem_zero(mem_arena_t* ma, usize byte_size) {
 
 static void* mem_begin(mem_arena_t* ma) {
   ma->lock = true;
-  return ma->buffer + ma->index;
+  return ma->buf + ma->index;
 }
 
 static void mem_end(mem_arena_t* ma, usize byte_size) {

@@ -401,10 +401,10 @@ extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   assert(pixels);
 
-  gl_texture texture = {0};
+  gl_texture_t texture = {0};
 
   texture.width = width;
   texture.height = height;
@@ -420,7 +420,7 @@ extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_
   return texture;
 }
 
-extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -431,7 +431,7 @@ extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
 }
 
-extern void gl_texture_bind(const gl_texture* texture) {
+extern void gl_texture_bind(const gl_texture_t* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 
   glMatrixMode(GL_TEXTURE);
@@ -643,7 +643,7 @@ extern void gl_rect(r2 rect, f32 z, u32 color) {
 
 // ======================================= FONT ====================================== //
 
-static gl_texture bitmap_texture;
+static gl_texture_t bitmap_texture;
 
 extern void gl_init_bitmap_font(void) {
   u32 pixels[8][BITMAP_COUNT * 8] = {0};
