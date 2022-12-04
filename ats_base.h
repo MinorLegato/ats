@@ -7,6 +7,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#ifdef __cplusplus
+#define ATS_INIT {}
+#define Make(T) T
+#else
+#define ATS_INIT {0}
+#define Make(T) (T)
+#endif
+
 #define KIB (1024)
 #define MIB (1024 * KIB)
 #define GIB (1024 * MIB)

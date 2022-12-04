@@ -93,10 +93,12 @@ extern void audio_play(audio_id_t id, f32 volume) {
   audio_entry_t* entry = audio_get_entry(id);
 
   if (entry) {
-    cs_play_sound(entry->source, (cs_sound_params_t) {
-      .volume = volume,
-      .pan = 0.4,
-    });
+    cs_sound_params_t params = ATS_INIT;
+
+    params.volume = volume;
+    params.pan = 0.5;
+
+    cs_play_sound(entry->source, params);
   }
 }
 

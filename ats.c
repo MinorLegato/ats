@@ -7,6 +7,9 @@
 #include "ats_texture_table.c"
 #include "ats_animation_table.c"
 #include "ats_audio_table.c"
+
+#ifndef __cplusplus
 #include "ats_thread.c"
+#endif
 
 #endif // ATS_IMPL_ONCE

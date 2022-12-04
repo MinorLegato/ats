@@ -88,11 +88,7 @@ typedef struct sphere {
   f32 rad;
 } sphere_t;
 
-#ifndef __cplusplus // C stuff
-
-#define ATS_INIT {0}
-
-#define Make(T) (T)
+#ifndef __cplusplus
 
 #define v2(...) ((v2) { __VA_ARGS__ })
 #define v3(...) ((v3) { __VA_ARGS__ })
@@ -118,10 +114,6 @@ typedef struct sphere {
 #define m4(...) ((m4) { __VA_ARGS__ })
 
 #else // __cplusplus
-
-#define ATS_INIT {}
-
-#define Make(T) T
 
 static inline v2 _v2(f32 x)         { return { x, x }; }
 static inline v2 _v2(f32 x, f32 y)  { return { x, y }; }

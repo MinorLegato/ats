@@ -17,7 +17,10 @@
 
 #include "ats_gl.h"
 #include "ats_platform.h"
+
+#ifndef __cplusplus
 #include "ats_thread.h"
+#endif
 
 #endif // __ATS_H__
 
