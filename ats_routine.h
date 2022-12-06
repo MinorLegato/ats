@@ -49,7 +49,19 @@ typedef struct rt_state {
 
 #define RT_LABEL_OFFSET 1147483647
 
+#ifndef __cplusplus
 #define rt_hash(tag) RT_LABEL_OFFSET + tag
+#else
+constexpr unsigned int rt_hash(unsigned int tag) {
+  return RT_LABEL_OFFSET + tag;
+}
+constexpr unsigned int rt_hash(const char* name) {
+  unsigned int hash = 5381;
+  for (int i = 0; name[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + name[i];
+  return hash;
+}
+#endif
 
 #define rt_begin(rt, dt) \
   if (rt.wait_for > 0) { \

@@ -98,7 +98,6 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long u64;
 
-typedef unsigned int uint;
 typedef long long isize;
 typedef unsigned long long usize;
 
@@ -107,3 +106,16 @@ typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;
 
+#ifdef __cplusplus
+
+constexpr u32 __match_hash(const char* name) {
+  u32 hash = 5381;
+  for (int i = 0; name[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + name[i];
+  return hash;
+}
+
+#define match(str) switch(__match_hash(str))
+#define with(str)  case __match_hash(str)
+
+#endif
