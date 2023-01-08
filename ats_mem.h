@@ -4,67 +4,80 @@
 
 // ---------------------- arena ------------------------ //
 
+typedef struct mem_index {
+  struct mem_index* next;
+  usize idx;
+} mem_index;
+
 typedef struct mem_arena {
-  usize index;
+  struct mem_arena* next;
+
+  usize idx;
   usize cap;
+
   u8* buf;
 
-  usize top;
-  usize stack[16];
+  mem_index* stack;
+} mem_arena;
 
-  usize lock;
-  usize max;
-} mem_arena_t;
-
-#define mem_type(ma, type_t) (type_t*)mem_zero(ma, sizeof (type_t))
-#define mem_array(ma, type_t, count) (type_t*)mem_zero(ma, (count) * sizeof (type_t))
-
-#define mem_scope(ma) scope_guard(mem_save(ma), mem_restore(ma))
-
-static void mem_init(mem_arena_t* ma, u8* buffer, usize size) {
+static void mem_init(mem_arena* ma, u8* buffer, usize size) {
   memset(ma, 0, sizeof *ma);
+
   ma->cap = size;
   ma->buf = buffer;
 }
 
-static void* mem_alloc(mem_arena_t* ma, usize byte_size) {
-  byte_size = AlignUp(byte_size, 16);
-  assert(((ma->index + byte_size) < ma->cap) && !ma->lock);
+static mem_arena* mem_ctx = NULL;
 
-  void* memory = ma->buf + ma->index;
-  ma->index += byte_size;
-  ma->max = ma->max > ma->index? ma->max : ma->index;
+static void* mem_alloc(usize size) {
+  u8* ptr = mem_ctx->buf + mem_ctx->idx;
 
-  return memory;
-}
+  mem_ctx->idx += size;
+  memset(ptr, 0, size);
 
-static void* mem_zero(mem_arena_t* ma, usize byte_size) {
-  void* ptr = mem_alloc(ma, byte_size);;
-  memset(ptr, 0, byte_size);
   return ptr;
 }
 
-static void* mem_begin(mem_arena_t* ma) {
-  ma->lock = true;
-  return ma->buf + ma->index;
+#define mem_type(type)      (type*)mem_alloc(sizeof (type))
+#define mem_array(type, n)  (type*)mem_alloc((n) * sizeof (type))
+#define mem_scope           scope_guard(mem_save(), mem_restore())
+
+static void mem_push(mem_arena* ma) {
+  assert(ma);
+  ma->next = mem_ctx;
+  mem_ctx = ma;
 }
 
-static void mem_end(mem_arena_t* ma, usize byte_size) {
-  ma->index += AlignUp(byte_size, 16);
-  ma->lock = false;
+static void mem_pop(void) {
+  assert(mem_ctx->next);
+  mem_ctx = mem_ctx->next;
 }
 
-static void mem_save(mem_arena_t* ma) {
-  assert(ma->top < ma->cap);
-  ma->stack[ma->top++] = ma->index;
+static void mem_save(void) {
+  u32 idx = mem_ctx->idx;
+
+  mem_index* index = mem_type(mem_index);
+
+  index->idx = idx;
+  index->next = mem_ctx->stack;
+
+  mem_ctx->stack = index;
 }
 
-static void mem_restore(mem_arena_t* ma) {
-  assert(ma->top > 0);
-  ma->index = ma->stack[--ma->top];
+static void mem_restore(void) {
+  mem_ctx->idx = mem_ctx->stack->idx;
+  mem_ctx->stack = mem_ctx->stack->next;
 }
 
-static void mem_validate(mem_arena_t* ma) {
-  assert(ma->top == 0);
+static void* mem_begin(void) {
+  return mem_ctx->buf + mem_ctx->idx;
+}
+
+static void mem_end(usize byte_size) {
+  mem_ctx->idx += byte_size;
+}
+
+static void mem_validate(void) {
+  assert(mem_ctx->stack == NULL);
 }
 

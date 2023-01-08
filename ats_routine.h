@@ -45,7 +45,7 @@ typedef struct rt_state {
   int at;
   float wait_for;
   float repeat_for;
-} rt_state_t;
+} rt_state;
 
 #define RT_LABEL_OFFSET 1147483647
 
@@ -67,7 +67,7 @@ constexpr unsigned int rt_hash(const char* name) {
   if (rt.wait_for > 0) { \
     rt.wait_for -= (dt); \
   } else { \
-    rt_state_t* __rt = &(rt); \
+    rt_state* __rt = &(rt); \
     float __dt = dt; \
     int __mn = 1; \
     switch (__rt->at) { \

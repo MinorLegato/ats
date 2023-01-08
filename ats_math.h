@@ -76,17 +76,17 @@ typedef struct {
 
 typedef struct quat {
   f32 x, y, z, w;
-} quat_t;
+} quat;
 
 typedef struct circle {
   v2 pos;
   f32 rad;
-} circle_t;
+} circle;
 
 typedef struct sphere {
   v3 pos;
   f32 rad;
-} sphere_t;
+} sphere;
 
 #ifndef __cplusplus
 
@@ -98,7 +98,7 @@ typedef struct sphere {
 #define v3i(...) ((v3i) { __VA_ARGS__ })
 #define v4i(...) ((v4i) { __VA_ARGS__ })
 
-#define quat(...) ((quat_t) { __VA_ARGS__ })
+#define quat(...) ((quat) { __VA_ARGS__ })
 
 #define r2(...) ((r2) { __VA_ARGS__ })
 #define r3(...) ((r3) { __VA_ARGS__ })
@@ -106,8 +106,8 @@ typedef struct sphere {
 #define r2i(...) ((r2i) { __VA_ARGS__ })
 #define r3i(...) ((r3i) { __VA_ARGS__ })
 
-#define circle(...) ((circle_t) { __VA_ARGS__ })
-#define sphere(...) ((sphere_t) { __VA_ARGS__ })
+#define circle(...) ((circle) { __VA_ARGS__ })
+#define sphere(...) ((sphere) { __VA_ARGS__ })
 
 #define m2(...) ((m2) { __VA_ARGS__ })
 #define m3(...) ((m3) { __VA_ARGS__ })
@@ -117,6 +117,11 @@ typedef struct sphere {
 
 static inline v2 _v2(f32 x)         { return { x, x }; }
 static inline v2 _v2(f32 x, f32 y)  { return { x, y }; }
+static inline v2 _v2(v3 u)          { return { u.x, u.y }; }
+static inline v2 _v2(v4 u)          { return { u.x, u.y }; }
+static inline v2 _v2(v2i u)         { return { f32(u.x), f32(u.y) }; }
+static inline v2 _v2(v3i u)         { return { f32(u.x), f32(u.y) }; }
+static inline v2 _v2(v4i u)         { return { f32(u.x), f32(u.y) }; }
 
 static inline v3 _v3(f32 x)               { return { x, x, x }; }
 static inline v3 _v3(f32 x, f32 y, f32 z) { return { x, y, z }; }
@@ -127,11 +132,15 @@ static inline v4 _v4(f32 x)                       { return { x, x, x, x }; }
 static inline v4 _v4(f32 x, f32 y, f32 z, f32 w)  { return { x, y, z, w }; }
 static inline v4 _v4(v3 u, f32 w)                 { return { u.x, u.y, u.z, w }; }
 
-static inline v2i _v2i(i32 x, i32 y)               { return { x, y }; }
+static inline v2i _v2i(i32 x)         { return { x, x }; }
+static inline v2i _v2i(i32 x, i32 y)  { return { x, y }; }
+static inline v2i _v2i(v2 u)          { return _v2i(u.x, u.y); }
+
 static inline v3i _v3i(i32 x, i32 y, i32 z)        { return { x, y, z }; }
+
 static inline v4i _v4i(i32 x, i32 y, i32 z, i32 w) { return { x, y, z, w }; }
 
-static inline quat_t _quat(f32 x, f32 y, f32 z, f32 w) { return { x, y, z, w }; }
+static inline quat _quat(f32 x, f32 y, f32 z, f32 w) { return { x, y, z, w }; }
 
 static inline r2 _r2(f32 ax, f32 ay, f32 bx, f32 by) { return { { ax, ay }, { bx, by } }; }
 static inline r2 _r2(v2 a, v2 b) { return { a, b }; }
@@ -145,11 +154,11 @@ static inline r2i _r2i(v2i a, v2i b) { return { a, b }; }
 static inline r3i _r3i(i32 ax, i32 ay, i32 az, i32 bx, i32 by, i32 bz) { return { { ax, ay, az }, { bx, by, bz } }; }
 static inline r3i _r3i(v3i a, v3i b)  { return { a, b }; }
 
-static inline circle_t _circle(f32 x, f32 y, f32 rad) { return { x, y, rad }; }
-static inline circle_t _circle(v2 p, f32 rad) { return { p, rad }; }
+static inline circle _circle(f32 x, f32 y, f32 rad) { return { x, y, rad }; }
+static inline circle _circle(v2 p, f32 rad) { return { p, rad }; }
 
-static inline sphere_t _sphere(f32 x, f32 y, f32 z, f32 rad) { return { x, y, z, rad }; }
-static inline sphere_t _sphere(v3 p, f32 rad) { return { p, rad }; }
+static inline sphere _sphere(f32 x, f32 y, f32 z, f32 rad) { return { x, y, z, rad }; }
+static inline sphere _sphere(v3 p, f32 rad) { return { p, rad }; }
 
 #define v2(...) _v2(__VA_ARGS__)
 #define v3(...) _v3(__VA_ARGS__)
@@ -201,7 +210,7 @@ static m4 m4_identity(void) {
   );
 }
 
-static quat_t quat_identity(void) {
+static quat quat_identity(void) {
   return quat(0, 0, 0, 1);
 }
 
@@ -621,7 +630,7 @@ static m4 m4_mul(m4 a, m4 b) {
   );
 }
 
-static quat_t quat_mul(quat_t a, quat_t b) {
+static quat quat_mul(quat a, quat b) {
   return quat(
     a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
     a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
@@ -656,7 +665,7 @@ static m2 operator*(m2 a, m2 b) { return m2_mul(a, b); }
 static m3 operator*(m3 a, m3 b) { return m3_mul(a, b); }
 static m4 operator*(m4 a, m4 b) { return m4_mul(a, b); }
 
-static quat_t operator*(quat_t a, quat_t b) { return quat_mul(a, b); }
+static quat operator*(quat a, quat b) { return quat_mul(a, b); }
 
 #endif
 
@@ -1339,7 +1348,7 @@ static m4 m4_rotate(v3 axis, f32 angle) {
   );
 }
 
-static quat_t quat_rotate(v3 axis, f32 angle) {
+static quat quat_rotate(v3 axis, f32 angle) {
   f32 s = sinf(0.5f * angle);
   v3 v = { s * axis.x, s * axis.y, s * axis.z };
   return quat(v.x, v.y, v.z, cosf(0.5f * angle));
@@ -1365,7 +1374,7 @@ static m4 m4_scale(f32 x, f32 y, f32 z) {
 
 // --------------- from quat --------------- //
 
-static m3 m3_from_quat(quat_t q) {
+static m3 m3_from_quat(quat q) {
   f32 a = q.w;
   f32 b = q.x;
   f32 c = q.y;
@@ -1391,7 +1400,7 @@ static m3 m3_from_quat(quat_t q) {
   );
 }
 
-static m4 m4_from_quat(quat_t q) {
+static m4 m4_from_quat(quat q) {
   f32 a = q.w;
   f32 b = q.x;
   f32 c = q.y;
@@ -1483,13 +1492,13 @@ typedef struct plane {
   f32 b;
   f32 c;
   f32 d;
-} plane_t;
+} plane;
 
 typedef struct frustum {
-  plane_t planes[6];
-} frustum_t;
+  plane planes[6];
+} frustum;
 
-static plane_t plane_normalize(plane_t p) {
+static plane plane_normalize(plane p) {
   f32 r_len = rsqrt32(p.a * p.a + p.b * p.b + p.c * p.c);
 
   p.a = p.a * r_len;
@@ -1500,8 +1509,8 @@ static plane_t plane_normalize(plane_t p) {
   return p;
 }
 
-static frustum_t frustum_create(m4 m) {
-  frustum_t result;
+static frustum frustum_create(m4 m) {
+  frustum result;
 
   // left clipping plane
   result.planes[0].a = m.e[3]  + m.e[0];
@@ -1551,12 +1560,12 @@ static frustum_t frustum_create(m4 m) {
 
 // ------------------ contains ------------------ //
 
-static b32 circle_contains(circle_t c, v2 pos) {
+static b32 circle_contains(circle c, v2 pos) {
   f32 distance = v2_dist_sq(c.pos, pos);
   return distance < (c.rad * c.rad);
 }
 
-static b32 sphere_contains(sphere_t s, v3 pos) {
+static b32 sphere_contains(sphere s, v3 pos) {
   f32 distance = v3_dist_sq(s.pos, pos);
   return distance < (s.rad * s.rad);
 }
@@ -1587,7 +1596,7 @@ static b32 r3i_contains(r3i rect, v3i pos) {
   return true;
 }
 
-static b32 frustum_contains(frustum_t fs, v3 pos) {
+static b32 frustum_contains(frustum fs, v3 pos) {
   for (i32 i = 0; i < 6; i++) {
     if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0)
       return false;
@@ -1597,26 +1606,26 @@ static b32 frustum_contains(frustum_t fs, v3 pos) {
 
 #ifdef __cplusplus
 
-static b32 contains(circle_t c, v2 pos)   { return circle_contains(c, pos); }
-static b32 contains(sphere_t s, v3 pos)   { return sphere_contains(s, pos); }
+static b32 contains(circle c, v2 pos)   { return circle_contains(c, pos); }
+static b32 contains(sphere s, v3 pos)   { return sphere_contains(s, pos); }
 static b32 contains(r2 rect, v2 pos)    { return r2_contains(rect, pos); }
 static b32 contains(r3 rect, v3 pos)    { return r3_contains(rect, pos); }
 static b32 contains(r2i rect, v2i pos)  { return r2i_contains(rect, pos); }
 static b32 contains(r3i rect, v3i pos)  { return r3i_contains(rect, pos); }
-static b32 contains(frustum_t fs, v3 pos) { return frustum_contains(fs, pos); }
+static b32 contains(frustum fs, v3 pos) { return frustum_contains(fs, pos); }
 
 #endif
 
 // ------------------ intersect ------------------ //
 
-static b32 circle_intersect(circle_t a, circle_t b) {
+static b32 circle_intersect(circle a, circle b) {
   f32 dx  = b.pos.x - a.pos.x;
   f32 dy  = b.pos.y - a.pos.y;
   f32 rt  = a.rad + b.rad;
   return (dx * dx + dy * dy) < (rt * rt);
 }
 
-static b32 sphere_intersect(sphere_t a, sphere_t b) {
+static b32 sphere_intersect(sphere a, sphere b) {
   f32 dx = b.pos.x - a.pos.x;
   f32 dy = b.pos.y - a.pos.y;
   f32 dz = b.pos.z - a.pos.z;
@@ -1653,7 +1662,7 @@ static b32 r3i_intersect(r3i a, r3i b) {
   return true;
 }
 
-static b32 frustum_intersect_sphere(frustum_t fs, sphere_t sphere) {
+static b32 frustum_intersect_sphere(frustum fs, sphere sphere) {
   for (i32 i = 0; i < 6; i++) {
     if(fs.planes[i].a * sphere.pos.x + fs.planes[i].b * sphere.pos.y + fs.planes[i].c * sphere.pos.z + fs.planes[i].d <= -sphere.rad) {
       return false;
@@ -1662,7 +1671,7 @@ static b32 frustum_intersect_sphere(frustum_t fs, sphere_t sphere) {
   return true;
 }
 
-static b32 frustum_intersect_r3(frustum_t fs, r3 rect) {
+static b32 frustum_intersect_r3(frustum fs, r3 rect) {
   for (int i = 0; i < 6; i++) {
     if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
@@ -1679,14 +1688,14 @@ static b32 frustum_intersect_r3(frustum_t fs, r3 rect) {
 
 #ifdef __cplusplus
 
-static b32 intersect(circle_t a, circle_t b)        { return circle_intersect(a, b); }
-static b32 intersect(sphere_t a, sphere_t b)        { return sphere_intersect(a, b); }
+static b32 intersect(circle a, circle b)        { return circle_intersect(a, b); }
+static b32 intersect(sphere a, sphere b)        { return sphere_intersect(a, b); }
 static b32 intersect(r2 a, r2 b)                { return r2_intersect(a, b); }
 static b32 intersect(r3 a, r3 b)                { return r3_intersect(a, b); }
 static b32 intersect(r2i a, r2i b)              { return r2i_intersect(a, b); }
 static b32 intersect(r3i a, r3i b)              { return r3i_intersect(a, b); }
-static b32 intersect(frustum_t fs, sphere_t sphere) { return frustum_intersect_sphere(fs, sphere); }
-static b32 intersect(frustum_t fs, r3 rect)       { return frustum_intersect_r3(fs, rect); }
+static b32 intersect(frustum fs, sphere sphere) { return frustum_intersect_sphere(fs, sphere); }
+static b32 intersect(frustum fs, r3 rect)       { return frustum_intersect_r3(fs, rect); }
 
 #endif
 
@@ -1731,14 +1740,14 @@ static r3i overlap(r3i a, r3i b) { return r3i_get_overlap(a, b); }
 
 // -------------- get intersect vector ---------- //
 
-static v2 circle_get_intersect_vector(circle_t a, circle_t b) {
+static v2 circle_get_intersect_vector(circle a, circle b) {
   v2  delta = v2_sub(a.pos, b.pos);
   f32 depth = v2_len(delta) - (a.rad + b.rad);
 
   return v2_scale(delta, -depth);
 }
 
-static v3 sphere_get_intersect_vector(sphere_t a, sphere_t b) {
+static v3 sphere_get_intersect_vector(sphere a, sphere b) {
   v3  delta = v3_sub(a.pos, b.pos);
   f32 depth = v3_len(delta) - (a.rad + b.rad);
 
@@ -1785,8 +1794,8 @@ static v3i r3i_get_intersect_vector(r3i a, r3i b) {
 
 #ifdef __cplusplus
 
-static v2  get_intersect_vector(circle_t a, circle_t b) { return circle_get_intersect_vector(a, b); }
-static v3  get_intersect_vector(sphere_t a, sphere_t b) { return sphere_get_intersect_vector(a, b); }
+static v2  get_intersect_vector(circle a, circle b) { return circle_get_intersect_vector(a, b); }
+static v3  get_intersect_vector(sphere a, sphere b) { return sphere_get_intersect_vector(a, b); }
 static v2  get_intersect_vector(r2 a, r2 b)         { return r2_get_intersect_vector(a, b); }
 static v3  get_intersect_vector(r3 a, r3 b)         { return r3_get_intersect_vector(a, b); }
 static v2i get_intersect_vector(r2i a, r2i b)       { return r2i_get_intersect_vector(a, b); }

@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "ats_base.h"
+#include "ats_mem.h"
 
 // ====================================== BIT STUFF =================================== //
 
@@ -27,27 +28,31 @@ static void bit_clr(u32* array, u32 index) {
 typedef struct string {
   usize size;
   const char* data;
-} string_t;
+
+#ifdef __cplusplus
+  inline char operator[](usize index) const { return data[index]; }
+#endif
+} string;
 
 #define STR_FMT "%.*s"
 #define STR_ARG(s) (int)(s).size, (s).data
 
-#define str(text) Make(string_t) { sizeof (text) - 1, text }
+#define str(text) make(string) { sizeof (text) - 1, text }
 #define STR(text) { sizeof (text) - 1, text }
 
-static string_t string_create(const char* str) {
-  string_t s = {0};
+static string string_create(const char* str) {
+  string s = {0};
   s.size = strlen(str);
   s.data = str;
   return s;
 }
 
-static b32 string_equal(string_t a, string_t b) {
+static b32 string_equal(string a, string b) {
   if (a.size != b.size) return false;
   return memcmp(a.data, b.data, a.size) == 0;
 }
 
-static b32 string_equal_cstr(string_t a, const char* b) {
+static b32 string_equal_cstr(string a, const char* b) {
   usize b_size = strlen(b);
   if (a.size != b_size) return false;
   return memcmp(a.data, b, a.size) == 0;
@@ -55,29 +60,39 @@ static b32 string_equal_cstr(string_t a, const char* b) {
 
 #ifdef __cplusplus
 
-static b32 operator==(string_t a, string_t b) { return string_equal(a, b); }
-static b32 operator==(string_t a, const char* b) { return string_equal_cstr(a, b); }
+static b32 operator==(string a, string b)    { return string_equal(a, b); }
+static b32 operator==(string a, const char* b) { return string_equal_cstr(a, b); }
+
+static b32 operator!=(string a, string b)    { return !string_equal(a, b); }
+static b32 operator!=(string a, const char* b) { return !string_equal_cstr(a, b); }
+
+constexpr u32 match_hash(string str) {
+  u32 hash = 5381;
+  for (int i = 0; i < str.size; i++)
+    hash = ((hash << 5) + hash) + str[i];
+  return hash;
+}
 
 #endif
 
-static b32 string_empty(string_t s) {
+static b32 string_empty(string s) {
   return s.size == 0;
 }
 
 typedef struct split_iter {
-  string_t current;
+  string current;
 
   const char* content;
 
   u32 del_table[8];
   u32 sep_table[8];
-} split_iter_t;
+} split_iter;
 
-static b32 split_iter_is_valid(const split_iter_t* it) {
+static b32 split_iter_is_valid(const split_iter* it) {
   return it->current.size;
 }
 
-static void split_iter_advance(split_iter_t* it) {
+static void split_iter_advance(split_iter* it) {
   while (*it->content && bit_get(it->del_table, *it->content) && !bit_get(it->sep_table, *it->content)) {
     it->content++;
   }
@@ -92,17 +107,17 @@ static void split_iter_advance(split_iter_t* it) {
     }
   }
 
-  it->current = Make(string_t) {
+  it->current = make(string) {
     (usize)(it->content - begin),
     begin,
   };
 }
 
-static split_iter_t split_iter_create(const char* cstr, const char* delimiters, const char* separators) {
+static split_iter split_iter_create(const char* cstr, const char* delimiters, const char* separators) {
   assert(delimiters);
   if (!separators) separators = "";
 
-  split_iter_t it = {0};
+  split_iter it = {0};
 
   it.content = cstr;
 
@@ -118,6 +133,22 @@ static split_iter_t split_iter_create(const char* cstr, const char* delimiters, 
   return it;
 }
 
+#ifdef __cplusplus
+
+static split_iter split_iter_create(const char* cstr, const char* delimiters) {
+  return split_iter_create(cstr, delimiters, NULL);
+}
+
+static inline b32 is_valid(const split_iter* it) {
+  return split_iter_is_valid(it);
+}
+
+static inline void advance(split_iter* it) {
+  return split_iter_advance(it);
+}
+
+#endif
+
 // =================================================== SPATIAL MAP =================================================== //
 
 #define SPATIAL_MAX (8 * 4096)
@@ -126,26 +157,26 @@ typedef struct sm_cell {
   void* e;
   r2 rect;
   struct sm_cell* next;
-} sm_cell_t;
+} sm_cell;
 
 typedef struct spatial_map {
-  sm_cell_t* table[4096];
+  sm_cell* table[4096];
 
   usize count;
-  sm_cell_t array[SPATIAL_MAX];
-} spatial_map_t;
+  sm_cell array[SPATIAL_MAX];
+} spatial_map;
 
-static void sm_clear(spatial_map_t* map) {
+static void sm_clear(spatial_map* map) {
   memset(map->table, 0, sizeof map->table);
   map->count = 0;
 }
 
-static u32 sm_index(const spatial_map_t* map, v2i pos) {
+static u32 sm_index(const spatial_map* map, v2i pos) {
   u32 hash = hash_v2i(pos);
-  return hash % ArrayCount(map->table);
+  return hash % countof(map->table);
 }
 
-static void sm_add(spatial_map_t* map, void* e, r2 e_rect) {
+static void sm_add(spatial_map* map, void* e, r2 e_rect) {
   r2i rect = {
     (i32)e_rect.min.x, (i32)e_rect.min.y,
     (i32)e_rect.max.x, (i32)e_rect.max.y,
@@ -153,7 +184,7 @@ static void sm_add(spatial_map_t* map, void* e, r2 e_rect) {
 
   for_r2(rect, x, y) {
     u32 index = sm_index(map, v2i(x, y));
-    sm_cell_t* cell = map->array + map->count++;
+    sm_cell* cell = map->array + map->count++;
 
     cell->e = e;
     cell->rect = e_rect;
@@ -166,17 +197,17 @@ static void sm_add(spatial_map_t* map, void* e, r2 e_rect) {
 typedef struct sm_entry {
   void* e;
   r2 rect;
-} sm_entry_t;
+} sm_entry;
 
 typedef struct sm_result {
   usize count;
-  sm_entry_t* array;
-} sm_result_t;
+  sm_entry* array;
+} sm_result;
 
-static sm_result_t sm_in_range(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
-  static sm_entry_t spatial_array[SPATIAL_MAX];
+static sm_result sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+  static sm_entry spatial_array[SPATIAL_MAX];
 
-  sm_result_t result = ATS_INIT;
+  sm_result result = ATS_INIT;
   result.array = spatial_array;
 
   r2 rect = {
@@ -191,7 +222,7 @@ static sm_result_t sm_in_range(spatial_map_t* map, v2 pos, v2 rad, const void* i
 
   for_r2(irect, x, y) {
     u32 index = sm_index(map, v2i(x, y));
-    for (sm_cell_t* it = map->table[index]; it; it = it->next) {
+    for (sm_cell* it = map->table[index]; it; it = it->next) {
       b32 unique = true;
 
       if (it->e == ignore) continue;
@@ -204,7 +235,7 @@ static sm_result_t sm_in_range(spatial_map_t* map, v2 pos, v2 rad, const void* i
         }
       }
       if (unique) {
-        result.array[result.count++] = Make(sm_entry_t) {
+        result.array[result.count++] = make(sm_entry) {
           it->e,
           it->rect,
         };
@@ -216,13 +247,13 @@ static sm_result_t sm_in_range(spatial_map_t* map, v2 pos, v2 rad, const void* i
 }
 
 typedef struct sm_iter {
-  sm_entry_t* current;
+  sm_entry* current;
   u32 index;
-  sm_result_t result;
-} sm_iter_t;
+  sm_result result;
+} sm_iter;
 
-static sm_iter_t sm_get_iterator(spatial_map_t* map, v2 pos, v2 rad, const void* ignore) {
-  sm_iter_t it = ATS_INIT;
+static sm_iter sm_get_iterator(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+  sm_iter it = ATS_INIT;
 
   it.result = sm_in_range(map, pos, rad, ignore);
   it.current = &it.result.array[0];
@@ -230,21 +261,21 @@ static sm_iter_t sm_get_iterator(spatial_map_t* map, v2 pos, v2 rad, const void*
   return it;
 }
 
-static b32 sm_iter_is_valid(const sm_iter_t* it) {
+static b32 sm_iter_is_valid(const sm_iter* it) {
   return it->index < it->result.count;
 }
 
-static void sm_iter_advance(sm_iter_t* it) {
+static void sm_iter_advance(sm_iter* it) {
   it->index++;
   it->current = it->result.array + it->index;
 }
 
-static void* sm_get_closest(spatial_map_t* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
+static void* sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
   void* result = NULL;
   f32 distance = range;
 
   for_iter(sm_iter, it, sm_get_iterator(map, pos, v2(range, range), ignore)) {
-    sm_entry_t* e = it.current;
+    sm_entry* e = it.current;
 
     if (condition_proc && !condition_proc(e->e)) {
       continue;
@@ -266,10 +297,10 @@ static void* sm_get_closest(spatial_map_t* map, v2 pos, f32 range, const void* i
   return result;
 }
 
-static void* sm_at_position(spatial_map_t* map, v2 pos) {
+static void* sm_at_position(spatial_map* map, v2 pos) {
   u32 index = sm_index(map, v2i((i32)pos.x, (i32)pos.y));
 
-  for (sm_cell_t* it = map->table[index]; it; it = it->next) {
+  for (sm_cell* it = map->table[index]; it; it = it->next) {
     if (r2_contains(it->rect, pos)) {
       return it->e;
     }
@@ -285,25 +316,25 @@ static void* sm_at_position(spatial_map_t* map, v2 pos) {
 
 typedef struct traverse_map {
   u32 array[TRAVERSE_ARRAY_SIZE];
-} traverse_map_t;
+} traverse_map;
 
-static void tm_clear(traverse_map_t* map) {
-  memset(map, 0, sizeof (traverse_map_t));
+static void tm_clear(traverse_map* map) {
+  memset(map, 0, sizeof (traverse_map));
 }
 
-static inline u32 tm_get_index(const traverse_map_t* map, u32 x, u32 y) {
+static inline u32 tm_get_index(const traverse_map* map, u32 x, u32 y) {
   return (y & TRAVERSE_MOD) * TRAVERSE_MAP_SIZE + (x & TRAVERSE_MOD);
 }
 
-static inline void tm_set_traversable(traverse_map_t* map, u32 x, u32 y) {
+static inline void tm_set_traversable(traverse_map* map, u32 x, u32 y) {
   bit_set(map->array, tm_get_index(map, x, y));
 }
 
-static inline b32 tm_is_traversable(const traverse_map_t* map, u32 x, u32 y) {
+static inline b32 tm_is_traversable(const traverse_map* map, u32 x, u32 y) {
   return bit_get(map->array, tm_get_index(map, x, y));
 }
 
-static v2 tm_cast_dir(const traverse_map_t* map, v2 pos, v2 dir, f32 max_range) {
+static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
 #if 0
   //if (!tm_is_traversable(map, pos.x, pos.y)) return pos;
 #endif
@@ -376,34 +407,44 @@ static v2 tm_cast_dir(const traverse_map_t* map, v2 pos, v2 dir, f32 max_range) 
   return v2_add(pos, v2_scale(dir, (perp_wall_dist > max_range? max_range : perp_wall_dist)));
 }
 
-static v2 tm_cast_angle(const traverse_map_t* map, v2 from, f32 angle, f32 max_range) {
+static v2 tm_cast_angle(const traverse_map* map, v2 from, f32 angle, f32 max_range) {
   m2 rot = m2_rotate(angle);
   v2 dir = m2_mulv(rot, v2(0, 1));
 
   return tm_cast_dir(map, from, dir, max_range);
 }
 
+// ========================================= PRIORITY QUEUE ====================================== //
 
-typedef struct queue_node {
+typedef struct priority_queue_entry {
   f32 weight;
   v2i e;
-} queue_node_t;
+} priority_queue_entry;
 
 typedef struct priority_queue {
   u32 len;
-  queue_node_t* array;
-} priority_queue_t;
+  priority_queue_entry* array;
+} priority_queue;
 
-static b32 pq_empty(const priority_queue_t* queue) {
+static priority_queue priority_queue_create(usize capacity) {
+  priority_queue queue = ATS_INIT;
+
+  queue.len    = 0;
+  queue.array  = mem_array(priority_queue_entry, capacity);
+
+  return queue;
+}
+
+static b32 priority_queue_empty(const priority_queue* queue) {
   return queue->len == 0;
 }
 
-static void pq_clear(priority_queue_t* queue) {
+static void priority_queue_clear(priority_queue* queue) {
   queue->len = 0;
 }
 
-static void pq_push(priority_queue_t* queue, v2i e, f32 weight) {
-  queue_node_t node = { weight, e };
+static void priority_queue_push(priority_queue* queue, v2i e, f32 weight) {
+  priority_queue_entry node = { weight, e };
   int i = queue->len + 1;
   int j = i / 2;
   while (i > 1 && queue->array[j].weight > node.weight) {
@@ -415,8 +456,8 @@ static void pq_push(priority_queue_t* queue, v2i e, f32 weight) {
   queue->len++;
 }
 
-static f32 pq_pop(v2i* out, priority_queue_t* queue) {
-  queue_node_t data = queue->array[1];
+static f32 priority_queue_pop(v2i* out, priority_queue* queue) {
+  priority_queue_entry data = queue->array[1];
   queue->array[1] = queue->array[queue->len];
   queue->len--;
   int i = 1;
@@ -436,3 +477,141 @@ static f32 pq_pop(v2i* out, priority_queue_t* queue) {
   return data.weight;
 }
 
+// ================================ FIXED CAPACITY HEAP ARRAY ==================================== //
+
+typedef struct array_header {
+  u32 cap;
+  u32 len;
+} array_header;
+
+#define array_create(type, capacity) (type*)array_create_internal(sizeof (type), (capacity))
+
+#define array_hdr(a)        ((array_header*)(a) - 1)
+#define array_len(a)        array_hdr(a)->len
+#define array_cap(a)        array_hdr(a)->cap
+#define array_add(a, ...)   ((a)[array_hdr(a)->len++] = __VA_ARGS__)
+#define array_rem(a, index) ((a)[(index)] = (a)[--array_len(a)])
+#define array_clear(a)      (array_len(a) = 0)
+#define array_sort(a, cmp)  qsort((a), array_len(a), sizeof (a)[0], cmp)
+
+static void* array_create_internal(u32 type_size, u32 capacity) {
+  array_header* hdr = (array_header*)mem_alloc(sizeof (array_header) + type_size * capacity);
+  hdr->cap = capacity;
+  hdr->len = 0;
+  return hdr + 1;
+}
+
+#ifndef __cplusplus
+
+#if 0
+// ================================== FIXED CAPACITY HEAP ARRAY ======================================= //
+
+struct array_header {
+  u64 len;
+  u64 cap;
+  u8  buf[];
+};
+
+#define array(type, cap)  (type*)_array_create(sizeof (type), (cap))
+
+#define array_hdr(a)        ((struct array_header*)(a) - 1)
+#define array_len(a)        array_hdr(a)->len
+#define array_cap(a)        array_hdr(a)->cap
+#define array_add(a, ...)   ((a)[array_hdr(a)->len++] = __VA_ARGS__)
+#define array_rem(a, index) ((a)[(index)] = (a)[--array_len(a)])
+#define array_clear(a)      (array_len(a) = 0)
+#define array_sort(a, cmp)  qsort((a), array_len(a), sizeof (a)[0], cmp)
+
+static void* _array_create(u64 type_size, u64 cap) {
+  struct array_header* header = mem_alloc(sizeof (struct array_header) + cap * type_size);
+  header->cap = cap;
+  return header->buf;
+}
+
+// ================================ HASH MAP ======================================= //
+
+struct hash_entry {
+  u64   hash;
+  void* data;
+
+  struct hash_entry* next;
+};
+
+struct hash_map {
+  u64 cap;
+
+  struct hash_entry** table;
+  struct hash_entry* free_list;
+};
+
+static void hm_put(struct hash_map* map, u64 hash, void* data) {
+  if (!map->table) {
+    map->cap = 4096;
+    map->table = mem_array(struct hash_entry*, map->cap);
+  }
+
+  u32 index = hash % map->cap;
+
+  for (struct hash_entry* entry = map->table[index]; entry; entry = entry->next) {
+    if (entry->hash == hash) {
+      entry->data = data;
+      return;
+    }
+  }
+
+  struct hash_entry* entry = NULL;
+
+  if (map->free_list) {
+    entry           = map->free_list;
+    map->free_list  = map->free_list->next;
+  } else {
+    entry = mem_type(struct hash_entry);
+  }
+
+  entry->hash = hash;
+  entry->data = data;
+  entry->next = map->table[index];
+
+  map->table[index] = entry;
+}
+
+static void* hm_get(struct hash_map* map, u64 hash) {
+  if (!map->cap) return NULL;
+
+  u32 index = hash % map->cap;
+
+  for (struct hash_entry* entry = map->table[index]; entry; entry = entry->next) {
+    if (entry->hash == hash) {
+      return entry->data;
+    }
+  }
+
+  return NULL;
+}
+
+static void hm_del(struct hash_map* map, u64 hash) {
+  if (!map->cap) return;
+
+  u32 index = hash % map->cap;
+
+  struct hash_entry* prev = NULL;
+  struct hash_entry* entry = map->table[index];
+
+  for (;entry; entry = entry->next) {
+    if (entry->hash == hash) {
+      if (prev) {
+        prev->next = entry->next;
+      } else {
+        map->table[index] = entry->next;
+      }
+      break;
+    }
+    prev = entry;
+  }
+
+  entry->next = map->free_list;
+  map->free_list = entry;
+}
+#endif
+
+#endif

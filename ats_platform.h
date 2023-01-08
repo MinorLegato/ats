@@ -225,7 +225,7 @@ typedef union gamepad_buttons {
   } button;
 
   u32 data;
-} gamepad_buttons_t;
+} gamepad_buttons;
 
 typedef struct gamepad {
   b32 active;
@@ -236,12 +236,12 @@ typedef struct gamepad {
   f32 left_trigger;
   f32 right_trigger;
 
-  gamepad_buttons_t down;
-  gamepad_buttons_t pressed;
-  gamepad_buttons_t released;
-} gamepad_t;
+  gamepad_buttons down;
+  gamepad_buttons pressed;
+  gamepad_buttons released;
+} gamepad;
 
-typedef u32 mouse_mode_t;
+typedef u32 mouse_mode;
 enum {
   MOUSE_MODE_NORMAL,
   MOUSE_MODE_HIDDEN,
@@ -298,7 +298,7 @@ struct platform {
     b8 released[KEY_LAST + 1];
   } keyboard;
 
-  gamepad_t gamepad[JOYSTICK_LAST];
+  gamepad gamepad[JOYSTICK_LAST];
 };
 
 typedef struct timer_entry {
@@ -308,18 +308,18 @@ typedef struct timer_entry {
   f64 stop;
 
   usize depth;
-} timer_entry_t;
+} timer_entry;
 
 static usize timer_top;
-static timer_entry_t timer_stack[512];
+static timer_entry timer_stack[512];
 
 static usize timer_count;
-static timer_entry_t timer_array[512];
+static timer_entry timer_array[512];
 
 #define timer_scope(name) scope_guard(timer_start(name), timer_stop())
 
 static void timer_start(const char* name) {
-  timer_entry_t* entry = timer_stack + timer_top++;
+  timer_entry* entry = timer_stack + timer_top++;
 
   entry->name = name;
   entry->start = timer_get_current();
@@ -328,7 +328,7 @@ static void timer_start(const char* name) {
 }
 
 static void timer_stop(void) {
-  timer_entry_t* entry = timer_stack + (--timer_top);
+  timer_entry* entry = timer_stack + (--timer_top);
 
   entry->stop = timer_get_current();
   timer_array[timer_count++] = *entry;
@@ -343,7 +343,7 @@ static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
   i32 y = 0;
   // @TODO: fix render order within scopes!
   for (i32 i = timer_count - 1; i >= 0; --i) {
-    timer_entry_t e = timer_array[i];
+    timer_entry e = timer_array[i];
     gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
     y++;
   }

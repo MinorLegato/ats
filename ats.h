@@ -1,5 +1,3 @@
-//#pragma once
-
 #ifndef __ATS_H__
 #define __ATS_H__
 
@@ -21,7 +19,6 @@
 #ifndef __cplusplus
 #include "ats_thread.h"
 #endif
-
 #endif // __ATS_H__
 
 #ifdef ATS_IMPL

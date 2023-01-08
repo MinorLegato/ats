@@ -30,31 +30,31 @@ typedef struct gl_texture {
   u32 id;
   i32 width;
   i32 height;
-} gl_texture_t;
+} gl_texture;
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern gl_texture_t gl_texture_create_from_image(image_t image, int is_smooth);
-extern gl_texture_t gl_texture_load_from_file(const char *texture_path, int is_smooth);
+extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
+extern gl_texture gl_texture_create_from_image(image image, int is_smooth);
+extern gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
 
-extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth);
+extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth);
 
-extern void gl_texture_bind(const gl_texture_t* texture);
-extern void gl_texture_destroy(gl_texture_t* texture);
+extern void gl_texture_bind(const gl_texture* texture);
+extern void gl_texture_destroy(gl_texture* texture);
 
 typedef struct gl_shader {
   u32 id;
-} gl_shader_t;
+} gl_shader;
 
 typedef struct gl_shader_desc {
   const char* vs;
   const char* fs;
-} gl_shader_desc_t;
+} gl_shader_desc;
 
-extern gl_shader_t gl_shader_create(gl_shader_desc_t desc);
-extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs,  mem_arena_t* ma);
+extern gl_shader gl_shader_create(gl_shader_desc desc);
+extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs);
 
-extern void gl_use(const gl_shader_t* shader);
-extern u32 gl_location(const gl_shader_t* shader, const char* name);
+extern void gl_use(const gl_shader* shader);
+extern u32 gl_location(const gl_shader* shader, const char* name);
 
 extern void gl_uniform_i32(u32 location, int u);
 extern void gl_uniform_f32(u32 location, f32 u);
@@ -70,7 +70,7 @@ extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
 typedef struct gl_buffer {
   u32 vao;
   u32 vbo;
-} gl_buffer_t;
+} gl_buffer;
 
 typedef struct gl_layout {
   u32 size;
@@ -78,13 +78,13 @@ typedef struct gl_layout {
   u32 stride;
   u32 offset;
   b32 normalize;
-} gl_layout_t;
+} gl_layout;
 
 typedef struct gl_buffer_desc {
-  gl_layout_t layout[32];
-} gl_buffer_desc_t;
+  gl_layout layout[32];
+} gl_buffer_desc;
 
-extern gl_buffer_t gl_buffer_create(const gl_buffer_desc_t* desc);
-extern void gl_buffer_bind(const gl_buffer_t* buffer);
-extern void gl_buffer_send(const gl_buffer_t* array, const void* data, u32 size);
+extern gl_buffer gl_buffer_create(const gl_buffer_desc* desc);
+extern void gl_buffer_bind(const gl_buffer* buffer);
+extern void gl_buffer_send(const gl_buffer* array, const void* data, u32 size);
 

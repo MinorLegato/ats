@@ -1,12 +1,12 @@
 
-#ifdef ATS_OGL33
+#ifdef ATS_OGL46
 #include "ext/glad/glad.h"
 #define GLSL(...) "#version 460 core\n" #__VA_ARGS__
 #endif
 
 #include "ext/GLFW/ats_glfw.h"
 
-#ifdef ATS_OGL33
+#ifdef ATS_OGL46
 #include "ext/glad/glad.c"
 #endif
 
@@ -103,7 +103,7 @@ extern void platform_init(const char* title, int width, int height, int samples)
 
   platform.refresh_rate = mode->refreshRate;
 
-#if defined(ATS_OGL33)
+#if defined(ATS_OGL46)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
@@ -122,7 +122,7 @@ extern void platform_init(const char* title, int width, int height, int samples)
 
   glfwMakeContextCurrent(platform_internal.window);
 
-#if defined(ATS_OGL33)
+#if defined(ATS_OGL46)
   gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 #endif
 
@@ -205,7 +205,7 @@ extern void platform_update(void) {
 
     for (int i = 0; i < JOYSTICK_LAST; ++i) {
       if (platform.gamepad[i].active) {
-        gamepad_buttons_t old = platform.gamepad[i].down;
+        gamepad_buttons old = platform.gamepad[i].down;
 
         platform.gamepad[i].down.data       = 0;
         platform.gamepad[i].pressed.data    = 0;

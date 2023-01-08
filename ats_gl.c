@@ -1,16 +1,16 @@
 
-extern gl_texture_t gl_texture_create_from_image(image_t img, int is_smooth) {
+extern gl_texture gl_texture_create_from_image(image img, int is_smooth) {
   return gl_texture_create(img.pixels, img.width, img.height, is_smooth);
 }
 
-extern gl_texture_t gl_texture_load_from_file(const char* texture_path, int is_smooth) {
-  image_t img = file_load_image(texture_path);
-  gl_texture_t texture = gl_texture_create_from_image(img, is_smooth);
+extern gl_texture gl_texture_load_from_file(const char* texture_path, int is_smooth) {
+  image img = file_load_image(texture_path);
+  gl_texture texture = gl_texture_create_from_image(img, is_smooth);
   file_free_image(&img);
   return texture;
 }
 
-extern void gl_texture_destroy(gl_texture_t* texture) {
+extern void gl_texture_destroy(gl_texture* texture) {
   glDeleteTextures(1, &texture->id);
   memset(texture, 0, sizeof *texture);
 }
@@ -301,7 +301,7 @@ static const u64 bitascii[BITMAP_COUNT] = {
   0x007e424242427e00
 };
 
-#ifndef ATS_OGL33
+#ifndef ATS_OGL46
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -401,10 +401,10 @@ extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   assert(pixels);
 
-  gl_texture_t texture = {0};
+  gl_texture texture = ATS_INIT;
 
   texture.width = width;
   texture.height = height;
@@ -420,7 +420,7 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
   return texture;
 }
 
-extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -431,7 +431,7 @@ extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, in
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
 }
 
-extern void gl_texture_bind(const gl_texture_t* texture) {
+extern void gl_texture_bind(const gl_texture* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 
   glMatrixMode(GL_TEXTURE);
@@ -565,8 +565,8 @@ extern void gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
 }
 
 extern void gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y) {
-  if (flip_x) { Swap(i32, tex_rect.min.x, tex_rect.max.x); }
-  if (flip_y) { Swap(i32, tex_rect.min.y, tex_rect.max.y); }
+  if (flip_x) { swap(i32, tex_rect.min.x, tex_rect.max.x); }
+  if (flip_y) { swap(i32, tex_rect.min.y, tex_rect.max.y); }
 
   gl_color(color);
   gl_normal(0, 0, +1);
@@ -643,7 +643,7 @@ extern void gl_rect(r2 rect, f32 z, u32 color) {
 
 // ======================================= FONT ====================================== //
 
-static gl_texture_t bitmap_texture;
+static gl_texture bitmap_texture;
 
 extern void gl_init_bitmap_font(void) {
   u32 pixels[8][BITMAP_COUNT * 8] = {0};
@@ -696,7 +696,7 @@ extern void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, con
   va_end(list);
 }
 
-#else // ATS_OGL33
+#else // ATS_OGL46
 
 extern void gl_init(void) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
@@ -752,7 +752,7 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
   return shader;
 }
 
-extern gl_shader_t gl_shader_create(gl_shader_desc_t desc) {
+extern gl_shader gl_shader_create(gl_shader_desc desc) {
   u32 vertex   = gl_shader_compile(desc.vs, GL_VERTEX_SHADER);
   u32 fragment = gl_shader_compile(desc.fs, GL_FRAGMENT_SHADER);
   u32 program  = gl_shader_link_program(vertex, fragment);
@@ -762,19 +762,19 @@ extern gl_shader_t gl_shader_create(gl_shader_desc_t desc) {
   glDeleteShader(vertex);
   glDeleteShader(fragment);
 
-  gl_shader_t shader = ATS_INIT;
+  gl_shader shader = ATS_INIT;
   shader.id = program;
   return shader;
 }
 
-extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, mem_arena_t* ma) {
-  gl_shader_t shader = ATS_INIT;
+extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs) {
+  gl_shader shader = ATS_INIT;
 
-  mem_scope(ma) {
-    char* vs_content = file_read_str(vs, ma);
-    char* fs_content = file_read_str(fs, ma);
+  mem_scope {
+    char* vs_content = file_read_str(vs);
+    char* fs_content = file_read_str(fs);
 
-    gl_shader_desc_t desc = ATS_INIT;
+    gl_shader_desc desc = ATS_INIT;
 
     desc.vs = vs_content;
     desc.fs = fs_content;
@@ -785,11 +785,11 @@ extern gl_shader_t gl_shader_load_from_file(const char *vs, const char *fs, mem_
   return shader;
 }
 
-extern void gl_use(const gl_shader_t* shader) {
+extern void gl_use(const gl_shader* shader) {
   glUseProgram(shader->id);
 }
 
-extern u32 gl_location(const gl_shader_t* shader, const char* name) {
+extern u32 gl_location(const gl_shader* shader, const char* name) {
   return glGetUniformLocation(shader->id, name);
 }
 
@@ -825,7 +825,7 @@ extern void gl_uniform_m4(u32 location, m4 m) {
   glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-extern gl_buffer_t gl_buffer_create(const gl_buffer_desc_t* desc) {
+extern gl_buffer gl_buffer_create(const gl_buffer_desc* desc) {
   u32 vao = 0;
   u32 vbo = 0;
 
@@ -835,8 +835,8 @@ extern gl_buffer_t gl_buffer_create(const gl_buffer_desc_t* desc) {
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-  for (u32 i = 0; i < ArrayCount(desc->layout); ++i) {
-    const gl_layout_t* layout = &desc->layout[i];
+  for (u32 i = 0; i < countof(desc->layout); ++i) {
+    const gl_layout* layout = &desc->layout[i];
 
     if (layout->size) {
       glEnableVertexAttribArray(i);
@@ -844,7 +844,7 @@ extern gl_buffer_t gl_buffer_create(const gl_buffer_desc_t* desc) {
     }
   }
 
-  gl_buffer_t result = {0};
+  gl_buffer result = ATS_INIT;
 
   result.vao = vao;
   result.vbo = vbo;
@@ -852,20 +852,20 @@ extern gl_buffer_t gl_buffer_create(const gl_buffer_desc_t* desc) {
   return result;
 }
 
-extern void gl_buffer_bind(const gl_buffer_t* buffer) {
+extern void gl_buffer_bind(const gl_buffer* buffer) {
   glBindVertexArray(buffer->vao);
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
 }
 
-extern void gl_buffer_send(const gl_buffer_t* buffer, const void* data, u32 size) {
+extern void gl_buffer_send(const gl_buffer* buffer, const void* data, u32 size) {
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int is_smooth) {
+extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth) {
   assert(pixels);
 
-  gl_texture_t texture = {0};
+  gl_texture texture = {0};
 
   texture.width = width;
   texture.height = height;
@@ -886,7 +886,7 @@ extern gl_texture_t gl_texture_create(void *pixels, int width, int height, int i
   return texture;
 }
 
-extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, int height, int is_smooth) {
+extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -899,7 +899,7 @@ extern void gl_texture_update(gl_texture_t* texture, void *pixels, int width, in
   glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-extern void gl_texture_bind(const gl_texture_t* texture) {
+extern void gl_texture_bind(const gl_texture* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
@@ -909,17 +909,17 @@ typedef struct bitmap_vertex {
   v2 pos;
   v2 uv;
   u32 color;
-} bitmap_vertex_t;
+} bitmap_vertex;
 
-static gl_texture_t bitmap_texture;
-static gl_shader_t bitmap_shader;
-static gl_buffer_t bitmap_buffer;
+static gl_texture bitmap_texture;
+static gl_shader bitmap_shader;
+static gl_buffer bitmap_buffer;
 
 static usize bitmap_count;
-static bitmap_vertex_t bitmap_array[1024 * 1024];
+static bitmap_vertex bitmap_array[1024 * 1024];
 
 extern void gl_init_bitmap_font(void) {
-  gl_shader_desc_t shader_desc = ATS_INIT;
+  gl_shader_desc shader_desc = ATS_INIT;
 
   shader_desc.vs = GLSL(
     layout (location = 0) in vec2 in_pos;
@@ -951,11 +951,11 @@ extern void gl_init_bitmap_font(void) {
 
   bitmap_shader = gl_shader_create(shader_desc);
 
-  gl_buffer_desc_t buffer_desc = ATS_INIT;
+  gl_buffer_desc buffer_desc = ATS_INIT;
 
-  buffer_desc.layout[0] = Make(gl_layout_t) { 2, GL_FLOAT, sizeof (bitmap_vertex_t), offsetof(bitmap_vertex_t, pos) };
-  buffer_desc.layout[1] = Make(gl_layout_t) { 2, GL_FLOAT, sizeof (bitmap_vertex_t), offsetof(bitmap_vertex_t, uv) };
-  buffer_desc.layout[2] = Make(gl_layout_t) { 4, GL_UNSIGNED_BYTE, sizeof (bitmap_vertex_t), offsetof(bitmap_vertex_t, color), true };
+  buffer_desc.layout[0] = make(gl_layout) { 2, GL_FLOAT, sizeof (bitmap_vertex), offsetof(bitmap_vertex, pos) };
+  buffer_desc.layout[1] = make(gl_layout) { 2, GL_FLOAT, sizeof (bitmap_vertex), offsetof(bitmap_vertex, uv) };
+  buffer_desc.layout[2] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (bitmap_vertex), offsetof(bitmap_vertex, color), true };
 
   bitmap_buffer = gl_buffer_create(&buffer_desc);
 
@@ -982,12 +982,12 @@ static void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   r2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
   r2 rect = { x, y, x + sx, y + sy };
 
-  bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
-  bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { v2(rect.max.x, rect.min.y), v2(tex_rect.max.x, tex_rect.max.y), color };
-  bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { v2(rect.min.x, rect.max.y), v2(tex_rect.min.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = Make(bitmap_vertex_t) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.max.x, rect.min.y), v2(tex_rect.max.x, tex_rect.max.y), color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.min.x, rect.max.y), v2(tex_rect.min.x, tex_rect.min.y), color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
 }
 
 extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
@@ -1003,7 +1003,7 @@ extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
   }
 
   gl_buffer_bind(&bitmap_buffer);
-  gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (bitmap_vertex_t));
+  gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (bitmap_vertex));
   glDrawArrays(GL_TRIANGLES, 0, bitmap_count);
   glUseProgram(0);
 
@@ -1020,5 +1020,5 @@ extern void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, con
   va_end(list);
 }
 
-#endif // ATS_OGL33
+#endif // ATS_OGL46
 

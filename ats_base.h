@@ -9,15 +9,19 @@
 
 #ifdef __cplusplus
 #define ATS_INIT {}
-#define Make(T) T
+#define make(T) T
 #else
 #define ATS_INIT {0}
-#define Make(T) (T)
+#define make(T) (T)
 #endif
 
-#define KIB (1024)
-#define MIB (1024 * KIB)
-#define GIB (1024 * MIB)
+#if __STDC_VERSION__ >= 201112L
+#define __c11
+#endif
+
+#define KIB(n) ((n) * 1024)
+#define MIB(n) (KIB(n) * 1024)
+#define GIB(n) (MIB(n) * 1024)
 
 #define PI (3.14159265359f)
 #define TAU (6.28318530718f)
@@ -25,19 +29,28 @@
 #define TO_RAD_MUL (0.01745329251f)
 #define TO_DEG_MUL (57.2957795131f)
 
-#define Swap(type, a, b) do { type tmp = (a); (a) = (b); (b) = tmp; } while(0)
+#define to_rad(deg) ((deg) * TO_RAD_MUL)
+#define to_deg(rad) ((rad) * TO_DEG_MUL)
 
-#define ToRad(deg) ((deg) * TO_RAD_MUL)
-#define ToDeg(rad) ((rad) * TO_DEG_MUL)
+#define swap(type, a, b) do { type tmp = (a); (a) = (b); (b) = tmp; } while(0)
 
-#define ArrayCount(array) (sizeof (array) / sizeof (array)[0])
+#define countof(array) (sizeof (array) / sizeof (array)[0])
 
-#define IsPowerOfTwo(x) (((x) != 0) && ((x) & ((x) - 1)) == 0)
+#define is_power_of_two(x) (((x) != 0) && ((x) & ((x) - 1)) == 0)
 
-#define AlignDown(n, a)     ((n) & ~((a) - 1))
-#define AlignUp(n, a)       AlignDown((n) + (a) - 1, (a))
-#define AlignDownPtr(p, a)  ((void*)AlignDown((uintptr_t)(p), (a)))
-#define AlignUpPtr(p, a)    ((void*)AlignDown((uintptr_t)(p), (a)))
+#define align_down(n, a)      ((n) & ~((a) - 1))
+#define align_up(n, a)        align_down((n) + (a) - 1, (a))
+#define align_down_ptr(p, a)  ((void*)align_down((uintptr_t)(p), (a)))
+#define align_up_ptr(p, a)    ((void*)align_down((uintptr_t)(p), (a)))
+
+#define ClampMin(n, min)      ((n) < (min)? (min) : (n))
+#define ClampMax(n, max)      ((n) > (max)? (max) : (n))
+#define Clamp(n, min, max)    ClampMax(ClampMin(n, min), max)
+#define Clamp01(n)            Clamp(n, 0, 1)
+#define Min(a, b)             ((a) < (b)? (a) : (b))
+#define Max(a, b)             ((a) > (b)? (a) : (b))
+#define Lerp(a, b, t)         ((a) + (f32)(t) * ((b) - (a)))
+#define Sign(n)               ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
 #define join_helper(a, b) a##b
 #define join_token(a, b) join_helper(a, b)
@@ -51,7 +64,7 @@
   for (isize index = (start); index < (below); ++index)
 
 #define for_array(index, array) \
-  for (usize index = 0; index < ArrayCount(array); ++index)
+  for (usize index = 0; index < countof(array); ++index)
 
 #define repeat(count) \
   for (isize macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
@@ -76,15 +89,6 @@
        (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
        type##_iter_advance(&macro_var(it)))
 
-#define ClampMin(n, min)    ((n) < (min)? (min) : (n))
-#define ClampMax(n, max)    ((n) > (max)? (max) : (n))
-#define Clamp(n, min, max)  ClampMax(ClampMin(n, min), max)
-#define Clamp01(n)          Clamp(n, 0, 1)
-#define Min(a, b)           ((a) < (b)? (a) : (b))
-#define Max(a, b)           ((a) > (b)? (a) : (b))
-#define Lerp(a, b, t)       ((a) + (f32)(t) * ((b) - (a)))
-#define Sign(n)             ((n) == 0? 0 : ((n) < 0? -1 : 1))
-
 typedef float f32;
 typedef double f64;
 
@@ -108,14 +112,14 @@ typedef u64 b64;
 
 #ifdef __cplusplus
 
-constexpr u32 __match_hash(const char* name) {
+constexpr u32 match_hash(const char* str) {
   u32 hash = 5381;
-  for (int i = 0; name[i] != '\0'; i++)
-    hash = ((hash << 5) + hash) + name[i];
+  for (int i = 0; str[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + str[i];
   return hash;
 }
 
-#define match(str) switch(__match_hash(str))
-#define with(str)  case __match_hash(str)
+#define match(str) switch(match_hash(str))
+#define with(str)  case match_hash(str)
 
 #endif

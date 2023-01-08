@@ -1,3 +1,6 @@
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,12 +28,12 @@ extern usize file_get_size(const char* path) {
   return size;
 }
 
-extern char* file_read_str(const char* file_name, mem_arena_t* ma) {
+extern char* file_read_str(const char* file_name) {
   FILE* fp = NULL;
   char* buffer = NULL;
   if (fp = file_open(file_name, "rb")) {
     usize size = _file_get_size(fp);
-    buffer = (char*)mem_alloc(ma, size + 1);
+    buffer = (char*)mem_alloc(size + 1);
     if (buffer) {
       buffer[size] = 0;
       if (fread(buffer, 1, size, fp) == 0) {
@@ -56,8 +59,8 @@ extern b32 file_write_str(const char* file_name, const char* buffer) {
 extern b32 file_append_str(const char* file_name, const char* buffer) {
   FILE* fp = NULL;
   if (fp = file_open(file_name, "a")) {
-    size_t size = strlen(buffer);
-    size_t n = fwrite(buffer, 1, size, fp);
+    usize size = strlen(buffer);
+    usize n = fwrite(buffer, 1, size, fp);
     fclose(fp);
     return n == size;
   }
@@ -84,17 +87,17 @@ extern b32 file_write_bin(const char* file_name, const void* buffer, usize size)
   return false;
 }
 
-extern image_t file_load_image(const char* path) {
-  image_t img = ATS_INIT;
+extern image file_load_image(const char* path) {
+  image img = ATS_INIT;
   i32 channels = 0;
   img.pixels = (u32*)stbi_load(path, &img.width, &img.height, &channels, 4);
   assert(img.pixels);
   return img;
 }
 
-extern void file_free_image(image_t* img) {
+extern void file_free_image(image* img) {
   stbi_image_free(img->pixels);
-  *img = Make(image_t) ATS_INIT;
+  *img = make(image) ATS_INIT;
 }
 
 typedef struct file_iter {
