@@ -43,6 +43,7 @@
 
 typedef struct rt_state {
   int at;
+  float dt;
   float wait_for;
   float repeat_for;
 } rt_state;
@@ -63,12 +64,12 @@ constexpr unsigned int rt_hash(const char* name) {
 }
 #endif
 
-#define rt_begin(rt, dt) \
+#define rt_begin(rt, delta_time) \
   if (rt.wait_for > 0) { \
-    rt.wait_for -= (dt); \
+    rt.wait_for -= (delta_time); \
   } else { \
     rt_state* __rt = &(rt); \
-    float __dt = dt; \
+    __rt->dt = (delta_time); \
     int __mn = 1; \
     switch (__rt->at) { \
       case 0: { \
@@ -86,7 +87,7 @@ constexpr unsigned int rt_hash(const char* name) {
 #define rt_for(time) \
         rt_step(); \
         if (__rt->repeat_for < time) {  \
-          __rt->repeat_for += __dt; \
+          __rt->repeat_for += __rt->dt; \
           __mn = __rt->repeat_for >= time; \
           if (__mn) __rt->repeat_for = 0; \
         } \
