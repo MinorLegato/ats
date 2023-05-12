@@ -38,9 +38,9 @@ static void* mem_alloc(usize size) {
   return ptr;
 }
 
-#define mem_type(type)      (type*)mem_alloc(sizeof (type))
-#define mem_array(type, n)  (type*)mem_alloc((n) * sizeof (type))
-#define mem_scope           scope_guard(mem_save(), mem_restore())
+#define mem_type(type_t)      (type_t*)mem_alloc(sizeof (type_t))
+#define mem_array(type_t, n)  (type_t*)mem_alloc((n) * sizeof (type_t))
+#define mem_scope             scope_guard(mem_save(), mem_restore())
 
 static void mem_push(mem_arena* ma) {
   assert(ma);

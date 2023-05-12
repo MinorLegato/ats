@@ -9,7 +9,9 @@
 #include "ats_audio_table.c"
 
 #ifndef __cplusplus
+#if 0
 #include "ats_thread.c"
+#endif
 #endif
 
 #ifndef ATS_NO_MAIN

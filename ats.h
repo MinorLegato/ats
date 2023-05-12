@@ -17,7 +17,9 @@
 #include "ats_platform.h"
 
 #ifndef __cplusplus
+#if 0
 #include "ats_thread.h"
+#endif
 #endif
 #endif // __ATS_H__
 

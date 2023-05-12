@@ -35,7 +35,7 @@ extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
   f64 result[3];
   f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
 
-  return v3((f32)result[0], (f32)result[1], (f32)result[2]);
+  return make(v3) { (f32)result[0], (f32)result[1], (f32)result[2] };
 }
 
 // ------------------------------------- opengl impl ------------------------------------ //
@@ -982,12 +982,12 @@ static void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   r2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
   r2 rect = { x, y, x + sx, y + sy };
 
-  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
-  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.max.x, rect.min.y), v2(tex_rect.max.x, tex_rect.max.y), color };
-  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.max.x, rect.max.y), v2(tex_rect.max.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.min.x, rect.max.y), v2(tex_rect.min.x, tex_rect.min.y), color };
-  bitmap_array[bitmap_count++] = make(bitmap_vertex) { v2(rect.min.x, rect.min.y), v2(tex_rect.min.x, tex_rect.max.y), color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.min.x, rect.min.y, tex_rect.min.x, tex_rect.max.y, color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.max.x, rect.min.y, tex_rect.max.x, tex_rect.max.y, color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.max.x, rect.max.y, tex_rect.max.x, tex_rect.min.y, color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.max.x, rect.max.y, tex_rect.max.x, tex_rect.min.y, color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.min.x, rect.max.y, tex_rect.min.x, tex_rect.min.y, color };
+  bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.min.x, rect.min.y, tex_rect.min.x, tex_rect.max.y, color };
 }
 
 extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {

@@ -29,9 +29,9 @@ extern usize file_get_size(const char* path) {
 }
 
 extern char* file_read_str(const char* file_name) {
-  FILE* fp = NULL;
   char* buffer = NULL;
-  if (fp = file_open(file_name, "rb")) {
+  FILE* fp = file_open(file_name, "rb");
+  if (fp) {
     usize size = _file_get_size(fp);
     buffer = (char*)mem_alloc(size + 1);
     if (buffer) {
@@ -46,8 +46,8 @@ extern char* file_read_str(const char* file_name) {
 }
 
 extern b32 file_write_str(const char* file_name, const char* buffer) {
-  FILE* fp = NULL;
-  if (fp = file_open(file_name, "w")) {
+  FILE* fp = file_open(file_name, "w");
+  if (fp) {
     usize size = strlen(buffer);
     usize n = fwrite(buffer, 1, size, fp);
     fclose(fp);
@@ -57,8 +57,8 @@ extern b32 file_write_str(const char* file_name, const char* buffer) {
 }
 
 extern b32 file_append_str(const char* file_name, const char* buffer) {
-  FILE* fp = NULL;
-  if (fp = file_open(file_name, "a")) {
+  FILE* fp = file_open(file_name, "a");
+  if (fp) {
     usize size = strlen(buffer);
     usize n = fwrite(buffer, 1, size, fp);
     fclose(fp);
@@ -68,8 +68,8 @@ extern b32 file_append_str(const char* file_name, const char* buffer) {
 }
 
 extern b32 file_read_bin(const char* file_name, void* buffer, usize size) {
-  FILE *fp = NULL;
-  if (fp = file_open(file_name, "rb")) {
+  FILE* fp = file_open(file_name, "rb");
+  if (fp) {
     fread(buffer, size, 1, fp);
     fclose(fp);
     return true;
@@ -78,8 +78,8 @@ extern b32 file_read_bin(const char* file_name, void* buffer, usize size) {
 } 
 
 extern b32 file_write_bin(const char* file_name, const void* buffer, usize size) {
-  FILE *fp = NULL;
-  if (fp = file_open(file_name, "wb")) {
+  FILE *fp = file_open(file_name, "wb");
+  if (fp) {
     fwrite(buffer, size, 1, fp);
     fclose(fp);
     return 1;

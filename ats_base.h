@@ -9,10 +9,10 @@
 
 #ifdef __cplusplus
 #define ATS_INIT {}
-#define make(T) T
+#define make(type_t) type_t
 #else
 #define ATS_INIT {0}
-#define make(T) (T)
+#define make(type_t) (type_t)
 #endif
 
 #if __STDC_VERSION__ >= 201112L
@@ -43,14 +43,16 @@
 #define align_down_ptr(p, a)  ((void*)align_down((uintptr_t)(p), (a)))
 #define align_up_ptr(p, a)    ((void*)align_down((uintptr_t)(p), (a)))
 
-#define ClampMin(n, min)      ((n) < (min)? (min) : (n))
-#define ClampMax(n, max)      ((n) > (max)? (max) : (n))
-#define Clamp(n, min, max)    ClampMax(ClampMin(n, min), max)
-#define Clamp01(n)            Clamp(n, 0, 1)
-#define Min(a, b)             ((a) < (b)? (a) : (b))
-#define Max(a, b)             ((a) > (b)? (a) : (b))
-#define Lerp(a, b, t)         ((a) + (f32)(t) * ((b) - (a)))
-#define Sign(n)               ((n) == 0? 0 : ((n) < 0? -1 : 1))
+#define clamp_min(n, min)      ((n) < (min)? (min) : (n))
+#define clamp_max(n, max)      ((n) > (max)? (max) : (n))
+#define clamp(n, min, max)    clamp_max(clamp_min(n, min), max)
+#define clamp01(n)            clamp(n, 0, 1)
+#undef min
+#define min(a, b)             ((a) < (b)? (a) : (b))
+#undef max
+#define max(a, b)             ((a) > (b)? (a) : (b))
+#define lerp(a, b, t)         ((a) + (f32)(t) * ((b) - (a)))
+#define sign(n)               ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
 #define join_helper(a, b) a##b
 #define join_token(a, b) join_helper(a, b)
@@ -89,21 +91,24 @@
        (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
        type##_iter_advance(&macro_var(it)))
 
-typedef float f32;
-typedef double f64;
+typedef float   f32;
+typedef double  f64;
 
-typedef char i8;
-typedef short i16;
-typedef int i32;
-typedef long long i64;
+typedef float   r32;
+typedef double  r64;
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-typedef unsigned long long u64;
+typedef char        i8;
+typedef short       i16;
+typedef int         i32;
+typedef long long   i64;
 
-typedef long long isize;
-typedef unsigned long long usize;
+typedef unsigned char       u8;
+typedef unsigned short      u16;
+typedef unsigned int        u32;
+typedef unsigned long long  u64;
+
+typedef long long           isize;
+typedef unsigned long long  usize;
 
 typedef u8  b8;
 typedef u16 b16;

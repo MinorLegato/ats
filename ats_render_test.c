@@ -125,7 +125,7 @@ static const char* r_post_fx_blur = GLSL(
 
   uniform sampler2D tex;
 
-  const float offset = 1.0 / 600.0;
+  const float offset = 1.0 / 1200.0;
 
   void main() {
     vec2 offsets[9] = vec2[](
@@ -155,32 +155,32 @@ static const char* r_post_fx_blur = GLSL(
     out_color = col;
   });
 
-typedef struct r_vertex {
+typedef struct r_vertex_data {
   v3 pos;
   v2 uv;
   u32 color;
-} r_vertex_t;
+} r_vertex_data;
 
-typedef struct r_target {
+typedef struct r_target_data {
   gl_shader shader;
   u32 framebuffer;
   u32 texture;
-} r_target_t;
+} r_target_data;
 
 static gl_buffer r_post_fx_buffer;
 
 static gl_texture r_current_texture;
 
-static usize r_target_count;
-static r_target_t r_target_array[R_TARGET_MAX];
+static usize          r_target_count;
+static r_target_data  r_target_array[R_TARGET_MAX];
 
 static gl_shader r_shader;
 static gl_buffer r_buffer;
 
-static u32 r_type;
-static r_vertex_t r_current;
-static u32 r_vertex_count;
-static r_vertex_t r_vertex_array[R_VERTEX_MAX];
+static u32            r_type;
+static r_vertex_data  r_current;
+static u32            r_vertex_count;
+static r_vertex_data  r_vertex_array[R_VERTEX_MAX];
 
 static void r_set_matrix(m4 mvp) {
   gl_use(&r_shader);
@@ -202,9 +202,9 @@ static void r_init(void) {
 
   gl_buffer_desc buffer_desc = ATS_INIT;
 
-  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_t), offsetof(r_vertex_t, pos) };
-  buffer_desc.layout[1] = make(gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_t), offsetof(r_vertex_t, uv) };
-  buffer_desc.layout[2] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_t), offsetof(r_vertex_t, color), true };
+  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
+  buffer_desc.layout[1] = make(gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
+  buffer_desc.layout[2] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -243,7 +243,7 @@ static void r_vertex(f32 x, f32 y, f32 z) {
 static void r_end(void) {
   gl_use(&r_shader);
   gl_buffer_bind(&r_buffer);
-  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (r_vertex_t));
+  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (r_vertex_data));
 
   glDrawArrays(r_type, 0, r_vertex_count);
 }
@@ -351,8 +351,8 @@ static void r_texture_box(r2i tex_rect, r3 box, u32 color) {
 
 static void r_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color) {
   r2 tr = {
-    { tex_rect.min.x + 0.08f, tex_rect.min.y + 0.08f },
-    { tex_rect.max.x - 0.08f, tex_rect.max.y - 0.08f },
+    { tex_rect.min.x + 0.09f, tex_rect.min.y + 0.08f },
+    { tex_rect.max.x - 0.09f, tex_rect.max.y - 0.08f },
   };
 
   r_color(color);
@@ -500,7 +500,7 @@ static void r_rect(r2 rect, f32 z, u32 color) {
 }
 
 static u32 r_new_target(const char* fragment_shader) {
-  r_target_t* target = r_target_array + r_target_count++;
+  r_target_data* target = r_target_array + r_target_count++;
 
   gl_shader_desc shader_desc = ATS_INIT;
 
@@ -526,7 +526,7 @@ static u32 r_new_target(const char* fragment_shader) {
   return r_target_count - 1;
 }
 
-static r_target_t* r_current_target = NULL;
+static r_target_data* r_current_target = NULL;
 
 static void r_begin_pass(u32 target) {
   r_current_target = r_target_array + target;

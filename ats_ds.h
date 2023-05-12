@@ -183,7 +183,7 @@ static void sm_add(spatial_map* map, void* e, r2 e_rect) {
   };
 
   for_r2(rect, x, y) {
-    u32 index = sm_index(map, v2i(x, y));
+    u32 index = sm_index(map, make(v2i) { x, y });
     sm_cell* cell = map->array + map->count++;
 
     cell->e = e;
@@ -221,7 +221,7 @@ static sm_result sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignor
   };
 
   for_r2(irect, x, y) {
-    u32 index = sm_index(map, v2i(x, y));
+    u32 index = sm_index(map, make(v2i) { x, y });
     for (sm_cell* it = map->table[index]; it; it = it->next) {
       b32 unique = true;
 
@@ -274,7 +274,7 @@ static void* sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ign
   void* result = NULL;
   f32 distance = range;
 
-  for_iter(sm_iter, it, sm_get_iterator(map, pos, v2(range, range), ignore)) {
+  for_iter(sm_iter, it, sm_get_iterator(map, pos, make(v2) { range, range }, ignore)) {
     sm_entry* e = it.current;
 
     if (condition_proc && !condition_proc(e->e)) {
@@ -298,7 +298,7 @@ static void* sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ign
 }
 
 static void* sm_at_position(spatial_map* map, v2 pos) {
-  u32 index = sm_index(map, v2i((i32)pos.x, (i32)pos.y));
+  u32 index = sm_index(map, make(v2i) { (i32)pos.x, (i32)pos.y });
 
   for (sm_cell* it = map->table[index]; it; it = it->next) {
     if (r2_contains(it->rect, pos)) {
@@ -390,7 +390,7 @@ static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
       side = 1;
     }
 
-    if (v2_dist(pos, v2((f32)map_x, (f32)map_y)) > (max_range + 1.0f)) {
+    if (v2_dist(pos, make(v2) { (f32)map_x, (f32)map_y }) > (max_range + 1.0f)) {
       hit = true;
     }
 
@@ -409,7 +409,7 @@ static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
 
 static v2 tm_cast_angle(const traverse_map* map, v2 from, f32 angle, f32 max_range) {
   m2 rot = m2_rotate(angle);
-  v2 dir = m2_mulv(rot, v2(0, 1));
+  v2 dir = m2_mulv(rot, make(v2) { 0, 1 });
 
   return tm_cast_dir(map, from, dir, max_range);
 }
