@@ -16,7 +16,7 @@
 
 #ifndef ATS_NO_MAIN
 #ifndef MEM_DEFAULT_SIZE
-#define MEM_DEFAULT_SIZE MIB(256)
+#define MEM_DEFAULT_SIZE MEM_MIB(256)
 #endif
 
 int ats_main(void);
@@ -27,13 +27,12 @@ int WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 int main(void) {
 #endif
   static u8 memory_buffer[MEM_DEFAULT_SIZE];
-  static mem_arena default_arena;
+  struct mem_arena default_arena = mem_create(memory_buffer, countof(memory_buffer));
 
-  mem_init(&default_arena, memory_buffer, countof(memory_buffer));
-  mem_push(&default_arena);
-
-  int result = ats_main();
-  (void)result;
+  mem_context(&default_arena) {
+    int result = ats_main();
+    (void)result;
+  }
 
   return 0;
 }

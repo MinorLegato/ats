@@ -19,10 +19,6 @@
 #define __c11
 #endif
 
-#define KIB(n) ((n) * 1024)
-#define MIB(n) (KIB(n) * 1024)
-#define GIB(n) (MIB(n) * 1024)
-
 #define PI (3.14159265359f)
 #define TAU (6.28318530718f)
 
