@@ -71,7 +71,7 @@ _mem_alloc(struct mem_alloc_desc desc) {
 }
 
 struct mem_arena_desc {
-  int pad;
+  u64 pad;
   struct mem_arena* arena;
 };
 
