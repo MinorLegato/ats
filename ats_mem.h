@@ -71,14 +71,15 @@ _mem_alloc(struct mem_alloc_desc desc) {
 }
 
 struct mem_arena_desc {
+  int pad;
   struct mem_arena* arena;
 };
 
 #define mem_context(arena) scope_guard(mem_push(arena), mem_pop())
 
-#define mem_save(...)     _mem_save((struct mem_arena_desc) { __VA_ARGS__ })
-#define mem_restore(...)  _mem_restore((struct mem_arena_desc) { __VA_ARGS__ })
-#define mem_scope(...)    scope_guard(_mem_save((struct mem_arena_desc) { __VA_ARGS__ }), _mem_restore((struct mem_arena_desc) { __VA_ARGS__ }))
+#define mem_save(...)     _mem_save((struct mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_restore(...)  _mem_restore((struct mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_scope(...)    scope_guard(_mem_save((struct mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore((struct mem_arena_desc) { 0, __VA_ARGS__ }))
 
 #define mem_size(ptr)     ((struct mem_header*)(ptr) - 1)->size
 #define mem_count(ptr)    ((struct mem_header*)(ptr) - 1)->count
