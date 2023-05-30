@@ -770,7 +770,7 @@ extern gl_shader gl_shader_create(gl_shader_desc desc) {
 extern gl_shader gl_shader_load_from_file(const char *vs, const char *fs) {
   gl_shader shader = ATS_INIT;
 
-  mem_scope {
+  mem_scope() {
     char* vs_content = file_read_str(vs);
     char* fs_content = file_read_str(fs);
 
