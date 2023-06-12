@@ -50,6 +50,7 @@ static mem_arena mem_create(void* data, usize size) {
 #define MEM_GET(arg) ((arg).arena? (arg).arena : (mem_stack))
 
 typedef struct mem_alloc_desc mem_alloc_desc;
+typedef struct mem_arena_desc mem_arena_desc;
 typedef struct mem_header mem_header;
 
 struct mem_alloc_desc {
