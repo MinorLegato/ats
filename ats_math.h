@@ -149,11 +149,11 @@ static f32 sin_turn(f32 turns) {
 }
 
 static f32 cos_turn01(f32 turns) {
-  return 0.5 + 0.5 * cos_turn(turns);
+  return 0.5f + 0.5f * cos_turn(turns);
 }
 
 static f32 sin_turn01(f32 turns) {
-  return 0.5 + 0.5 * sin_turn(turns);
+  return 0.5f + 0.5f * sin_turn(turns);
 }
 
 static f32 shortest_angle_distance(f32 a, f32 b) {
@@ -176,7 +176,7 @@ static f32 sine_ease_out(f32 t) {
 }
 
 static f32 sine_ease_in_out(f32 t) {
-  return -0.5 * (cosf(PI * t) - 1);
+  return -0.5f * (cosf(PI * t) - 1);
 }
 
 static f32 quad_ease_in(f32 t) {
@@ -189,7 +189,7 @@ static f32 quad_ease_out(f32 t) {
 
 static f32 quad_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
-  return (t < 0.5)? (2 * t * t) : (1 - 0.5 * k * k);
+  return (t < 0.5f)? (2 * t * t) : (1 - 0.5f * k * k);
 }
 
 static f32 cubic_ease_in(f32 t) {
@@ -203,7 +203,7 @@ static f32 cubic_ease_out(f32 t) {
 
 static f32 cubic_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
-  return (t < 0.5)? (4 * t * t * t) : (1 - 0.5 * k * k * k);
+  return (t < 0.5f)? (4 * t * t * t) : (1 - 0.5f * k * k * k);
 }
 
 static f32 quart_ease_in(f32 t) {
@@ -217,7 +217,7 @@ static f32 quart_ease_out(f32 t) {
 
 static f32 quart_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
-  return (t < 0.5)? (8 * t * t * t * t) : (1 - 0.5 * k * k * k * k);
+  return (t < 0.5f)? (8 * t * t * t * t) : (1 - 0.5f * k * k * k * k);
 }
 
 static f32 quint_ease_in(f32 t) {
@@ -231,7 +231,7 @@ static f32 quint_ease_out(f32 t) {
 
 static f32 quint_ease_in_out(f32 t) {
   f32 k = -2 * t + 2;
-  return (t < 0.5)? (16 * t * t * t * t * t) : (1 - 0.5 * k * k * k * k * k);
+  return (t < 0.5f)? (16 * t * t * t * t * t) : (1 - 0.5f * k * k * k * k * k);
 }
 
 static f32 expo_ease_in(f32 t) {
@@ -257,7 +257,7 @@ static f32 circ_ease_out(f32 t) {
 static f32 circ_ease_in_out(f32 t) {
   f32 k = 2 * t;
   f32 l = -2 * t + 2;
-  return (t < 0.5)? 0.5 * (1 - sqrt32(1 - k * k)) : 0.5 * (sqrt32(1 - l * l) + 1);
+  return (t < 0.5f)? 0.5f * (1 - sqrt32(1 - k * k)) : 0.5f * (sqrt32(1 - l * l) + 1);
 }
 
 static f32 back_ease_in(f32 t) {
@@ -274,12 +274,12 @@ static f32 back_ease_out(f32 t) {
 }
 
 static f32 back_ease_in_out(f32 t) {
-  f32 c1 = 1.70158;
-  f32 c2 = c1 * 1.525;
+  f32 c1 = 1.70158f;
+  f32 c2 = c1 * 1.525f;
 
-  return (t < 0.5)?
-    0.5 * (powf(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) :
-    0.5 * (pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2);
+  return (t < 0.5f)?
+    0.5f * (powf(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) :
+    0.5f * (powf(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2);
 }
 
 static f32 elastic_ease_in(f32 t) {
@@ -288,7 +288,7 @@ static f32 elastic_ease_in(f32 t) {
     0 :
     (t == 1)?
     1 :
-    -powf(2, 10 * t - 10) * sinf((t * 10 - 10.75) * c4);
+    -powf(2, 10 * t - 10) * sinf((t * 10 - 10.75f) * c4);
 }
 
 static f32 elastic_ease_out(f32 t) {
@@ -297,34 +297,34 @@ static f32 elastic_ease_out(f32 t) {
     0 :
     t == 1?
     1 :
-    powf(2, -10 * t) * sinf((t * 10 - 0.75) * c4) + 1;
+    powf(2, -10 * t) * sinf((t * 10 - 0.75f) * c4) + 1;
 }
 
 static f32 elastic_ease_in_out(f32 t) {
-  f32 c5 = (2 * PI) / 4.5;
+  f32 c5 = (2 * PI) / 4.5f;
   return t == 0?
     0 :
     t == 1?
     1 :
-    t < 0.5 ?
-    -0.5 * (powf(2, 20 * t - 10)  * sinf((20 * t - 11.125) * c5)) :
-    +0.5 * (powf(2, -20 * t + 10) * sinf((20 * t - 11.125) * c5)) + 1;
+    t < 0.5f?
+    -0.5f * (powf(2, 20 * t - 10)  * sinf((20 * t - 11.125f) * c5)) :
+    +0.5f * (powf(2, -20 * t + 10) * sinf((20 * t - 11.125f) * c5)) + 1;
 }
 
 static f32 bounce_ease_out(f32 t) {
-  f32 n1 = 7.5625;
-  f32 d1 = 2.75;
+  f32 n1 = 7.5625f;
+  f32 d1 = 2.75f;
   if (t < 1 / d1) {
     return n1 * t * t;
   } else if (t < 2 / d1) {
-    t -= 1.5 / d1;
-    return n1 * t * t + 0.75;
-  } else if (t < 2.5 / d1) {
-    t -= 2.25 / d1;
-    return n1 * t * t + 0.9375;
+    t -= 1.5f / d1;
+    return n1 * t * t + 0.75f;
+  } else if (t < 2.5f / d1) {
+    t -= 2.25f / d1;
+    return n1 * t * t + 0.9375f;
   } else {
-    t -= 2.625 / d1;
-    return n1 * t * t + 0.984375;
+    t -= 2.625f / d1;
+    return n1 * t * t + 0.984375f;
   }
 }
 
@@ -333,9 +333,9 @@ static f32 bounce_ease_in(f32 t) {
 }
 
 static f32 bounce_ease_in_out(f32 t) {
-  return t < 0.5?
-    0.5 * (1 - bounce_ease_out(1 - 2 * t)) :
-    0.5 * (1 + bounce_ease_out(2 * t - 1));
+  return t < 0.5f?
+    0.5f * (1 - bounce_ease_out(1 - 2 * t)) :
+    0.5f * (1 + bounce_ease_out(2 * t - 1));
 }
 
 // ---------- from array ---------- //
@@ -727,12 +727,12 @@ static f32 v4_dist(v4 a, v4 b) { return sqrt32(v4_dist_sq(a, b)); }
 
 static i32 v2i_manhattan(v2i a, v2i b) {
   v2i diff = v2i_sub(a, b);
-  return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y);
+  return (0x7fffffff & diff.x) + (0x7fffffff & diff.y);
 }
 
 static i32 v3i_manhattan(v3i a, v3i b) {
   v3i diff = v3i_sub(a, b);
-  return (0x7ffffffff & diff.x) + (0x7ffffffff & diff.y) + (0x7ffffffff & diff.z);
+  return (0x7fffffff & diff.x) + (0x7fffffff & diff.y) + (0x7fffffff & diff.z);
 }
 
 // -------------- normalize --------------- //
@@ -1377,7 +1377,7 @@ static b32 sphere_intersect(sphere_t a, sphere_t b) {
   f32 dy = b.pos.y - a.pos.y;
   f32 dz = b.pos.z - a.pos.z;
   f32 rt = a.rad + b.rad;
-  return (dx * dx + dy * dy) < (rt * rt);
+  return (dx * dx + dy * dy + dz * dz) < (rt * rt);
 }
 
 static b32 r2_intersect(r2 a, r2 b) {

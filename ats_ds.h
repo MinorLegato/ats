@@ -89,7 +89,7 @@ typedef struct split_iter {
 } split_iter;
 
 static b32 split_iter_is_valid(const split_iter* it) {
-  return it->current.size;
+  return it->current.size > 0;
 }
 
 static void split_iter_advance(split_iter* it) {
@@ -338,7 +338,7 @@ static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
 #if 0
   //if (!tm_is_traversable(map, pos.x, pos.y)) return pos;
 #endif
-  b32 kill_on_wall_hit = tm_is_traversable(map, pos.x, pos.y);
+  b32 kill_on_wall_hit = tm_is_traversable(map, (i32)pos.x, (i32)pos.y);
   
   //which box of the map we're in
   int map_x = (int)(pos.x);
@@ -349,8 +349,8 @@ static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
   f32 side_dist_y = 0;
 
   //length of ray from one x or y-side to next x or y-side
-  f32 delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabsf(1.0f / dir.x);
-  f32 delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabsf(1.0f / dir.y);
+  f32 delta_dist_x = (dir.x == 0.0f) ? 1e30f : fabsf(1.0f / dir.x);
+  f32 delta_dist_y = (dir.y == 0.0f) ? 1e30f : fabsf(1.0f / dir.y);
 
   f32 perp_wall_dist = 0;
 
@@ -367,7 +367,7 @@ static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
     side_dist_x = (pos.x - map_x) * delta_dist_x;
   } else {
     step_x = 1;
-    side_dist_x = (map_x + 1.0 - pos.x) * delta_dist_x;
+    side_dist_x = (map_x + 1.0f - pos.x) * delta_dist_x;
   }
 
   if (dir.y < 0) {
@@ -375,7 +375,7 @@ static v2 tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
     side_dist_y = (pos.y - map_y) * delta_dist_y;
   } else {
     step_y = 1;
-    side_dist_y = (map_y + 1.0 - pos.y) * delta_dist_y;
+    side_dist_y = (map_y + 1.0f - pos.y) * delta_dist_y;
   }
 
   while (!hit) {
@@ -445,8 +445,8 @@ static void priority_queue_clear(priority_queue* queue) {
 
 static void priority_queue_push(priority_queue* queue, v2i e, f32 weight) {
   priority_queue_entry node = { weight, e };
-  int i = queue->len + 1;
-  int j = i / 2;
+  u32 i = queue->len + 1;
+  u32 j = i / 2;
   while (i > 1 && queue->array[j].weight > node.weight) {
     queue->array[i] = queue->array[j];
     i = j;
@@ -460,10 +460,10 @@ static f32 priority_queue_pop(v2i* out, priority_queue* queue) {
   priority_queue_entry data = queue->array[1];
   queue->array[1] = queue->array[queue->len];
   queue->len--;
-  int i = 1;
+  u32 i = 1;
   while (i != queue->len + 1) {
-    int k = queue->len + 1;
-    int j = 2 * i;
+    u32 k = queue->len + 1;
+    u32 j = 2 * i;
     if (j <= queue->len && queue->array[j].weight < queue->array[k].weight) {
       k = j;
     }
