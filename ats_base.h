@@ -122,4 +122,20 @@ constexpr u32 match_hash(const char* str) {
 #define match(str) switch(match_hash(str))
 #define with(str)  case match_hash(str)
 
+#else
+
+static inline u32 match_hash(const char* str) {
+  u32 hash = 5381;
+  for (int i = 0; str[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + str[i];
+  return hash;
+}
+
+#define match(...) \
+  for (u32 _match_hash = match_hash(__VA_ARGS__), _with_hash = 0, _match_found = 0; _match_hash; _match_hash = 0)
+
+#define with(...) \
+  if (!_match_found && (_match_found = ((_with_hash = match_hash(__VA_ARGS__)) == _match_hash)))
+
 #endif
+

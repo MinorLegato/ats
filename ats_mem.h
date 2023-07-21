@@ -11,7 +11,7 @@ typedef struct mem_arena mem_arena;
 
 struct mem_index {
   usize pos;
-  struct mem_index* next;
+  mem_index* next;
 };
 
 struct mem_arena {
@@ -49,22 +49,18 @@ static mem_arena mem_create(void* data, usize size) {
 
 #define MEM_GET(arg) ((arg).arena? (arg).arena : (mem_stack))
 
-typedef struct mem_alloc_desc mem_alloc_desc;
-typedef struct mem_arena_desc mem_arena_desc;
-typedef struct mem_header mem_header;
-
-struct mem_alloc_desc {
+typedef struct {
   usize size;
   usize count;
-  struct mem_arena* arena;
-};
+  mem_arena* arena;
+} mem_alloc_desc;
 
-struct mem_header {
+typedef struct {
   usize size;
   usize count;
-};
+} mem_header;
 
-static void* _mem_alloc(struct mem_alloc_desc desc) {
+static void* _mem_alloc(mem_alloc_desc desc) {
   mem_arena*  arena  = MEM_GET(desc);
   mem_header* header = (mem_header*)(arena->buf + arena->pos);
   
@@ -75,10 +71,10 @@ static void* _mem_alloc(struct mem_alloc_desc desc) {
   return mem_clear(header + 1, desc.size);
 }
 
-struct mem_arena_desc {
+typedef struct {
   u64 pad;
-  struct mem_arena* arena;
-};
+  mem_arena* arena;
+} mem_arena_desc;
 
 #define mem_context(arena) scope_guard(mem_push(arena), mem_pop())
 

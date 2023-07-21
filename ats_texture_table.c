@@ -118,7 +118,7 @@ extern void tt_begin(int width, int height) {
   tt_table = make(texture_table) {
     width,
     height, 
-    (u32*)mem_alloc(width * height * sizeof (u32)),
+    mem_array(u32, width * height),
   };
 
   tt_table.array[0].in_use = true;
