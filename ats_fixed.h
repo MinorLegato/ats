@@ -61,19 +61,19 @@ typedef union {
 
 // lerp:
 
-static fix8 fix8_lerp(fix8 a, fix8 b, fix8 t) {
+static fx8 fx8_lerp(fx8 a, fx8 b, fx8 t) {
   return a + ((t * (b - a)) >> FX8_SHIFT);
 }
 
-static fix16 fix16_lerp(fix16 a, fix16 b, fix16 t) {
+static fx16 fx16_lerp(fx16 a, fx16 b, fx16 t) {
   return a + ((t * (b - a)) >> FX16_SHIFT);
 }
 
-static fix32 fix32_lerp(fix32 a, fix32 b, fix32 t) {
+static fx32 fx32_lerp(fx32 a, fx32 b, fx32 t) {
   return a + ((t * (b - a)) >> FX32_SHIFT);
 }
 
-static fix64 fix64_lerp(fix64 a, fix64 b, fix64 t) {
+static fx64 fx64_lerp(fx64 a, fx64 b, fx64 t) {
   return a + ((t * (b - a)) >> FX64_SHIFT);
 }
 
