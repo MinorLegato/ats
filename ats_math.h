@@ -352,18 +352,18 @@ static v4i v4i_from_array(const i32* a) { return make(v4i) { a[0], a[1], a[2], a
 
 static v3 v3_unpack_color(u32 color) {
   return make(v3) {
-    ((color & 0x000000ff) >> 0)  / 256.0f,
-    ((color & 0x0000ff00) >> 8)  / 256.0f,
-    ((color & 0x00ff0000) >> 16) / 256.0f
+    ((color & 0x000000ff) >> 0)  / 255.0f,
+    ((color & 0x0000ff00) >> 8)  / 255.0f,
+    ((color & 0x00ff0000) >> 16) / 255.0f
   };
 }
 
 static v4 v4_unpack_color(u32 color) {
   return make(v4) {
-    ((color & 0x000000ff) >> 0)  / 256.0f,
-    ((color & 0x0000ff00) >> 8)  / 256.0f,
-    ((color & 0x00ff0000) >> 16) / 256.0f,
-    ((color & 0xff000000) >> 24) / 256.0f
+    ((color & 0x000000ff) >> 0)  / 255.0f,
+    ((color & 0x0000ff00) >> 8)  / 255.0f,
+    ((color & 0x00ff0000) >> 16) / 255.0f,
+    ((color & 0xff000000) >> 24) / 255.0f
   };
 }
 

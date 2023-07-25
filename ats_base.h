@@ -49,7 +49,7 @@
 #define min(a, b)             ((a) < (b)? (a) : (b))
 #undef max
 #define max(a, b)             ((a) > (b)? (a) : (b))
-#define lerp(a, b, t)         ((a) + (f32)(t) * ((b) - (a)))
+#define lerp(a, b, t)         ((a) + (t) * ((b) - (a)))
 #define sign(n)               ((n) == 0? 0 : ((n) < 0? -1 : 1))
 
 #define join_helper(a, b) a##b
@@ -105,7 +105,7 @@ typedef uint64_t u64;
 typedef ptrdiff_t isize;
 typedef size_t usize;
 
-typedef u8  b8;
+typedef u8 b8;
 typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;

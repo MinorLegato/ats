@@ -3,6 +3,7 @@
 
 #include "ats_base.h"
 #include "ats_math.h"
+#include "ats_fixed.h"
 #include "ats_routine.h"
 #include "ats_mem.h"
 #include "ats_ds.h"

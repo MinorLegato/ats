@@ -19,7 +19,7 @@ extern void gl_normal(f32 x, f32 y, f32 z);
 extern void gl_uv(f32 x, f32 y);
 extern void gl_vertex(f32 x, f32 y, f32 z);
 extern void gl_set_matrix(m4 projection, m4 view);
-extern void gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up);
+extern void gl_billboard(r2 tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up);
 extern void gl_texture_box(r2i tex_rect, r3 box, u32 color);
 extern void gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color);
 extern void gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y);

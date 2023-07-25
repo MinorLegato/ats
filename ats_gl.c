@@ -22,8 +22,8 @@ extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview)
 
   GLfloat win_x, win_y, win_z;
 
-  for (i32 i = 0; i < 16; ++i) projection[i]  = in_projection.e[i];
-  for (i32 i = 0; i < 16; ++i) modelview[i]   = in_modelview.e[i];
+  for (i32 i = 0; i < 16; ++i) projection[i] = in_projection.e[i];
+  for (i32 i = 0; i < 16; ++i) modelview[i] = in_modelview.e[i];
 
   glGetIntegerv(GL_VIEWPORT, viewport);
 
@@ -472,7 +472,7 @@ extern void gl_set_matrix(m4 projection, m4 view) {
   glLoadMatrixf(view.e);
 }
 
-extern void gl_billboard(r2i tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
+extern void gl_billboard(r2 tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
   f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
   f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
   f32 az = pos.z - right.z * rad.x - up.z * rad.y;
