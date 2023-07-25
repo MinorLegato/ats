@@ -2,63 +2,63 @@
 
 #include "ats_base.h"
 
-#ifndef FX8_SHIFT
-#define FX8_SHIFT (4)
+#ifndef FIX8_SHIFT
+#define FIX8_SHIFT (4)
 #endif
 
-#ifndef FX16_SHIFT
-#define FX16_SHIFT (7)
+#ifndef FIX16_SHIFT
+#define FIX16_SHIFT (7)
 #endif
 
-#ifndef FX32_SHIFT
-#define FX32_SHIFT (11)
+#ifndef FIX32_SHIFT
+#define FIX32_SHIFT (11)
 #endif
 
-#ifndef FX64_SHIFT
-#define FX64_SHIFT (21)
+#ifndef FIX64_SHIFT
+#define FIX64_SHIFT (21)
 #endif
 
-typedef i8 fx8;
-typedef i16 fx16;
-typedef i32 fx32;
-typedef i64 fx64;
+typedef i8 fix8;
+typedef i16 fix16;
+typedef i32 fix32;
+typedef i64 fix64;
 
 // to fixed:
 
-#define fx8_make(n)  ((fx8)((n)  * (1 << FX8_SHIFT)))
-#define fx16_make(n) ((fx16)((n) * (1 << FX16_SHIFT)))
-#define fx32_make(n) ((fx32)((n) * (1 << FX32_SHIFT)))
-#define fx64_make(n) ((fx64)((n) * (1 << FX64_SHIFT)))
+#define fix8_make(n)  ((fix8)((n)  * (1 << FIX8_SHIFT)))
+#define fix16_make(n) ((fix16)((n) * (1 << FIX16_SHIFT)))
+#define fix32_make(n) ((fix32)((n) * (1 << FIX32_SHIFT)))
+#define fix64_make(n) ((fix64)((n) * (1 << FIX64_SHIFT)))
 
 // fixed to float:
 
-#define fx8_cast(n)  ((f32)(n) / (f32)(1 << FX8_SHIFT))
-#define fx16_cast(n) ((f32)(n) / (f32)(1 << FX16_SHIFT))
-#define fx32_cast(n) ((f32)(n) / (f32)(1 << FX32_SHIFT))
-#define fx64_cast(n) ((f32)(n) / (f32)(1 << FX64_SHIFT))
+#define fix8_cast(n)  ((f32)(n) / (f32)(1 << FIX8_SHIFT))
+#define fix16_cast(n) ((f32)(n) / (f32)(1 << FIX16_SHIFT))
+#define fix32_cast(n) ((f32)(n) / (f32)(1 << FIX32_SHIFT))
+#define fix64_cast(n) ((f32)(n) / (f32)(1 << FIX64_SHIFT))
 
 // trunc:
 
-#define fx8_trunc(n)  ((n) >> FX8_SHIFT)
-#define fx16_trunc(n) ((n) >> FX16_SHIFT)
-#define fx32_trunc(n) ((n) >> FX32_SHIFT)
-#define fx64_trunc(n) ((n) >> FX64_SHIFT)
+#define fix8_trunc(n)  ((n) >> FIX8_SHIFT)
+#define fix16_trunc(n) ((n) >> FIX16_SHIFT)
+#define fix32_trunc(n) ((n) >> FIX32_SHIFT)
+#define fix64_trunc(n) ((n) >> FIX64_SHIFT)
 
 // lerp:
 
-static inline fx8 fx8_lerp(fx8 a, fx8 b, fx8 t) {
-  return a + ((t * (b - a)) >> FX8_SHIFT);
+static inline fix8 fix8_lerp(fix8 a, fix8 b, fix8 t) {
+  return a + ((t * (b - a)) >> FIX8_SHIFT);
 }
 
-static inline fx16 fx16_lerp(fx16 a, fx16 b, fx16 t) {
-  return a + ((t * (b - a)) >> FX16_SHIFT);
+static inline fix16 fix16_lerp(fix16 a, fix16 b, fix16 t) {
+  return a + ((t * (b - a)) >> FIX16_SHIFT);
 }
 
-static inline fx32 fx32_lerp(fx32 a, fx32 b, fx32 t) {
-  return a + ((t * (b - a)) >> FX32_SHIFT);
+static inline fix32 fix32_lerp(fix32 a, fix32 b, fix32 t) {
+  return a + ((t * (b - a)) >> FIX32_SHIFT);
 }
 
-static inline fx64 fx64_lerp(fx64 a, fx64 b, fx64 t) {
-  return a + ((t * (b - a)) >> FX64_SHIFT);
+static inline fix64 fix64_lerp(fix64 a, fix64 b, fix64 t) {
+  return a + ((t * (b - a)) >> FIX64_SHIFT);
 }
 
