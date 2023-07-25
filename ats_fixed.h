@@ -38,8 +38,35 @@ typedef union {
   fx32 e[4];
 } v4fx8;
 
-#define fx8_create(n)  ((fx8)((n)  * (1 << FX8_SHIFT)))
-#define fx16_create(n) ((fx16)((n) * (1 << FX16_SHIFT)))
-#define fx32_create(n) ((fx32)((n) * (1 << FX32_SHIFT)))
-#define fx64_create(n) ((fx64)((n) * (1 << FX64_SHIFT)))
+// to fixed
+
+#define fx8_make(n)  ((fx8)((n)  * (1 << FX8_SHIFT)))
+#define fx16_make(n) ((fx16)((n) * (1 << FX16_SHIFT)))
+#define fx32_make(n) ((fx32)((n) * (1 << FX32_SHIFT)))
+#define fx64_make(n) ((fx64)((n) * (1 << FX64_SHIFT)))
+
+// fixed to float
+
+#define fx8_f32(n)  ((f32)(n) / (f32)(1 << FX8_SHIFT))
+#define fx16_f32(n) ((f32)(n) / (f32)(1 << FX16_SHIFT))
+#define fx32_f32(n) ((f32)(n) / (f32)(1 << FX32_SHIFT))
+#define fx64_f32(n) ((f32)(n) / (f32)(1 << FX64_SHIFT))
+
+// lerp
+
+static fix8 fix8_lerp(fix8 a, fix8 b, fix8 t) {
+  return a + ((t * (b - a)) >> FX8_SHIFT);
+}
+
+static fix16 fix16_lerp(fix16 a, fix16 b, fix16 t) {
+  return a + ((t * (b - a)) >> FX16_SHIFT);
+}
+
+static fix32 fix32_lerp(fix32 a, fix32 b, fix32 t) {
+  return a + ((t * (b - a)) >> FX32_SHIFT);
+}
+
+static fix64 fix64_lerp(fix64 a, fix64 b, fix64 t) {
+  return a + ((t * (b - a)) >> FX64_SHIFT);
+}
 
