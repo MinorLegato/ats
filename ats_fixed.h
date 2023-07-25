@@ -2,6 +2,13 @@
 
 #include "ats_base.h"
 
+// NOTE: might need to add some casts to protect against overflows.
+// arithmetics:
+// add: a + b
+// sub: a - b
+// mul: (a * b) >> FRAC_BITS
+// div: (a << FRAC_BITS) / b
+
 #ifndef FIX8_SHIFT
 #define FIX8_SHIFT (4)
 #endif
@@ -46,19 +53,19 @@ typedef i64 fix64;
 
 // lerp:
 
-static inline fix8 fix8_lerp(fix8 a, fix8 b, fix8 t) {
+static fix8 fix8_lerp(fix8 a, fix8 b, fix8 t) {
   return a + ((t * (b - a)) >> FIX8_SHIFT);
 }
 
-static inline fix16 fix16_lerp(fix16 a, fix16 b, fix16 t) {
+static fix16 fix16_lerp(fix16 a, fix16 b, fix16 t) {
   return a + ((t * (b - a)) >> FIX16_SHIFT);
 }
 
-static inline fix32 fix32_lerp(fix32 a, fix32 b, fix32 t) {
+static fix32 fix32_lerp(fix32 a, fix32 b, fix32 t) {
   return a + ((t * (b - a)) >> FIX32_SHIFT);
 }
 
-static inline fix64 fix64_lerp(fix64 a, fix64 b, fix64 t) {
+static fix64 fix64_lerp(fix64 a, fix64 b, fix64 t) {
   return a + ((t * (b - a)) >> FIX64_SHIFT);
 }
 
