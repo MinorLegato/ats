@@ -38,21 +38,28 @@ typedef union {
   fx32 e[4];
 } v4fx8;
 
-// to fixed
+// to fixed:
 
 #define fx8_make(n)  ((fx8)((n)  * (1 << FX8_SHIFT)))
 #define fx16_make(n) ((fx16)((n) * (1 << FX16_SHIFT)))
 #define fx32_make(n) ((fx32)((n) * (1 << FX32_SHIFT)))
 #define fx64_make(n) ((fx64)((n) * (1 << FX64_SHIFT)))
 
-// fixed to float
+// fixed to float:
 
 #define fx8_f32(n)  ((f32)(n) / (f32)(1 << FX8_SHIFT))
 #define fx16_f32(n) ((f32)(n) / (f32)(1 << FX16_SHIFT))
 #define fx32_f32(n) ((f32)(n) / (f32)(1 << FX32_SHIFT))
 #define fx64_f32(n) ((f32)(n) / (f32)(1 << FX64_SHIFT))
 
-// lerp
+// trunc:
+
+#define fx8_trunc(n)  ((n) >> FX8_SHIFT)
+#define fx16_trunc(n) ((n) >> FX16_SHIFT)
+#define fx32_trunc(n) ((n) >> FX32_SHIFT)
+#define fx64_trunc(n) ((n) >> FX64_SHIFT)
+
+// lerp:
 
 static fix8 fix8_lerp(fix8 a, fix8 b, fix8 t) {
   return a + ((t * (b - a)) >> FX8_SHIFT);
