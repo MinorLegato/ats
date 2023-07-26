@@ -41,11 +41,12 @@
 // }
 // rt_end();
 
-typedef struct {
-  int at;
-  float dt;
-  float wait_for;
-  float repeat_for;
+typedef struct
+{
+   int at;
+   float dt;
+   float wait_for;
+   float repeat_for;
 } rt_state;
 
 #define RT_LABEL_OFFSET 1147483647
@@ -53,74 +54,77 @@ typedef struct {
 #ifndef __cplusplus
 #define rt_hash(tag) RT_LABEL_OFFSET + tag
 #else
-constexpr unsigned int rt_hash(unsigned int tag) {
-  return RT_LABEL_OFFSET + tag;
+constexpr unsigned int rt_hash(unsigned int tag)
+{
+   return RT_LABEL_OFFSET + tag;
 }
-constexpr unsigned int rt_hash(const char* name) {
-  unsigned int hash = 5381;
-  for (int i = 0; name[i] != '\0'; i++)
-    hash = ((hash << 5) + hash) + name[i];
-  return hash;
+
+constexpr unsigned int rt_hash(const char* name)
+{
+   unsigned int hash = 5381;
+   for (int i = 0; name[i] != '\0'; i++)
+      hash = ((hash << 5) + hash) + name[i];
+   return hash;
 }
 #endif
 
 #define rt_begin(rt, delta_time) \
-  if (rt.wait_for > 0) { \
-    rt.wait_for -= (delta_time); \
-  } else { \
-    rt_state* __rt = &(rt); \
-    __rt->dt = (delta_time); \
-    int __mn = 1; \
-    switch (__rt->at) { \
-      case 0: { \
+   if (rt.wait_for > 0) { \
+      rt.wait_for -= (delta_time); \
+   } else { \
+      rt_state* __rt = &(rt); \
+      __rt->dt = (delta_time); \
+      int __mn = 1; \
+      switch (__rt->at) { \
+         case 0: { \
 
 #define rt_step() \
-      } if (__mn) __rt->at = __LINE__; \
-      break;  \
-      case __LINE__: { \
+         } if (__mn) __rt->at = __LINE__; \
+         break;  \
+         case __LINE__: { \
 
 #define rt_label(name) \
-      } if (__mn) __rt->at = rt_hash(name);  \
-      break; \
-      case rt_hash(name): { \
+         } if (__mn) __rt->at = rt_hash(name);  \
+         break; \
+         case rt_hash(name): { \
 
 #define rt_for(time) \
-        rt_step(); \
-        if (__rt->repeat_for < time) {  \
-          __rt->repeat_for += __rt->dt; \
-          __mn = __rt->repeat_for >= time; \
-          if (__mn) __rt->repeat_for = 0; \
-        } \
+            rt_step(); \
+            if (__rt->repeat_for < time) {  \
+               __rt->repeat_for += __rt->dt; \
+               __mn = __rt->repeat_for >= time; \
+               if (__mn) __rt->repeat_for = 0; \
+            } \
 
 #define rt_while(condition) \
-      } if (__mn) __rt->at = __LINE__; \
-      break; \
-      case __LINE__: if (condition) { \
-        __mn = 0 \
+         } if (__mn) __rt->at = __LINE__; \
+         break; \
+         case __LINE__: if (condition) { \
+            __mn = 0 \
 
 #define rt_until(condition) \
-            } if (__mn) __rt->at = ((condition) ? __LINE__ : -__LINE__); \
-            break; \
-        case -__LINE__: \
-            if (condition) __rt->at = __LINE__; \
-            break; \
-        case __LINE__: { \
+         } if (__mn) __rt->at = ((condition) ? __LINE__ : -__LINE__); \
+         break; \
+         case -__LINE__: \
+                         if (condition) __rt->at = __LINE__; \
+         break; \
+         case __LINE__: { \
 
 #define rt_wait(time) \
-        } if (__mn) { \
-          __rt->wait_for = time; \
-          __rt->at = __LINE__; \
-        } \
-      break; \
-        case __LINE__: { \
+         } if (__mn) { \
+            __rt->wait_for = time; \
+            __rt->at = __LINE__; \
+         } \
+         break; \
+         case __LINE__: { \
 
 #define rt_end() \
-        } if (__mn) __rt->at = -1; \
-      break; \
-    } \
-  } \
-  goto rt_end_of_routine;  \
-  rt_end_of_routine: \
+         } if (__mn) __rt->at = -1; \
+         break; \
+      } \
+   } \
+   goto rt_end_of_routine;  \
+   rt_end_of_routine: \
 
 // Flow Statements:
 // These can be used anywhere between rt_begin and rt_end,
@@ -129,22 +133,22 @@ constexpr unsigned int rt_hash(const char* name) {
 // Repeats the block that this is contained within
 // Skips the remainder of the block
 #define rt_repeat() \
-  goto rt_end_of_routine \
+   goto rt_end_of_routine \
 
 // Goes to a given block labeled with `rt_label`
 #define rt_goto(name) \
-  do { \
-    __rt->at = rt_hash(name); \
-    goto rt_end_of_routine; \
-  } while(0) \
+   do { \
+      __rt->at = rt_hash(name); \
+      goto rt_end_of_routine; \
+   } while(0) \
 
 // Restarts the entire Coroutine;
 // Jumps back to `rt_begin` on the next frame
 #define rt_restart() \
-  do { \
-    __rt->at = 0; \
-    __rt->wait_for = 0; \
-    __rt->repeat_for = 0; \
-    goto rt_end_of_routine; \
-  } while(0) \
+   do { \
+      __rt->at = 0; \
+      __rt->wait_for = 0; \
+      __rt->repeat_for = 0; \
+      goto rt_end_of_routine; \
+   } while(0) \
 

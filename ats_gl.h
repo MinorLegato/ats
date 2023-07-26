@@ -26,10 +26,11 @@ extern void gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool f
 extern void gl_box(r3 box, u32 color);
 extern void gl_rect(r2 rect, f32 z, u32 color);
 
-typedef struct gl_texture {
-  u32 id;
-  i32 width;
-  i32 height;
+typedef struct
+{
+   u32 id;
+   i32 width;
+   i32 height;
 } gl_texture;
 
 extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
@@ -41,13 +42,15 @@ extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int 
 extern void gl_texture_bind(const gl_texture* texture);
 extern void gl_texture_destroy(gl_texture* texture);
 
-typedef struct gl_shader {
-  u32 id;
+typedef struct
+{
+   u32 id;
 } gl_shader;
 
-typedef struct gl_shader_desc {
-  const char* vs;
-  const char* fs;
+typedef struct
+{
+   const char* vs;
+   const char* fs;
 } gl_shader_desc;
 
 extern gl_shader gl_shader_create(gl_shader_desc desc);
@@ -67,21 +70,24 @@ extern void gl_uniform_m4(u32 location, m4 m);
 
 extern v3 gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview);
 
-typedef struct gl_buffer {
-  u32 vao;
-  u32 vbo;
+typedef struct
+{
+   u32 vao;
+   u32 vbo;
 } gl_buffer;
 
-typedef struct gl_layout {
-  u32 size;
-  u32 type;
-  u32 stride;
-  u32 offset;
-  b32 normalize;
+typedef struct
+{
+   u32 size;
+   u32 type;
+   u32 stride;
+   u32 offset;
+   b32 normalize;
 } gl_layout;
 
-typedef struct gl_buffer_desc {
-  gl_layout layout[32];
+typedef struct
+{
+   gl_layout layout[32];
 } gl_buffer_desc;
 
 extern gl_buffer gl_buffer_create(const gl_buffer_desc* desc);

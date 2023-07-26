@@ -22,19 +22,20 @@
 int ats_main(void);
 
 #ifdef ATS_NO_CONSOLE
-int WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
+int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #else
-int main(void) {
+int main(void)
 #endif
-  static u8 memory_buffer[MEM_DEFAULT_SIZE];
-  struct mem_arena default_arena = mem_create(memory_buffer, countof(memory_buffer));
+{
+   static u8 memory_buffer[MEM_DEFAULT_SIZE];
+   struct mem_arena default_arena = mem_create(memory_buffer, countof(memory_buffer));
 
-  mem_context(&default_arena) {
-    int result = ats_main();
-    (void)result;
-  }
+   mem_context(&default_arena) {
+      int result = ats_main();
+      (void)result;
+   }
 
-  return 0;
+   return 0;
 }
 
 #define main ats_main

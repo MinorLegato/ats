@@ -201,113 +201,118 @@ extern f64 timer_get_current(void);
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-typedef union gamepad_buttons {
-  struct {
-    u32 x : 1;
-    u32 a : 1;
-    u32 b : 1;
-    u32 y : 1;
+typedef union
+{
+   struct {
+      u32 x : 1;
+      u32 a : 1;
+      u32 b : 1;
+      u32 y : 1;
 
-    u32 left_bumper     : 1;
-    u32 right_bumper    : 1;
-    u32 left_trigger    : 1;
-    u32 right_trigger   : 1;
+      u32 left_bumper : 1;
+      u32 right_bumper : 1;
+      u32 left_trigger : 1;
+      u32 right_trigger : 1;
 
-    u32 select          : 1;
-    u32 start           : 1;
-    u32 left_stick      : 1;
-    u32 right_stick     : 1;
+      u32 select : 1;
+      u32 start : 1;
+      u32 left_stick : 1;
+      u32 right_stick : 1;
 
-    u32 up      : 1;
-    u32 right   : 1;
-    u32 down    : 1;
-    u32 left    : 1;
-  } button;
+      u32 up : 1;
+      u32 right : 1;
+      u32 down : 1;
+      u32 left : 1;
+   } button;
 
-  u32 data;
+   u32 data;
 } gamepad_buttons;
 
-typedef struct gamepad {
-  b32 active;
+typedef struct
+{
+   b32 active;
 
-  v2 left_stick;
-  v2 right_stick;
+   v2 left_stick;
+   v2 right_stick;
 
-  f32 left_trigger;
-  f32 right_trigger;
+   f32 left_trigger;
+   f32 right_trigger;
 
-  gamepad_buttons down;
-  gamepad_buttons pressed;
-  gamepad_buttons released;
+   gamepad_buttons down;
+   gamepad_buttons pressed;
+   gamepad_buttons released;
 } gamepad;
 
 typedef u32 mouse_mode;
-enum {
-  MOUSE_MODE_NORMAL,
-  MOUSE_MODE_HIDDEN,
-  MOUSE_MODE_DISABLED,
+enum
+{
+   MOUSE_MODE_NORMAL,
+   MOUSE_MODE_HIDDEN,
+   MOUSE_MODE_DISABLED,
 };
 
-struct platform {
-  b32 close;
+struct platform
+{
+   b32 close;
 
-  i32 width;
-  i32 height;
-  i32 refresh_rate;
-  f32 aspect_ratio;
+   i32 width;
+   i32 height;
+   i32 refresh_rate;
+   f32 aspect_ratio;
 
-  void* native;
+   void* native;
 
-  b32 fullscreen;
-  b32 _fullscreen_state_last_update;
+   b32 fullscreen;
+   b32 _fullscreen_state_last_update;
 
-  struct {
-    f64 total;
-    f32 delta;
-  } time;
+   struct {
+      f64 total;
+      f32 delta;
+   } time;
 
-  struct {
-    u32 mode;
+   struct {
+      u32 mode;
 
-    b32 is_down : 1;
-    b32 is_pressed : 1;
-    b32 is_released : 1;
+      b32 is_down : 1;
+      b32 is_pressed : 1;
+      b32 is_released : 1;
 
-    v2 pos;
-    v2 delta;
-    v2 scroll;
+      v2 pos;
+      v2 delta;
+      v2 scroll;
 
-    b8 down[MOUSE_BUTTON_LAST + 1];
-    b8 pressed[MOUSE_BUTTON_LAST + 1];
-    b8 released[MOUSE_BUTTON_LAST + 1];
-  } mouse;
+      b8 down[MOUSE_BUTTON_LAST + 1];
+      b8 pressed[MOUSE_BUTTON_LAST + 1];
+      b8 released[MOUSE_BUTTON_LAST + 1];
+   } mouse;
 
-  struct {
-    i32 key;
-    i32 ascii;
+   struct {
+      i32 key;
+      i32 ascii;
 
-    b32 is_down : 1;
-    b32 is_pressed : 1;
-    b32 is_repeat : 1;
-    b32 is_released : 1;
-    b32 is_ascii : 1;
+      b32 is_down : 1;
+      b32 is_pressed : 1;
+      b32 is_repeat : 1;
+      b32 is_released : 1;
+      b32 is_ascii : 1;
 
-    b8 down[KEY_LAST + 1];
-    b8 pressed[KEY_LAST + 1];
-    b8 repeat[KEY_LAST + 1];
-    b8 released[KEY_LAST + 1];
-  } keyboard;
+      b8 down[KEY_LAST + 1];
+      b8 pressed[KEY_LAST + 1];
+      b8 repeat[KEY_LAST + 1];
+      b8 released[KEY_LAST + 1];
+   } keyboard;
 
-  gamepad gamepad[JOYSTICK_LAST];
+   gamepad gamepad[JOYSTICK_LAST];
 };
 
-typedef struct timer_entry {
-  const char* name;
+typedef struct
+{
+   const char* name;
 
-  f64 start;
-  f64 stop;
+   f64 start;
+   f64 stop;
 
-  usize depth;
+   usize depth;
 } timer_entry;
 
 static usize timer_top;
@@ -318,35 +323,39 @@ static timer_entry timer_array[512];
 
 #define timer_scope(name) scope_guard(timer_start(name), timer_stop())
 
-static void timer_start(const char* name) {
-  timer_entry* entry = timer_stack + timer_top++;
+static void timer_start(const char* name)
+{
+   timer_entry* entry = timer_stack + timer_top++;
 
-  entry->name = name;
-  entry->start = timer_get_current();
-  entry->stop = 0;
-  entry->depth = timer_top - 1;
+   entry->name = name;
+   entry->start = timer_get_current();
+   entry->stop = 0;
+   entry->depth = timer_top - 1;
 }
 
-static void timer_stop(void) {
-  timer_entry* entry = timer_stack + (--timer_top);
+static void timer_stop(void)
+{
+   timer_entry* entry = timer_stack + (--timer_top);
 
-  entry->stop = timer_get_current();
-  timer_array[timer_count++] = *entry;
+   entry->stop = timer_get_current();
+   timer_array[timer_count++] = *entry;
 }
 
-static void timer_reset_all(void) {
-  timer_top = 0;
-  timer_count = 0;
+static void timer_reset_all(void)
+{
+   timer_top = 0;
+   timer_count = 0;
 }
 
-static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy) {
-  i32 y = 0;
-  // @TODO: fix render order within scopes!
-  for (i32 i = timer_count - 1; i >= 0; --i) {
-    timer_entry e = timer_array[i];
-    gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
-    y++;
-  }
-  timer_reset_all();
+static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy)
+{
+   i32 y = 0;
+   // @TODO: fix render order within scopes!
+   for (i32 i = timer_count - 1; i >= 0; --i) {
+      timer_entry e = timer_array[i];
+      gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
+      y++;
+   }
+   timer_reset_all();
 }
 

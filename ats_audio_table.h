@@ -2,8 +2,9 @@
 
 #include "ats_base.h"
 
-typedef struct audio_id {
-  u16 index;
+typedef struct
+{
+   u16 index;
 } audio_id;
 
 extern void audio_init(void* handle);

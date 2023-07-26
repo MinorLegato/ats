@@ -5,20 +5,23 @@
 
 #define TEXTURE_TABLE_SIZE (1024)
 
-typedef struct tt_id {
-  u16 index;
+typedef struct
+{
+   u16 index;
 } tt_id;
 
-typedef struct tt_entry {
-  b32 in_use;
-  u32 hash;
-  r2i rect;
-  char name[64];
+typedef struct
+{
+   b32 in_use;
+   u32 hash;
+   r2i rect;
+   char name[64];
 } tt_entry;
 
-typedef struct texture_table {
-  image img;
-  tt_entry array[TEXTURE_TABLE_SIZE];
+typedef struct
+{
+   image img;
+   tt_entry array[TEXTURE_TABLE_SIZE];
 } texture_table;
 
 extern void tt_begin(int width, int height);
