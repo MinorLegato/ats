@@ -8,31 +8,40 @@
 typedef struct
 {
    u16 index;
-} tt_id;
+} tex_id;
 
 typedef struct
 {
-   b32 in_use;
-   u32 hash;
-   r2i rect;
-   char name[64];
-} tt_entry;
+   u16 min_x;
+   u16 min_y;
+
+   u16 max_x;
+   u16 max_y;
+} tex_rect;
 
 typedef struct
 {
-   image img;
-   tt_entry array[TEXTURE_TABLE_SIZE];
-} texture_table;
+   b32      in_use;
+   u32      hash;
+   tex_rect rect;
+   char     name[64];
+} tex_entry;
 
-extern void tt_begin(int width, int height);
-extern void tt_end(void);
-extern void tt_add_image(const char* name, image img);
-extern void tt_load_from_dir(const char* dir_path);
+typedef struct
+{
+   image       img;
+   tex_entry   array[TEXTURE_TABLE_SIZE];
+} tex_table;
 
-extern texture_table* tt_get_texture_table(void);
+extern void tex_begin(int width, int height);
+extern void tex_end(void);
+extern void tex_add_image(const char* name, image img);
+extern void tex_load_from_dir(const char* dir_path);
 
-extern tt_id tt_get_id(const char* name);
-extern r2i tt_get_rect(tt_id id);
-extern r2i tt_get(const char* name);
-extern image tt_get_image(void);
+extern tex_table* tex_get_table(void);
+
+extern tex_id   tex_get_id(const char* name);
+extern tex_rect tex_get_rect(tex_id id);
+extern tex_rect tex_get(const char* name);
+extern image    tex_get_image(void);
 

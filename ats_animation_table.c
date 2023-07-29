@@ -46,7 +46,7 @@ extern void at_add_frame(const char* name)
    at_frame* frame = mem_type(at_frame);
 
    frame->name = name;
-   frame->rect = tt_get(name);
+   frame->rect = tex_get(name);
    frame->animation = at_current_animation;
 
    if (!at_current_animation->frame) {

@@ -32,7 +32,6 @@ typedef struct
 {
    usize size;
    const char* data;
-
 #ifdef __cplusplus
    inline char operator[](usize index) const { return data[index]; }
 #endif
@@ -468,8 +467,8 @@ static priority_queue priority_queue_create(usize capacity)
 {
    priority_queue queue = ATS_INIT;
 
-   queue.len    = 0;
-   queue.array  = mem_array(priority_queue_entry, capacity);
+   queue.len   = 0;
+   queue.array = mem_array(priority_queue_entry, capacity);
 
    return queue;
 }

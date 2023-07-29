@@ -430,7 +430,7 @@ extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_
    return texture;
 }
 
-extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth)
+extern void gl_texture_update(gl_texture* texture, void* pixels, int width, int height, int is_smooth)
 {
    texture->width  = width;
    texture->height = height;
@@ -491,7 +491,7 @@ extern void gl_set_matrix(m4 projection, m4 view)
    glLoadMatrixf(view.e);
 }
 
-extern void gl_billboard(r2 tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up)
+extern void gl_billboard(tex_rect tex, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up)
 {
    f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
    f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
@@ -512,93 +512,93 @@ extern void gl_billboard(r2 tex_rect, v3 pos, v2 rad, v3 normal, u32 color, v3 r
    gl_color(color);
    gl_normal(normal.x, normal.y, normal.z);
 
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(ax, ay, az);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(bx, by, bz);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(cx, cy, cz);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(ax, ay, az);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(bx, by, bz);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(cx, cy, cz);
 
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(cx, cy, cz);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(dx, dy, dz);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(ax, ay, az);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(cx, cy, cz);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(dx, dy, dz);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(ax, ay, az);
 }
 
-extern void gl_texture_box(r2i tex_rect, r3 box, u32 color)
+extern void gl_texture_box(tex_rect tex, r3 box, u32 color)
 {
    gl_color(color);
 
    gl_normal(0, 0, -1);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.min.z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.min.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.min.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.min.z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(box.max.x, box.min.y, box.min.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.min.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.min.z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.min.x, box.max.y, box.min.z);
 
    gl_normal(0, 0, +1);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.max.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.max.z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(box.max.x, box.min.y, box.max.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.max.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.max.z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.min.x, box.max.y, box.max.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.max.z);
 
    gl_normal(-1, 0, 0);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.min.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.min.x, box.max.y, box.max.z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(box.min.x, box.max.y, box.min.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.min.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.min.z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.min.x, box.min.y, box.max.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.min.x, box.max.y, box.max.z);
 
    gl_normal(+1, 0, 0);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.max.y, box.min.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.max.x, box.min.y, box.min.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.max.z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.max.x, box.min.y, box.max.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.max.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.max.x, box.min.y, box.min.z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(box.max.x, box.max.y, box.min.z);
 
    gl_normal(0, -1, 0);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.min.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.min.y, box.max.z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.min.y, box.max.z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.min.y, box.min.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.min.z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(box.max.x, box.min.y, box.min.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.min.y, box.max.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.min.y, box.max.z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.min.x, box.min.y, box.max.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.min.y, box.min.z);
 
    gl_normal(0, +1, 0);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(box.max.x, box.max.y, box.min.z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(box.max.x, box.max.y, box.max.z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(box.min.x, box.max.y, box.min.z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(box.min.x, box.max.y, box.max.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.max.y, box.min.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.max.z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(box.max.x, box.max.y, box.min.z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(box.max.x, box.max.y, box.max.z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(box.min.x, box.max.y, box.min.z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-extern void gl_texture_rect(r2i tex_rect, r2 rect, f32 z, u32 color)
+extern void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color)
 {
    gl_color(color);
    gl_normal(0, 0, +1);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(rect.max.x, rect.min.y, z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(rect.max.x, rect.max.y, z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(rect.max.x, rect.max.y, z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(rect.min.x, rect.max.y, z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-extern void gl_texture_rect_flip(r2i tex_rect, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y)
+extern void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y)
 {
-   if (flip_x) { swap(i32, tex_rect.min.x, tex_rect.max.x); }
-   if (flip_y) { swap(i32, tex_rect.min.y, tex_rect.max.y); }
+   if (flip_x) { swap(u16, tex.min_x, tex.max_x); }
+   if (flip_y) { swap(u16, tex.min_y, tex.max_y); }
 
    gl_color(color);
    gl_normal(0, 0, +1);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(rect.max.x, rect.min.y, z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(rect.max.x, rect.max.y, z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(rect.max.x, rect.max.y, z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(rect.min.x, rect.max.y, z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
 extern void gl_box(r3 box, u32 color)
@@ -689,15 +689,15 @@ extern void gl_init_bitmap_font(void)
 
 static void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
 {
-   r2 tex_rect = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
+   tex_rect tex = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
    r2 rect = { x, y, x + sx, y + sy };
 
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.max.y); gl_vertex(rect.max.x, rect.min.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
-   gl_uv(tex_rect.max.x, tex_rect.min.y); gl_vertex(rect.max.x, rect.max.y, z);
-   gl_uv(tex_rect.min.x, tex_rect.min.y); gl_vertex(rect.min.x, rect.max.y, z);
-   gl_uv(tex_rect.min.x, tex_rect.max.y); gl_vertex(rect.min.x, rect.min.y, z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
+   gl_uv(tex.max_x, tex.max_y); gl_vertex(rect.max.x, rect.min.y, z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(rect.max.x, rect.max.y, z);
+   gl_uv(tex.max_x, tex.min_y); gl_vertex(rect.max.x, rect.max.y, z);
+   gl_uv(tex.min_x, tex.min_y); gl_vertex(rect.min.x, rect.max.y, z);
+   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
 extern void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color)
