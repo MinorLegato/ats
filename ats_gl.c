@@ -689,7 +689,7 @@ extern void gl_init_bitmap_font(void)
 
 static void gl_ascii(u8 c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
 {
-   tex_rect tex = { c * 8.0f + 0.1f, 0.1f, c * 8.0f + 7.9f, 7.9f };
+   tex_rect tex = { c * 8, 0, c * 8 + 8, 8 };
    r2 rect = { x, y, x + sx, y + sy };
 
    gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
