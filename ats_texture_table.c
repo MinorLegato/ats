@@ -134,7 +134,7 @@ extern void tex_begin(int width, int height)
    texture_table = make(tex_table) {
       width,
       height, 
-      mem_array(u32, width * height),
+      mem_array(u32, (usize)(width * height)),
    };
 
    texture_table.array[0].in_use = true;
@@ -166,8 +166,8 @@ extern void tex_end(void)
    tex_stack_buf[tex_stack_top++] = make(tex_rect) {
       0,
       0,
-      texture_table.img.width - 1,
-      texture_table.img.height - 1,
+      (u16)(texture_table.img.width - 1),
+      (u16)(texture_table.img.height - 1),
    };
 
    qsort(tex_image_array, tex_image_count, sizeof (tex_image), tex_cmp_image);
@@ -183,10 +183,10 @@ extern void tex_end(void)
       u16 offset_y = rect.min_y;
 
       _tex_add_entry(data->name, make(tex_rect) {
-         offset_x + 1,
-         offset_y + 1,
-         offset_x + size_x - 1,
-         offset_y + size_y - 1,
+         offset_x + 1u,
+         offset_y + 1u,
+         offset_x + size_x - 1u,
+         offset_y + size_y - 1u,
       });
 
       for (i32 y = 0; y < data->img.height; ++y) {
@@ -197,13 +197,13 @@ extern void tex_end(void)
       }
 
       tex_rect a = {
-         rect.min_x,          rect.min_y + size_y,
-         rect.min_x + size_x, rect.max_y,
+         (u16)(rect.min_x),          (u16)(rect.min_y + size_y),
+         (u16)(rect.min_x + size_x), (u16)(rect.max_y),
       };
 
       tex_rect b = {
-         rect.min_x + size_x, rect.min_y,
-         rect.max_x,          rect.max_y,
+         (u16)(rect.min_x + size_x), (u16)(rect.min_y),
+         (u16)(rect.max_x),          (u16)(rect.max_y),
       };
 
       if (a.min_x + size_x <= rect.max_x && a.min_y + size_y <= rect.max_y) {

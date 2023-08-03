@@ -28,7 +28,7 @@ static void bit_clr(u32* array, u32 index)
 
 // ===================================== STRING STUFF ================================= //
 
-typedef struct
+typedef struct string
 {
    usize size;
    const char* data;
