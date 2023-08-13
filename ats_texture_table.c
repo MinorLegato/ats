@@ -231,10 +231,10 @@ extern void tex_end(void)
          for (u16 x = 0; x < image->width; ++x) {
             _tex_set_pixel(offset_x + x, offset_y + y, _tex_get_pixel(image, x, y));
 
-            if (x == 0)                   _tex_set_pixel(offset_x + x - 1, offset_y + y, _tex_get_pixel(image, x, y));
-            if (x == image->width - 1)    _tex_set_pixel(offset_x + x + 1, offset_y + y, _tex_get_pixel(image, x, y));
-            if (y == 0)                   _tex_set_pixel(offset_x + x, offset_y + y - 1, _tex_get_pixel(image, x, y));
-            if (y == image->height - 1)   _tex_set_pixel(offset_x + x, offset_y + y + 1, _tex_get_pixel(image, x, y));
+            if (x == 0)                 _tex_set_pixel(offset_x + x - 1, offset_y + y, _tex_get_pixel(image, x, y));
+            if (x == image->width - 1)  _tex_set_pixel(offset_x + x + 1, offset_y + y, _tex_get_pixel(image, x, y));
+            if (y == 0)                 _tex_set_pixel(offset_x + x, offset_y + y - 1, _tex_get_pixel(image, x, y));
+            if (y == image->height - 1) _tex_set_pixel(offset_x + x, offset_y + y + 1, _tex_get_pixel(image, x, y));
          }
       }
 
