@@ -3,6 +3,23 @@
 
 typedef struct
 {
+   b32      in_use;
+   u32      hash;
+   tex_rect rect;
+   char     name[64];
+} tex_entry;
+
+typedef struct
+{
+   u16   width;
+   u16   height;
+   u32*  pixels;
+
+   tex_entry array[TEXTURE_TABLE_SIZE];
+} tex_table;
+
+typedef struct
+{
    b32 user_provided;
 
    u16 width;
@@ -96,27 +113,27 @@ extern b32 rect_contains_image(tex_rect rect, const tex_image* image)
 
 extern void tex_add_image(const char* name, const u32* pixels, u16 width, u16 height)
 {
-   tex_image data = ATS_INIT;
+   tex_image image = ATS_INIT;
 
-   data.user_provided = true;
-   data.width = width;
-   data.height = height;
-   data.pixels = pixels;
+   image.user_provided = true;
+   image.width = width;
+   image.height = height;
+   image.pixels = pixels;
 
-   strcpy(data.name, name);
+   strcpy(image.name, name);
 
-   tex_image_array[tex_image_count++] = data;
+   tex_image_array[tex_image_count++] = image;
 }
 
 extern void tex_load_dir(const char* dir_path)
 {
    for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
-      tex_image data = ATS_INIT;
+      tex_image image = ATS_INIT;
 
-      data.pixels = file_load_image(it.current, &data.width, &data.height);
+      image.pixels = file_load_image(it.current, &image.width, &image.height);
 
-      cstr_copy_without_extension(data.name, it.data.cFileName);
-      tex_image_array[tex_image_count++] = data;
+      cstr_copy_without_extension(image.name, it.data.cFileName);
+      tex_image_array[tex_image_count++] = image;
    }
 }
 
@@ -183,28 +200,28 @@ extern void tex_end(void)
    qsort(tex_image_array, tex_image_count, sizeof (tex_image), tex_cmp_image);
 
    for (usize i = 0; i < tex_image_count; ++i) {
-      tex_image* data = &tex_image_array[i];
-      tex_rect rect = tex_get_fit(data);
+      tex_image* image = &tex_image_array[i];
+      tex_rect   rect = tex_get_fit(image);
 
-      u16 size_x   = data->width + 2;
-      u16 size_y   = data->height + 2;
+      u16 size_x   = image->width + 2;
+      u16 size_y   = image->height + 2;
 
       u16 offset_x = rect.min_x;
       u16 offset_y = rect.min_y;
 
-      _tex_add_entry(data->name, make(tex_rect) {
+      _tex_add_entry(image->name, make(tex_rect) {
          offset_x + 1u,
          offset_y + 1u,
          offset_x + size_x - 1u,
          offset_y + size_y - 1u,
       });
 
-      for (i32 y = 0; y < data->height; ++y) {
-         for (i32 x = 0; x < data->width; ++x) {
-            u32 img_index = y * data->width + x;
+      for (i32 y = 0; y < image->height; ++y) {
+         for (i32 x = 0; x < image->width; ++x) {
+            u32 img_index = y * image->width + x;
             u32 tex_index = (y + offset_y + 1) * texture_table.width + (x + offset_x + 1);
 
-            u32 pixel = data->pixels[img_index];
+            u32 pixel = image->pixels[img_index];
             texture_table.pixels[tex_index] = pixel;
          }
       }
@@ -227,8 +244,8 @@ extern void tex_end(void)
          tex_stack_buf[tex_stack_top++] = b;
       }
 
-      if (!data->user_provided) {
-         file_free_image(data->pixels);
+      if (!image->user_provided) {
+         file_free_image(image->pixels);
       }
    }
 
