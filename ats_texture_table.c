@@ -103,14 +103,6 @@ static int tex_cmp_image(const void* va, const void* vb)
    return b->width - a->width;
 }
 
-extern b32 rect_contains_image(tex_rect rect, const tex_image* image)
-{
-   u16 rect_width  = rect.max_x - rect.min_x;
-   u16 rect_height = rect.max_y - rect.min_y;
-
-   return image->width <= rect_width && image->height <= rect_height;
-}
-
 extern void tex_add_image(const char* name, const u32* pixels, u16 width, u16 height)
 {
    tex_image image = ATS_INIT;
@@ -153,11 +145,19 @@ extern void tex_begin(u16 width, u16 height)
 static usize    tex_stack_top; 
 static tex_rect tex_stack_buf[4096];
 
-static tex_rect tex_get_fit(const tex_image* img)
+extern b32 rect_contains_image(tex_rect rect, u16 width, u16 height)
+{
+   u16 rect_width  = rect.max_x - rect.min_x;
+   u16 rect_height = rect.max_y - rect.min_y;
+
+   return width <= rect_width && height <= rect_height;
+}
+
+static tex_rect tex_get_fit(u16 width, u16 height)
 {
    u32 j = 0;
    for (j = 0; j < tex_stack_top; ++j) {
-      if (rect_contains_image(tex_stack_buf[j], img)) {
+      if (rect_contains_image(tex_stack_buf[j], width, height)) {
          break;
       }
    }
@@ -187,53 +187,69 @@ static void _tex_add_entry(const char* name, tex_rect rect)
    strcpy_s(entry->name, 64, name);
 }
 
+
+static inline u32 _tex_get_pixel(const tex_image* image, u16 x, u16 y)
+{
+   return image->pixels[y * image->width + x];
+}
+
+static inline void _tex_set_pixel(u16 x, u16 y, u32 color)
+{
+   texture_table.pixels[y * texture_table.width + x] = color;
+}
+
+
 extern void tex_end(void)
 {
    tex_stack_top = 0;
    tex_stack_buf[tex_stack_top++] = make(tex_rect) {
       0,
       0,
-      (u16)(texture_table.width - 1),
-      (u16)(texture_table.height - 1),
+      texture_table.width,
+      texture_table.height,
    };
 
    qsort(tex_image_array, tex_image_count, sizeof (tex_image), tex_cmp_image);
 
    for (usize i = 0; i < tex_image_count; ++i) {
       tex_image* image = &tex_image_array[i];
-      tex_rect   rect = tex_get_fit(image);
+      tex_rect   rect = tex_get_fit(image->width + 2, image->height + 2);
 
+      u16 offset_x = rect.min_x + 1;
+      u16 offset_y = rect.min_y + 1;
       u16 size_x   = image->width + 2;
       u16 size_y   = image->height + 2;
 
-      u16 offset_x = rect.min_x;
-      u16 offset_y = rect.min_y;
-
       _tex_add_entry(image->name, make(tex_rect) {
-         offset_x + 1u,
-         offset_y + 1u,
-         offset_x + size_x - 1u,
-         offset_y + size_y - 1u,
+         offset_x,
+         offset_y,
+         offset_x + image->width,
+         offset_y + image->height,
       });
 
-      for (i32 y = 0; y < image->height; ++y) {
-         for (i32 x = 0; x < image->width; ++x) {
-            u32 img_index = y * image->width + x;
-            u32 tex_index = (y + offset_y + 1) * texture_table.width + (x + offset_x + 1);
+      for (u16 y = 0; y < image->height; ++y) {
+         for (u16 x = 0; x < image->width; ++x) {
+            _tex_set_pixel(offset_x + x, offset_y + y, _tex_get_pixel(image, x, y));
 
-            u32 pixel = image->pixels[img_index];
-            texture_table.pixels[tex_index] = pixel;
+            if (x == 0)                   _tex_set_pixel(offset_x + x - 1, offset_y + y, _tex_get_pixel(image, x, y));
+            if (x == image->width - 1)    _tex_set_pixel(offset_x + x + 1, offset_y + y, _tex_get_pixel(image, x, y));
+            if (y == 0)                   _tex_set_pixel(offset_x + x, offset_y + y - 1, _tex_get_pixel(image, x, y));
+            if (y == image->height - 1)   _tex_set_pixel(offset_x + x, offset_y + y + 1, _tex_get_pixel(image, x, y));
          }
       }
 
       tex_rect a = {
-         (u16)(rect.min_x),          (u16)(rect.min_y + size_y),
-         (u16)(rect.min_x + size_x), (u16)(rect.max_y),
+         rect.min_x + size_x,
+         rect.min_y,
+         rect.max_x,
+         rect.max_y,
       };
 
       tex_rect b = {
-         (u16)(rect.min_x + size_x), (u16)(rect.min_y),
-         (u16)(rect.max_x),          (u16)(rect.max_y),
+         rect.min_x,
+         rect.min_y + size_y,
+         rect.min_x + size_x,
+         rect.max_y,
       };
 
       if (a.min_x + size_x <= rect.max_x && a.min_y + size_y <= rect.max_y) {
