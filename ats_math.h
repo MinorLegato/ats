@@ -2443,6 +2443,30 @@ static u32 hash_mem(const void *data, u32 size)
 #define HASH_PRIME2 4280703257u
 #define HASH_PRIME3 1609059329u
 
+static u32 hash2u(u32 x, u32 y)
+{
+   u32 a = hash_i32(x);
+   u32 b = hash_i32(y);
+   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
+}
+
+static u32 hash3u(u32 x, u32 y, u32 z)
+{
+   u32 a = hash_u32(x);
+   u32 b = hash_u32(y);
+   u32 c = hash_u32(z);
+   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
+}
+
+static u32 hash4u(u32 x, u32 y, u32 z, u32 w)
+{
+   u32 a = hash_u32(x);
+   u32 b = hash_u32(y);
+   u32 c = hash_u32(z);
+   u32 d = hash_u32(w);
+   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
+}
+
 static u32 hash2i(i32 x, i32 y)
 {
    u32 a = hash_i32(x);
@@ -2469,26 +2493,17 @@ static u32 hash4i(i32 x, i32 y, i32 z, i32 w)
 
 static u32 hash_v2i(v2i k)
 {
-   u32 a = hash_i32(k.x);
-   u32 b = hash_i32(k.y);
-   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
+   return hash2i(k.x, k.y);
 }
 
 static u32 hash_v3i(v3i k)
 {
-   u32 a = hash_i32(k.x);
-   u32 b = hash_i32(k.y);
-   u32 c = hash_i32(k.z);
-   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
+   return hash3i(k.x, k.y, k.z);
 }
 
 static u32 hash_v4i(v4i k)
 {
-   u32 a = hash_i32(k.x);
-   u32 b = hash_i32(k.y);
-   u32 c = hash_i32(k.z);
-   u32 d = hash_i32(k.w);
-   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
+   return hash4i(k.x, k.y, k.z, k.w);
 }
 
 // --------------------- packed color u32 -------------------- //

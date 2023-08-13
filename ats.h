@@ -7,7 +7,6 @@
 #include "ats_routine.h"
 #include "ats_mem.h"
 #include "ats_ds.h"
-#include "ats_image.h"
 #include "ats_file.h"
 
 #include "ats_texture_table.h"

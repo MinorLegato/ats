@@ -33,11 +33,10 @@ typedef struct
    i32 height;
 } gl_texture;
 
-extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth);
-extern gl_texture gl_texture_create_from_image(image image, int is_smooth);
+extern gl_texture gl_texture_create(const void *pixels, int width, int height, int is_smooth);
 extern gl_texture gl_texture_load_from_file(const char *texture_path, int is_smooth);
 
-extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth);
+extern void gl_texture_update(gl_texture* texture, const void *pixels, int width, int height, int is_smooth);
 
 extern void gl_texture_bind(const gl_texture* texture);
 extern void gl_texture_destroy(gl_texture* texture);

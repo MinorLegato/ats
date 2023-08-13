@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define STBI_ONLY_PNG
 #define STB_IMAGE_IMPLEMENTATION
 #include "ext/stb_image.h" 
 
@@ -95,19 +96,26 @@ extern b32 file_write_bin(const char* file_name, const void* buffer, usize size)
    return false;
 }
 
-extern image file_load_image(const char* path)
+extern u32* file_load_image(const char* path, u16* width, u16* height)
 {
-   image img = ATS_INIT;
-   i32 channels = 0;
-   img.pixels = (u32*)stbi_load(path, &img.width, &img.height, &channels, 4);
-   assert(img.pixels);
-   return img;
+   void* pixels = NULL;
+
+   int channels = 0;
+   int w;
+   int h;
+
+   pixels = (u32*)stbi_load(path, &w, &h, &channels, 4);
+   assert(pixels);
+
+   *width  = w;
+   *height = h;
+
+   return pixels;
 }
 
-extern void file_free_image(image* img)
+extern void file_free_image(const u32* pixels)
 {
-   stbi_image_free(img->pixels);
-   *img = make(image) ATS_INIT;
+   stbi_image_free((void*)pixels);
 }
 
 typedef struct file_iter

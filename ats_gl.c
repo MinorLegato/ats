@@ -1,14 +1,13 @@
 
-extern gl_texture gl_texture_create_from_image(image img, int is_smooth)
-{
-   return gl_texture_create(img.pixels, img.width, img.height, is_smooth);
-}
-
 extern gl_texture gl_texture_load_from_file(const char* texture_path, int is_smooth)
 {
-   image img = file_load_image(texture_path);
-   gl_texture texture = gl_texture_create_from_image(img, is_smooth);
-   file_free_image(&img);
+   u16  width  = 0;
+   u16  height = 0;
+   u32* pixels = file_load_image(texture_path, &width, &height);
+
+   gl_texture texture = gl_texture_create(pixels, width, height, is_smooth);
+   file_free_image(pixels);
+
    return texture;
 }
 
@@ -331,6 +330,26 @@ extern void gl_init(void)
    gl_init_bitmap_font();
 }
 
+extern gl_texture gl_texture_create(const void *pixels, int width, int height, int is_smooth)
+{
+   assert(pixels);
+
+   gl_texture texture = ATS_INIT;
+
+   texture.width = width;
+   texture.height = height;
+
+   glGenTextures(1, &texture.id);
+
+   glBindTexture(GL_TEXTURE_2D, texture.id);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
+
+   return texture;
+}
+
 extern void gl_set_simple_light_emitter(int index, f32 bright, f32 x, f32 y, f32 z)
 {
    f32 pos[4] = { x, y, z, 1.0f };
@@ -410,27 +429,7 @@ extern void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth)
-{
-   assert(pixels);
-
-   gl_texture texture = ATS_INIT;
-
-   texture.width = width;
-   texture.height = height;
-
-   glGenTextures(1, &texture.id);
-
-   glBindTexture(GL_TEXTURE_2D, texture.id);
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
-
-   return texture;
-}
-
-extern void gl_texture_update(gl_texture* texture, void* pixels, int width, int height, int is_smooth)
+extern void gl_texture_update(gl_texture* texture, const void* pixels, int width, int height, int is_smooth)
 {
    texture->width  = width;
    texture->height = height;
@@ -909,7 +908,7 @@ extern void gl_buffer_send(const gl_buffer* buffer, const void* data, u32 size)
    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_smooth)
+extern gl_texture gl_texture_create(const void *pixels, int width, int height, int is_smooth)
 {
    assert(pixels);
 
@@ -934,7 +933,7 @@ extern gl_texture gl_texture_create(void *pixels, int width, int height, int is_
    return texture;
 }
 
-extern void gl_texture_update(gl_texture* texture, void *pixels, int width, int height, int is_smooth)
+extern void gl_texture_update(gl_texture* texture, const void *pixels, int width, int height, int is_smooth)
 {
    texture->width  = width;
    texture->height = height;
