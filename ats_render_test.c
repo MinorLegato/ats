@@ -79,7 +79,8 @@ static const char* fragment_shader = GLSL(
    uniform sampler2D tex;
    uniform bool texture_enabled;
 
-   void main() {
+   void main()
+   {
       vec4 color;
       vec2 tex_scale = 1.0 / textureSize(tex, 0);
 
@@ -104,7 +105,8 @@ static const char* r_post_fx_vertex_shader = GLSL(
       vec2(0, 1), vec2(0, 0), vec2(1, 0),
       vec2(0, 1), vec2(1, 0), vec2(1, 1));
 
-   void main() {
+   void main()
+   {
       frag_uv = uvs[gl_VertexID];
       gl_Position = vec4(verts[gl_VertexID], 0, 1);
    });
@@ -115,7 +117,8 @@ static const char* r_post_fx_none = GLSL(
 
    uniform sampler2D tex;
 
-   void main() {
+   void main()
+   {
       out_color = texture(tex, frag_uv);
    });
 
@@ -127,7 +130,8 @@ static const char* r_post_fx_blur = GLSL(
 
    const float offset = 1.0 / 1200.0;
 
-   void main() {
+   void main()
+   {
       vec2 offsets[9] = vec2[](
          vec2(-offset,  offset),     // top-left
          vec2( 0.0f,    offset),     // top-center
@@ -171,20 +175,16 @@ typedef struct r_target_data
    u32 texture;
 } r_target_data;
 
-static gl_buffer r_post_fx_buffer;
-
-static gl_texture r_current_texture;
-
-static usize          r_target_count;
-static r_target_data  r_target_array[R_TARGET_MAX];
-
-static gl_shader r_shader;
-static gl_buffer r_buffer;
-
-static u32            r_type;
-static r_vertex_data  r_current;
-static u32            r_vertex_count;
-static r_vertex_data  r_vertex_array[R_VERTEX_MAX];
+static gl_buffer        r_post_fx_buffer;
+static gl_texture       r_current_texture;
+static usize            r_target_count;
+static r_target_data    r_target_array[R_TARGET_MAX];
+static gl_shader        r_shader;
+static gl_buffer        r_buffer;
+static u32              r_type;
+static r_vertex_data    r_current;
+static u32              r_vertex_count;
+static r_vertex_data    r_vertex_array[R_VERTEX_MAX];
 
 static void r_set_matrix(m4 mvp)
 {
@@ -553,7 +553,7 @@ static u32 r_new_target(const char* fragment_shader)
 
 static r_target_data* r_current_target = NULL;
 
-static void r_begin_pass(u32 target)
+static void r_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 {
    r_current_target = r_target_array + target;
 
@@ -562,7 +562,7 @@ static void r_begin_pass(u32 target)
    glBindTexture(GL_TEXTURE_2D, r_current_target->texture);
    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-   glClearColor(0, 0, 0, 0);
+   glClearColor(r, g, b, a);
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
    r_set_texture(&r_current_texture);
@@ -597,7 +597,8 @@ static const char* fs_blur = GLSL(
 
    const float offset = 1.0 / 700.0;
 
-   void main() {
+   void main()
+   {
       vec2 offsets[9] = vec2[](
          vec2(-offset,  offset),     // top-left
          vec2( 0.0f,    offset),     // top-center
@@ -634,7 +635,8 @@ static const char* fs_edge = GLSL(
 
    const float offset = 1.0 / 800.0;  
 
-   void main() {
+   void main()
+   {
       vec2 offsets[9] = vec2[](
          vec2(-offset,  offset),     // top-left
          vec2( 0.0f,    offset),     // top-center
