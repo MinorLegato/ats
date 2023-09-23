@@ -23,7 +23,7 @@ gl_get_world_position(int x, int y, m4 in_projection, m4 in_modelview) {
    double modelview[16]  = {0};
    double projection[16] = {0};
 
-   GLfloat win_x, win_y, win_z;
+   float win_x, win_y, win_z;
 
    for (int i = 0; i < 16; ++i) projection[i] = in_projection.e[i];
    for (int i = 0; i < 16; ++i) modelview[i] = in_modelview.e[i];
@@ -684,7 +684,7 @@ gl_init_bitmap_font(void) {
          }
       }
    }
-   bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, false);
+   bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, 0);
 }
 
 static void
@@ -802,7 +802,8 @@ gl_shader
 gl_shader_load_from_file(const char *vs, const char *fs) {
    gl_shader shader = {0};
 
-   mem_scope() {
+   mem_save();
+   {
       char* vs_content = file_read_str(vs);
       char* fs_content = file_read_str(fs);
 
@@ -813,6 +814,7 @@ gl_shader_load_from_file(const char *vs, const char *fs) {
 
       shader = gl_shader_create(desc);
    }
+   mem_restore();
 
    return shader;
 }
@@ -828,7 +830,7 @@ gl_location(const gl_shader* shader, const char* name) {
 }
 
 void
-gl_uniform_i32(unsigned location, i32 i) {
+gl_uniform_i32(unsigned location, int i) {
    glUniform1i(location, i);
 }
 
@@ -878,12 +880,12 @@ gl_buffer_create(const gl_buffer_desc* desc) {
    glBindVertexArray(vao);
    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-   for (unsigned i = 0; i < countof(desc->layout); ++i) {
+   for (unsigned i = 0; i < 32; ++i) {
       const gl_layout* layout = &desc->layout[i];
 
       if (layout->size) {
          glEnableVertexAttribArray(i);
-         glVertexAttribPointer(i, layout->size, layout->type, layout->normalize, layout->stride, (void*)(u64)layout->offset);
+         glVertexAttribPointer(i, layout->size, layout->type, layout->normalize, layout->stride, (void*)(unsigned long long)layout->offset);
       }
    }
 
@@ -1005,7 +1007,7 @@ gl_init_bitmap_font(void) {
 
    buffer_desc.layout[0] = (gl_layout) { 2, GL_FLOAT, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, pos) };
    buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, uv) };
-   buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, color), true };
+   buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, color), 1 };
 
    bitmap_buffer = gl_buffer_create(&buffer_desc);
 
@@ -1024,7 +1026,7 @@ gl_init_bitmap_font(void) {
          }
       }
 
-      bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, false);
+      bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, 0);
    }
 }
 

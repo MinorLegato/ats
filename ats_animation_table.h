@@ -26,7 +26,7 @@ struct at_entity {
 typedef struct {
    at_entity* entity;
    at_frame*  frame;
-   f32        duration;
+   float      duration;
 } at_asset;
 
 void      at_begin(void);
@@ -36,6 +36,6 @@ void      at_add_animation(const char* name);
 void      at_add_frame(const char* name);
 at_asset  at_get(const char* name);
 void      at_set(at_asset* asset, const char* name);
-void      at_update(at_asset* asset, f32 dt);
+void      at_update(at_asset* asset, float dt);
 
 

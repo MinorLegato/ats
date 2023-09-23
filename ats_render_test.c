@@ -24,7 +24,7 @@ main(void) {
 
   while (!platform.close) {
     if (platform.keyboard.pressed[KEY_ESCAPE]) {
-      platform.close = true;
+      platform.close = 1;
     }
 
     m4 projection = m4_perspective(0.5 * PI, platform.aspect_ratio, 0.1, 32);
@@ -205,9 +205,13 @@ r_init(void) {
 
   gl_buffer_desc buffer_desc = {0};
 
-  buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
-  buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
-  buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
+  //buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
+  //buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
+  //buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), 1 };
+
+  buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), (unsigned long long)(&((r_vertex_data*)0)->pos) };
+  buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), (unsigned long long)(&((r_vertex_data*)0)->uv) };
+  buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), (unsigned long long)(&((r_vertex_data*)0)->color), 1 };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -270,13 +274,13 @@ r_set_texture(const gl_texture* texture) {
 static void
 r_enable_textures(void) {
   gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), true);
+  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 1);
 }
 
 static void
 r_disable_textures(void) {
   gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), false);
+  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 0);
 }
 
 static void

@@ -8,8 +8,8 @@
 struct platform platform;
 
 static struct {
-  GLFWwindow* window;
-  GLFWmonitor* monitor;
+  GLFWwindow*   window;
+  GLFWmonitor*  monitor;
 } platform_internal;
 
 static void
@@ -20,23 +20,23 @@ window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
 
   switch (action) {
     case GLFW_PRESS: {
-      platform.keyboard.key = key;
-      platform.keyboard.is_down = 1;
-      platform.keyboard.is_pressed = 1;
-      platform.keyboard.is_repeat = 1;
-      platform.keyboard.down[key] = 1;
-      platform.keyboard.pressed[key] = 1;
-      platform.keyboard.repeat[key] = 1;
+      platform.keyboard.key           = key;
+      platform.keyboard.is_down       = 1;
+      platform.keyboard.is_pressed    = 1;
+      platform.keyboard.is_repeat     = 1;
+      platform.keyboard.down[key]     = 1;
+      platform.keyboard.pressed[key]  = 1;
+      platform.keyboard.repeat[key]   = 1;
     } break;
     case GLFW_REPEAT: {
-      platform.keyboard.is_repeat = 1;
-      platform.keyboard.repeat[key] = 1;
+      platform.keyboard.is_repeat     = 1;
+      platform.keyboard.repeat[key]   = 1;
     } break;
     case GLFW_RELEASE: {
-      platform.keyboard.is_down = 0;
-      platform.keyboard.is_released = 1;
+      platform.keyboard.is_down       = 0;
+      platform.keyboard.is_released   = 1;
 
-      platform.keyboard.down[key] = 0;
+      platform.keyboard.down[key]     = 0;
       platform.keyboard.released[key] = 1;
     } break;
   }
@@ -55,15 +55,15 @@ window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) 
 
   switch (action) {
     case GLFW_PRESS: {
-      platform.mouse.is_down = 1;
-      platform.mouse.is_pressed = 1;
-      platform.mouse.down[button] = 1;
-      platform.mouse.pressed[button] = 1;
+      platform.mouse.is_down          = 1;
+      platform.mouse.is_pressed       = 1;
+      platform.mouse.down[button]     = 1;
+      platform.mouse.pressed[button]  = 1;
     } break;
     case GLFW_RELEASE: {
-      platform.mouse.is_down = 0;
-      platform.mouse.is_released = 1;
-      platform.mouse.down[button] = 0;
+      platform.mouse.is_down          = 0;
+      platform.mouse.is_released      = 1;
+      platform.mouse.down[button]     = 0;
       platform.mouse.released[button] = 1;
     } break;
   }

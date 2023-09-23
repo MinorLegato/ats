@@ -7,12 +7,7 @@
 #include "ats_texture_table.c"
 #include "ats_animation_table.c"
 #include "ats_audio_table.c"
-
-#ifndef __cplusplus
-#if 0
 #include "ats_thread.c"
-#endif
-#endif
 
 #ifndef ATS_NO_MAIN
 #ifndef MEM_DEFAULT_SIZE
@@ -27,13 +22,15 @@ int WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 int main(void)
 #endif
 {
-   static u8 memory_buffer[MEM_DEFAULT_SIZE];
-   mem_arena default_arena = mem_create(memory_buffer, countof(memory_buffer));
+   static unsigned char memory_buffer[MEM_DEFAULT_SIZE];
+   mem_arena default_arena = mem_create(memory_buffer, sizeof (memory_buffer));
 
-   mem_context(&default_arena) {
-      int result = ats_main();
-      (void)result;
+   mem_push(&default_arena);
+   {
+     int result = ats_main();
+     (void)result;
    }
+   mem_pop();
 
    return 0;
 }

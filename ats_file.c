@@ -9,10 +9,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "ext/stb_image.h" 
 
-static usize
+static unsigned
 _file_get_size(FILE* fp) {
   fseek(fp, 0L, SEEK_END);
-  usize size = ftell(fp);
+  unsigned size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
   return size;
 }
@@ -23,11 +23,11 @@ file_open(const char* path, const char* mode) {
   return file;
 }
 
-usize
+unsigned
 file_get_size(const char* path) {
   FILE* fp = fopen(path, "rb");
   if (!fp) return 0;
-  usize size = _file_get_size(fp);
+  unsigned size = _file_get_size(fp);
   fclose(fp);
   return size;
 }
@@ -37,7 +37,7 @@ file_read_str(const char* file_name) {
   char* buffer = NULL;
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
-    usize size = _file_get_size(fp);
+    unsigned size = _file_get_size(fp);
     buffer = (char*)mem_alloc(size + 1);
     if (buffer) {
       buffer[size] = 0;
@@ -50,61 +50,61 @@ file_read_str(const char* file_name) {
   return buffer;
 }
 
-b32
+int
 file_write_str(const char* file_name, const char* buffer) {
   FILE* fp = file_open(file_name, "w");
   if (fp) {
-    usize size = strlen(buffer);
-    usize n = fwrite(buffer, 1, size, fp);
+    unsigned size = strlen(buffer);
+    unsigned n = fwrite(buffer, 1, size, fp);
     fclose(fp);
     return n == size;
   }
-  return false;
+  return 0;
 }
 
-b32
+int
 file_append_str(const char* file_name, const char* buffer) {
   FILE* fp = file_open(file_name, "a");
   if (fp) {
-    usize size = strlen(buffer);
-    usize n = fwrite(buffer, 1, size, fp);
+    unsigned size = strlen(buffer);
+    unsigned n = fwrite(buffer, 1, size, fp);
     fclose(fp);
     return n == size;
   }
-  return false;
+  return 0;
 }
 
-b32
-file_read_bin(const char* file_name, void* buffer, usize size) {
+int
+file_read_bin(const char* file_name, void* buffer, unsigned size) {
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
     fread(buffer, size, 1, fp);
     fclose(fp);
-    return true;
+    return 1;
   }
-  return false;
+  return 0;
 } 
 
-b32
-file_write_bin(const char* file_name, const void* buffer, usize size) {
+int
+file_write_bin(const char* file_name, const void* buffer, unsigned size) {
   FILE *fp = file_open(file_name, "wb");
   if (fp) {
     fwrite(buffer, size, 1, fp);
     fclose(fp);
     return 1;
   }
-  return false;
+  return 0;
 }
 
-u32*
-file_load_image(const char* path, u16* width, u16* height) {
-  u32* pixels = NULL;
+unsigned*
+file_load_image(const char* path, unsigned short* width, unsigned short* height) {
+  unsigned* pixels = NULL;
 
   int channels = 0;
   int w;
   int h;
 
-  pixels = (u32*)stbi_load(path, &w, &h, &channels, 4);
+  pixels = (unsigned*)stbi_load(path, &w, &h, &channels, 4);
   assert(pixels);
 
   *width  = w;
@@ -114,14 +114,14 @@ file_load_image(const char* path, u16* width, u16* height) {
 }
 
 void
-file_free_image(const u32* pixels) {
+file_free_image(const unsigned* pixels) {
   stbi_image_free((void*)pixels);
 }
 
 typedef struct file_iter {
   char current[MAX_PATH];
 
-  b32 done;
+  int done;
   const char* path;
 
   HANDLE handle;

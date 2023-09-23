@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ats_gl.h"
-
 #ifdef ATS_OGL46
 #include "ext/glad/glad.h"
 #define GLSL(...) "#version 460 core\n" #__VA_ARGS__
@@ -207,45 +205,45 @@ double  platform_get_time(void);
 
 typedef union {
    struct {
-      u32 x : 1;
-      u32 a : 1;
-      u32 b : 1;
-      u32 y : 1;
+      unsigned x : 1;
+      unsigned a : 1;
+      unsigned b : 1;
+      unsigned y : 1;
 
-      u32 left_bumper : 1;
-      u32 right_bumper : 1;
-      u32 left_trigger : 1;
-      u32 right_trigger : 1;
+      unsigned left_bumper : 1;
+      unsigned right_bumper : 1;
+      unsigned left_trigger : 1;
+      unsigned right_trigger : 1;
 
-      u32 select : 1;
-      u32 start : 1;
-      u32 left_stick : 1;
-      u32 right_stick : 1;
+      unsigned select : 1;
+      unsigned start : 1;
+      unsigned left_stick : 1;
+      unsigned right_stick : 1;
 
-      u32 up : 1;
-      u32 right : 1;
-      u32 down : 1;
-      u32 left : 1;
+      unsigned up : 1;
+      unsigned right : 1;
+      unsigned down : 1;
+      unsigned left : 1;
    } button;
 
-   u32 data;
+   unsigned data;
 } gamepad_buttons;
 
 typedef struct {
-   b32 active;
+   int active;
 
    v2 left_stick;
    v2 right_stick;
 
-   f32 left_trigger;
-   f32 right_trigger;
+   float left_trigger;
+   float right_trigger;
 
    gamepad_buttons down;
    gamepad_buttons pressed;
    gamepad_buttons released;
 } gamepad;
 
-typedef u32 mouse_mode;
+typedef unsigned mouse_mode;
 enum {
    MOUSE_MODE_NORMAL,
    MOUSE_MODE_HIDDEN,
@@ -253,53 +251,53 @@ enum {
 };
 
 struct platform {
-   b32 close;
+   int close;
 
-   i32 width;
-   i32 height;
-   i32 refresh_rate;
-   f32 aspect_ratio;
+   int width;
+   int height;
+   int refresh_rate;
+   float aspect_ratio;
 
    void* native;
 
-   b32 fullscreen;
-   b32 _fullscreen_state_last_update;
+   int fullscreen;
+   int _fullscreen_state_last_update;
 
    struct {
-      f64 total;
-      f32 delta;
+      double total;
+      float delta;
    } time;
 
    struct {
-      u32 mode;
+      unsigned mode;
 
-      b32 is_down : 1;
-      b32 is_pressed : 1;
-      b32 is_released : 1;
+      unsigned is_down : 1;
+      unsigned is_pressed : 1;
+      unsigned is_released : 1;
 
       v2 pos;
       v2 delta;
       v2 scroll;
 
-      b8 down[MOUSE_BUTTON_LAST + 1];
-      b8 pressed[MOUSE_BUTTON_LAST + 1];
-      b8 released[MOUSE_BUTTON_LAST + 1];
+      unsigned char down[MOUSE_BUTTON_LAST + 1];
+      unsigned char pressed[MOUSE_BUTTON_LAST + 1];
+      unsigned char released[MOUSE_BUTTON_LAST + 1];
    } mouse;
 
    struct {
-      i32 key;
-      i32 ascii;
+      int key;
+      int ascii;
 
-      b32 is_down : 1;
-      b32 is_pressed : 1;
-      b32 is_repeat : 1;
-      b32 is_released : 1;
-      b32 is_ascii : 1;
+      unsigned is_down : 1;
+      unsigned is_pressed : 1;
+      unsigned is_repeat : 1;
+      unsigned is_released : 1;
+      unsigned is_ascii : 1;
 
-      b8 down[KEY_LAST + 1];
-      b8 pressed[KEY_LAST + 1];
-      b8 repeat[KEY_LAST + 1];
-      b8 released[KEY_LAST + 1];
+      unsigned char down[KEY_LAST + 1];
+      unsigned char pressed[KEY_LAST + 1];
+      unsigned char repeat[KEY_LAST + 1];
+      unsigned char released[KEY_LAST + 1];
    } keyboard;
 
    gamepad gamepad[JOYSTICK_LAST];
@@ -314,11 +312,11 @@ typedef struct {
    unsigned depth;
 } timer_entry;
 
-static unsigned timer_top;
-static timer_entry timer_stack[512];
+static unsigned     timer_top;
+static timer_entry  timer_stack[512];
 
-static unsigned timer_count;
-static timer_entry timer_array[512];
+static unsigned     timer_count;
+static timer_entry  timer_array[512];
 
 #define timer_scope(name) scope_guard(timer_start(name), timer_stop())
 

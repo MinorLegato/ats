@@ -2,32 +2,31 @@
 // ------------------------------------ texture table ------------------------------------- //
 
 typedef struct {
-  b32      in_use;
-  u32      hash;
-  tex_rect rect;
-  char     name[64];
+  int       in_use;
+  unsigned  hash;
+  tex_rect  rect;
+  char      name[64];
 } tex_entry;
 
 typedef struct {
-  u16   width;
-  u16   height;
-  u32*  pixels;
-
-  tex_entry array[TEXTURE_TABLE_SIZE];
+  unsigned short  width;
+  unsigned short  height;
+  unsigned*       pixels;
+  tex_entry       array[TEXTURE_TABLE_SIZE];
 } tex_table;
 
 typedef struct {
-  b32 user_provided;
+  int user_provided;
 
-  u16 width;
-  u16 height;
-  const u32* pixels;
+  unsigned short  width;
+  unsigned short  height;
+  const unsigned* pixels;
 
   char name[256];
 } tex_image;
 
 static tex_table  texture_table;
-static usize      tex_image_count;
+static unsigned   tex_image_count;
 static tex_image  tex_image_array[1024];
 
 tex_table*
@@ -35,17 +34,17 @@ tex_get_table(void) {
   return &texture_table;
 }
 
-const u32*
+const unsigned*
 tex_get_pixels(void) {
   return texture_table.pixels;
 }
 
-u16
+unsigned short
 tex_get_width(void) {
   return texture_table.width;
 }
 
-u16
+unsigned short
 tex_get_height(void) {
   return texture_table.height;
 }
@@ -57,8 +56,8 @@ tex_get_rect(tex_id id) {
 
 tex_id
 tex_get_id(const char* name) {
-  u32 hash  = hash_str(name);
-  u16 index = hash % TEXTURE_TABLE_SIZE;
+  unsigned hash = hash_str(name);
+  unsigned short index = hash % TEXTURE_TABLE_SIZE;
 
   while (texture_table.array[index].in_use) {
     if ((texture_table.array[index].hash == hash) && (strcmp(texture_table.array[index].name, name) == 0)) {
@@ -68,7 +67,7 @@ tex_get_id(const char* name) {
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
 
-  assert(false);
+  assert(0);
   return (tex_id) {0};
 }
 
@@ -101,13 +100,13 @@ tex_cmp_image(const void* va, const void* vb) {
 }
 
 void
-tex_add_image(const char* name, const u32* pixels, u16 width, u16 height) {
+tex_add_image(const char* name, const unsigned* pixels, unsigned short width, unsigned short height) {
   tex_image image = {0};
 
-  image.user_provided = true;
-  image.width = width;
-  image.height = height;
-  image.pixels = pixels;
+  image.user_provided = 1;
+  image.width         = width;
+  image.height        = height;
+  image.pixels        = pixels;
 
   strcpy(image.name, name);
 
@@ -116,7 +115,10 @@ tex_add_image(const char* name, const u32* pixels, u16 width, u16 height) {
 
 void
 tex_load_dir(const char* dir_path) {
-  for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
+  for (file_iter it = file_iter_create(dir_path, "*.png");
+       file_iter_is_valid(&it);
+       file_iter_advance(&it)
+  ) {
     tex_image image = {0};
 
     image.pixels = file_load_image(it.current, &image.width, &image.height);
@@ -127,32 +129,31 @@ tex_load_dir(const char* dir_path) {
 }
 
 void
-tex_begin(u16 width, u16 height) {
+tex_begin(unsigned short width, unsigned short height) {
   tex_image_count = 0;
 
   texture_table = (tex_table) {
     width,
     height, 
-    mem_array(u32, (usize)(width * height)),
+    mem_array(unsigned, width * height),
   };
 
-  texture_table.array[0].in_use = true;
+  texture_table.array[0].in_use = 1;
 }
 
-static usize    tex_stack_top; 
+static unsigned tex_stack_top; 
 static tex_rect tex_stack_buf[4096];
 
-b32
-rect_contains_image(tex_rect rect, u16 width, u16 height) {
-  u16 rect_width  = rect.max_x - rect.min_x;
-  u16 rect_height = rect.max_y - rect.min_y;
-
+int
+rect_contains_image(tex_rect rect, unsigned short width, unsigned short height) {
+  unsigned short rect_width  = rect.max_x - rect.min_x;
+  unsigned short rect_height = rect.max_y - rect.min_y;
   return width <= rect_width && height <= rect_height;
 }
 
 static tex_rect
-tex_get_fit(u16 width, u16 height) {
-  u32 j = 0;
+tex_get_fit(unsigned short width, unsigned short height) {
+  unsigned j = 0;
   for (j = 0; j < tex_stack_top; ++j) {
     if (rect_contains_image(tex_stack_buf[j], width, height)) {
       break;
@@ -165,33 +166,32 @@ tex_get_fit(u16 width, u16 height) {
 
 static void
 _tex_add_entry(const char* name, tex_rect rect) {
-  u32 hash  = hash_str(name);
-  u16 index = hash % TEXTURE_TABLE_SIZE;
+  unsigned hash  = hash_str(name);
+  unsigned short index = hash % TEXTURE_TABLE_SIZE;
 
   while (texture_table.array[index].in_use) {
     if ((texture_table.array[index].hash == hash) && (strcmp(texture_table.array[index].name, name) == 0))
-      assert(true);
-
+      assert(0);
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
 
   tex_entry* entry = &texture_table.array[index];
 
-  entry->in_use = true;
-  entry->rect = rect;
-  entry->hash = hash;
+  entry->in_use = 1;
+  entry->rect   = rect;
+  entry->hash   = hash;
 
   strcpy_s(entry->name, 64, name);
 }
 
 
-static inline u32
-_tex_get_pixel(const tex_image* image, u16 x, u16 y) {
+static unsigned
+_tex_get_pixel(const tex_image* image, unsigned short x, unsigned short y) {
   return image->pixels[y * image->width + x];
 }
 
-static inline void
-_tex_set_pixel(u16 x, u16 y, u32 color) {
+static void
+_tex_set_pixel(unsigned short x, unsigned short y, unsigned color) {
   texture_table.pixels[y * texture_table.width + x] = color;
 }
 
@@ -208,24 +208,24 @@ tex_end(void) {
 
   qsort(tex_image_array, tex_image_count, sizeof (tex_image), tex_cmp_image);
 
-  for (usize i = 0; i < tex_image_count; ++i) {
+  for (unsigned i = 0; i < tex_image_count; ++i) {
     tex_image* image = &tex_image_array[i];
     tex_rect   rect = tex_get_fit(image->width + 2, image->height + 2);
 
-    u16 offset_x = rect.min_x + 1;
-    u16 offset_y = rect.min_y + 1;
-    u16 size_x   = image->width + 2;
-    u16 size_y   = image->height + 2;
+    unsigned short offset_x = rect.min_x + 1;
+    unsigned short offset_y = rect.min_y + 1;
+    unsigned short size_x   = image->width + 2;
+    unsigned short size_y   = image->height + 2;
 
     _tex_add_entry(image->name, (tex_rect) {
       offset_x,
       offset_y,
-      (u16)(offset_x + image->width),
-      (u16)(offset_y + image->height),
+      (unsigned short)(offset_x + image->width),
+      (unsigned short)(offset_y + image->height),
     });
 
-    for (u16 y = 0; y < image->height; ++y) {
-      for (u16 x = 0; x < image->width; ++x) {
+    for (unsigned short y = 0; y < image->height; ++y) {
+      for (unsigned short x = 0; x < image->width; ++x) {
         _tex_set_pixel(offset_x + x, offset_y + y, _tex_get_pixel(image, x, y));
 
         if (x == 0)                 _tex_set_pixel(offset_x + x - 1, offset_y + y, _tex_get_pixel(image, x, y));
@@ -236,7 +236,7 @@ tex_end(void) {
     }
 
     tex_rect a = {
-      (u16)(rect.min_x + size_x),
+      (unsigned short)(rect.min_x + size_x),
       rect.min_y,
       rect.max_x,
       rect.max_y,
@@ -244,8 +244,8 @@ tex_end(void) {
 
     tex_rect b = {
       rect.min_x,
-      (u16)(rect.min_y + size_y),
-      (u16)(rect.min_x + size_x),
+      (unsigned short)(rect.min_y + size_y),
+      (unsigned short)(rect.min_x + size_x),
       rect.max_y,
     };
 
