@@ -1875,11 +1875,10 @@ hash_i32(i32 a) {
 
 static u32
 hash_str(const char* str) {
-  u32 hash = 0;
-  while (*str) {
-    hash = (hash << 7) + (hash >> 25) + *str++;
-  }
-  return hash + (hash >> 16);
+  u32 hash = 5381;
+  for (int i = 0; str[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + str[i];
+  return hash;
 }
 
 static const u32 crc_table[] = {
