@@ -61,33 +61,33 @@
 #define def(_val, _def) ((_val) == 0? (_def) : (_val))
 
 #define for_range(index, start, below) \
-   for (isize index = (start); index < (below); ++index)
+  for (isize index = (start); index < (below); ++index)
 
 #define for_array(index, array) \
-   for (usize index = 0; index < countof(array); ++index)
+  for (usize index = 0; index < countof(array); ++index)
 
 #define repeat(count) \
-   for (isize macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
+  for (isize macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
 
 #define for_r2(rect, ix, iy) \
-   for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-   for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
 #define for_r3(rect, ix, iy, iz) \
-   for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
-   for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-   for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+  for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
+  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
 #define for_iter(iter_type, iter_name, ...) \
-   for (struct iter_type iter_name = (__VA_ARGS__); \
-        iter_type##_is_valid(&iter_name); \
-        iter_type##_advance(&iter_name))
+  for (struct iter_type iter_name = (__VA_ARGS__); \
+       iter_type##_is_valid(&iter_name); \
+       iter_type##_advance(&iter_name))
 
 #define for_each(type, var, ...) \
-   for (struct type* var = (struct type*)0xdeadbeefull; var != NULL; var = NULL) \
-   for (struct type##_iter macro_var(it) = (__VA_ARGS__); \
-        (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
-        type##_iter_advance(&macro_var(it)))
+  for (struct type* var = (struct type*)0xdeadbeefull; var != NULL; var = NULL) \
+  for (struct type##_iter macro_var(it) = (__VA_ARGS__); \
+       (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
+       type##_iter_advance(&macro_var(it)))
 
 typedef float f32;
 typedef double f64;
@@ -110,34 +110,17 @@ typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;
 
-#ifdef __cplusplus
-
-constexpr u32 match_hash(const char* str)
-{
-   u32 hash = 5381;
-   for (int i = 0; str[i] != '\0'; i++)
-      hash = ((hash << 5) + hash) + str[i];
-   return hash;
-}
-
-#define match(str) switch(match_hash(str))
-#define with(str)  case match_hash(str)
-
-#else
-
-static inline u32 match_hash(const char* str)
-{
-   u32 hash = 5381;
-   for (int i = 0; str[i] != '\0'; i++)
-      hash = ((hash << 5) + hash) + str[i];
-   return hash;
+static unsigned
+match_hash(const char* str) {
+  unsigned hash = 5381;
+  for (int i = 0; str[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + str[i];
+  return hash;
 }
 
 #define match(...) \
-   for (u32 _match_hash = match_hash(__VA_ARGS__), _with_hash = 0, _match_found = 0; _match_hash; _match_hash = 0)
+  for (u32 _match_hash = match_hash(__VA_ARGS__), _with_hash = 0, _match_found = 0; _match_hash; _match_hash = 0)
 
 #define with(...) \
-   if (!_match_found && (_match_found = ((_with_hash = match_hash(__VA_ARGS__)) == _match_hash)))
-
-#endif
+  if (!_match_found && (_match_found = ((_with_hash = match_hash(__VA_ARGS__)) == _match_hash)))
 

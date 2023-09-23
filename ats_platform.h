@@ -2,15 +2,19 @@
 
 #include "ats_gl.h"
 
+#ifdef ATS_OGL46
+#include "ext/glad/glad.h"
+#define GLSL(...) "#version 460 core\n" #__VA_ARGS__
+#endif
+
 // ------------------- platform layer ------------------------ //
 
 struct platform;
 extern struct platform platform;
 
-extern void platform_init(const char* title, int width, int height, int samples);
-extern void platform_update(void);
-
-extern f64 timer_get_current(void);
+void    platform_init(const char* title, int width, int height, int samples);
+void    platform_update(void);
+double  platform_get_time(void);
 
 // ===================================================== KEYS =================================================== //
 
@@ -201,8 +205,7 @@ extern f64 timer_get_current(void);
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-typedef union
-{
+typedef union {
    struct {
       u32 x : 1;
       u32 a : 1;
@@ -228,8 +231,7 @@ typedef union
    u32 data;
 } gamepad_buttons;
 
-typedef struct
-{
+typedef struct {
    b32 active;
 
    v2 left_stick;
@@ -244,15 +246,13 @@ typedef struct
 } gamepad;
 
 typedef u32 mouse_mode;
-enum
-{
+enum {
    MOUSE_MODE_NORMAL,
    MOUSE_MODE_HIDDEN,
    MOUSE_MODE_DISABLED,
 };
 
-struct platform
-{
+struct platform {
    b32 close;
 
    i32 width;
@@ -305,53 +305,52 @@ struct platform
    gamepad gamepad[JOYSTICK_LAST];
 };
 
-typedef struct
-{
+typedef struct {
    const char* name;
 
-   f64 start;
-   f64 stop;
+   double start;
+   double stop;
 
-   usize depth;
+   unsigned depth;
 } timer_entry;
 
-static usize timer_top;
+static unsigned timer_top;
 static timer_entry timer_stack[512];
 
-static usize timer_count;
+static unsigned timer_count;
 static timer_entry timer_array[512];
 
 #define timer_scope(name) scope_guard(timer_start(name), timer_stop())
 
-static void timer_start(const char* name)
-{
+static void
+timer_start(const char* name) {
    timer_entry* entry = timer_stack + timer_top++;
 
    entry->name = name;
-   entry->start = timer_get_current();
+   entry->start = platform_get_time();
    entry->stop = 0;
    entry->depth = timer_top - 1;
 }
 
-static void timer_stop(void)
-{
+static void
+timer_stop(void) {
    timer_entry* entry = timer_stack + (--timer_top);
 
-   entry->stop = timer_get_current();
+   entry->stop = platform_get_time();
    timer_array[timer_count++] = *entry;
 }
 
-static void timer_reset_all(void)
-{
+static void
+timer_reset_all(void) {
    timer_top = 0;
    timer_count = 0;
 }
 
-static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy)
-{
-   i32 y = 0;
+static void
+timer_print_result(float px, float py, float sx, float sy) {
+   int y = 0;
    // @TODO: fix render order within scopes!
-   for (i32 i = timer_count - 1; i >= 0; --i) {
+   for (int i = timer_count - 1; i >= 0; --i) {
       timer_entry e = timer_array[i];
       gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
       y++;
