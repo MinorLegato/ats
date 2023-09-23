@@ -116,8 +116,9 @@ at_get_entity(const char* name) {
 }
 
 at_asset
-at_get(const char* name) {
-  at_asset state = ATS_INIT;
+at_get(const char* name)
+{
+  at_asset state = {0};
   state.entity = at_get_entity(name);
   state.frame = state.entity->animation->frame;
   return state;

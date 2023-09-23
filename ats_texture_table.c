@@ -69,7 +69,7 @@ tex_get_id(const char* name) {
   }
 
   assert(false);
-  return make(tex_id) ATS_INIT;
+  return (tex_id) {0};
 }
 
 tex_rect
@@ -102,7 +102,7 @@ tex_cmp_image(const void* va, const void* vb) {
 
 void
 tex_add_image(const char* name, const u32* pixels, u16 width, u16 height) {
-  tex_image image = ATS_INIT;
+  tex_image image = {0};
 
   image.user_provided = true;
   image.width = width;
@@ -117,7 +117,7 @@ tex_add_image(const char* name, const u32* pixels, u16 width, u16 height) {
 void
 tex_load_dir(const char* dir_path) {
   for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
-    tex_image image = ATS_INIT;
+    tex_image image = {0};
 
     image.pixels = file_load_image(it.current, &image.width, &image.height);
 
@@ -130,7 +130,7 @@ void
 tex_begin(u16 width, u16 height) {
   tex_image_count = 0;
 
-  texture_table = make(tex_table) {
+  texture_table = (tex_table) {
     width,
     height, 
     mem_array(u32, (usize)(width * height)),
@@ -199,7 +199,7 @@ _tex_set_pixel(u16 x, u16 y, u32 color) {
 void
 tex_end(void) {
   tex_stack_top = 0;
-  tex_stack_buf[tex_stack_top++] = make(tex_rect) {
+  tex_stack_buf[tex_stack_top++] = (tex_rect) {
     0,
     0,
     texture_table.width,
@@ -217,7 +217,7 @@ tex_end(void) {
     u16 size_x   = image->width + 2;
     u16 size_y   = image->height + 2;
 
-    _tex_add_entry(image->name, make(tex_rect) {
+    _tex_add_entry(image->name, (tex_rect) {
       offset_x,
       offset_y,
       (u16)(offset_x + image->width),

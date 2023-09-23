@@ -9,19 +9,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#ifdef __cplusplus
-#define ATS_INIT {}
-#define make(type_t) type_t
-#else
-#define ATS_INIT {0}
-#define make(type_t) (type_t)
-#endif
-
-#if __STDC_VERSION__ >= 201112L
-#define __c11
-#endif
-
-#define PI (3.14159265359f)
+#define PI  (3.14159265359f)
 #define TAU (6.28318530718f)
 
 #define TO_RAD_MUL (0.01745329251f)

@@ -36,7 +36,7 @@ typedef struct string {
 #define STR_FMT "%.*s"
 #define STR_ARG(s) (int)(s).size, (s).data
 
-#define str(text) make(string) { sizeof (text) - 1, text }
+#define str(text) (string) { sizeof (text) - 1, text }
 #define STR(text) { sizeof (text) - 1, text }
 
 static string
@@ -95,7 +95,7 @@ split_iter_advance(split_iter* it) {
     }
   }
 
-  it->current = make(string) {
+  it->current = (string) {
     (usize)(it->content - begin),
     begin,
   };
@@ -159,7 +159,7 @@ sm_add(spatial_map* map, void* e, r2 e_rect) {
   };
 
   for_r2(rect, x, y) {
-    u32 index = sm_index(map, make(v2i) { x, y });
+    u32 index = sm_index(map, (v2i) { x, y });
     sm_cell* cell = map->array + map->count++;
 
     cell->e = e;
@@ -184,7 +184,7 @@ static sm_result
 sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
   static sm_entry spatial_array[SPATIAL_MAX];
 
-  sm_result result = ATS_INIT;
+  sm_result result = {0};
   result.array = spatial_array;
 
   r2 rect = {
@@ -198,7 +198,7 @@ sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
   };
 
   for_r2(irect, x, y) {
-    u32 index = sm_index(map, make(v2i) { x, y });
+    u32 index = sm_index(map, (v2i) { x, y });
     for (sm_cell* it = map->table[index]; it; it = it->next) {
       b32 unique = true;
 
@@ -212,7 +212,7 @@ sm_in_range(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
         }
       }
       if (unique) {
-        result.array[result.count++] = make(sm_entry) {
+        result.array[result.count++] = (sm_entry) {
           it->e,
           it->rect,
         };
@@ -231,7 +231,7 @@ typedef struct sm_iter {
 
 static sm_iter
 sm_get_iterator(spatial_map* map, v2 pos, v2 rad, const void* ignore) {
-  sm_iter it = ATS_INIT;
+  sm_iter it = {0};
 
   it.result = sm_in_range(map, pos, rad, ignore);
   it.current = &it.result.array[0];
@@ -255,7 +255,7 @@ sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*co
   void* result = NULL;
   f32 distance = range;
 
-  for_iter(sm_iter, it, sm_get_iterator(map, pos, make(v2) { range, range }, ignore)) {
+  for_iter(sm_iter, it, sm_get_iterator(map, pos, (v2) { range, range }, ignore)) {
     sm_entry* e = it.current;
 
     if (condition_proc && !condition_proc(e->e)) {
@@ -280,7 +280,7 @@ sm_get_closest(spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*co
 
 static void*
 sm_at_position(spatial_map* map, v2 pos) {
-  u32 index = sm_index(map, make(v2i) { (i32)pos.x, (i32)pos.y });
+  u32 index = sm_index(map, (v2i) { (i32)pos.x, (i32)pos.y });
   for (sm_cell* it = map->table[index]; it; it = it->next) {
     if (r2_contains(it->rect, pos)) {
       return it->e;
@@ -376,7 +376,7 @@ tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
       side = 1;
     }
 
-    if (v2_dist(pos, make(v2) { (f32)map_x, (f32)map_y }) > (max_range + 1.0f)) {
+    if (v2_dist(pos, (v2) { (f32)map_x, (f32)map_y }) > (max_range + 1.0f)) {
       hit = true;
     }
 
@@ -396,7 +396,7 @@ tm_cast_dir(const traverse_map* map, v2 pos, v2 dir, f32 max_range) {
 static v2
 tm_cast_angle(const traverse_map* map, v2 from, f32 angle, f32 max_range) {
   m2 rot = m2_rotate(angle);
-  v2 dir = m2_mulv(rot, make(v2) { 0, 1 });
+  v2 dir = m2_mulv(rot, (v2) { 0, 1 });
 
   return tm_cast_dir(map, from, dir, max_range);
 }
@@ -514,7 +514,7 @@ typedef struct {
 
 static priority_queue
 priority_queue_create(usize capacity) {
-  priority_queue queue = ATS_INIT;
+  priority_queue queue = {0};
 
   queue.len   = 0;
   queue.array = mem_array(priority_queue_entry, capacity);

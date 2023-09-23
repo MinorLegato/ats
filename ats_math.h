@@ -90,7 +90,7 @@ typedef struct {
 
 static m2
 m2_identity(void) {
-  return make(m2) {
+  return (m2) {
     1, 0,
     0, 1
   };
@@ -98,7 +98,7 @@ m2_identity(void) {
 
 static m3
 m3_identity(void) {
-  return make(m3) {
+  return (m3) {
     1, 0, 0,
     0, 1, 0,
     0, 0, 1
@@ -107,7 +107,7 @@ m3_identity(void) {
 
 static m4
 m4_identity(void) {
-  return make(m4) {
+  return (m4) {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
@@ -117,7 +117,7 @@ m4_identity(void) {
 
 static quat_t
 quat_identity(void) {
-  return make(quat_t) { 0, 0, 0, 1 };
+  return (quat_t) { 0, 0, 0, 1 };
 }
 
 static f32
@@ -383,39 +383,39 @@ bounce_ease_in_out(f32 t) {
 
 static v2
 v2_from_array(const f32* a) {
-  return make(v2) { a[0], a[1] };
+  return (v2) { a[0], a[1] };
 }
 
 static v3
 v3_from_array(const f32* a) {
-  return make(v3) { a[0], a[1], a[2] };
+  return (v3) { a[0], a[1], a[2] };
 }
 
 static v4
 v4_from_array(const f32* a) {
-  return make(v4) { a[0], a[1], a[2], a[3] };
+  return (v4) { a[0], a[1], a[2], a[3] };
 }
 
 static v2i
 v2i_from_array(const i32* a) {
-  return make(v2i) { a[0], a[1] };
+  return (v2i) { a[0], a[1] };
 }
 
 static v3i
 v3i_from_array(const i32* a) {
-  return make(v3i) { a[0], a[1], a[2] };
+  return (v3i) { a[0], a[1], a[2] };
 }
 
 static v4i
 v4i_from_array(const i32* a) {
-  return make(v4i) { a[0], a[1], a[2], a[3] };
+  return (v4i) { a[0], a[1], a[2], a[3] };
 }
 
 // ---------- unpack color ------------ //
 
 static v3
 v3_unpack_color(u32 color) {
-  return make(v3) {
+  return (v3) {
     ((color & 0x000000ff) >> 0)  / 255.0f,
     ((color & 0x0000ff00) >> 8)  / 255.0f,
     ((color & 0x00ff0000) >> 16) / 255.0f
@@ -424,7 +424,7 @@ v3_unpack_color(u32 color) {
 
 static v4
 v4_unpack_color(u32 color) {
-  return make(v4) {
+  return (v4) {
     ((color & 0x000000ff) >> 0)  / 255.0f,
     ((color & 0x0000ff00) >> 8)  / 255.0f,
     ((color & 0x00ff0000) >> 16) / 255.0f,
@@ -436,132 +436,132 @@ v4_unpack_color(u32 color) {
 
 static v2
 v2_neg(v2 u) {
-  return make(v2) { -u.x, -u.y };
+  return (v2) { -u.x, -u.y };
 }
 
 static v3
 v3_neg(v3 u) {
-  return make(v3) { -u.x, -u.y, -u.z };
+  return (v3) { -u.x, -u.y, -u.z };
 }
 
 static v4
 v4_neg(v4 u) {
-  return make(v4) { -u.x, -u.y, -u.z, -u.w };
+  return (v4) { -u.x, -u.y, -u.z, -u.w };
 }
 
 static v2i
 v2i_neg(v2i u) {
-  return make(v2i) { -u.x, -u.y };
+  return (v2i) { -u.x, -u.y };
 }
 
 static v3i
 v3i_neg(v3i u) {
-  return make(v3i) { -u.x, -u.y, -u.z };
+  return (v3i) { -u.x, -u.y, -u.z };
 }
 
 static v4i
 v4i_neg(v4i u) {
-  return make(v4i) { -u.x, -u.y, -u.z, -u.w };
+  return (v4i) { -u.x, -u.y, -u.z, -u.w };
 }
 
 // ---------- addition ---------- //
 
 static v2
 v2_add(v2 a, v2 b) {
-  return make(v2) { a.x + b.x, a.y + b.y };
+  return (v2) { a.x + b.x, a.y + b.y };
 }
 
 static v3
 v3_add(v3 a, v3 b) {
-  return make(v3) { a.x + b.x, a.y + b.y, a.z + b.z };
+  return (v3) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
 static v4
 v4_add(v4 a, v4 b) {
-  return make(v4) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+  return (v4) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 
 static v2i
 v2i_add(v2i a, v2i b) {
-  return make(v2i) { a.x + b.x, a.y + b.y };
+  return (v2i) { a.x + b.x, a.y + b.y };
 }
 
 static v3i
 v3i_add(v3i a, v3i b) {
-  return make(v3i) { a.x + b.x, a.y + b.y, a.z + b.z };
+  return (v3i) { a.x + b.x, a.y + b.y, a.z + b.z };
 }
 
 static v4i
 v4i_add(v4i a, v4i b) {
-  return make(v4i) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
+  return (v4i) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
 // -------- subtraction ------- //
 
 static v2
 v2_sub(v2 a, v2 b) {
-  return make(v2) { a.x - b.x, a.y - b.y };
+  return (v2) { a.x - b.x, a.y - b.y };
 }
 
 static v3
 v3_sub(v3 a, v3 b) {
-  return make(v3) { a.x - b.x, a.y - b.y, a.z - b.z };
+  return (v3) { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
 static v4
 v4_sub(v4 a, v4 b) {
-  return make(v4) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+  return (v4) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 
 static v2i
 v2i_sub(v2i a, v2i b) {
-  return make(v2i) { a.x - b.x, a.y - b.y };
+  return (v2i) { a.x - b.x, a.y - b.y };
 }
 
 static v3i
 v3i_sub(v3i a, v3i b) {
-  return make(v3i) { a.x - b.x, a.y - b.y, a.z - b.z };
+  return (v3i) { a.x - b.x, a.y - b.y, a.z - b.z };
 }
 
 static v4i
 v4i_sub(v4i a, v4i b) {
-  return make(v4i) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
+  return (v4i) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w };
 }
 
 // -------- multiplication ------- //
 
 static v2
 v2_mul(v2 a, v2 b) {
-  return make(v2) { a.x * b.x, a.y * b.y };
+  return (v2) { a.x * b.x, a.y * b.y };
 }
 
 static v3
 v3_mul(v3 a, v3 b) {
-  return make(v3) { a.x * b.x, a.y * b.y, a.z * b.z };
+  return (v3) { a.x * b.x, a.y * b.y, a.z * b.z };
 }
 
 static v4
 v4_mul(v4 a, v4 b) {
-  return make(v4) { a.x * b.x, a.y * b.y, a.z * b.z, a.w * a.w };
+  return (v4) { a.x * b.x, a.y * b.y, a.z * b.z, a.w * a.w };
 }
 
 static v2i
 v2i_mul(v2i a, v2i b) {
-  return make(v2i) { a.x * b.x, a.y * b.y };
+  return (v2i) { a.x * b.x, a.y * b.y };
 }
 
 static v3i
 v3i_mul(v3i a, v3i b) {
-  return make(v3i) { a.x * b.x, a.y * b.y, a.z * a.z };
+  return (v3i) { a.x * b.x, a.y * b.y, a.z * a.z };
 }
 
 static v4i
 v4i_mul(v4i a, v4i b) {
-  return make(v4i) { a.x * b.x, a.y * b.y, a.z * a.z, a.w * a.w };
+  return (v4i) { a.x * b.x, a.y * b.y, a.z * a.z, a.w * a.w };
 }
 
 static v2
 m2_mulv(m2 m, v2 u) {
-  return make(v2) {
+  return (v2) {
     m.e[0] * u.x + m.e[2] * u.y,
     m.e[1] * u.x + m.e[3] * u.y
   };
@@ -569,7 +569,7 @@ m2_mulv(m2 m, v2 u) {
 
 static v3
 m3_mulv(m3 m, v3 u) {
-  return make(v3) {
+  return (v3) {
     m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
     m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
     m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z
@@ -578,7 +578,7 @@ m3_mulv(m3 m, v3 u) {
 
 static v4
 m4_mulv(m4 m, v4 u) {
-  return make(v4) {
+  return (v4) {
     m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
     m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
     m.e[2] * u.x + m.e[6] * u.y + m.e[10] * u.z + m.e[14] * u.w,
@@ -588,7 +588,7 @@ m4_mulv(m4 m, v4 u) {
 
 static m2
 m2_mul(m2 a, m2 b) {
-  return make(m2) {
+  return (m2) {
     a.e[0] * b.e[0] + a.e[2] * b.e[1],
     a.e[1] * b.e[0] + a.e[3] * b.e[1],
     a.e[0] * b.e[2] + a.e[2] * b.e[3],
@@ -598,7 +598,7 @@ m2_mul(m2 a, m2 b) {
 
 static m3
 m3_mul(m3 a, m3 b) {
-  return make(m3) {
+  return (m3) {
     a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
     a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
     a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
@@ -615,7 +615,7 @@ m3_mul(m3 a, m3 b) {
 
 static m4
 m4_mul(m4 a, m4 b) {
-  return make(m4) {
+  return (m4) {
     a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
     a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
     a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
@@ -640,7 +640,7 @@ m4_mul(m4 a, m4 b) {
 
 static quat_t
 quat_mul(quat_t a, quat_t b) {
-  return make(quat_t) {
+  return (quat_t) {
     a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
     a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
     a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
@@ -652,63 +652,63 @@ quat_mul(quat_t a, quat_t b) {
 
 static v2
 v2_div(v2 a, v2 b) {
-  return make(v2) { a.x / b.x, a.y / b.y };
+  return (v2) { a.x / b.x, a.y / b.y };
 }
 
 static v3
 v3_div(v3 a, v3 b) {
-  return make(v3) { a.x / b.x, a.y / b.y, a.z / b.z };
+  return (v3) { a.x / b.x, a.y / b.y, a.z / b.z };
 }
 
 static v4
 v4_div(v4 a, v4 b) {
-  return make(v4) { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w };
+  return (v4) { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w };
 }
 
 static v2i
 v2i_div(v2i a, v2i b) {
-  return make(v2i) { a.x / b.x, a.y / b.y };
+  return (v2i) { a.x / b.x, a.y / b.y };
 }
 
 static v3i
 v3i_div(v3i a, v3i b) {
-  return make(v3i) { a.x / b.x, a.y / b.y, a.z / b.z };
+  return (v3i) { a.x / b.x, a.y / b.y, a.z / b.z };
 }
 
 static v4i
 v4i_div(v4i a, v4i b) {
-  return make(v4i) { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w };
+  return (v4i) { a.x / b.x, a.y / b.y, a.z / b.z, a.w / b.w };
 }
 // ------------- scaling ------------- //
 
 static v2
 v2_scale(v2 a, f32 s) {
-  return make(v2) { a.x * s, a.y * s };
+  return (v2) { a.x * s, a.y * s };
 }
 
 static v3
 v3_scale(v3 a, f32 s) {
-  return make(v3) { a.x * s, a.y * s, a.z * s };
+  return (v3) { a.x * s, a.y * s, a.z * s };
 }
 
 static v4
 v4_scale(v4 a, f32 s) {
-  return make(v4) { a.x * s, a.y * s, a.z * s, a.w * s };
+  return (v4) { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
 static v2i
 v2i_scale(v2i a, i32 s) {
-  return make(v2i) { a.x * s, a.y * s };
+  return (v2i) { a.x * s, a.y * s };
 }
 
 static v3i
 v3i_scale(v3i a, i32 s) {
-  return make(v3i) { a.x * s, a.y * s, a.z * s };
+  return (v3i) { a.x * s, a.y * s, a.z * s };
 }
 
 static v4i
 v4i_scale(v4i a, i32 s) {
-  return make(v4i) { a.x * s, a.y * s, a.z * s, a.w * s };
+  return (v4i) { a.x * s, a.y * s, a.z * s, a.w * s };
 }
 
 // ----------- eq ------------ //
@@ -924,14 +924,14 @@ v4_norm(v4 u) {
 static v2
 v2_project(v2 a, v2 b) {
   f32 d = v2_dot(b, b);
-  if (d == 0) return make(v2) { 0, 0 };
+  if (d == 0) return (v2) { 0, 0 };
   return v2_scale(b, v2_dot(a, b) / d);
 }
 
 static v3
 v3_project(v3 a, v3 b) {
   f32 d = v3_dot(b, b);
-  if (d == 0) return make(v3) { 0, 0, 0 };
+  if (d == 0) return (v3) { 0, 0, 0 };
   return v3_scale(b, v3_dot(a, b) / d);
 }
 
@@ -939,41 +939,41 @@ v3_project(v3 a, v3 b) {
 
 static v2
 v2_floor(v2 u) {
-  return make(v2) { floorf(u.x), floorf(u.y) };
+  return (v2) { floorf(u.x), floorf(u.y) };
 }
 
 static v3
 v3_floor(v3 u) {
-  return make(v3) { floorf(u.x), floorf(u.y), floorf(u.z) };
+  return (v3) { floorf(u.x), floorf(u.y), floorf(u.z) };
 }
 
 static v4
 v4_floor(v4 u) {
-  return make(v4) { floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w) };
+  return (v4) { floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w) };
 }
 
 // -------------- ceil --------------- //
 
 static v2
 v2_ceil(v2 u) {
-  return make(v2) { ceilf(u.x), ceilf(u.y) };
+  return (v2) { ceilf(u.x), ceilf(u.y) };
 }
 
 static v3
 v3_ceil(v3 u) {
-  return make(v3) { ceilf(u.x), ceilf(u.y), ceilf(u.z) };
+  return (v3) { ceilf(u.x), ceilf(u.y), ceilf(u.z) };
 }
 
 static v4
 v4_ceil(v4 u) {
-  return make(v4) { ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w) };
+  return (v4) { ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w) };
 }
 
 // -------------- clamp --------------- //
 
 static v2
 v2_clampf(v2 u, f32 min, f32 max) {
-  return make(v2) {
+  return (v2) {
     clamp(u.x, min, max),
     clamp(u.y, min, max)
   };
@@ -981,7 +981,7 @@ v2_clampf(v2 u, f32 min, f32 max) {
 
 static v3
 v3_clampf(v3 u, f32 min, f32 max) {
-  return make(v3) {
+  return (v3) {
     clamp(u.x, min, max),
     clamp(u.y, min, max),
     clamp(u.z, min, max)
@@ -990,7 +990,7 @@ v3_clampf(v3 u, f32 min, f32 max) {
 
 static v2i
 v2i_clampi(v2i u, f32 min, f32 max) {
-  return make(v2i) {
+  return (v2i) {
     (i32)clamp(u.x, min, max),
     (i32)clamp(u.y, min, max)
   };
@@ -998,7 +998,7 @@ v2i_clampi(v2i u, f32 min, f32 max) {
 
 static v3i
 v3i_clampi(v3i u, f32 min, f32 max) {
-  return make(v3i) {
+  return (v3i) {
     (i32)clamp(u.x, min, max),
     (i32)clamp(u.y, min, max),
     (i32)clamp(u.z, min, max)
@@ -1007,7 +1007,7 @@ v3i_clampi(v3i u, f32 min, f32 max) {
 
 static v2
 v2_clamp(v2 u, r2 r) {
-  return make(v2) {
+  return (v2) {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y)
   };
@@ -1015,7 +1015,7 @@ v2_clamp(v2 u, r2 r) {
 
 static v3
 v3_clamp(v3 u, r3 r) {
-  return make(v3) {
+  return (v3) {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y),
     clamp(u.z, r.min.z, r.max.z)
@@ -1024,7 +1024,7 @@ v3_clamp(v3 u, r3 r) {
 
 static v2i
 v2i_clamp(v2i u, r2i r) {
-  return make(v2i) {
+  return (v2i) {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y)
   };
@@ -1032,7 +1032,7 @@ v2i_clamp(v2i u, r2i r) {
 
 static v3i
 v3i_clamp(v3i u, r3i r) {
-  return make(v3i) {
+  return (v3i) {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y),
     clamp(u.z, r.min.z, r.max.z)
@@ -1043,7 +1043,7 @@ v3i_clamp(v3i u, r3i r) {
 
 static v2
 v2_min(v2 a, v2 b) {
-  return make(v2) {
+  return (v2) {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y
   };
@@ -1051,7 +1051,7 @@ v2_min(v2 a, v2 b) {
 
 static v3
 v3_min(v3 a, v3 b) {
-  return make(v3) {
+  return (v3) {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z
@@ -1060,7 +1060,7 @@ v3_min(v3 a, v3 b) {
 
 static v4
 v4_min(v4 a, v4 b) {
-  return make(v4) {
+  return (v4) {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z,
@@ -1070,7 +1070,7 @@ v4_min(v4 a, v4 b) {
 
 static v2i
 v2i_min(v2i a, v2i b) {
-  return make(v2i) {
+  return (v2i) {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y
   };
@@ -1078,7 +1078,7 @@ v2i_min(v2i a, v2i b) {
 
 static v3i
 v3i_min(v3i a, v3i b) {
-  return make(v3i) {
+  return (v3i) {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z
@@ -1087,7 +1087,7 @@ v3i_min(v3i a, v3i b) {
 
 static v4i
 v4i_min(v4i a, v4i b) {
-  return make(v4i) {
+  return (v4i) {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z,
@@ -1099,7 +1099,7 @@ v4i_min(v4i a, v4i b) {
 
 static v2
 v2_max(v2 a, v2 b) {
-  return make(v2) {
+  return (v2) {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y
   };
@@ -1107,7 +1107,7 @@ v2_max(v2 a, v2 b) {
 
 static v3
 v3_max(v3 a, v3 b) {
-  return make(v3) {
+  return (v3) {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z
@@ -1116,7 +1116,7 @@ v3_max(v3 a, v3 b) {
 
 static v4
 v4_max(v4 a, v4 b) {
-  return make(v4) {
+  return (v4) {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z,
@@ -1126,7 +1126,7 @@ v4_max(v4 a, v4 b) {
 
 static v2i
 v2i_max(v2i a, v2i b) {
-  return make(v2i) {
+  return (v2i) {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y
   };
@@ -1134,7 +1134,7 @@ v2i_max(v2i a, v2i b) {
 
 static v3i
 v3i_max(v3i a, v3i b) {
-  return make(v3i) {
+  return (v3i) {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z
@@ -1143,7 +1143,7 @@ v3i_max(v3i a, v3i b) {
 
 static v4i
 v4i_max(v4i a, v4i b) {
-  return make(v4i) {
+  return (v4i) {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z,
@@ -1155,7 +1155,7 @@ v4i_max(v4i a, v4i b) {
 
 static v2
 v2_lerp(v2 a, v2 b, f32 t) {
-  return make(v2) {
+  return (v2) {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y)
   };
@@ -1163,7 +1163,7 @@ v2_lerp(v2 a, v2 b, f32 t) {
 
 static v3
 v3_lerp(v3 a, v3 b, f32 t) {
-  return make(v3) {
+  return (v3) {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
     a.z + t * (b.z - a.z)
@@ -1172,7 +1172,7 @@ v3_lerp(v3 a, v3 b, f32 t) {
 
 static v4
 v4_lerp(v4 a, v4 b, f32 t) {
-  return make(v4) {
+  return (v4) {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
     a.z + t * (b.z - a.z),
@@ -1191,7 +1191,7 @@ spline(f32 f, f32 a, f32 b, f32 c, f32 d) {
 static v2
 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
   f32 inv = 1.0f - f;
-  return make(v2) {
+  return (v2) {
     ((d.x * f + c.x * inv) * f + (c.x * f + b.x * inv) * inv) * f + ((c.x * f + b.x * inv) * f + (b.x * f + a.x * inv) * inv) * inv,
     ((d.y * f + c.y * inv) * f + (c.y * f + b.y * inv) * inv) * f + ((c.y * f + b.y * inv) * f + (b.y * f + a.y * inv) * inv) * inv
   };
@@ -1200,7 +1200,7 @@ v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d) {
 static v3
 v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
   f32 inv = 1.0f - f;
-  return make(v3) {
+  return (v3) {
     ((d.x * f + c.x * inv) * f + (c.x * f + b.x * inv) * inv) * f + ((c.x * f + b.x * inv) * f + (b.x * f + a.x * inv) * inv) * inv,
     ((d.y * f + c.y * inv) * f + (c.y * f + b.y * inv) * inv) * f + ((c.y * f + b.y * inv) * f + (b.y * f + a.y * inv) * inv) * inv,
     ((d.z * f + c.z * inv) * f + (c.z * f + b.z * inv) * inv) * f + ((c.z * f + b.z * inv) * f + (b.z * f + a.z * inv) * inv) * inv
@@ -1210,7 +1210,7 @@ v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d) {
 static v4
 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
   f32 inv = 1.0f - f;
-  return make(v4) {
+  return (v4) {
     ((d.x * f + c.x * inv) * f + (c.x * f + b.x * inv) * inv) * f + ((c.x * f + b.x * inv) * f + (b.x * f + a.x * inv) * inv) * inv,
     ((d.y * f + c.y * inv) * f + (c.y * f + b.y * inv) * inv) * f + ((c.y * f + b.y * inv) * f + (b.y * f + a.y * inv) * inv) * inv,
     ((d.z * f + c.z * inv) * f + (c.z * f + b.z * inv) * inv) * f + ((c.z * f + b.z * inv) * f + (b.z * f + a.z * inv) * inv) * inv,
@@ -1222,39 +1222,39 @@ v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d) {
 
 static v2
 v2_sign(v2 u) {
-  return make(v2) { (f32)sign(u.x), (f32)sign(u.y) };
+  return (v2) { (f32)sign(u.x), (f32)sign(u.y) };
 }
 
 static v3
 v3_sign(v3 u) {
-  return make(v3) { (f32)sign(u.x), (f32)sign(u.y), (f32)sign(u.z) };
+  return (v3) { (f32)sign(u.x), (f32)sign(u.y), (f32)sign(u.z) };
 }
 
 static v4
 v4_sign(v4 u) {
-  return make(v4) { (f32)sign(u.x), (f32)sign(u.y), (f32)sign(u.z), (f32)sign(u.w) };
+  return (v4) { (f32)sign(u.x), (f32)sign(u.y), (f32)sign(u.z), (f32)sign(u.w) };
 }
 
 static v2i
 v2i_sign(v2i u) {
-  return make(v2i) { sign(u.x), sign(u.y) };
+  return (v2i) { sign(u.x), sign(u.y) };
 }
 
 static v3i
 v3i_sign(v3i u) {
-  return make(v3i) { sign(u.x), sign(u.y), sign(u.z) };
+  return (v3i) { sign(u.x), sign(u.y), sign(u.z) };
 }
 
 static v4i
 v4i_sign(v4i u) {
-  return make(v4i) { sign(u.x), sign(u.y), sign(u.z), sign(u.w) };
+  return (v4i) { sign(u.x), sign(u.y), sign(u.z), sign(u.w) };
 }
 
 // --------------- cross ------------------- //
 
 static v3
 v3_cross(v3 a, v3 b) {
-  return make(v3) {
+  return (v3) {
     a.y * b.z - a.z * b.y,
     a.z * b.x - a.x * b.z,
     a.x * b.y - a.y * b.x
@@ -1276,8 +1276,8 @@ static v2
 v2_keep_min(v2 u) {
   f32 dx = fabsf(u.x);
   f32 dy = fabsf(u.y);
-  if (dx <= dy) return make(v2) { u.x, 0 };
-  if (dy <= dx) return make(v2) { 0, u.y };
+  if (dx <= dy) return (v2) { u.x, 0 };
+  if (dy <= dx) return (v2) { 0, u.y };
   return u;
 }
 
@@ -1286,9 +1286,9 @@ v3_keep_min(v3 u) {
   f32 dx = fabsf(u.x);
   f32 dy = fabsf(u.y);
   f32 dz = fabsf(u.z);
-  if (dx <= dy && dx <= dz) return make(v3) { u.x, 0, 0 };
-  if (dy <= dx && dy <= dz) return make(v3) { 0, u.y, 0 };
-  if (dz <= dx && dz <= dy) return make(v3) { 0, 0, u.z };
+  if (dx <= dy && dx <= dz) return (v3) { u.x, 0, 0 };
+  if (dy <= dx && dy <= dz) return (v3) { 0, u.y, 0 };
+  if (dz <= dx && dz <= dy) return (v3) { 0, 0, u.z };
   return u;
 }
 
@@ -1299,10 +1299,10 @@ v2_mask_min(v2 u) {
   f32 dx = fabsf(u.x);
   f32 dy = fabsf(u.y);
 
-  if (dx <= dy) return make(v2) { 0, 1 };
-  if (dy <= dx) return make(v2) { 1, 0 };
+  if (dx <= dy) return (v2) { 0, 1 };
+  if (dy <= dx) return (v2) { 1, 0 };
 
-  return make(v2) { 1, 1 };
+  return (v2) { 1, 1 };
 }
 
 static v3
@@ -1311,11 +1311,11 @@ v3_mask_min(v3 u) {
   f32 dy = fabsf(u.y);
   f32 dz = fabsf(u.z);
 
-  if (dx <= dy && dx <= dz) return make(v3) { 0, 1, 1 };
-  if (dy <= dx && dy <= dz) return make(v3) { 1, 0, 1 };
-  if (dz <= dx && dz <= dy) return make(v3) { 1, 1, 0 };
+  if (dx <= dy && dx <= dz) return (v3) { 0, 1, 1 };
+  if (dy <= dx && dy <= dz) return (v3) { 1, 0, 1 };
+  if (dz <= dx && dz <= dy) return (v3) { 1, 1, 0 };
 
-  return make(v3) { 1, 1, 1 };
+  return (v3) { 1, 1, 1 };
 }
 
 // ------------------ transform/scale/rotate ------------------ //
@@ -1324,7 +1324,7 @@ static m2
 m2_rotate(f32 angle) {
   f32 c = cosf(angle);
   f32 s = sinf(angle);
-  return make(m2) { c, s, -s, c };
+  return (m2) { c, s, -s, c };
 }
 
 static m3
@@ -1336,7 +1336,7 @@ m3_rotate(v3 axis, f32 angle) {
   v3 sa = { s * axis.x, s * axis.y, s * axis.z };
   v3 omca = { k * axis.x, k * axis.y, k * axis.z };
 
-  return make(m3) {
+  return (m3) {
     omca.x * axis.x + c,
     omca.x * axis.y - sa.z,
     omca.x * axis.z + sa.y,
@@ -1358,7 +1358,7 @@ m4_rotate(v3 axis, f32 angle) {
   v3 sa = { axis.x * sinv, axis.y * sinv, axis.z * sinv };
   v3 omca = { axis.x * inv_cosv, axis.y * inv_cosv, axis.z * inv_cosv };
 
-  return make(m4) {
+  return (m4) {
     omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
     omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
     omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
@@ -1370,12 +1370,12 @@ static quat_t
 quat_rotate(v3 axis, f32 angle) {
   f32 s = sinf(0.5f * angle);
   v3  v = { s * axis.x, s * axis.y, s * axis.z };
-  return make(quat_t) { v.x, v.y, v.z, cosf(0.5f * angle) };
+  return (quat_t) { v.x, v.y, v.z, cosf(0.5f * angle) };
 }
 
 static m4
 m4_translate(f32 x, f32 y, f32 z) {
-  return make(m4) {
+  return (m4) {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
@@ -1385,7 +1385,7 @@ m4_translate(f32 x, f32 y, f32 z) {
 
 static m4
 m4_scale(f32 x, f32 y, f32 z) {
-  return make(m4) {
+  return (m4) {
     x, 0, 0, 0,
     0, y, 0, 0,
     0, 0, z, 0,
@@ -1407,7 +1407,7 @@ m3_from_quat(quat_t q) {
   f32 c2 = c * c;
   f32 d2 = d * d;
 
-  return make(m3) {
+  return (m3) {
     a2 + b2 - c2 - d2,
     2.0f * (b * c + a * d),
     2.0f * (b * d - a * c),
@@ -1434,7 +1434,7 @@ m4_from_quat(quat_t q) {
   f32 c2 = c * c;
   f32 d2 = d * d;
 
-  return make(m4) {
+  return (m4) {
     a2 + b2 - c2 - d2,
     2.0f * (b * c + a * d),
     2.0f * (b * d - a * c),
@@ -1461,7 +1461,7 @@ m4_from_quat(quat_t q) {
 
 static m4
 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f) {
-  return make(m4) {
+  return (m4) {
     2 / (r - l), 0, 0, 0,
     0, 2 / (t - b), 0, 0,
     0, 0, -2 / (f - n), 0,
@@ -1473,7 +1473,7 @@ static m4
 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f) {
   f32 a = 1.0f / tanf(y_fov / 2.0f);
 
-  return make(m4) {
+  return (m4) {
     a / aspect, 0, 0, 0,
     0, a, 0, 0,
     0, 0, -((f + n) / (f - n)), -1,
@@ -1718,7 +1718,7 @@ frustum_intersect_r3(frustum_t fs, r3 rect) {
 
 static r2
 r2_get_overlap(r2 a, r2 b) {
-  return make(r2) {
+  return (r2) {
     v2_max(a.min, b.min),
     v2_min(a.max, b.max)
   };
@@ -1726,7 +1726,7 @@ r2_get_overlap(r2 a, r2 b) {
 
 static r3
 r3_get_overlap(r3 a, r3 b) {
-  return make(r3) {
+  return (r3) {
     v3_max(a.min, b.min),
     v3_min(a.max, b.max)
   };
@@ -1734,7 +1734,7 @@ r3_get_overlap(r3 a, r3 b) {
 
 static r2i
 r2i_get_overlap(r2i a, r2i b) {
-  return make(r2i) {
+  return (r2i) {
     v2i_max(a.min, b.min),
     v2i_min(a.max, b.max)
   };
@@ -1742,7 +1742,7 @@ r2i_get_overlap(r2i a, r2i b) {
 
 static r3i
 r3i_get_overlap(r3i a, r3i b) {
-  return make(r3i) {
+  return (r3i) {
     v3i_max(a.min, b.min),
     v3i_min(a.max, b.max)
   };
@@ -1856,7 +1856,7 @@ rand_v3(u32* state, f32 min, f32 max) {
 // ----------------------- hash ------------------------- //
 
 static u32
-hash_u32(u32 a) {
+hash_u32(unsigned a) {
   a = (a ^ 61) ^ (a >> 16);
   a = a + (a << 3);
   a = a ^ (a >> 4);

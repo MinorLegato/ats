@@ -100,7 +100,7 @@ audio_play(audio_id id, f32 volume) {
   audio_entry* entry = audio_get_entry(id);
 
   if (entry) {
-    cs_sound_params_t params = ATS_INIT;
+    cs_sound_params_t params = {0};
 
     params.volume = volume;
     params.pan = 0.5;

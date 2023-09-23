@@ -193,21 +193,21 @@ static void
 r_init(void) {
   gl_init();
 
-  gl_buffer_desc fx_buffer_desc = ATS_INIT;
+  gl_buffer_desc fx_buffer_desc = {0};
   r_post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
 
-  gl_shader_desc shader_desc = ATS_INIT;
+  gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = vertex_shader;
   shader_desc.fs = fragment_shader;
 
   r_shader = gl_shader_create(shader_desc);
 
-  gl_buffer_desc buffer_desc = ATS_INIT;
+  gl_buffer_desc buffer_desc = {0};
 
-  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
-  buffer_desc.layout[1] = make(gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
-  buffer_desc.layout[2] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
+  buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
+  buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
+  buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -513,7 +513,7 @@ static u32
 r_new_target(const char* fragment_shader) {
   r_target_data* target = r_target_array + r_target_count++;
 
-  gl_shader_desc shader_desc = ATS_INIT;
+  gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = r_post_fx_vertex_shader;
   shader_desc.fs = fragment_shader;

@@ -25,7 +25,7 @@ struct mem_arena {
 
 static mem_arena* mem_stack = NULL;
 
-#define mem_alloc(...) _mem_alloc(make(mem_alloc_desc) { __VA_ARGS__ })
+#define mem_alloc(...) _mem_alloc((mem_alloc_desc) { __VA_ARGS__ })
 
 #define mem_type(type_t, ...)         (type_t*)mem_alloc((sizeof (type_t)), 0, __VA_ARGS__)
 #define mem_array(type_t, count, ...) (type_t*)mem_alloc(((count) * sizeof (type_t)), (count), __VA_ARGS__)
@@ -41,7 +41,7 @@ mem_clear(void* data, usize size) {
 
 static mem_arena
 mem_create(void* data, usize size) {
-  mem_arena arena = ATS_INIT;
+  mem_arena arena = {0};
 
   arena.cap = size;
   arena.buf = (u8*)data;
@@ -81,9 +81,9 @@ typedef struct {
 
 #define mem_context(arena) scope_guard(mem_push(arena), mem_pop())
 
-#define mem_save(...)     _mem_save(make(mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_restore(...)  _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_scope(...)    scope_guard(_mem_save(make(mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ }))
+#define mem_save(...)     _mem_save((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_restore(...)  _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_scope(...)    scope_guard(_mem_save((mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ }))
 
 #define mem_size(ptr)     ((mem_header*)(ptr) - 1)->size
 #define mem_count(ptr)    ((mem_header*)(ptr) - 1)->count

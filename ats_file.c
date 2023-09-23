@@ -153,11 +153,11 @@ file_iter_create(const char* path, const char* ext) {
   if (!path) path = "";
   if (!ext)  ext  = "*";
 
-  file_iter it = ATS_INIT;
+  file_iter it = {0};
 
   it.path = path;
 
-  char find_file_str[MAX_PATH] = ATS_INIT;
+  char find_file_str[MAX_PATH] = {0};
   file_cstr_concat(find_file_str, path, ext);
 
   it.handle = FindFirstFileA(find_file_str, &it.data);
