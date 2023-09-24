@@ -124,7 +124,7 @@ static f32
 sqrt32(f32 n) {
   f32 x = n * 0.5f;
   f32 y = n;
-  int i = *(int*)&y;
+  i32 i = *(i32*)&y;
 
   i = 0x5f3759df - (i >> 1);
   y = *(f32*)&i;
@@ -137,7 +137,7 @@ static f32
 rsqrt32(f32 n) {
   f32 x2 = n * 0.5f;
   f32 y  = n;
-  int i  = *(long*)&y;           // evil floating point bit level hacking
+  i32 i  = *(i32*)&y;           // evil floating point bit level hacking
 
   i = 0x5f3759df - (i >> 1);     // what the fuck? 
   y = *(f32*) &i;
