@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ats_base.h"
+
 #define MEM_KIB(n) (1024 * (n))
 #define MEM_MIB(n) (1024 * MEM_KIB(n))
 #define MEM_GIB(n) (1024 * MEM_MIB(n))
@@ -8,20 +10,20 @@ typedef struct mem_index mem_index;
 typedef struct mem_arena mem_arena;
 
 struct mem_index {
-  unsigned pos;
+  usize pos;
   mem_index* next;
 };
 
 struct mem_arena {
-  unsigned pos;
-  unsigned cap;
-  unsigned char* buf;
+  usize pos;
+  usize cap;
+  u8* buf;
 
   mem_index* stack;
   mem_arena* next;
 };
 
-static mem_arena* mem_stack;
+static mem_arena* mem_stack = NULL;
 
 #define mem_alloc(...) _mem_alloc((mem_alloc_desc) { __VA_ARGS__ })
 
@@ -29,20 +31,20 @@ static mem_arena* mem_stack;
 #define mem_array(type_t, count, ...) (type_t*)mem_alloc(((count) * sizeof (type_t)), (count), __VA_ARGS__)
 
 static void*
-mem_clear(void* data, unsigned size) {
-  unsigned char* d = data;
-  for (unsigned i = 0; i < size; ++i) {
+mem_clear(void* data, usize size) {
+  u8* d = (u8*)data;
+  for (usize i = 0; i < size; ++i) {
     d[i] = 0;
   }
   return d;
 }
 
 static mem_arena
-mem_create(void* data, unsigned size) {
+mem_create(void* data, usize size) {
   mem_arena arena = {0};
 
   arena.cap = size;
-  arena.buf = data;
+  arena.buf = (u8*)data;
 
   return arena;
 }
@@ -50,14 +52,14 @@ mem_create(void* data, unsigned size) {
 #define MEM_GET(arg) ((arg).arena? (arg).arena : (mem_stack))
 
 typedef struct {
-  unsigned size;
-  unsigned count;
+  usize size;
+  usize count;
   mem_arena* arena;
 } mem_alloc_desc;
 
 typedef struct {
-  unsigned size;
-  unsigned count;
+  usize size;
+  usize count;
 } mem_header;
 
 static void*
@@ -73,7 +75,7 @@ _mem_alloc(mem_alloc_desc desc) {
 }
 
 typedef struct {
-  unsigned pad;
+  u64 pad;
   mem_arena* arena;
 } mem_arena_desc;
 
@@ -89,7 +91,7 @@ typedef struct {
 static void
 _mem_save(mem_arena_desc desc) {
   mem_arena* arena = MEM_GET(desc);
-  unsigned pos = arena->pos;
+  usize pos = arena->pos;
   mem_index* node = mem_type(mem_index, arena);
 
   node->pos = pos;

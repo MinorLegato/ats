@@ -22,7 +22,7 @@ void gl_set_matrix(m4 projection, m4 view);
 void gl_billboard(tex_rect tex, v3 pos, v2 rad, v3 normal, unsigned color, v3 right, v3 up);
 void gl_texture_box(tex_rect tex, r3 box, unsigned color);
 void gl_texture_rect(tex_rect tex, r2 rect, float z, unsigned color);
-void gl_texture_rect_flip(tex_rect tex, r2 rect, float z, unsigned color, int flip_x, int flip_y);
+void gl_texture_rect_flip(tex_rect tex, r2 rect, float z, unsigned color, bool flip_x, bool flip_y);
 void gl_box(r3 box, unsigned color);
 void gl_rect(r2 rect, float z, unsigned color);
 

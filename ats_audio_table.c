@@ -12,30 +12,30 @@
 static const char* audio_path = AUDIO_PATH;
 
 typedef struct {
-  int                 in_use;
-  cs_audio_source_t*  source;
-  char                name[64];
+  b32 in_use;
+  cs_audio_source_t* source;
+  char name[64];
 } audio_entry;
 
 static audio_entry audio_table[AUDIO_TABLE_SIZE];
 
 void
 audio_init(void* handle) {
-  cs_init(handle, 44100, 2 * 1024, 0);
+  cs_init(handle, 44100, 2 * 1024, NULL);
 
   cs_spawn_mix_thread();
   cs_mix_thread_sleep_delay(7);
 }
 
-static int
+static b32
 audio_is_valid(audio_id id) {
   return id.index != 0;
 }
 
 audio_id
 audio_get(const char* name) {
-  unsigned hash = hash_str(name);
-  unsigned short index = hash & (AUDIO_TABLE_SIZE - 1);
+  u32 hash = hash_str(name);
+  u16 index = hash & (AUDIO_TABLE_SIZE - 1);
 
   if (index == 0) index++;
 
@@ -65,7 +65,7 @@ audio_get(const char* name) {
   audio_entry* entry = &audio_table[index];
 
   entry->in_use = true;
-  strcpy_s(entry->name, sizeof (entry->name), name);
+  strcpy_s(entry->name, countof(entry->name), name);
 
   cs_error_t error = CUTE_SOUND_ERROR_NONE;
   entry->source = cs_load_wav(path, &error);
@@ -80,7 +80,7 @@ audio_get(const char* name) {
 }
 
 void
-audio_pause(int pause) {
+audio_pause(b32 pause) {
   cs_set_global_pause(pause);
 }
 
@@ -91,12 +91,12 @@ audio_kill_all(void) {
 
 static audio_entry*
 audio_get_entry(audio_id id) {
-  if (!id.index || id.index > AUDIO_TABLE_SIZE) return 0;
-  return audio_table[id.index].in_use? &audio_table[id.index] : 0;
+  if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
+  return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
 void
-audio_play(audio_id id, float volume) {
+audio_play(audio_id id, f32 volume) {
   audio_entry* entry = audio_get_entry(id);
 
   if (entry) {
@@ -110,7 +110,7 @@ audio_play(audio_id id, float volume) {
 }
 
 void
-audio_play_music(audio_id id, float volume) {
+audio_play_music(audio_id id, f32 volume) {
   audio_entry* entry = audio_get_entry(id);
   if (entry) {
     cs_music_stop(0);

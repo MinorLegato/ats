@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ats_base.h"
+
 // NOTE: might need to add some casts to protect against overflows.
 // arithmetics:
 // add: a + b
@@ -23,10 +25,10 @@
 #define FX64_SHIFT (21)
 #endif
 
-typedef char      fx8;
-typedef short     fx16;
-typedef int       fx32;
-typedef long long fx64;
+typedef i8 fx8;
+typedef i16 fx16;
+typedef i32 fx32;
+typedef i64 fx64;
 
 // to fixed:
 
@@ -37,10 +39,10 @@ typedef long long fx64;
 
 // fixed to float:
 
-#define fx8_cast(n)  ((float)(n) / (float)(1 << FX8_SHIFT))
-#define fx16_cast(n) ((float)(n) / (float)(1 << FX16_SHIFT))
-#define fx32_cast(n) ((float)(n) / (float)(1 << FX32_SHIFT))
-#define fx64_cast(n) ((float)(n) / (float)(1 << FX64_SHIFT))
+#define fx8_cast(n)  ((f32)(n) / (f32)(1 << FX8_SHIFT))
+#define fx16_cast(n) ((f32)(n) / (f32)(1 << FX16_SHIFT))
+#define fx32_cast(n) ((f32)(n) / (f32)(1 << FX32_SHIFT))
+#define fx64_cast(n) ((f32)(n) / (f32)(1 << FX64_SHIFT))
 
 // trunc:
 
@@ -75,25 +77,25 @@ fx64_lerp(fx64 a, fx64 b, fx64 t) {
 
 static fx8
 fx8_sqrt(fx8 n) {
-  float r = sqrt32(fx8_cast(n));
+  f32 r = sqrt32(fx8_cast(n));
   return fx8_make(r);
 }
 
 static fx16
 fx16_sqrt(fx16 n) {
-  float r = sqrt32(fx16_cast(n));
+  f32 r = sqrt32(fx16_cast(n));
   return fx16_make(r);
 }
 
 static fx32
 fx32_sqrt(fx32 n) {
-  float r = sqrt32(fx32_cast(n));
+  f32 r = sqrt32(fx32_cast(n));
   return fx32_make(r);
 }
 
 static fx64
 fx64_sqrt(fx64 n) {
-  float r = sqrt32(fx64_cast(n));
+  f32 r = sqrt32(fx64_cast(n));
   return fx64_make(r);
 }
 
@@ -101,25 +103,25 @@ fx64_sqrt(fx64 n) {
 
 static fx8
 fx8_rsqrt(fx8 n) {
-  float r = rsqrt32(fx8_cast(n));
+  f32 r = rsqrt32(fx8_cast(n));
   return fx8_make(r);
 }
 
 static fx16
 fx16_rsqrt(fx16 n) {
-  float r = rsqrt32(fx16_cast(n));
+  f32 r = rsqrt32(fx16_cast(n));
   return fx16_make(r);
 }
 
 static fx32
 fx32_rsqrt(fx32 n) {
-  float r = rsqrt32(fx32_cast(n));
+  f32 r = rsqrt32(fx32_cast(n));
   return fx32_make(r);
 }
 
 static fx64
 fx64_rsqrt(fx64 n) {
-  float r = rsqrt32(fx64_cast(n));
+  f32 r = rsqrt32(fx64_cast(n));
   return fx64_make(r);
 }
 
