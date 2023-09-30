@@ -2,6 +2,14 @@
 
 #include "ats_base.h"
 
+#define cast_v2(u)  ((v2) { (f32)(u).x, (f32)(u).y })
+#define cast_v3(u)  ((v3) { (f32)(u).x, (f32)(u).y, (f32)(u).z })
+#define cast_v4(u)  ((v4) { (f32)(u).x, (f32)(u).y, (f32)(u).z, (f32)(u).w })
+
+#define cast_v2i(u) ((v2i) { (i32)(u).x, (i32)(u).y })
+#define cast_v3i(u) ((v3i) { (i32)(u).x, (i32)(u).y, (i32)(u).z })
+#define cast_v4i(u) ((v4i) { (i32)(u).x, (i32)(u).y, (i32)(u).z, (i32)(u).w })
+
 typedef union {
   struct { f32 x, y; };
   f32 e[2];

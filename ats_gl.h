@@ -24,7 +24,7 @@ void gl_set_matrix(m4 projection, m4 view);
 void gl_billboard(tex_rect tex, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up);
 void gl_texture_box(tex_rect tex, r3 box, u32 color);
 void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color);
-void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, bool flip_x, bool flip_y);
+void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, b8 flip_x, b8 flip_y);
 void gl_box(r3 box, u32 color);
 void gl_rect(r2 rect, f32 z, u32 color);
 
@@ -35,10 +35,10 @@ typedef struct {
   u16 height;
 } gl_texture;
 
-gl_texture gl_texture_create(const void *pixels, i32 width, i32 height, i32 is_smooth);
-gl_texture gl_texture_load_from_file(const char *texture_path, i32 is_smooth);
+gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth);
+gl_texture gl_texture_load_from_file(const char *texture_path, b8 is_smooth);
 
-void gl_texture_update(gl_texture* texture, const void *pixels, i32 width, i32 height, i32 is_smooth);
+void gl_texture_update(gl_texture* texture, const void *pixels, u16 width, u16 height, b8 is_smooth);
 
 void gl_texture_bind(const gl_texture* texture);
 void gl_texture_destroy(gl_texture* texture);

@@ -7,12 +7,7 @@
 #include "ats_texture_table.c"
 #include "ats_animation_table.c"
 #include "ats_audio_table.c"
-
-#ifndef __cplusplus
-#if 0
 #include "ats_thread.c"
-#endif
-#endif
 
 #ifndef ATS_NO_MAIN
 #ifndef MEM_DEFAULT_SIZE
