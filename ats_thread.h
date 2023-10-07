@@ -43,10 +43,10 @@ typedef struct {
 #define TASK_QUEUE_MOD (63)
 
 typedef struct {
-  thread    thread;
+  thread thread;
 
-  int       begin;
-  int       end;
+  int begin;
+  int end;
   task_data array[TASK_QUEUE_MAX];
 } task_queue;
 
@@ -60,12 +60,12 @@ void task_queue_wait(task_queue* queue);
 #define TASK_SYSTEM_MAX_THREADS (32)
 
 typedef struct {
-  int         thread_count;
-  int         next;
-  task_queue  queue[TASK_SYSTEM_MAX_THREADS];
+  int thread_count;
+  int next;
+  task_queue queue[TASK_SYSTEM_MAX_THREADS];
 } task_system;
 
-void task_system_init(task_system* ts, u32 thread_count);
+void task_system_init(task_system* ts, int thread_count);
 void task_system_push(task_system* ts, task_proc_t* proc, void* data);
 void task_system_wait(task_system* ts);
 

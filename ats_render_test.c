@@ -79,8 +79,7 @@ static const char* fragment_shader = GLSL(
   uniform sampler2D tex;
   uniform bool texture_enabled;
 
-  void main()
-  {
+  void main() {
     vec4 color;
     vec2 tex_scale = 1.0 / textureSize(tex, 0);
 
@@ -105,8 +104,7 @@ static const char* r_post_fx_vertex_shader = GLSL(
     vec2(0, 1), vec2(0, 0), vec2(1, 0),
     vec2(0, 1), vec2(1, 0), vec2(1, 1));
 
-  void main()
-  {
+  void main() {
     frag_uv = uvs[gl_VertexID];
     gl_Position = vec4(verts[gl_VertexID], 0, 1);
   });
@@ -117,8 +115,7 @@ static const char* r_post_fx_none = GLSL(
 
   uniform sampler2D tex;
 
-  void main()
-  {
+  void main() {
     out_color = texture(tex, frag_uv);
   });
 
@@ -159,55 +156,53 @@ static const char* r_post_fx_blur = GLSL(
     out_color = col;
   });
 
-typedef struct {
+struct r_vertex_data {
   v3   pos;
   v2   uv;
   u32  color;
-} r_vertex_data;
+};
 
-typedef struct {
-  gl_shader shader;
+struct r_target_data {
+  struct gl_shader shader;
 
   u32 framebuffer;
   u32 texture;
-} r_target_data;
+};
 
-static gl_buffer        r_post_fx_buffer;
-static gl_texture       r_current_texture;
-static usize            r_target_count;
-static r_target_data    r_target_array[R_TARGET_MAX];
-static gl_shader        r_shader;
-static gl_buffer        r_buffer;
-static u32              r_type;
-static r_vertex_data    r_current;
-static u32              r_vertex_count;
-static r_vertex_data    r_vertex_array[R_VERTEX_MAX];
+static struct gl_buffer       r_post_fx_buffer;
+static struct gl_texture      r_current_texture;
+static usize                  r_target_count;
+static struct r_target_data   r_target_array[R_TARGET_MAX];
+static struct gl_shader       r_shader;
+static struct gl_buffer       r_buffer;
+static u32                    r_type;
+static struct r_vertex_data   r_current;
+static u32                    r_vertex_count;
+static struct r_vertex_data   r_vertex_array[R_VERTEX_MAX];
 
-static void
-r_set_matrix(m4 mvp) {
+static void r_set_matrix(m4 mvp) {
   gl_use(&r_shader);
   gl_uniform_m4(gl_location(&r_shader, "mvp"), mvp);
 }
 
-static void
-r_init(void) {
+static void r_init(void) {
   gl_init();
 
-  gl_buffer_desc fx_buffer_desc = {0};
+  struct gl_buffer_desc fx_buffer_desc = {0};
   r_post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
 
-  gl_shader_desc shader_desc = {0};
+  struct gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = vertex_shader;
   shader_desc.fs = fragment_shader;
 
   r_shader = gl_shader_create(shader_desc);
 
-  gl_buffer_desc buffer_desc = {0};
+  struct gl_buffer_desc buffer_desc = {0};
 
-  buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
-  buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
-  buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
+  buffer_desc.layout[0] = (struct gl_layout) { 3, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof(struct r_vertex_data, pos) };
+  buffer_desc.layout[1] = (struct gl_layout) { 2, GL_FLOAT,         sizeof (struct r_vertex_data), offsetof(struct r_vertex_data, uv) };
+  buffer_desc.layout[2] = (struct gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (struct r_vertex_data), offsetof(struct r_vertex_data, color), true };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -216,71 +211,59 @@ r_init(void) {
   glEnable(GL_DEPTH_TEST);
 }
 
-static void
-r_begin_frame(void)
-{
+static void r_begin_frame(void) {
   gl_use(&r_shader);
   r_set_matrix(m4_identity());
 }
 
-static void
-r_end_frame(void) {
+static void r_end_frame(void) {
   //
 }
 
-static void
-r_begin(u32 type) {
+static void r_begin(u32 type) {
   r_type = type;
   r_vertex_count = 0;
 }
 
-static void
-r_uv(f32 x, f32 y) {
+static void r_uv(f32 x, f32 y) {
   r_current.uv = (v2) { x, y };
 }
 
-static void
-r_color(u32 color) {
+static void r_color(u32 color) {
   r_current.color = color;
 }
 
-static void
-r_vertex(f32 x, f32 y, f32 z) {
+static void r_vertex(f32 x, f32 y, f32 z) {
   r_current.pos = (v3) { x, y, z };
   r_vertex_array[r_vertex_count++] = r_current;
 }
 
-static void
-r_end(void) {
+static void r_end(void) {
   gl_use(&r_shader);
   gl_buffer_bind(&r_buffer);
-  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (r_vertex_data));
+  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (struct r_vertex_data));
 
   glDrawArrays(r_type, 0, r_vertex_count);
 }
 
-static void
-r_set_texture(const gl_texture* texture) {
+static void r_set_texture(const struct gl_texture* texture) {
   gl_use(&r_shader);
   gl_texture_bind(texture);
 
   r_current_texture = *texture;
 }
 
-static void
-r_enable_textures(void) {
+static void r_enable_textures(void) {
   gl_use(&r_shader);
   gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), true);
 }
 
-static void
-r_disable_textures(void) {
+static void r_disable_textures(void) {
   gl_use(&r_shader);
   gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), false);
 }
 
-static void
-r_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
+static void r_billboard(struct tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
   f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
   f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
   f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -308,8 +291,7 @@ r_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
   r_uv(tr.min_x, tr.max_y); r_vertex(ax, ay, az);
 }
 
-static void
-r_texture_box(tex_rect tr, r3 box, u32 color) {
+static void r_texture_box(struct tex_rect tr, r3 box, u32 color) {
   r_color(color);
 
   r_uv(tr.min_x, tr.max_y); r_vertex(box.min.x, box.min.y, box.min.z);
@@ -355,8 +337,7 @@ r_texture_box(tex_rect tr, r3 box, u32 color) {
   r_uv(tr.min_x, tr.min_y); r_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void
-r_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color) {
+static void r_texture_rect(struct tex_rect tr, r2 rect, f32 z, u32 color) {
   r_color(color);
   r_uv(tr.min_x, tr.max_y); r_vertex(rect.min.x, rect.min.y, z);
   r_uv(tr.max_x, tr.max_y); r_vertex(rect.max.x, rect.min.y, z);
@@ -366,8 +347,7 @@ r_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color) {
   r_uv(tr.min_x, tr.max_y); r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void
-r_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y) {
+static void r_texture_rect_flip(struct tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y) {
   if (flip_x) { swap(f32, tr.min_x, tr.max_x); }
   if (flip_y) { swap(f32, tr.min_y, tr.max_y); }
 
@@ -380,8 +360,7 @@ r_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip
   r_uv(tr.min_x, tr.max_y); r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void
-r_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
+static void r_rotated_texture(struct tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
   if (flip_y) { swap(f32, tr.min_y, tr.max_y); }
 
   m2 rot_matrix = m2_rotate(rot);
@@ -410,8 +389,7 @@ r_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 fl
   r_uv(tr.min_x, tr.max_y); r_vertex(ax, ay, z);
 }
 
-static void
-r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
+static void r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
   m2 rot_matrix = m2_rotate(rot);
 
   v2 u = m2_mulv(rot_matrix, (v2) { 0, 1 });
@@ -438,8 +416,7 @@ r_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
   r_vertex(ax, ay, z);
 }
 
-static void
-r_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color) {
+static void r_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color) {
   v2  line        = v2_sub(p1, p0);
   f32 line_length = v2_len(line);
   v2  line_pos    = v2_add(p0, v2_scale(line, 0.5f));
@@ -451,8 +428,7 @@ r_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color) {
   r_rotated(pos, z, scale, rot, color);
 }
 
-static void
-r_box(r3 box, u32 color) {
+static void r_box(r3 box, u32 color) {
   r_color(color);
 
   r_vertex(box.min.x, box.min.y, box.min.z);
@@ -498,8 +474,7 @@ r_box(r3 box, u32 color) {
   r_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void
-r_rect(r2 rect, f32 z, u32 color) {
+static void r_rect(r2 rect, f32 z, u32 color) {
   r_color(color);
   r_vertex(rect.min.x, rect.min.y, z);
   r_vertex(rect.max.x, rect.min.y, z);
@@ -509,11 +484,9 @@ r_rect(r2 rect, f32 z, u32 color) {
   r_vertex(rect.min.x, rect.min.y, z);
 }
 
-static u32
-r_new_target(const char* fragment_shader) {
-  r_target_data* target = r_target_array + r_target_count++;
-
-  gl_shader_desc shader_desc = {0};
+static u32 r_new_target(const char* fragment_shader) {
+  struct r_target_data* target = r_target_array + r_target_count++;
+  struct gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = r_post_fx_vertex_shader;
   shader_desc.fs = fragment_shader;
@@ -537,10 +510,9 @@ r_new_target(const char* fragment_shader) {
   return r_target_count - 1;
 }
 
-static r_target_data* r_current_target = NULL;
+static struct r_target_data* r_current_target = NULL;
 
-static void
-r_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a) {
+static void r_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a) {
   r_current_target = r_target_array + target;
 
   glBindFramebuffer(GL_FRAMEBUFFER, r_current_target->framebuffer);
@@ -554,9 +526,7 @@ r_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a) {
   r_set_texture(&r_current_texture);
 }
 
-static void
-r_end_pass(void)
-{
+static void r_end_pass(void) {
   glDisable(GL_DEPTH_TEST);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

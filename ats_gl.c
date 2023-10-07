@@ -1,16 +1,16 @@
 
-gl_texture gl_texture_load_from_file(const char* texture_path, b8 is_smooth) {
+struct gl_texture gl_texture_load_from_file(const char* texture_path, b8 is_smooth) {
   u16  width  = 0;
   u16  height = 0;
   u32* pixels = file_load_image(texture_path, &width, &height);
 
-  gl_texture texture = gl_texture_create(pixels, width, height, is_smooth);
+  struct gl_texture texture = gl_texture_create(pixels, width, height, is_smooth);
   file_free_image(pixels);
 
   return texture;
 }
 
-void gl_texture_destroy(gl_texture* texture) {
+void gl_texture_destroy(struct gl_texture* texture) {
   glDeleteTextures(1, &texture->id);
   memset(texture, 0, sizeof *texture);
 }
@@ -326,10 +326,10 @@ void gl_init(void) {
   gl_init_bitmap_font();
 }
 
-gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth) {
+struct gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth) {
   assert(pixels);
 
-  gl_texture texture = {0};
+  struct gl_texture texture = {0};
 
   texture.width = width;
   texture.height = height;
@@ -420,7 +420,7 @@ void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-void gl_texture_update(gl_texture* texture, const void* pixels, u16 width, u16 height, b8 is_smooth) {
+void gl_texture_update(struct gl_texture* texture, const void* pixels, u16 width, u16 height, b8 is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -431,7 +431,7 @@ void gl_texture_update(gl_texture* texture, const void* pixels, u16 width, u16 h
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
 }
 
-void gl_texture_bind(const gl_texture* texture) {
+void gl_texture_bind(const struct gl_texture* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 
   glMatrixMode(GL_TEXTURE);
@@ -472,7 +472,7 @@ void gl_set_matrix(m4 projection, m4 view) {
   glLoadMatrixf(view.e);
 }
 
-void gl_billboard(tex_rect tex, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
+void gl_billboard(struct tex_rect tex, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up) {
   f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
   f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
   f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -501,7 +501,7 @@ void gl_billboard(tex_rect tex, v3 pos, v2 rad, v3 normal, u32 color, v3 right, 
   gl_uv(tex.min_x, tex.max_y); gl_vertex(ax, ay, az);
 }
 
-void gl_texture_box(tex_rect tex, r3 box, u32 color) {
+void gl_texture_box(struct tex_rect tex, r3 box, u32 color) {
   gl_color(color);
 
   gl_normal(0, 0, -1);
@@ -553,7 +553,7 @@ void gl_texture_box(tex_rect tex, r3 box, u32 color) {
   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color) {
+void gl_texture_rect(struct tex_rect tex, r2 rect, f32 z, u32 color) {
   gl_color(color);
   gl_normal(0, 0, +1);
   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
@@ -564,7 +564,7 @@ void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color) {
   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, b8 flip_x, b8 flip_y) {
+void gl_texture_rect_flip(struct tex_rect tex, r2 rect, f32 z, u32 color, b8 flip_x, b8 flip_y) {
   if (flip_x) { swap(u16, tex.min_x, tex.max_x); }
   if (flip_y) { swap(u16, tex.min_y, tex.max_y); }
 
@@ -643,7 +643,7 @@ void gl_rect(r2 rect, f32 z, u32 color) {
 
 // ======================================= FONT ====================================== //
 
-static gl_texture bitmap_texture;
+static struct gl_texture bitmap_texture;
 
 void gl_init_bitmap_font(void) {
   u32 pixels[8][BITMAP_COUNT * 8] = {0};
@@ -750,7 +750,7 @@ static unsigned gl_shader_link_program(u32 vertex_shader, u32 fragment_shader) {
   return shader;
 }
 
-gl_shader gl_shader_create(gl_shader_desc desc) {
+struct gl_shader gl_shader_create(struct gl_shader_desc desc) {
   u32 vertex   = gl_shader_compile(desc.vs, GL_VERTEX_SHADER);
   u32 fragment = gl_shader_compile(desc.fs, GL_FRAGMENT_SHADER);
   u32 program  = gl_shader_link_program(vertex, fragment);
@@ -760,19 +760,19 @@ gl_shader gl_shader_create(gl_shader_desc desc) {
   glDeleteShader(vertex);
   glDeleteShader(fragment);
 
-  gl_shader shader = {0};
+  struct gl_shader shader = {0};
   shader.id = program;
   return shader;
 }
 
-gl_shader gl_shader_load_from_file(const char *vs, const char *fs) {
-  gl_shader shader = {0};
+struct gl_shader gl_shader_load_from_file(const char *vs, const char *fs) {
+  struct gl_shader shader = {0};
 
   mem_scope() {
     char* vs_content = file_read_str(vs);
     char* fs_content = file_read_str(fs);
 
-    gl_shader_desc desc = {0};
+    struct gl_shader_desc desc = {0};
 
     desc.vs = vs_content;
     desc.fs = fs_content;
@@ -783,11 +783,11 @@ gl_shader gl_shader_load_from_file(const char *vs, const char *fs) {
   return shader;
 }
 
-void gl_use(const gl_shader* shader) {
+void gl_use(const struct gl_shader* shader) {
   glUseProgram(shader->id);
 }
 
-u32 gl_location(const gl_shader* shader, const char* name) {
+u32 gl_location(const struct gl_shader* shader, const char* name) {
   return glGetUniformLocation(shader->id, name);
 }
 
@@ -823,7 +823,7 @@ void gl_uniform_m4(u32 location, m4 m) {
   glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-gl_buffer gl_buffer_create(const gl_buffer_desc* desc) {
+struct gl_buffer gl_buffer_create(const struct gl_buffer_desc* desc) {
   u32 vao = 0;
   u32 vbo = 0;
 
@@ -834,7 +834,7 @@ gl_buffer gl_buffer_create(const gl_buffer_desc* desc) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
   for (u32 i = 0; i < countof(desc->layout); ++i) {
-    const gl_layout* layout = &desc->layout[i];
+    const struct gl_layout* layout = &desc->layout[i];
 
     if (layout->size) {
       glEnableVertexAttribArray(i);
@@ -842,7 +842,7 @@ gl_buffer gl_buffer_create(const gl_buffer_desc* desc) {
     }
   }
 
-  gl_buffer result = {0};
+  struct gl_buffer result = {0};
 
   result.vao = vao;
   result.vbo = vbo;
@@ -850,20 +850,20 @@ gl_buffer gl_buffer_create(const gl_buffer_desc* desc) {
   return result;
 }
 
-void gl_buffer_bind(const gl_buffer* buffer) {
+void gl_buffer_bind(const struct gl_buffer* buffer) {
   glBindVertexArray(buffer->vao);
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
 }
 
-void gl_buffer_send(const gl_buffer* buffer, const void* data, u32 size) {
+void gl_buffer_send(const struct gl_buffer* buffer, const void* data, u32 size) {
   glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
-gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth) {
+struct gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth) {
   assert(pixels);
 
-  gl_texture texture = {0};
+  struct gl_texture texture = {0};
 
   texture.width = width;
   texture.height = height;
@@ -884,7 +884,7 @@ gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_sm
   return texture;
 }
 
-void gl_texture_update(gl_texture* texture, const void *pixels, u16 width, u16 height, b8 is_smooth) {
+void gl_texture_update(struct gl_texture* texture, const void *pixels, u16 width, u16 height, b8 is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -897,7 +897,7 @@ void gl_texture_update(gl_texture* texture, const void *pixels, u16 width, u16 h
   glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-void gl_texture_bind(const gl_texture* texture) {
+void gl_texture_bind(const struct gl_texture* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 }
 
@@ -910,15 +910,15 @@ struct bitmap_vertex {
   u32 color;
 };
 
-static gl_texture bitmap_texture;
-static gl_shader  bitmap_shader;
-static gl_buffer  bitmap_buffer;
+static struct gl_texture bitmap_texture;
+static struct gl_shader  bitmap_shader;
+static struct gl_buffer  bitmap_buffer;
 
 static u32 bitmap_count;
 static struct bitmap_vertex bitmap_array[1024 * 1024];
 
 void gl_init_bitmap_font(void) {
-  gl_shader_desc shader_desc = {0};
+  struct gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = GLSL(
     layout (location = 0) in vec2 in_pos;
@@ -950,11 +950,11 @@ void gl_init_bitmap_font(void) {
 
   bitmap_shader = gl_shader_create(shader_desc);
 
-  gl_buffer_desc buffer_desc = {0};
+  struct gl_buffer_desc buffer_desc = {0};
 
-  buffer_desc.layout[0] = (gl_layout) { 2, GL_FLOAT, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, pos) };
-  buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, uv) };
-  buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, color), true };
+  buffer_desc.layout[0] = (struct gl_layout) { 2, GL_FLOAT, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, pos) };
+  buffer_desc.layout[1] = (struct gl_layout) { 2, GL_FLOAT, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, uv) };
+  buffer_desc.layout[2] = (struct gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (struct bitmap_vertex), offsetof(struct bitmap_vertex, color), true };
 
   bitmap_buffer = gl_buffer_create(&buffer_desc);
 

@@ -21,42 +21,42 @@ void gl_normal(f32 x, f32 y, f32 z);
 void gl_uv(f32 x, f32 y);
 void gl_vertex(f32 x, f32 y, f32 z);
 void gl_set_matrix(m4 projection, m4 view);
-void gl_billboard(tex_rect tex, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up);
-void gl_texture_box(tex_rect tex, r3 box, u32 color);
-void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color);
-void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, b8 flip_x, b8 flip_y);
+void gl_billboard(struct tex_rect tex, v3 pos, v2 rad, v3 normal, u32 color, v3 right, v3 up);
+void gl_texture_box(struct tex_rect tex, r3 box, u32 color);
+void gl_texture_rect(struct tex_rect tex, r2 rect, f32 z, u32 color);
+void gl_texture_rect_flip(struct tex_rect tex, r2 rect, f32 z, u32 color, b8 flip_x, b8 flip_y);
 void gl_box(r3 box, u32 color);
 void gl_rect(r2 rect, f32 z, u32 color);
 
-typedef struct {
+struct gl_texture {
   u32 id;
 
   u16 width;
   u16 height;
-} gl_texture;
+};
 
-gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth);
-gl_texture gl_texture_load_from_file(const char *texture_path, b8 is_smooth);
+struct gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth);
+struct gl_texture gl_texture_load_from_file(const char *texture_path, b8 is_smooth);
 
-void gl_texture_update(gl_texture* texture, const void *pixels, u16 width, u16 height, b8 is_smooth);
+void gl_texture_update(struct gl_texture* texture, const void *pixels, u16 width, u16 height, b8 is_smooth);
 
-void gl_texture_bind(const gl_texture* texture);
-void gl_texture_destroy(gl_texture* texture);
+void gl_texture_bind(const struct gl_texture* texture);
+void gl_texture_destroy(struct gl_texture* texture);
 
-typedef struct {
+struct gl_shader {
   u32 id;
-} gl_shader;
+};
 
-typedef struct {
+struct gl_shader_desc {
   const char* vs;
   const char* fs;
-} gl_shader_desc;
+};
 
-gl_shader gl_shader_create(gl_shader_desc desc);
-gl_shader gl_shader_load_from_file(const char *vs, const char *fs);
+struct gl_shader gl_shader_create(struct gl_shader_desc desc);
+struct gl_shader gl_shader_load_from_file(const char *vs, const char *fs);
 
-void gl_use(const gl_shader* shader);
-u32 gl_location(const gl_shader* shader, const char* name);
+void gl_use(const struct gl_shader* shader);
+u32 gl_location(const struct gl_shader* shader, const char* name);
 
 void gl_uniform_i32(u32 location, i32 u);
 void gl_uniform_f32(u32 location, f32 u);
@@ -69,24 +69,24 @@ void gl_uniform_m4(u32 location, m4 m);
 
 v3 gl_get_world_position(i32 x, i32 y, m4 in_projection, m4 in_modelview);
 
-typedef struct {
+struct gl_buffer {
   u32 vao;
   u32 vbo;
-} gl_buffer;
+};
 
-typedef struct {
+struct gl_layout {
   u32 size;
   u32 type;
   u32 stride;
   u32 offset;
   u32 normalize;
-} gl_layout;
+};
 
-typedef struct {
-  gl_layout layout[32];
-} gl_buffer_desc;
+struct gl_buffer_desc {
+  struct gl_layout layout[32];
+};
 
-gl_buffer gl_buffer_create(const gl_buffer_desc* desc);
-void gl_buffer_bind(const gl_buffer* buffer);
-void gl_buffer_send(const gl_buffer* array, const void* data, u32 size);
+struct gl_buffer gl_buffer_create(const struct gl_buffer_desc* desc);
+void gl_buffer_bind(const struct gl_buffer* buffer);
+void gl_buffer_send(const struct gl_buffer* array, const void* data, u32 size);
 
