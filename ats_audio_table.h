@@ -2,7 +2,8 @@
 
 #include "ats_base.h"
 
-struct audio_id {
+struct audio_id
+{
    u16 index;
 };
 

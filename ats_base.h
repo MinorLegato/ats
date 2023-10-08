@@ -77,21 +77,21 @@
        (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
        type##_iter_advance(&macro_var(it)))
 
-typedef float     f32;
-typedef double    f64;
+typedef float f32;
+typedef double f64;
 
-typedef int8_t    i8;
-typedef int16_t   i16;
-typedef int32_t   i32;
-typedef int64_t   i64;
+typedef int8_t i8;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
 
-typedef uint8_t   u8;
-typedef uint16_t  u16;
-typedef uint32_t  u32;
-typedef uint64_t  u64;
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
 typedef ptrdiff_t isize;
-typedef size_t    usize;
+typedef size_t usize;
 
 typedef u8  b8;
 typedef u16 b16;

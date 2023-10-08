@@ -11,7 +11,8 @@
 
 static const char* audio_path = AUDIO_PATH;
 
-struct audio_entry {
+struct audio_entry
+{
   b32 in_use;
   cs_audio_source_t* source;
   char name[64];
@@ -19,17 +20,20 @@ struct audio_entry {
 
 static struct audio_entry audio_table[AUDIO_TABLE_SIZE];
 
-void audio_init(void* handle) {
+void audio_init(void* handle)
+{
   cs_init(handle, 44100, 2 * 1024, NULL);
   cs_spawn_mix_thread();
   cs_mix_thread_sleep_delay(7);
 }
 
-static b32 audio_is_valid(struct audio_id id) {
+static b32 audio_is_valid(struct audio_id id)
+{
   return id.index != 0;
 }
 
-struct audio_id audio_get(const char* name) {
+struct audio_id audio_get(const char* name)
+{
   u32 hash = hash_str(name);
   u16 index = hash & (AUDIO_TABLE_SIZE - 1);
 
@@ -75,20 +79,24 @@ struct audio_id audio_get(const char* name) {
   return id;
 }
 
-void audio_pause(b32 pause) {
+void audio_pause(b32 pause)
+{
   cs_set_global_pause(pause);
 }
 
-void audio_kill_all(void) {
+void audio_kill_all(void)
+{
   cs_stop_all_playing_sounds();
 }
 
-static struct audio_entry* audio_get_entry(struct audio_id id) {
+static struct audio_entry* audio_get_entry(struct audio_id id)
+{
   if (!id.index || id.index > AUDIO_TABLE_SIZE) return NULL;
   return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-void audio_play(struct audio_id id, f32 volume) {
+void audio_play(struct audio_id id, f32 volume)
+{
   struct audio_entry* entry = audio_get_entry(id);
 
   if (entry) {
@@ -101,7 +109,8 @@ void audio_play(struct audio_id id, f32 volume) {
   }
 }
 
-void audio_play_music(struct audio_id id, f32 volume) {
+void audio_play_music(struct audio_id id, f32 volume)
+{
   struct audio_entry* entry = audio_get_entry(id);
   if (entry) {
     cs_music_stop(0);

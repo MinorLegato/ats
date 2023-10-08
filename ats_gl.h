@@ -28,9 +28,9 @@ void gl_texture_rect_flip(struct tex_rect tex, r2 rect, f32 z, u32 color, b8 fli
 void gl_box(r3 box, u32 color);
 void gl_rect(r2 rect, f32 z, u32 color);
 
-struct gl_texture {
+struct gl_texture
+{
   u32 id;
-
   u16 width;
   u16 height;
 };
@@ -43,11 +43,13 @@ void gl_texture_update(struct gl_texture* texture, const void *pixels, u16 width
 void gl_texture_bind(const struct gl_texture* texture);
 void gl_texture_destroy(struct gl_texture* texture);
 
-struct gl_shader {
+struct gl_shader
+{
   u32 id;
 };
 
-struct gl_shader_desc {
+struct gl_shader_desc
+{
   const char* vs;
   const char* fs;
 };
@@ -69,12 +71,14 @@ void gl_uniform_m4(u32 location, m4 m);
 
 v3 gl_get_world_position(i32 x, i32 y, m4 in_projection, m4 in_modelview);
 
-struct gl_buffer {
+struct gl_buffer
+{
   u32 vao;
   u32 vbo;
 };
 
-struct gl_layout {
+struct gl_layout
+{
   u32 size;
   u32 type;
   u32 stride;
@@ -82,7 +86,8 @@ struct gl_layout {
   u32 normalize;
 };
 
-struct gl_buffer_desc {
+struct gl_buffer_desc
+{
   struct gl_layout layout[32];
 };
 

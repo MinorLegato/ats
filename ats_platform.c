@@ -7,13 +7,14 @@
 
 struct platform platform;
 
-static struct {
+static struct
+{
   GLFWwindow* window;
   GLFWmonitor* monitor;
 } platform_internal;
 
-static void
-window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
+static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
+{
   (void)window;
   (void)a;
   (void)b;
@@ -42,14 +43,14 @@ window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
   }
 }
 
-static void
-window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+static void window_char_callback(GLFWwindow* window, unsigned int codepoint)
+{
   platform.keyboard.is_ascii  = 1;
   platform.keyboard.ascii     = codepoint;
 }
 
-static void
-window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
+static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
+{
   (void)window;
   (void)a;
 
@@ -69,16 +70,16 @@ window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) 
   }
 }
 
-static void
-window_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset)
+{
   (void)window;
 
-  platform.mouse.scroll.x = (float)xoffset;
-  platform.mouse.scroll.y = (float)yoffset;
+  platform.mouse.scroll.x = (f32)xoffset;
+  platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void
-window_joystick_callback(int joy, int event) {
+static void window_joystick_callback(int joy, int event)
+{
   if (event == GLFW_CONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     platform.gamepad[joy].active = 1;
@@ -89,8 +90,8 @@ window_joystick_callback(int joy, int event) {
   }
 }
 
-void
-platform_init(const char* title, int width, int height, int samples) {
+void platform_init(const char* title, int width, int height, int samples)
+{
   glfwInit();
 
   platform_internal.monitor = glfwGetPrimaryMonitor();
@@ -157,8 +158,8 @@ platform_init(const char* title, int width, int height, int samples) {
   platform_update();
 }
 
-void
-platform_update(void) {
+void platform_update(void)
+{
   if (glfwWindowShouldClose(platform_internal.window))
     platform.close = 1;
 
@@ -207,7 +208,7 @@ platform_update(void) {
 
     for (int i = 0; i < JOYSTICK_LAST; ++i) {
       if (platform.gamepad[i].active) {
-        gamepad_buttons old = platform.gamepad[i].down;
+        union gamepad_buttons old = platform.gamepad[i].down;
 
         platform.gamepad[i].down.data       = 0;
         platform.gamepad[i].pressed.data    = 0;
@@ -280,8 +281,7 @@ platform_update(void) {
   platform.time.total += platform.time.delta;
 }
 
-double
-platform_get_time(void) {
+f64 platform_get_time(void) {
   return glfwGetTime();
 }
 

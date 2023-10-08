@@ -42,7 +42,8 @@
 // rt_end();
 #include "ats_base.h"  
 
-struct rt_state {
+struct rt_state
+{
   i32 at;
   f32 dt;
   f32 wait_for;

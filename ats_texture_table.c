@@ -1,7 +1,8 @@
 
 // ------------------------------------ texture table ------------------------------------- //
 
-struct tex_entry {
+struct tex_entry
+{
   b32 in_use;
   u32 hash;
 
@@ -9,7 +10,8 @@ struct tex_entry {
   char name[64];
 };
 
-struct tex_table {
+struct tex_table
+{
   u16 width;
   u16 height;
   u32* pixels;
@@ -17,7 +19,8 @@ struct tex_table {
   struct tex_entry array[TEXTURE_TABLE_SIZE];
 };
 
-struct tex_image {
+struct tex_image
+{
   b32 user_provided;
 
   u16 width;
@@ -31,27 +34,33 @@ static struct tex_table texture_table;
 static usize tex_image_count;
 static struct tex_image tex_image_array[1024];
 
-struct tex_table* tex_get_table(void) {
+struct tex_table* tex_get_table(void)
+{
   return &texture_table;
 }
 
-const u32* tex_get_pixels(void) {
+const u32* tex_get_pixels(void)
+{
   return texture_table.pixels;
 }
 
-u16 tex_get_width(void) {
+u16 tex_get_width(void)
+{
   return texture_table.width;
 }
 
-u16 tex_get_height(void) {
+u16 tex_get_height(void)
+{
   return texture_table.height;
 }
 
-struct tex_rect tex_get_rect(struct tex_id id) {
+struct tex_rect tex_get_rect(struct tex_id id)
+{
   return texture_table.array[id.index].rect;
 }
 
-struct tex_id tex_get_id(const char* name) {
+struct tex_id tex_get_id(const char* name)
+{
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
@@ -67,30 +76,35 @@ struct tex_id tex_get_id(const char* name) {
   return (struct tex_id) {0};
 }
 
-struct tex_rect tex_get(const char* name) {
+struct tex_rect tex_get(const char* name)
+{
   return tex_get_rect(tex_get_id(name));
 }
 
-static void cstr_copy_without_extension(char* out, const char* str) {
+static void cstr_copy_without_extension(char* out, const char* str)
+{
   while (*str && *str != '.') {
     *(out++) = *(str++);
   }
   *out = '\0';
 }
 
-static void cstr_concat(char* out, const char* a, const char* b) {
+static void cstr_concat(char* out, const char* a, const char* b)
+{
   while (*a) *out++ = *a++;
   while (*b) *out++ = *b++;
   *(out) = '\0';
 }
 
-static int tex_cmp_image(const void* va, const void* vb) {
+static int tex_cmp_image(const void* va, const void* vb)
+{
   const struct tex_image* a = (const struct tex_image*)va;
   const struct tex_image* b = (const struct tex_image*)vb;
   return b->width - a->width;
 }
 
-void tex_add_image(const char* name, const u32* pixels, u16 width, u16 height) {
+void tex_add_image(const char* name, const u32* pixels, u16 width, u16 height)
+{
   struct tex_image image = {0};
 
   image.user_provided = true;
@@ -103,7 +117,8 @@ void tex_add_image(const char* name, const u32* pixels, u16 width, u16 height) {
   tex_image_array[tex_image_count++] = image;
 }
 
-void tex_load_dir(const char* dir_path) {
+void tex_load_dir(const char* dir_path)
+{
   for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
     struct tex_image image = {0};
 
@@ -114,7 +129,8 @@ void tex_load_dir(const char* dir_path) {
   }
 }
 
-void tex_begin(u16 width, u16 height) {
+void tex_begin(u16 width, u16 height)
+{
   tex_image_count = 0;
 
   texture_table = (struct tex_table) {
@@ -129,14 +145,16 @@ void tex_begin(u16 width, u16 height) {
 static usize tex_stack_top; 
 static struct tex_rect tex_stack_buf[4096];
 
-b32 rect_contains_image(struct tex_rect rect, u16 width, u16 height) {
+b32 rect_contains_image(struct tex_rect rect, u16 width, u16 height)
+{
   u16 rect_width  = rect.max_x - rect.min_x;
   u16 rect_height = rect.max_y - rect.min_y;
 
   return width <= rect_width && height <= rect_height;
 }
 
-static struct tex_rect tex_get_fit(u16 width, u16 height) {
+static struct tex_rect tex_get_fit(u16 width, u16 height)
+{
   u32 j = 0;
   for (j = 0; j < tex_stack_top; ++j) {
     if (rect_contains_image(tex_stack_buf[j], width, height)) {
@@ -148,7 +166,8 @@ static struct tex_rect tex_get_fit(u16 width, u16 height) {
   return rect;
 }
 
-static void _tex_add_entry(const char* name, struct tex_rect rect) {
+static void _tex_add_entry(const char* name, struct tex_rect rect)
+{
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
@@ -168,16 +187,18 @@ static void _tex_add_entry(const char* name, struct tex_rect rect) {
   strcpy_s(entry->name, 64, name);
 }
 
-
-static inline u32 _tex_get_pixel(const struct tex_image* image, u16 x, u16 y) {
+static inline u32 _tex_get_pixel(const struct tex_image* image, u16 x, u16 y)
+{
   return image->pixels[y * image->width + x];
 }
 
-static inline void _tex_set_pixel(u16 x, u16 y, u32 color) {
+static inline void _tex_set_pixel(u16 x, u16 y, u32 color)
+{
   texture_table.pixels[y * texture_table.width + x] = color;
 }
 
-void tex_end(void) {
+void tex_end(void)
+{
   tex_stack_top = 0;
   tex_stack_buf[tex_stack_top++] = (struct tex_rect) {
     0,

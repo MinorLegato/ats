@@ -5,19 +5,22 @@
 
 // ====================================== BIT STUFF =================================== //
 
-static void bit_set(u32* array, u32 index) {
+static void bit_set(u32* array, u32 index)
+{
   u32 idx = index >> 5;
   u32 bit = index & 31;
   array[idx] |= (1 << bit);
 }
 
-static b32 bit_get(const u32* array, u32 index) {
+static b32 bit_get(const u32* array, u32 index)
+{
   u32 idx = index >> 5;
   u32 bit = index & 31;
   return array[idx] & (1 << bit);
 }
 
-static void bit_clr(u32* array, u32 index) {
+static void bit_clr(u32* array, u32 index)
+{
   u32 idx = index >> 5;
   u32 bit = index & 31;
   array[idx] &= ~(1 << bit);
@@ -25,7 +28,8 @@ static void bit_clr(u32* array, u32 index) {
 
 // ===================================== STRING STUFF ================================= //
 
-struct str {
+struct str
+{
   usize size;
   const char* data;
 };
@@ -36,40 +40,47 @@ struct str {
 #define str(text) (struct str) { sizeof (text) - 1, text }
 #define STR(text) { sizeof (text) - 1, text }
 
-static struct str str_create(const char* str) {
+static struct str str_create(const char* str)
+{
   struct str s = {0};
   s.size = strlen(str);
   s.data = str;
   return s;
 }
 
-static b32 str_equal(struct str a, struct str b) {
+static b32 str_equal(struct str a, struct str b)
+{
   if (a.size != b.size) return false;
   return memcmp(a.data, b.data, a.size) == 0;
 }
 
-static b32 str_equal_cstr(struct str a, const char* b) {
+static b32 str_equal_cstr(struct str a, const char* b)
+{
   usize b_size = strlen(b);
   if (a.size != b_size) return false;
   return memcmp(a.data, b, a.size) == 0;
 }
 
-static b32 str_empty(struct str s) {
+static b32 str_empty(struct str s)
+{
   return s.size == 0;
 }
 
-struct str_iter {
+struct str_iter
+{
   struct str current;
   const char* content;
   u32 del_table[8];
   u32 sep_table[8];
 };
 
-static b32 str_iter_is_valid(const struct str_iter* it) {
+static b32 str_iter_is_valid(const struct str_iter* it)
+{
   return it->current.size > 0;
 }
 
-static void str_iter_advance(struct str_iter* it) {
+static void str_iter_advance(struct str_iter* it)
+{
   while (*it->content && bit_get(it->del_table, *it->content) && !bit_get(it->sep_table, *it->content)) {
     it->content++;
   }
@@ -87,7 +98,8 @@ static void str_iter_advance(struct str_iter* it) {
   };
 }
 
-static struct str_iter str_iter_create(const char* cstr, const char* delimiters, const char* separators) {
+static struct str_iter str_iter_create(const char* cstr, const char* delimiters, const char* separators)
+{
   assert(delimiters);
   if (!separators) separators = "";
 
@@ -111,30 +123,35 @@ static struct str_iter str_iter_create(const char* cstr, const char* delimiters,
 
 #define SPATIAL_MAX (8 * 4096)
 
-struct sm_cell {
+struct sm_cell
+{
   void* e;
   r2 rect;
   struct sm_cell* next;
 };
 
-struct spatial_map {
+struct spatial_map
+{
   struct sm_cell* table[4096];
 
   usize count;
   struct sm_cell array[SPATIAL_MAX];
 };
 
-static void sm_clear(struct spatial_map* map) {
+static void sm_clear(struct spatial_map* map)
+{
   memset(map->table, 0, sizeof map->table);
   map->count = 0;
 }
 
-static u32 sm_index(const struct spatial_map* map, v2i pos) {
+static u32 sm_index(const struct spatial_map* map, v2i pos)
+{
   u32 hash = hash_v2i(pos);
   return hash % countof(map->table);
 }
 
-static void sm_add(struct spatial_map* map, void* e, r2 e_rect) {
+static void sm_add(struct spatial_map* map, void* e, r2 e_rect)
+{
   r2i rect = {
     (i32)e_rect.min.x, (i32)e_rect.min.y,
     (i32)e_rect.max.x, (i32)e_rect.max.y,
@@ -152,17 +169,20 @@ static void sm_add(struct spatial_map* map, void* e, r2 e_rect) {
   }
 }
 
-struct sm_entry {
+struct sm_entry
+{
   void* e;
   r2 rect;
 };
 
-struct sm_result {
+struct sm_result
+{
   usize count;
   struct sm_entry* array;
 };
 
-static struct sm_result sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+static struct sm_result sm_in_range(struct spatial_map* map, v2 pos, v2 rad, const void* ignore)
+{
   static struct sm_entry spatial_array[SPATIAL_MAX];
 
   struct sm_result result = {0};
@@ -203,13 +223,15 @@ static struct sm_result sm_in_range(struct spatial_map* map, v2 pos, v2 rad, con
   return result;
 }
 
-struct sm_iter {
+struct sm_iter
+{
   struct sm_entry* current;
   u32 index;
   struct sm_result result;
 };
 
-static struct sm_iter sm_get_iterator(struct spatial_map* map, v2 pos, v2 rad, const void* ignore) {
+static struct sm_iter sm_get_iterator(struct spatial_map* map, v2 pos, v2 rad, const void* ignore)
+{
   struct sm_iter it = {0};
 
   it.result = sm_in_range(map, pos, rad, ignore);
@@ -218,16 +240,19 @@ static struct sm_iter sm_get_iterator(struct spatial_map* map, v2 pos, v2 rad, c
   return it;
 }
 
-static b32 sm_iter_is_valid(const struct sm_iter* it) {
+static b32 sm_iter_is_valid(const struct sm_iter* it)
+{
   return it->index < it->result.count;
 }
 
-static void sm_iter_advance(struct sm_iter* it) {
+static void sm_iter_advance(struct sm_iter* it)
+{
   it->index++;
   it->current = it->result.array + it->index;
 }
 
-static void* sm_get_closest(struct spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*)) {
+static void* sm_get_closest(struct spatial_map* map, v2 pos, f32 range, const void* ignore, b32 (*condition_proc)(void*))
+{
   void* result = NULL;
   f32 distance = range;
 
@@ -254,7 +279,8 @@ static void* sm_get_closest(struct spatial_map* map, v2 pos, f32 range, const vo
   return result;
 }
 
-static void* sm_at_position(struct spatial_map* map, v2 pos) {
+static void* sm_at_position(struct spatial_map* map, v2 pos)
+{
   u32 index = sm_index(map, (v2i) { (i32)pos.x, (i32)pos.y });
   for (struct sm_cell* it = map->table[index]; it; it = it->next) {
     if (r2_contains(it->rect, pos)) {
@@ -270,27 +296,33 @@ static void* sm_at_position(struct spatial_map* map, v2 pos) {
 #define TRAVERSE_MOD        (511)
 #define TRAVERSE_ARRAY_SIZE (8192) // (512 * 512) / 32
 
-struct traverse_map {
+struct traverse_map
+{
   u32 array[TRAVERSE_ARRAY_SIZE];
 };
 
-static void tm_clear(struct traverse_map* map) {
+static void tm_clear(struct traverse_map* map)
+{
   memset(map, 0, sizeof (struct traverse_map));
 }
 
-static inline u32 tm_get_index(const struct traverse_map* map, u32 x, u32 y) {
+static inline u32 tm_get_index(const struct traverse_map* map, u32 x, u32 y)
+{
   return (y & TRAVERSE_MOD) * TRAVERSE_MAP_SIZE + (x & TRAVERSE_MOD);
 }
 
-static inline void tm_set_traversable(struct traverse_map* map, u32 x, u32 y) {
+static inline void tm_set_traversable(struct traverse_map* map, u32 x, u32 y)
+{
   bit_set(map->array, tm_get_index(map, x, y));
 }
 
-static inline b32 tm_is_traversable(const struct traverse_map* map, u32 x, u32 y) {
+static inline b32 tm_is_traversable(const struct traverse_map* map, u32 x, u32 y)
+{
   return bit_get(map->array, tm_get_index(map, x, y));
 }
 
-static v2 tm_cast_dir(const struct traverse_map* map, v2 pos, v2 dir, f32 max_range) {
+static v2 tm_cast_dir(const struct traverse_map* map, v2 pos, v2 dir, f32 max_range)
+{
 #if 0
   //if (!tm_is_traversable(map, pos.x, pos.y)) return pos;
 #endif
@@ -363,7 +395,8 @@ static v2 tm_cast_dir(const struct traverse_map* map, v2 pos, v2 dir, f32 max_ra
   return v2_add(pos, v2_scale(dir, (perp_wall_dist > max_range? max_range : perp_wall_dist)));
 }
 
-static v2 tm_cast_angle(const struct traverse_map* map, v2 from, f32 angle, f32 max_range) {
+static v2 tm_cast_angle(const struct traverse_map* map, v2 from, f32 angle, f32 max_range)
+{
   m2 rot = m2_rotate(angle);
   v2 dir = m2_mulv(rot, (v2) { 0, 1 });
 
@@ -372,7 +405,8 @@ static v2 tm_cast_angle(const struct traverse_map* map, v2 from, f32 angle, f32 
 
 // =========================================== RAY ITER ========================================== //
 
-struct ray_iter {
+struct ray_iter
+{
   v2 pos;
   v2 dir;
 
@@ -395,7 +429,8 @@ struct ray_iter {
   i32 side; // was a NS or a EW wall hit?
 };
 
-static struct ray_iter ray_iter_create(v2 pos, v2 dir) {
+static struct ray_iter ray_iter_create(v2 pos, v2 dir)
+{
   struct ray_iter it = {0};
 
   it.pos = pos;
@@ -439,11 +474,13 @@ static struct ray_iter ray_iter_create(v2 pos, v2 dir) {
   return it;
 }
 
-static b32 ray_iter_is_valid(const struct ray_iter* it) {
+static b32 ray_iter_is_valid(const struct ray_iter* it)
+{
   return true;
 }
 
-static void ray_iter_advance(struct ray_iter* it) {
+static void ray_iter_advance(struct ray_iter* it)
+{
   //jump to next map square, either in x-direction, or in y-direction
   if (it->side_dist_x < it->side_dist_y) {
     it->side_dist_x += it->delta_dist_x;
@@ -456,7 +493,8 @@ static void ray_iter_advance(struct ray_iter* it) {
   }
 }
 
-static v2 ray_iter_get_position(const struct ray_iter* it) {
+static v2 ray_iter_get_position(const struct ray_iter* it)
+{
   f32 perp_wall_dist = 0;
 
   if (it->side == 0) perp_wall_dist = (it->side_dist_x - it->delta_dist_x);
@@ -467,32 +505,38 @@ static v2 ray_iter_get_position(const struct ray_iter* it) {
 
 // ========================================= PRIORITY QUEUE ====================================== //
 
-struct priority_queue_entry {
+struct priority_queue_entry
+{
   f32 weight;
   v2i e;
 };
 
-struct priority_queue {
+struct priority_queue
+{
   u32 len;
   struct priority_queue_entry* array;
 };
 
-static struct priority_queue priority_queue_create(usize capacity) {
+static struct priority_queue priority_queue_create(usize capacity)
+{
   struct priority_queue queue = {0};
   queue.len   = 0;
   queue.array = mem_array(struct priority_queue_entry, capacity);
   return queue;
 }
 
-static b32 priority_queue_empty(const struct priority_queue* queue) {
+static b32 priority_queue_empty(const struct priority_queue* queue)
+{
   return queue->len == 0;
 }
 
-static void priority_queue_clear(struct priority_queue* queue) {
+static void priority_queue_clear(struct priority_queue* queue)
+{
   queue->len = 0;
 }
 
-static void priority_queue_push(struct priority_queue* queue, v2i e, f32 weight) {
+static void priority_queue_push(struct priority_queue* queue, v2i e, f32 weight)
+{
   struct priority_queue_entry node = { weight, e };
   u32 i = queue->len + 1;
   u32 j = i / 2;
@@ -505,7 +549,8 @@ static void priority_queue_push(struct priority_queue* queue, v2i e, f32 weight)
   queue->len++;
 }
 
-static f32 priority_queue_pop(v2i* out, struct priority_queue* queue) {
+static f32 priority_queue_pop(v2i* out, struct priority_queue* queue)
+{
   struct priority_queue_entry data = queue->array[1];
   queue->array[1] = queue->array[queue->len];
   queue->len--;

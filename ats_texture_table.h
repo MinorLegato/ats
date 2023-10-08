@@ -4,11 +4,13 @@
 
 #define TEXTURE_TABLE_SIZE (1024)
 
-struct tex_id {
+struct tex_id
+{
   u16 index;
 };
 
-struct tex_rect {
+struct tex_rect
+{
   u16 min_x;
   u16 min_y;
   u16 max_x;

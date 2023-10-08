@@ -53,74 +53,74 @@ typedef i64 fx64;
 
 // lerp:
 
-static fx8
-fx8_lerp(fx8 a, fx8 b, fx8 t) {
+static fx8 fx8_lerp(fx8 a, fx8 b, fx8 t)
+{
   return a + ((t * (b - a)) >> FX8_SHIFT);
 }
 
-static fx16
-fx16_lerp(fx16 a, fx16 b, fx16 t) {
+static fx16 fx16_lerp(fx16 a, fx16 b, fx16 t)
+{
   return a + ((t * (b - a)) >> FX16_SHIFT);
 }
 
-static fx32
-fx32_lerp(fx32 a, fx32 b, fx32 t) {
+static fx32 fx32_lerp(fx32 a, fx32 b, fx32 t)
+{
   return a + ((t * (b - a)) >> FX32_SHIFT);
 }
 
-static fx64
-fx64_lerp(fx64 a, fx64 b, fx64 t) {
+static fx64 fx64_lerp(fx64 a, fx64 b, fx64 t)
+{
   return a + ((t * (b - a)) >> FX64_SHIFT);
 }
 
 // sqrt:
 
-static fx8
-fx8_sqrt(fx8 n) {
+static fx8 fx8_sqrt(fx8 n)
+{
   f32 r = sqrt32(fx8_cast(n));
   return fx8_make(r);
 }
 
-static fx16
-fx16_sqrt(fx16 n) {
+static fx16 fx16_sqrt(fx16 n)
+{
   f32 r = sqrt32(fx16_cast(n));
   return fx16_make(r);
 }
 
-static fx32
-fx32_sqrt(fx32 n) {
+static fx32 fx32_sqrt(fx32 n)
+{
   f32 r = sqrt32(fx32_cast(n));
   return fx32_make(r);
 }
 
-static fx64
-fx64_sqrt(fx64 n) {
+static fx64 fx64_sqrt(fx64 n)
+{
   f32 r = sqrt32(fx64_cast(n));
   return fx64_make(r);
 }
 
 // rsqrt:
 
-static fx8
-fx8_rsqrt(fx8 n) {
+static fx8 fx8_rsqrt(fx8 n)
+{
   f32 r = rsqrt32(fx8_cast(n));
   return fx8_make(r);
 }
 
-static fx16
-fx16_rsqrt(fx16 n) {
+static fx16 fx16_rsqrt(fx16 n)
+{
   f32 r = rsqrt32(fx16_cast(n));
   return fx16_make(r);
 }
 
-static fx32
-fx32_rsqrt(fx32 n) {
+static fx32 fx32_rsqrt(fx32 n)
+{
   f32 r = rsqrt32(fx32_cast(n));
   return fx32_make(r);
 }
 
-static fx64
-fx64_rsqrt(fx64 n) {
+static fx64 fx64_rsqrt(fx64 n)
+{
   f32 r = rsqrt32(fx64_cast(n));
   return fx64_make(r);
 }

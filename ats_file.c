@@ -9,22 +9,22 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "ext/stb_image.h" 
 
-static usize
-_file_get_size(FILE* fp) {
+static usize _file_get_size(FILE* fp)
+{
   fseek(fp, 0L, SEEK_END);
   usize size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
   return size;
 }
 
-static FILE*
-file_open(const char* path, const char* mode) {
+static FILE* file_open(const char* path, const char* mode)
+{
   FILE* file = fopen(path, mode);
   return file;
 }
 
-usize
-file_get_size(const char* path) {
+usize file_get_size(const char* path)
+{
   FILE* fp = fopen(path, "rb");
   if (!fp) return 0;
   usize size = _file_get_size(fp);
@@ -32,8 +32,8 @@ file_get_size(const char* path) {
   return size;
 }
 
-char*
-file_read_str(const char* file_name) {
+char* file_read_str(const char* file_name)
+{
   char* buffer = NULL;
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
@@ -50,8 +50,8 @@ file_read_str(const char* file_name) {
   return buffer;
 }
 
-b32
-file_write_str(const char* file_name, const char* buffer) {
+b32 file_write_str(const char* file_name, const char* buffer)
+{
   FILE* fp = file_open(file_name, "w");
   if (fp) {
     usize size = strlen(buffer);
@@ -62,8 +62,8 @@ file_write_str(const char* file_name, const char* buffer) {
   return false;
 }
 
-b32
-file_append_str(const char* file_name, const char* buffer) {
+b32 file_append_str(const char* file_name, const char* buffer)
+{
   FILE* fp = file_open(file_name, "a");
   if (fp) {
     usize size = strlen(buffer);
@@ -74,8 +74,8 @@ file_append_str(const char* file_name, const char* buffer) {
   return false;
 }
 
-b32
-file_read_bin(const char* file_name, void* buffer, usize size) {
+b32 file_read_bin(const char* file_name, void* buffer, usize size)
+{
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
     fread(buffer, size, 1, fp);
@@ -85,8 +85,8 @@ file_read_bin(const char* file_name, void* buffer, usize size) {
   return false;
 } 
 
-b32
-file_write_bin(const char* file_name, const void* buffer, usize size) {
+b32 file_write_bin(const char* file_name, const void* buffer, usize size)
+{
   FILE *fp = file_open(file_name, "wb");
   if (fp) {
     fwrite(buffer, size, 1, fp);
@@ -96,8 +96,8 @@ file_write_bin(const char* file_name, const void* buffer, usize size) {
   return false;
 }
 
-u32*
-file_load_image(const char* path, u16* width, u16* height) {
+u32* file_load_image(const char* path, u16* width, u16* height)
+{
   u32* pixels = NULL;
 
   int channels = 0;
@@ -113,12 +113,12 @@ file_load_image(const char* path, u16* width, u16* height) {
   return pixels;
 }
 
-void
-file_free_image(const u32* pixels) {
+void file_free_image(const u32* pixels)
+{
   stbi_image_free((void*)pixels);
 }
 
-typedef struct file_iter {
+struct file_iter {
   char current[MAX_PATH];
 
   b32 done;
@@ -126,34 +126,34 @@ typedef struct file_iter {
 
   HANDLE handle;
   WIN32_FIND_DATAA data;
-} file_iter;
+};
 
-int
-file_iter_is_valid(const file_iter* it) {
+int file_iter_is_valid(const struct file_iter* it)
+{
   return !it->done;
 }
 
-static inline void
-file_cstr_concat(char* out, const char* a, const char* b) {
+static inline void file_cstr_concat(char* out, const char* a, const char* b)
+{
   while (*a) *out++ = *a++;
   while (*b) *out++ = *b++;
   *(out) = '\0';
 }
 
-void
-file_iter_advance(file_iter* it) {
+void file_iter_advance(struct file_iter* it)
+{
   it->done = !FindNextFileA(it->handle, &it->data);
   if (!it->done) {
     file_cstr_concat(it->current, it->path, it->data.cFileName);
   }
 }
 
-file_iter
-file_iter_create(const char* path, const char* ext) {
+struct file_iter file_iter_create(const char* path, const char* ext)
+{
   if (!path) path = "";
   if (!ext)  ext  = "*";
 
-  file_iter it = {0};
+  struct file_iter it = {0};
 
   it.path = path;
 
