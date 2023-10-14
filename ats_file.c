@@ -118,7 +118,7 @@ void file_free_image(const u32* pixels)
   stbi_image_free((void*)pixels);
 }
 
-struct file_iter {
+typedef struct file_iter {
   char current[MAX_PATH];
 
   b32 done;
@@ -126,9 +126,9 @@ struct file_iter {
 
   HANDLE handle;
   WIN32_FIND_DATAA data;
-};
+} file_iter;
 
-int file_iter_is_valid(const struct file_iter* it)
+int file_iter_is_valid(const file_iter* it)
 {
   return !it->done;
 }
@@ -140,7 +140,7 @@ static inline void file_cstr_concat(char* out, const char* a, const char* b)
   *(out) = '\0';
 }
 
-void file_iter_advance(struct file_iter* it)
+void file_iter_advance(file_iter* it)
 {
   it->done = !FindNextFileA(it->handle, &it->data);
   if (!it->done) {
@@ -148,12 +148,12 @@ void file_iter_advance(struct file_iter* it)
   }
 }
 
-struct file_iter file_iter_create(const char* path, const char* ext)
+file_iter file_iter_create(const char* path, const char* ext)
 {
   if (!path) path = "";
   if (!ext)  ext  = "*";
 
-  struct file_iter it = {0};
+  file_iter it = {0};
 
   it.path = path;
 

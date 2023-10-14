@@ -98,20 +98,20 @@ typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;
 
-#define cast(type, ...) ((type)__VA_ARGS__)
+#define cast(type, ...)   ((type)(__VA_ARGS__))
 
-#define cast_f32(...)   cast(f32, __VA_ARGS__)
-#define cast_f64(...)   cast(f64, __VA_ARGS__)
+#define castf32(...)      cast(f32, __VA_ARGS__)
+#define castf64(...)      cast(f64, __VA_ARGS__)
 
-#define cast_i8(...)    cast(i8,  __VA_ARGS__)
-#define cast_i16(...)   cast(i16, __VA_ARGS__)
-#define cast_i32(...)   cast(i32, __VA_ARGS__)
-#define cast_i64(...)   cast(i64, __VA_ARGS__)
+#define casti8(...)       cast(i8,  __VA_ARGS__)
+#define casti16(...)      cast(i16, __VA_ARGS__)
+#define casti32(...)      cast(i32, __VA_ARGS__)
+#define casti64(...)      cast(i64, __VA_ARGS__)
 
-#define cast_u8(...)    cast(u8,  __VA_ARGS__)
-#define cast_u16(...)   cast(u16, __VA_ARGS__)
-#define cast_u32(...)   cast(u32, __VA_ARGS__)
-#define cast_u64(...)   cast(u64, __VA_ARGS__)
+#define castu8(...)       cast(u8,  __VA_ARGS__)
+#define castu16(...)      cast(u16, __VA_ARGS__)
+#define castu32(...)      cast(u32, __VA_ARGS__)
+#define castu64(...)      cast(u64, __VA_ARGS__)
 
 #define match(...) \
   for (u32 _match_hash = hash_str(__VA_ARGS__), _with_hash = 0, _match_found = 0; _match_hash; _match_hash = 0)

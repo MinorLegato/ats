@@ -26,60 +26,47 @@ static void bit_clr(u32* array, u32 index)
   array[idx] &= ~(1 << bit);
 }
 
-// ===================================== STRING STUFF ================================= //
+// ========================================== S8 ====================================== //
 
-struct str
-{
-  usize size;
-  const char* data;
-};
+typedef struct {
+  u32 len;
+  u8* buf;
+} s8;
 
 #define STR_FMT "%.*s"
-#define STR_ARG(s) (int)(s).size, (s).data
+#define STR_ARG(s) (i32)(s).size, (s).data
 
-#define str(text) (struct str) { sizeof (text) - 1, text }
-#define STR(text) { sizeof (text) - 1, text }
+#define s8(text) (s8) { sizeof (text) - 1, text }
+#define S8(text) { sizeof (text) - 1, text }
 
-static struct str str_create(const char* str)
+#define s8_at(s, i) ((s)->buf[(i)])
+
+static b32 s8_eq(s8 a, s8 b)
 {
-  struct str s = {0};
-  s.size = strlen(str);
-  s.data = str;
-  return s;
+  if (a.len != b.len) return 0;
+  for (u32 i = 0; i < a.len; ++i) {
+    if (a.buf[i] != b.buf[i]) return 0;
+  }
+  return 1;
 }
 
-static b32 str_equal(struct str a, struct str b)
-{
-  if (a.size != b.size) return false;
-  return memcmp(a.data, b.data, a.size) == 0;
-}
+#if 0
+typedef struct {
+  s8 current;
+  s8 content;
 
-static b32 str_equal_cstr(struct str a, const char* b)
-{
-  usize b_size = strlen(b);
-  if (a.size != b_size) return false;
-  return memcmp(a.data, b, a.size) == 0;
-}
+  u32 idx;
 
-static b32 str_empty(struct str s)
-{
-  return s.size == 0;
-}
-
-struct str_iter
-{
-  struct str current;
-  const char* content;
   u32 del_table[8];
   u32 sep_table[8];
-};
+} s8_iter;
 
-static b32 str_iter_is_valid(const struct str_iter* it)
+static b32 s8_iter_is_valid(s8_iter* it)
 {
   return it->current.size > 0;
 }
 
-static void str_iter_advance(struct str_iter* it)
+static void s8_iter_advance(s8_iter* it)
 {
   while (*it->content && bit_get(it->del_table, *it->content) && !bit_get(it->sep_table, *it->content)) {
     it->content++;
@@ -92,42 +79,40 @@ static void str_iter_advance(struct str_iter* it)
       it->content++;
     }
   }
-  it->current = (struct str) {
+  it->current = (s8) {
     (usize)(it->content - begin),
     begin,
   };
 }
 
-static struct str_iter str_iter_create(const char* cstr, const char* delimiters, const char* separators)
+static s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators)
 {
-  assert(delimiters);
-  if (!separators) separators = "";
+  s8_iter it = {0};
 
-  struct str_iter it = {0};
+  it.content = content;
 
-  it.content = cstr;
-
-  for (u32 i = 0; delimiters[i]; ++i) {
-    bit_set(it.del_table, delimiters[i]);
+  for (u32 i = 0; i < delimiters.len; ++i) {
+    bit_set(it.del_table, s8_at(delimiters, i));
   }
 
-  for (u32 i = 0; separators[i]; ++i) {
-    bit_set(it.sep_table, separators[i]);
+  for (u32 i = 0; i < separators.len; ++i) {
+    bit_set(it.sep_table, s8_at(separators, i));
   }
 
   str_iter_advance(&it);
   return it;
 }
+#endif
 
 // =================================================== SPATIAL MAP =================================================== //
 
 #define SPATIAL_MAX (8 * 4096)
 
-struct sm_cell
-{
+typedef struct sm_cell sm_cell;
+struct sm_cell {
   void* e;
   r2 rect;
-  struct sm_cell* next;
+  sm_cell* next;
 };
 
 struct spatial_map

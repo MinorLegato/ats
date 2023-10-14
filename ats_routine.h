@@ -42,13 +42,12 @@
 // rt_end();
 #include "ats_base.h"  
 
-struct rt_state
-{
+typedef struct {
   i32 at;
   f32 dt;
   f32 wait_for;
   f32 repeat_for;
-};
+} rt_state;
 
 #define RT_LABEL_OFFSET 1147483647
 
