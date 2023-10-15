@@ -57,7 +57,7 @@ typedef struct {
   if (rt.wait_for > 0) { \
     rt.wait_for -= (delta_time); \
   } else { \
-    struct rt_state* __rt = &(rt); \
+    rt_state* __rt = &(rt); \
     __rt->dt = (delta_time); \
     int __mn = 1; \
     switch (__rt->at) { \

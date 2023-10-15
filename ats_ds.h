@@ -63,7 +63,7 @@ typedef struct {
 
 static b32 s8_iter_is_valid(s8_iter* it)
 {
-  return it->current.size > 0;
+  return it->current.len > 0;
 }
 
 static void s8_iter_advance(s8_iter* it)
@@ -556,29 +556,3 @@ static f32 priority_queue_pop(v2i* out, struct priority_queue* queue)
   return data.weight;
 }
 
-// ================================ FIXED CAPACITY HEAP ARRAY ==================================== //
-
-#if 0
-struct array_header {
-  u32 cap;
-  u32 len;
-};
-
-#define array_create(type, capacity) (type*)array_create_internal(sizeof (type), (capacity))
-
-#define array_hdr(a)        ((array_header*)(a) - 1)
-#define array_len(a)        array_hdr(a)->len
-#define array_cap(a)        array_hdr(a)->cap
-#define array_add(a, ...)   ((a)[array_hdr(a)->len++] = __VA_ARGS__)
-#define array_rem(a, index) ((a)[(index)] = (a)[--array_len(a)])
-#define array_clear(a)      (array_len(a) = 0)
-#define array_sort(a, cmp)  qsort((a), array_len(a), sizeof (a)[0], cmp)
-
-static void* array_create_internal(u32 type_size, u32 capacity) {
-  array_header* hdr = (array_header*)mem_alloc(sizeof (array_header) + type_size * capacity);
-  hdr->cap = capacity;
-  hdr->len = 0;
-  return hdr + 1;
-}
-
-#endif
