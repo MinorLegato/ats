@@ -5,10 +5,7 @@
 #include "ext/glad/glad.c"
 #endif
 
-struct platform platform;
-
-static struct
-{
+static struct {
   GLFWwindow* window;
   GLFWmonitor* monitor;
 } platform_internal;
@@ -90,7 +87,7 @@ static void window_joystick_callback(int joy, int event)
   }
 }
 
-void platform_init(const char* title, int width, int height, int samples)
+static void platform_init(const char* title, int width, int height, int samples)
 {
   glfwInit();
 
@@ -158,7 +155,7 @@ void platform_init(const char* title, int width, int height, int samples)
   platform_update();
 }
 
-void platform_update(void)
+static void platform_update(void)
 {
   if (glfwWindowShouldClose(platform_internal.window))
     platform.close = 1;
@@ -208,7 +205,7 @@ void platform_update(void)
 
     for (int i = 0; i < JOYSTICK_LAST; ++i) {
       if (platform.gamepad[i].active) {
-        union gamepad_buttons old = platform.gamepad[i].down;
+        gamepad_buttons old = platform.gamepad[i].down;
 
         platform.gamepad[i].down.data       = 0;
         platform.gamepad[i].pressed.data    = 0;
@@ -281,7 +278,7 @@ void platform_update(void)
   platform.time.total += platform.time.delta;
 }
 
-f64 platform_get_time(void) {
+static f64 platform_get_time(void) {
   return glfwGetTime();
 }
 

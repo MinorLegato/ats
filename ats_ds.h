@@ -33,8 +33,8 @@ typedef struct {
   u8* buf;
 } s8;
 
-#define STR_FMT "%.*s"
-#define STR_ARG(s) (i32)(s).size, (s).data
+#define S8_FMT "%.*s"
+#define S8_ARG(s) (i32)(s).len, (s).buf
 
 #define s8(text) (s8) { sizeof (text) - 1, text }
 #define S8(text) { sizeof (text) - 1, text }

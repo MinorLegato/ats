@@ -16,7 +16,7 @@
 #define MEM_DEFAULT_SIZE MEM_MIB(256)
 #endif
 
-int ats_main(void);
+static int ats_main(void);
 
 #ifdef ATS_NO_CONSOLE
 int WinMain(HINSTANCE a, HINSTANCE b, LPSTR c, int d)

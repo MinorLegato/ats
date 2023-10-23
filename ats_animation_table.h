@@ -29,14 +29,14 @@ typedef struct {
   f32 duration;
 } at_asset;
 
-void at_begin(void);
-void at_end(void);
-void at_add_entity(const char* name);
-void at_add_animation(const char* name);
-void at_add_frame(const char* name);
+static void at_begin(void);
+static void at_end(void);
+static void at_add_entity(const char* name);
+static void at_add_animation(const char* name);
+static void at_add_frame(const char* name);
 
-at_asset at_get(const char* name);
-void at_set(at_asset* asset, const char* name);
-void at_update(at_asset* asset, f32 dt);
+static at_asset at_get(const char* name);
+static void at_set(at_asset* asset, const char* name);
+static void at_update(at_asset* asset, f32 dt);
 
 

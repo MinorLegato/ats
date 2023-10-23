@@ -9,12 +9,9 @@
 
 // ------------------- platform layer ------------------------ //
 
-struct platform;
-extern struct platform platform;
-
-void platform_init(const char* title, int width, int height, int samples);
-void platform_update(void);
-f64  platform_get_time(void);
+static void platform_init(const char* title, int width, int height, int samples);
+static void platform_update(void);
+static f64  platform_get_time(void);
 
 // ===================================================== KEYS =================================================== //
 
@@ -205,8 +202,7 @@ f64  platform_get_time(void);
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-union gamepad_buttons
-{
+typedef union {
   struct {
     u32 x : 1;
     u32 a : 1;
@@ -230,10 +226,9 @@ union gamepad_buttons
   } button;
 
   u32 data;
-};
+} gamepad_buttons;
 
-struct gamepad
-{
+typedef struct {
   b32 active;
 
   v2 left_stick;
@@ -242,20 +237,19 @@ struct gamepad
   f32 left_trigger;
   f32 right_trigger;
 
-  union gamepad_buttons down;
-  union gamepad_buttons pressed;
-  union gamepad_buttons released;
-};
+  gamepad_buttons down;
+  gamepad_buttons pressed;
+  gamepad_buttons released;
+} gamepad;
 
-enum mouse_mode
-{
+typedef u8 mouse_mode;
+enum {
   MOUSE_MODE_NORMAL,
   MOUSE_MODE_HIDDEN,
   MOUSE_MODE_DISABLED,
 };
 
-struct platform
-{
+static struct {
   b32 close;
 
   i32 width;
@@ -274,7 +268,7 @@ struct platform
   } time;
 
   struct {
-    enum mouse_mode mode;
+    mouse_mode mode;
 
     b32 is_down : 1;
     b32 is_pressed : 1;
@@ -305,30 +299,29 @@ struct platform
     b8 released[KEY_LAST + 1];
   } keyboard;
 
-  struct gamepad gamepad[JOYSTICK_LAST];
-};
+  gamepad gamepad[JOYSTICK_LAST];
+} platform;
 
-struct timer_entry
-{
+typedef struct {
   const char* name;
 
   f64 start;
   f64 stop;
 
   u32 depth;
-};
+} timer_entry;
 
 static u32 timer_top;
-static struct timer_entry timer_stack[512];
+static timer_entry timer_stack[512];
 
 static u32 timer_count;
-static struct timer_entry timer_array[512];
+static timer_entry timer_array[512];
 
 #define timer_scope(name) scope_guard(timer_start(name), timer_stop())
 
 static void timer_start(const char* name)
 {
-  struct timer_entry* entry = timer_stack + timer_top++;
+  timer_entry* entry = timer_stack + timer_top++;
 
   entry->name = name;
   entry->start = platform_get_time();
@@ -338,7 +331,7 @@ static void timer_start(const char* name)
 
 static void timer_stop(void)
 {
-  struct timer_entry* entry = timer_stack + (--timer_top);
+  timer_entry* entry = timer_stack + (--timer_top);
 
   entry->stop = platform_get_time();
   timer_array[timer_count++] = *entry;
@@ -355,7 +348,7 @@ static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy)
   int y = 0;
   // @TODO: fix render order within scopes!
   for (int i = timer_count - 1; i >= 0; --i) {
-    struct timer_entry e = timer_array[i];
+    timer_entry e = timer_array[i];
     gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
     y++;
   }

@@ -31,32 +31,32 @@ static tex_table texture_table;
 static usize tex_image_count;
 static tex_image tex_image_array[1024];
 
-tex_table* tex_get_table(void)
+static tex_table* tex_get_table(void)
 {
   return &texture_table;
 }
 
-u32* tex_get_pixels(void)
+static u32* tex_get_pixels(void)
 {
   return texture_table.pixels;
 }
 
-u16 tex_get_width(void)
+static u16 tex_get_width(void)
 {
   return texture_table.width;
 }
 
-u16 tex_get_height(void)
+static u16 tex_get_height(void)
 {
   return texture_table.height;
 }
 
-tex_rect tex_get_rect(tex_id id)
+static tex_rect tex_get_rect(tex_id id)
 {
   return texture_table.array[id.index].rect;
 }
 
-tex_id tex_get_id(const char* name)
+static tex_id tex_get_id(const char* name)
 {
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
@@ -73,7 +73,7 @@ tex_id tex_get_id(const char* name)
   return (tex_id) {0};
 }
 
-tex_rect tex_get(const char* name)
+static tex_rect tex_get(const char* name)
 {
   return tex_get_rect(tex_get_id(name));
 }
@@ -100,7 +100,7 @@ static int tex_cmp_image(const void* va, const void* vb)
   return b->width - a->width;
 }
 
-void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
+static void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
 {
   tex_image image = {0};
 
@@ -114,7 +114,7 @@ void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
   tex_image_array[tex_image_count++] = image;
 }
 
-void tex_load_dir(const char* dir_path)
+static void tex_load_dir(const char* dir_path)
 {
   for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
     tex_image image = {0};
@@ -126,7 +126,7 @@ void tex_load_dir(const char* dir_path)
   }
 }
 
-void tex_begin(u16 width, u16 height)
+static void tex_begin(u16 width, u16 height)
 {
   tex_image_count = 0;
 
@@ -142,7 +142,7 @@ void tex_begin(u16 width, u16 height)
 static usize tex_stack_top; 
 static tex_rect tex_stack_buf[4096];
 
-b32 rect_contains_image(tex_rect rect, u16 width, u16 height)
+static b32 rect_contains_image(tex_rect rect, u16 width, u16 height)
 {
   u16 rect_width  = rect.max_x - rect.min_x;
   u16 rect_height = rect.max_y - rect.min_y;
@@ -194,7 +194,7 @@ static inline void _tex_set_pixel(u16 x, u16 y, u32 color)
   texture_table.pixels[y * texture_table.width + x] = color;
 }
 
-void tex_end(void)
+static void tex_end(void)
 {
   tex_stack_top = 0;
   tex_stack_buf[tex_stack_top++] = (tex_rect) {

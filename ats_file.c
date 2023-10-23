@@ -23,7 +23,7 @@ static FILE* file_open(const char* path, const char* mode)
   return file;
 }
 
-usize file_get_size(const char* path)
+static usize file_get_size(const char* path)
 {
   FILE* fp = fopen(path, "rb");
   if (!fp) return 0;
@@ -32,7 +32,7 @@ usize file_get_size(const char* path)
   return size;
 }
 
-char* file_read_str(const char* file_name)
+static char* file_read_str(const char* file_name)
 {
   char* buffer = NULL;
   FILE* fp = file_open(file_name, "rb");
@@ -50,7 +50,7 @@ char* file_read_str(const char* file_name)
   return buffer;
 }
 
-b32 file_write_str(const char* file_name, const char* buffer)
+static b32 file_write_str(const char* file_name, const char* buffer)
 {
   FILE* fp = file_open(file_name, "w");
   if (fp) {
@@ -62,7 +62,7 @@ b32 file_write_str(const char* file_name, const char* buffer)
   return false;
 }
 
-b32 file_append_str(const char* file_name, const char* buffer)
+static b32 file_append_str(const char* file_name, const char* buffer)
 {
   FILE* fp = file_open(file_name, "a");
   if (fp) {
@@ -74,7 +74,7 @@ b32 file_append_str(const char* file_name, const char* buffer)
   return false;
 }
 
-b32 file_read_bin(const char* file_name, void* buffer, usize size)
+static b32 file_read_bin(const char* file_name, void* buffer, usize size)
 {
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
@@ -85,7 +85,7 @@ b32 file_read_bin(const char* file_name, void* buffer, usize size)
   return false;
 } 
 
-b32 file_write_bin(const char* file_name, const void* buffer, usize size)
+static b32 file_write_bin(const char* file_name, const void* buffer, usize size)
 {
   FILE *fp = file_open(file_name, "wb");
   if (fp) {
@@ -96,7 +96,7 @@ b32 file_write_bin(const char* file_name, const void* buffer, usize size)
   return false;
 }
 
-u32* file_load_image(const char* path, u16* width, u16* height)
+static u32* file_load_image(const char* path, u16* width, u16* height)
 {
   u32* pixels = NULL;
 
@@ -113,7 +113,7 @@ u32* file_load_image(const char* path, u16* width, u16* height)
   return pixels;
 }
 
-void file_free_image(const u32* pixels)
+static void file_free_image(const u32* pixels)
 {
   stbi_image_free((void*)pixels);
 }
@@ -128,7 +128,7 @@ typedef struct file_iter {
   WIN32_FIND_DATAA data;
 } file_iter;
 
-int file_iter_is_valid(const file_iter* it)
+static int file_iter_is_valid(const file_iter* it)
 {
   return !it->done;
 }
@@ -140,7 +140,7 @@ static inline void file_cstr_concat(char* out, const char* a, const char* b)
   *(out) = '\0';
 }
 
-void file_iter_advance(file_iter* it)
+static void file_iter_advance(file_iter* it)
 {
   it->done = !FindNextFileA(it->handle, &it->data);
   if (!it->done) {
@@ -148,7 +148,7 @@ void file_iter_advance(file_iter* it)
   }
 }
 
-file_iter file_iter_create(const char* path, const char* ext)
+static file_iter file_iter_create(const char* path, const char* ext)
 {
   if (!path) path = "";
   if (!ext)  ext  = "*";
