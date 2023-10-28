@@ -34,12 +34,12 @@ static usize file_get_size(const char* path)
 
 static s8 file_read_s8(const char* file_name)
 {
-  u8* buffer  = NULL;
-  usize size  = 0;
+  u8* buffer = NULL;
+  isize size = 0;
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
     size   = _file_get_size(fp);
-    buffer = (char*)mem_alloc(size + 1);
+    buffer = (u8*)mem_alloc(size + 1);
     if (buffer) {
       buffer[size] = 0;
       if (fread(buffer, 1, size, fp) == 0) {
@@ -48,7 +48,7 @@ static s8 file_read_s8(const char* file_name)
     }
     fclose(fp);
   }
-  return (s8) { (isize)size, buffer };
+  return (s8) { size, buffer };
 }
 
 static b32 file_write_str(const char* file_name, s8 buffer)
@@ -117,7 +117,7 @@ static void file_free_image(const u32* pixels)
   stbi_image_free((void*)pixels);
 }
 
-typedef struct file_iter {
+typedef struct {
   char current[MAX_PATH];
 
   b32 done;
@@ -127,12 +127,12 @@ typedef struct file_iter {
   WIN32_FIND_DATAA data;
 } file_iter;
 
-static int file_iter_is_valid(const file_iter* it)
+static int file_iter_is_valid(file_iter* it)
 {
   return !it->done;
 }
 
-static inline void file_cstr_concat(char* out, const char* a, const char* b)
+static void file_cstr_concat(char* out, const char* a, const char* b)
 {
   while (*a) *out++ = *a++;
   while (*b) *out++ = *b++;
