@@ -33,6 +33,8 @@ typedef struct {
   u8* buf;
 } s8;
 
+#define S8_ASSERT(s) assert((s).buf && (s).len > 0)
+
 #define S8_FMT "%.*s"
 #define S8_ARG(s) (i32)(s).len, (s).buf
 
@@ -76,14 +78,11 @@ static void s8_iter_advance(s8_iter* it)
     it->content.buf++;
     it->content.len--;
   }
-
   it->current = it->content;
   it->current.len = it->content.len != 0;
-
-  if (bit_get(it->sep_table, it->current.buf[0])) {
-    it->content.buf++;
-    it->content.len--;
-  } else {
+  it->content.buf += it->current.len;
+  it->content.len -= it->current.len;
+  if (!bit_get(it->sep_table, it->current.buf[0])) {
     while ((it->current.len > 0) && !bit_get(it->del_table, it->content.buf[0]) && !bit_get(it->sep_table, it->content.buf[0])) {
       it->content.buf++;
       it->content.len--;
@@ -95,17 +94,13 @@ static void s8_iter_advance(s8_iter* it)
 static s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators)
 {
   s8_iter it = {0};
-
   it.content = content;
-
   for (u32 i = 0; i < delimiters.len; ++i) {
     bit_set(it.del_table, delimiters.buf[i]);
   }
-
   for (u32 i = 0; i < separators.len; ++i) {
     bit_set(it.sep_table, separators.buf[i]);
   }
-
   s8_iter_advance(&it);
   return it;
 }
