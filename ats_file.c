@@ -177,7 +177,7 @@ static file_iter file_iter_create(const char* path, const char* ext)
 
 static b32 file_iter_at_directory(file_iter* it)
 {
-   const char* n = it->data.cFileName;
-   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
+  const char* n = it->data.cFileName;
+  return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
