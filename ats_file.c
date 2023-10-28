@@ -119,9 +119,9 @@ static void file_free_image(const u32* pixels)
 
 typedef struct {
   char current[MAX_PATH];
+  char path[MAX_PATH];
 
   b32 done;
-  const char* path;
 
   HANDLE handle;
   WIN32_FIND_DATAA data;
@@ -154,10 +154,16 @@ static file_iter file_iter_create(const char* path, const char* ext)
 
   file_iter it = {0};
 
-  it.path = path;
+  u32 i = 0;
+  for (i = 0; path[i]; ++i) {
+    it.path[i] = path[i];
+  }
+  if (it.path[i - 1] != '/') {
+    it.path[i] = '/';
+  }
 
   char find_file_str[MAX_PATH] = {0};
-  file_cstr_concat(find_file_str, path, ext);
+  file_cstr_concat(find_file_str, it.path, ext);
 
   it.handle = FindFirstFileA(find_file_str, &it.data);
   it.done = it.handle == INVALID_HANDLE_VALUE;
