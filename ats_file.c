@@ -32,12 +32,13 @@ static usize file_get_size(const char* path)
   return size;
 }
 
-static char* file_read_str(const char* file_name)
+static s8 file_read_s8(const char* file_name)
 {
-  char* buffer = NULL;
+  u8* buffer  = NULL;
+  usize size  = 0;
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
-    usize size = _file_get_size(fp);
+    size   = _file_get_size(fp);
     buffer = (char*)mem_alloc(size + 1);
     if (buffer) {
       buffer[size] = 0;
@@ -47,29 +48,27 @@ static char* file_read_str(const char* file_name)
     }
     fclose(fp);
   }
-  return buffer;
+  return (s8) { (isize)size, buffer };
 }
 
-static b32 file_write_str(const char* file_name, const char* buffer)
+static b32 file_write_str(const char* file_name, s8 buffer)
 {
   FILE* fp = file_open(file_name, "w");
   if (fp) {
-    usize size = strlen(buffer);
-    usize n = fwrite(buffer, 1, size, fp);
+    usize n = fwrite(buffer.buf, 1, buffer.len, fp);
     fclose(fp);
-    return n == size;
+    return n == buffer.len;
   }
   return false;
 }
 
-static b32 file_append_str(const char* file_name, const char* buffer)
+static b32 file_append_str(const char* file_name, s8 buffer)
 {
   FILE* fp = file_open(file_name, "a");
   if (fp) {
-    usize size = strlen(buffer);
-    usize n = fwrite(buffer, 1, size, fp);
+    usize n = fwrite(buffer.buf, 1, buffer.len, fp);
     fclose(fp);
-    return n == size;
+    return n == buffer.len;
   }
   return false;
 }

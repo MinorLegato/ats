@@ -67,7 +67,7 @@
   for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
 #define for_iter(iter_type, iter_name, ...) \
-  for (struct iter_type iter_name = (__VA_ARGS__); \
+  for (iter_type iter_name = (__VA_ARGS__); \
        iter_type##_is_valid(&iter_name); \
        iter_type##_advance(&iter_name))
 

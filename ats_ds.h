@@ -107,6 +107,7 @@ static s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators)
 
 // =================================================== SPATIAL MAP =================================================== //
 
+#if 0
 #define SPATIAL_MAX (8 * 4096)
 
 typedef struct sm_cell sm_cell;
@@ -209,8 +210,7 @@ static struct sm_result sm_in_range(struct spatial_map* map, v2 pos, v2 rad, con
   return result;
 }
 
-struct sm_iter
-{
+struct sm_iter {
   struct sm_entry* current;
   u32 index;
   struct sm_result result;
@@ -388,11 +388,11 @@ static v2 tm_cast_angle(const struct traverse_map* map, v2 from, f32 angle, f32 
 
   return tm_cast_dir(map, from, dir, max_range);
 }
+#endif
 
 // =========================================== RAY ITER ========================================== //
 
-struct ray_iter
-{
+typedef struct {
   v2 pos;
   v2 dir;
 
@@ -413,11 +413,11 @@ struct ray_iter
   int step_y;
 
   i32 side; // was a NS or a EW wall hit?
-};
+} ray_iter;
 
-static struct ray_iter ray_iter_create(v2 pos, v2 dir)
+static ray_iter ray_iter_create(v2 pos, v2 dir)
 {
-  struct ray_iter it = {0};
+  ray_iter it = {0};
 
   it.pos = pos;
   it.dir = dir;
@@ -460,12 +460,12 @@ static struct ray_iter ray_iter_create(v2 pos, v2 dir)
   return it;
 }
 
-static b32 ray_iter_is_valid(const struct ray_iter* it)
+static b32 ray_iter_is_valid(ray_iter* it)
 {
   return true;
 }
 
-static void ray_iter_advance(struct ray_iter* it)
+static void ray_iter_advance(ray_iter* it)
 {
   //jump to next map square, either in x-direction, or in y-direction
   if (it->side_dist_x < it->side_dist_y) {
@@ -479,7 +479,7 @@ static void ray_iter_advance(struct ray_iter* it)
   }
 }
 
-static v2 ray_iter_get_position(const struct ray_iter* it)
+static v2 ray_iter_get_position(ray_iter* it)
 {
   f32 perp_wall_dist = 0;
 
