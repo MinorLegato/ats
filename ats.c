@@ -20,11 +20,13 @@ static int ats_main(void);
 
 #ifdef ATS_NO_CONSOLE
 int WinMain(HINSTANCE a, HINSTANCE b, LPSTR c, int d)
-  (void)a; (void)b; (void)c; (void)d;
 #else
 int main(void)
 #endif
 {
+#ifndef ATS_NO_CONSOLE
+  (void)a; (void)b; (void)c; (void)d;
+#endif
   static u8 memory_buffer[MEM_DEFAULT_SIZE];
   mem_arena default_arena = mem_create(memory_buffer, countof(memory_buffer));
 

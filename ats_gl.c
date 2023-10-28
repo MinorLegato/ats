@@ -803,13 +803,13 @@ static gl_shader gl_shader_load_from_file(const char *vs, const char *fs)
   gl_shader shader = {0};
 
   mem_scope() {
-    char* vs_content = file_read_str(vs);
-    char* fs_content = file_read_str(fs);
+    s8 vs_content = file_read_s8(vs);
+    s8 fs_content = file_read_s8(fs);
 
     gl_shader_desc desc = {0};
 
-    desc.vs = vs_content;
-    desc.fs = fs_content;
+    desc.vs = vs_content.buf;
+    desc.fs = fs_content.buf;
 
     shader = gl_shader_create(desc);
   }
