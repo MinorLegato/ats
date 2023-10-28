@@ -29,7 +29,7 @@ static void bit_clr(u32* array, u32 index)
 // ========================================== S8 ====================================== //
 
 typedef struct {
-  u32 len;
+  isize len;
   u8* buf;
 } s8;
 
@@ -38,8 +38,6 @@ typedef struct {
 
 #define s8(text) (s8) { sizeof (text) - 1, text }
 #define S8(text) { sizeof (text) - 1, text }
-
-#define s8_at(s, i) ((s)->buf[(i)])
 
 static b32 s8_eq(s8 a, s8 b)
 {
@@ -50,15 +48,21 @@ static b32 s8_eq(s8 a, s8 b)
   return 1;
 }
 
-#if 0
+static b32 s8_empty(s8 s)
+{
+  return s.len == 0;
+}
+
+#define S8_ITER_TABLE (256 >> 5)
+
 typedef struct {
   s8 current;
   s8 content;
 
   u32 idx;
 
-  u32 del_table[8];
-  u32 sep_table[8];
+  u32 del_table[S8_ITER_TABLE];
+  u32 sep_table[S8_ITER_TABLE];
 } s8_iter;
 
 static b32 s8_iter_is_valid(s8_iter* it)
@@ -68,21 +72,24 @@ static b32 s8_iter_is_valid(s8_iter* it)
 
 static void s8_iter_advance(s8_iter* it)
 {
-  while (*it->content && bit_get(it->del_table, *it->content) && !bit_get(it->sep_table, *it->content)) {
-    it->content++;
+  while ((it->content.len > 0) && bit_get(it->del_table, it->content.buf[0]) && !bit_get(it->sep_table, it->content.buf[0])) {
+    it->content.buf++;
+    it->content.len--;
   }
-  const char* begin = it->content;
-  if (bit_get(it->sep_table, *it->content)) {
-    it->content++;
+
+  it->current = it->content;
+  it->current.len = it->content.len != 0;
+
+  if (bit_get(it->sep_table, it->current.buf[0])) {
+    it->content.buf++;
+    it->content.len--;
   } else {
-    while (*it->content && !bit_get(it->del_table, *it->content) && !bit_get(it->sep_table, *it->content)) {
-      it->content++;
+    while ((it->current.len > 0) && !bit_get(it->del_table, it->content.buf[0]) && !bit_get(it->sep_table, it->content.buf[0])) {
+      it->content.buf++;
+      it->content.len--;
+      it->current.len++;
     }
   }
-  it->current = (s8) {
-    (usize)(it->content - begin),
-    begin,
-  };
 }
 
 static s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators)
@@ -92,17 +99,16 @@ static s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators)
   it.content = content;
 
   for (u32 i = 0; i < delimiters.len; ++i) {
-    bit_set(it.del_table, s8_at(delimiters, i));
+    bit_set(it.del_table, delimiters.buf[i]);
   }
 
   for (u32 i = 0; i < separators.len; ++i) {
-    bit_set(it.sep_table, s8_at(separators, i));
+    bit_set(it.sep_table, separators.buf[i]);
   }
 
-  str_iter_advance(&it);
+  s8_iter_advance(&it);
   return it;
 }
-#endif
 
 // =================================================== SPATIAL MAP =================================================== //
 
@@ -490,39 +496,37 @@ static v2 ray_iter_get_position(const struct ray_iter* it)
 
 // ========================================= PRIORITY QUEUE ====================================== //
 
-struct priority_queue_entry
-{
+typedef struct {
   f32 weight;
   v2i e;
-};
+} priority_queue_entry;
 
-struct priority_queue
-{
+typedef struct {
   u32 len;
-  struct priority_queue_entry* array;
-};
+  priority_queue_entry* array;
+} priority_queue;
 
-static struct priority_queue priority_queue_create(usize capacity)
+static priority_queue priority_queue_create(usize capacity)
 {
-  struct priority_queue queue = {0};
+  priority_queue queue = {0};
   queue.len   = 0;
-  queue.array = mem_array(struct priority_queue_entry, capacity);
+  queue.array = mem_array(priority_queue_entry, capacity);
   return queue;
 }
 
-static b32 priority_queue_empty(const struct priority_queue* queue)
+static b32 priority_queue_empty(priority_queue* queue)
 {
   return queue->len == 0;
 }
 
-static void priority_queue_clear(struct priority_queue* queue)
+static void priority_queue_clear(priority_queue* queue)
 {
   queue->len = 0;
 }
 
-static void priority_queue_push(struct priority_queue* queue, v2i e, f32 weight)
+static void priority_queue_push(priority_queue* queue, v2i e, f32 weight)
 {
-  struct priority_queue_entry node = { weight, e };
+  priority_queue_entry node = { weight, e };
   u32 i = queue->len + 1;
   u32 j = i / 2;
   while (i > 1 && queue->array[j].weight > node.weight) {
@@ -534,9 +538,9 @@ static void priority_queue_push(struct priority_queue* queue, v2i e, f32 weight)
   queue->len++;
 }
 
-static f32 priority_queue_pop(v2i* out, struct priority_queue* queue)
+static f32 priority_queue_pop(v2i* out, priority_queue* queue)
 {
-  struct priority_queue_entry data = queue->array[1];
+  priority_queue_entry data = queue->array[1];
   queue->array[1] = queue->array[queue->len];
   queue->len--;
   u32 i = 1;

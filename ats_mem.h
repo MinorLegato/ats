@@ -76,7 +76,7 @@ static void* _mem_alloc(mem_alloc_desc desc)
 
 
 typedef struct {
-  u64 pad;
+  usize pad;
   mem_arena* arena;
 } mem_arena_desc;
 
