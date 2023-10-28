@@ -149,7 +149,7 @@ static void file_iter_advance(file_iter* it)
 
 static file_iter file_iter_create(const char* path, const char* ext)
 {
-  if (!path) path = "";
+  if (!path) path = "./";
   if (!ext)  ext  = "*";
 
   file_iter it = {0};
@@ -167,5 +167,11 @@ static file_iter file_iter_create(const char* path, const char* ext)
   }
 
   return it;
+}
+
+static b32 file_iter_at_directory(file_iter* it)
+{
+   const char* n = it->data.cFileName;
+   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
