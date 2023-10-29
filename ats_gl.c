@@ -712,6 +712,9 @@ static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
     gl_ascii(str[i], x + i * sx, y, z, sx, sy);
   }
   gl_end();
+
+  glLoadIdentity();
+  glMatrixMode(GL_MODELVIEW);
 }
 
 static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...)

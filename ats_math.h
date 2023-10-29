@@ -15,12 +15,16 @@ typedef union {
   f32 e[2];
 } v2;
 
+#define v2(...) (v2) { __VA_ARGS__ }
+
 typedef union {
   struct { f32 x, y, z; };
   struct { f32 r, g, b; };
   struct { v2 xy; };
   f32 e[3];
 } v3;
+
+#define v3(...) (v3) { __VA_ARGS__ }
 
 typedef union {
   struct { f32 x, y, z, w; };
@@ -31,10 +35,14 @@ typedef union {
   f32 e[4];
 } v4;
 
+#define v4(...) (v4) { __VA_ARGS__ }
+
 typedef union {
   struct { i32 x, y; };
   i32 e[2];
 } v2i;
+
+#define v2i(...) (v2i) { __VA_ARGS__ }
 
 typedef union {
   struct { i32 x, y, z; };
@@ -42,10 +50,14 @@ typedef union {
   i32 e[3];
 } v3i;
 
+#define v3i(...) (v3i) { __VA_ARGS__ }
+
 typedef union {
   struct { i32 x, y, z, w; };
   i32 e[4];
 } v4i;
+
+#define v4i(...) (v4i) { __VA_ARGS__ }
 
 typedef union {
   struct { v2 x, y; };

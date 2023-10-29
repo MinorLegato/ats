@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define STBI_ONLY_PNG
+//#define STBI_ONLY_PNG
 #define STB_IMAGE_IMPLEMENTATION
 #include "ext/stb_image.h" 
 

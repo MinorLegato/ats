@@ -24,7 +24,7 @@ int WinMain(HINSTANCE a, HINSTANCE b, LPSTR c, int d)
 int main(void)
 #endif
 {
-#ifndef ATS_NO_CONSOLE
+#ifdef ATS_NO_CONSOLE
   (void)a; (void)b; (void)c; (void)d;
 #endif
   static u8 memory_buffer[MEM_DEFAULT_SIZE];

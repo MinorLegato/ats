@@ -74,7 +74,6 @@ static void* _mem_alloc(mem_alloc_desc desc)
   return mem_clear(header + 1, desc.size);
 }
 
-
 typedef struct {
   usize pad;
   mem_arena* arena;
@@ -82,9 +81,11 @@ typedef struct {
 
 #define mem_context(arena) scope_guard(mem_push(arena), mem_pop())
 
-#define mem_save(...)     _mem_save((mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_restore(...)  _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_scope(...)    scope_guard(_mem_save((mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ }))
+#define mem_save(...)       _mem_save((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_restore(...)    _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_begin(...)      _mem_begin((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_end(size, ...)  _mem_end((size), (mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_scope(...)      scope_guard(_mem_save((mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ }))
 
 #define mem_size(ptr)     ((mem_header*)(ptr) - 1)->size
 #define mem_count(ptr)    ((mem_header*)(ptr) - 1)->count
@@ -108,6 +109,20 @@ static void _mem_restore(mem_arena_desc desc)
   arena->pos = arena->stack->pos;
   arena->stack = arena->stack->next;
 }
+
+static void* _mem_begin(mem_arena_desc desc)
+{
+  mem_arena* arena = MEM_GET(desc);
+  void* ptr = arena->buf + arena->pos;
+  return ptr;
+}
+
+static void _mem_end(usize size, mem_arena_desc desc)
+{
+  mem_arena* arena = MEM_GET(desc);
+  arena->pos += size;
+}
+
 
 static void mem_push(mem_arena* arena)
 {
