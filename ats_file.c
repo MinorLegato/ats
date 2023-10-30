@@ -181,3 +181,47 @@ static b32 file_iter_at_directory(file_iter* it)
   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
+typedef struct dir_node dir_node;
+struct dir_node {
+  dir_node* prev;
+  file_iter file;
+};
+
+typedef struct {
+  dir_node* current;
+} dir_iter;
+
+static dir_iter dir_iter_create(const char* path)
+{
+  dir_iter it = {0};
+  it.current = mem_type(dir_node);
+  it.current->prev = NULL;
+  it.current->file = file_iter_create(path, NULL);
+  return it;
+}
+
+static void dir_iter_advance(dir_iter* it)
+{
+  if (file_iter_at_directory(&it->current->file)) {
+    dir_node* node = mem_type(dir_node);
+
+    node->prev = it->current;
+    node->file = file_iter_create(it->current->file.current, NULL);
+
+    file_iter_advance(&it->current->file);
+
+    it->current = node;
+  } else {
+    file_iter_advance(&it->current->file);
+  }
+
+  while (it->current && !file_iter_is_valid(&it->current->file)) {
+    it->current = it->current->prev;
+  }
+}
+
+static b32 dir_iter_is_valid(dir_iter* it)
+{
+  return it->current != NULL;
+}
+
