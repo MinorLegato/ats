@@ -105,7 +105,7 @@ static s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators)
   return it;
 }
 
-// =========================================== RAY ITER ========================================== //
+// =========================================== RAY ITER 2D ========================================== //
 
 typedef struct {
   v2 pos;
@@ -202,6 +202,121 @@ static v2 ray_iter_get_position(ray_iter* it)
   else               perp_wall_dist = (it->side_dist_y - it->delta_dist_y);
 
   return v2_add(it->pos, v2_scale(it->dir, perp_wall_dist));
+}
+
+// =========================================== RAY ITER 3D ========================================== //
+
+typedef struct {
+  v3 pos;
+  v3 dir;
+
+  //which box of the map we're in
+  int map_x;
+  int map_y;
+  int map_z;
+
+  //length of ray from current position to next x or y-side
+  f32 side_dist_x;
+  f32 side_dist_y;
+  f32 side_dist_z;
+
+  //length of ray from one x or y-side to next x or y-side
+  f32 delta_dist_x;
+  f32 delta_dist_y;
+  f32 delta_dist_z;
+
+  //what direction to step in x or y-direction (either +1 or -1)
+  int step_x;
+  int step_y;
+  int step_z;
+
+  i32 side; // was a NS or a EW wall hit?
+} ray3_iter;
+
+static ray3_iter ray3_iter_create(v3 pos, v3 dir)
+{
+  ray3_iter it = {0};
+
+  it.pos = pos;
+  it.dir = dir;
+
+  //which box of the map we're in
+  it.map_x = (int)(pos.x);
+  it.map_y = (int)(pos.y);
+  it.map_z = (int)(pos.z);
+
+  //length of ray from current position to next x or y-side
+  it.side_dist_x = 0;
+  it.side_dist_y = 0;
+  it.side_dist_z = 0;
+
+  //length of ray from one x or y-side to next x or y-side
+  it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabsf(1.0f / dir.x);
+  it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabsf(1.0f / dir.y);
+  it.delta_dist_z = (dir.z == 0.0f) ? 1e30 : fabsf(1.0f / dir.z);
+
+  //what direction to step in x or y-direction (either +1 or -1)
+  it.step_x = 0;
+  it.step_y = 0;
+  it.step_z = 0;
+
+  it.side = 0; //was a NS, EW or a UD wall hit?
+
+  //calculate step and initial side dist
+  if (dir.x < 0) {
+    it.step_x = -1;
+    it.side_dist_x = (pos.x - it.map_x) * it.delta_dist_x;
+  } else {
+    it.step_x = 1;
+    it.side_dist_x = (it.map_x + 1.0 - pos.x) * it.delta_dist_x;
+  }
+
+  if (dir.y < 0) {
+    it.step_y = -1;
+    it.side_dist_y = (pos.y - it.map_y) * it.delta_dist_y;
+  } else {
+    it.step_y = 1;
+    it.side_dist_y = (it.map_y + 1.0 - pos.y) * it.delta_dist_y;
+  }
+
+  if (dir.z < 0) {
+    it.step_z = -1;
+    it.side_dist_z = (pos.z - it.map_z) * it.delta_dist_z;
+  } else {
+    it.step_z = 1;
+    it.side_dist_z = (it.map_z + 1.0 - pos.z) * it.delta_dist_z;
+  }
+
+  return it;
+}
+
+static b32 ray3_iter_is_valid(ray3_iter* it)
+{
+  return true;
+}
+
+static void ray3_iter_advance(ray3_iter* it)
+{
+  // jump to next map square, either in x, y, or in z direction.
+  if (it->side_dist_x < it->side_dist_y) {
+    it->side_dist_x += it->delta_dist_x;
+    it->map_x += it->step_x;
+    it->side = 0;
+  } else {
+    it->side_dist_y += it->delta_dist_y;
+    it->map_y += it->step_y;
+    it->side = 1;
+  }
+}
+
+static v3 ray3_iter_get_position(ray3_iter* it)
+{
+  f32 perp_wall_dist = 0;
+
+  if (it->side == 0) perp_wall_dist = (it->side_dist_x - it->delta_dist_x);
+  else               perp_wall_dist = (it->side_dist_y - it->delta_dist_y);
+
+  return v3_add(it->pos, v3_scale(it->dir, perp_wall_dist));
 }
 
 // ========================================= PRIORITY QUEUE ====================================== //
