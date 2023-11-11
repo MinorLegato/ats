@@ -298,14 +298,18 @@ static b32 ray3_iter_is_valid(ray3_iter* it)
 static void ray3_iter_advance(ray3_iter* it)
 {
   // jump to next map square, either in x, y, or in z direction.
-  if (it->side_dist_x < it->side_dist_y) {
+  if ((it->side_dist_x < it->side_dist_y) && (it->side_dist_x < it->side_dist_z)) {
     it->side_dist_x += it->delta_dist_x;
     it->map_x += it->step_x;
     it->side = 0;
-  } else {
+  } else if ((it->side_dist_y < it->side_dist_z) && (it->side_dist_y < it->side_dist_z)) {
     it->side_dist_y += it->delta_dist_y;
     it->map_y += it->step_y;
     it->side = 1;
+  } else {
+    it->side_dist_z += it->delta_dist_z;
+    it->map_z += it->step_z;
+    it->side = 2;
   }
 }
 
@@ -313,8 +317,9 @@ static v3 ray3_iter_get_position(ray3_iter* it)
 {
   f32 perp_wall_dist = 0;
 
-  if (it->side == 0) perp_wall_dist = (it->side_dist_x - it->delta_dist_x);
-  else               perp_wall_dist = (it->side_dist_y - it->delta_dist_y);
+  if      (it->side == 0) perp_wall_dist = (it->side_dist_x - it->delta_dist_x);
+  else if (it->side == 1) perp_wall_dist = (it->side_dist_y - it->delta_dist_y);
+  else                    perp_wall_dist = (it->side_dist_z - it->delta_dist_z);
 
   return v3_add(it->pos, v3_scale(it->dir, perp_wall_dist));
 }
