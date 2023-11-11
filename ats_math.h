@@ -98,15 +98,15 @@ typedef struct {
   f32 x, y, z, w;
 } quat;
 
-typedef struct {
-  v2  pos;
-  f32 rad;
-} circle;
+struct circle {
+  v2  p;
+  f32 r;
+};
 
-typedef struct {
-  v3  pos;
-  f32 rad;
-} sphere;
+struct sphere {
+  v3  p;
+  f32 r;
+};
 
 static m2 m2_identity(void)
 {
@@ -1537,13 +1537,13 @@ typedef struct {
   f32 b;
   f32 c;
   f32 d;
-} plane;
+} frustum_plane;
 
 typedef struct {
-  plane planes[6];
+  frustum_plane planes[6];
 } frustum;
 
-static plane plane_normalize(plane p)
+static frustum_plane plane_normalize(frustum_plane p)
 {
   f32 r_len = rsqrt32(p.a * p.a + p.b * p.b + p.c * p.c);
 
@@ -1607,16 +1607,16 @@ static frustum frustum_create(m4 m)
 
 // ------------------ contains ------------------ //
 
-static b32 circle_contains(circle c, v2 pos)
+static b32 circle_contains(struct circle c, v2 pos)
 {
-  f32 distance = v2_dist_sq(c.pos, pos);
-  return distance < (c.rad * c.rad);
+  f32 distance = v2_dist_sq(c.p, pos);
+  return distance < (c.r * c.r);
 }
 
-static b32 sphere_contains(sphere s, v3 pos)
+static b32 sphere_contains(struct sphere s, v3 pos)
 {
-  f32 distance = v3_dist_sq(s.pos, pos);
-  return distance < (s.rad * s.rad);
+  f32 distance = v3_dist_sq(s.p, pos);
+  return distance < (s.r * s.r);
 }
 
 static b32 r2_contains(r2 rect, v2 pos)
@@ -1660,20 +1660,20 @@ static b32 frustum_contains(frustum fs, v3 pos)
 
 // ------------------ intersect ------------------ //
 
-static b32 circle_intersect(circle a, circle b)
+static b32 circle_intersect(struct circle a, struct circle b)
 {
-  f32 dx  = b.pos.x - a.pos.x;
-  f32 dy  = b.pos.y - a.pos.y;
-  f32 rt  = a.rad + b.rad;
+  f32 dx  = b.p.x - a.p.x;
+  f32 dy  = b.p.y - a.p.y;
+  f32 rt  = a.r + b.r;
   return (dx * dx + dy * dy) < (rt * rt);
 }
 
-static b32 sphere_intersect(sphere a, sphere b)
+static b32 sphere_intersect(struct sphere a, struct sphere b)
 {
-  f32 dx = b.pos.x - a.pos.x;
-  f32 dy = b.pos.y - a.pos.y;
-  f32 dz = b.pos.z - a.pos.z;
-  f32 rt = a.rad + b.rad;
+  f32 dx = b.p.x - a.p.x;
+  f32 dy = b.p.y - a.p.y;
+  f32 dz = b.p.z - a.p.z;
+  f32 rt = a.r + b.r;
   return (dx * dx + dy * dy + dz * dz) < (rt * rt);
 }
 
@@ -1707,10 +1707,10 @@ static b32 r3i_intersect(r3i a, r3i b)
   return true;
 }
 
-static b32 frustum_intersect_sphere(frustum fs, sphere s)
+static b32 frustum_intersect_sphere(frustum fs, struct sphere s)
 {
   for (i32 i = 0; i < 6; i++) {
-    if(fs.planes[i].a * s.pos.x + fs.planes[i].b * s.pos.y + fs.planes[i].c * s.pos.z + fs.planes[i].d <= -s.rad) {
+    if(fs.planes[i].a * s.p.x + fs.planes[i].b * s.p.y + fs.planes[i].c * s.p.z + fs.planes[i].d <= -s.r) {
       return false;
     }
   }
@@ -1769,18 +1769,18 @@ static r3i r3i_get_overlap(r3i a, r3i b)
 
 // -------------- get intersect vector ---------- //
 
-static v2 circle_get_intersect_vector(circle a, circle b)
+static v2 circle_get_intersect_vector(struct circle a, struct circle b)
 {
-  v2 delta = v2_sub(a.pos, b.pos);
-  f32 depth = v2_len(delta) - (a.rad + b.rad);
+  v2 delta = v2_sub(a.p, b.p);
+  f32 depth = v2_len(delta) - (a.r + b.r);
 
   return v2_scale(delta, -depth);
 }
 
-static v3 sphere_get_intersect_vector(sphere a, sphere b)
+static v3 sphere_get_intersect_vector(struct sphere a, struct sphere b)
 {
-  v3 delta = v3_sub(a.pos, b.pos);
-  f32 depth = v3_len(delta) - (a.rad + b.rad);
+  v3 delta = v3_sub(a.p, b.p);
+  f32 depth = v3_len(delta) - (a.r + b.r);
 
   return v3_scale(delta, -depth);
 }
@@ -2201,5 +2201,50 @@ static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
   result[2] = out[2] * out[3];
 
   return true;
+}
+
+
+static m4 m4_invert(m4 m)
+{
+  f32 s[6], c[6];
+
+  s[0] = m.e[0] * m.e[5] - m.e[4] * m.e[1];
+  s[1] = m.e[0] * m.e[6] - m.e[4] * m.e[2];
+  s[2] = m.e[0] * m.e[7] - m.e[4] * m.e[3];
+  s[3] = m.e[1] * m.e[6] - m.e[5] * m.e[2];
+  s[4] = m.e[1] * m.e[7] - m.e[5] * m.e[3];
+  s[5] = m.e[2] * m.e[7] - m.e[6] * m.e[3];
+
+  c[0] = m.e[8]  * m.e[13] - m.e[12] * m.e[9];
+  c[1] = m.e[8]  * m.e[14] - m.e[12] * m.e[10];
+  c[2] = m.e[8]  * m.e[15] - m.e[12] * m.e[11];
+  c[3] = m.e[9]  * m.e[14] - m.e[13] * m.e[10];
+  c[4] = m.e[9]  * m.e[15] - m.e[13] * m.e[11];
+  c[5] = m.e[10] * m.e[15] - m.e[14] * m.e[11];
+
+  // assumes it is invertible
+  f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
+
+  return (m4) {
+    (m.e[5]  * c[5] - m.e[6]  * c[4] + m.e[7]  * c[3]) * idet,
+    (-m.e[1]  * c[5] + m.e[2]  * c[4] - m.e[3]  * c[3]) * idet,
+    (m.e[13] * s[5] - m.e[14] * s[4] + m.e[15] * s[3]) * idet,
+    (-m.e[9]  * s[5] + m.e[10] * s[4] - m.e[11] * s[3]) * idet,
+
+    (-m.e[4]  * c[5] + m.e[6]  * c[2] - m.e[7]  * c[1]) * idet,
+    (m.e[0]  * c[5] - m.e[2]  * c[2] + m.e[3]  * c[1]) * idet,
+    (-m.e[12] * s[5] + m.e[14] * s[2] - m.e[15] * s[1]) * idet,
+    (m.e[8]  * s[5] - m.e[10] * s[2] + m.e[11] * s[1]) * idet,
+
+    (m.e[4]  * c[4] - m.e[5]  * c[2] + m.e[7]  * c[0]) * idet,
+    (-m.e[0]  * c[4] + m.e[1]  * c[2] - m.e[3]  * c[0]) * idet,
+    (m.e[12] * s[4] - m.e[13] * s[2] + m.e[15] * s[0]) * idet,
+    (-m.e[8]  * s[4] + m.e[9]  * s[2] - m.e[11] * s[0]) * idet,
+
+    (-m.e[4]  * c[3] + m.e[5]  * c[1] - m.e[6]  * c[0]) * idet,
+    (m.e[0]  * c[3] - m.e[1]  * c[1] + m.e[2]  * c[0]) * idet,
+    (-m.e[12] * s[3] + m.e[13] * s[1] - m.e[14] * s[0]) * idet,
+    (m.e[8]  * s[3] - m.e[9]  * s[1] + m.e[10] * s[0]) * idet,
+  };
 }
 

@@ -181,47 +181,78 @@ static b32 file_iter_at_directory(file_iter* it)
   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
+#if 0
 typedef struct dir_node dir_node;
 struct dir_node {
   dir_node* prev;
   file_iter file;
 };
+#endif
 
 typedef struct {
-  dir_node* current;
+  s8 path;
+  s8 name;
+  s8 extension;
+
+  i32 idx;
+  file_iter stack[256];
+
+  //dir_node* current;
 } dir_iter;
+
+static void _dir_update_file_info(dir_iter* it)
+{
+  u8* s = it->stack[it->idx].current;
+
+  it->path = s8("");
+  it->name = s8("");
+  it->extension = s8("");
+
+  u32 i = 0;
+  u32 e = 0;
+  u32 n = 0;
+
+  for (i = 0; s && s[i]; ++i) {
+    switch (s[i]) {
+      case '.':
+        e = i + 1; break;
+      case '\\':
+      case '/':
+        n = i + 1; break;
+    }
+  }
+
+  if (i)     it->path      = (s8) { .len = i, .buf = s };
+  if (e < i) it->name      = (s8) { .len = i - n, .buf = s + n };
+  if (n < i) it->extension = (s8) { .len = i - e, .buf = s + e };
+}
 
 static dir_iter dir_iter_create(const char* path)
 {
   dir_iter it = {0};
-  it.current = mem_type(dir_node);
-  it.current->prev = NULL;
-  it.current->file = file_iter_create(path, NULL);
+  it.stack[it.idx] = file_iter_create(path, NULL);
+  _dir_update_file_info(&it);
   return it;
 }
 
 static void dir_iter_advance(dir_iter* it)
 {
-  if (file_iter_at_directory(&it->current->file)) {
-    dir_node* node = mem_type(dir_node);
-
-    node->prev = it->current;
-    node->file = file_iter_create(it->current->file.current, NULL);
-
-    file_iter_advance(&it->current->file);
-
-    it->current = node;
+  if (file_iter_at_directory(&it->stack[it->idx])) {
+    it->stack[it->idx + 1] = file_iter_create(it->stack[it->idx].current, NULL);
+    file_iter_advance(&it->stack[it->idx]);
+    it->idx++;
+    _dir_update_file_info(it);
   } else {
-    file_iter_advance(&it->current->file);
+    file_iter_advance(&it->stack[it->idx]);
+    _dir_update_file_info(it);
   }
 
-  while (it->current && !file_iter_is_valid(&it->current->file)) {
-    it->current = it->current->prev;
+  while ((it->idx >= 0) && !file_iter_is_valid(&it->stack[it->idx])) {
+    it->idx--;
   }
 }
 
 static b32 dir_iter_is_valid(dir_iter* it)
 {
-  return it->current != NULL;
+  return it->idx >= 0;
 }
-
