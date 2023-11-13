@@ -241,24 +241,14 @@ static ray3_iter ray3_iter_create(v3 pos, v3 dir)
   it.dir = dir;
 
   //which box of the map we're in
-  it.map_x = (int)(pos.x);
-  it.map_y = (int)(pos.y);
-  it.map_z = (int)(pos.z);
-
-  //length of ray from current position to next x or y-side
-  it.side_dist_x = 0;
-  it.side_dist_y = 0;
-  it.side_dist_z = 0;
+  it.map_x = (int)floorf(pos.x);
+  it.map_y = (int)floorf(pos.y);
+  it.map_z = (int)floorf(pos.z);
 
   //length of ray from one x or y-side to next x or y-side
   it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabsf(1.0f / dir.x);
   it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabsf(1.0f / dir.y);
   it.delta_dist_z = (dir.z == 0.0f) ? 1e30 : fabsf(1.0f / dir.z);
-
-  //what direction to step in x or y-direction (either +1 or -1)
-  it.step_x = 0;
-  it.step_y = 0;
-  it.step_z = 0;
 
   it.side = 0; //was a NS, EW or a UD wall hit?
 
@@ -316,12 +306,18 @@ static void ray3_iter_advance(ray3_iter* it)
 static v3 ray3_iter_get_position(ray3_iter* it)
 {
   f32 perp_wall_dist = 0;
-
   if      (it->side == 0) perp_wall_dist = (it->side_dist_x - it->delta_dist_x);
   else if (it->side == 1) perp_wall_dist = (it->side_dist_y - it->delta_dist_y);
   else                    perp_wall_dist = (it->side_dist_z - it->delta_dist_z);
-
   return v3_add(it->pos, v3_scale(it->dir, perp_wall_dist));
+}
+
+static v3 ray3_iter_get_normal(ray3_iter* it)
+{
+  if      (it->side == 0) return v3(-sign(it->dir.x), 0, 0);
+  else if (it->side == 1) return v3(0, -sign(it->dir.y), 0);
+  else                    return v3(0, 0, -sign(it->dir.z));
+  return v3(0);
 }
 
 // ========================================= PRIORITY QUEUE ====================================== //
