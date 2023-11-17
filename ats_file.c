@@ -196,16 +196,14 @@ typedef struct {
 
   i32 idx;
   file_iter stack[256];
-
-  //dir_node* current;
 } dir_iter;
 
 static void _dir_update_file_info(dir_iter* it)
 {
   u8* s = it->stack[it->idx].current;
 
-  it->path = s8("");
-  it->name = s8("");
+  it->path      = s8("");
+  it->name      = s8("");
   it->extension = s8("");
 
   u32 i = 0;

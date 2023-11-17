@@ -241,9 +241,9 @@ static ray3_iter ray3_iter_create(v3 pos, v3 dir)
   it.dir = dir;
 
   //which box of the map we're in
-  it.map_x = (int)floorf(pos.x);
-  it.map_y = (int)floorf(pos.y);
-  it.map_z = (int)floorf(pos.z);
+  it.map_x = (int)pos.x;
+  it.map_y = (int)pos.y;
+  it.map_z = (int)pos.z;
 
   //length of ray from one x or y-side to next x or y-side
   it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabsf(1.0f / dir.x);
