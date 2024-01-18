@@ -1,5 +1,7 @@
 
-// ------------------------------------ texture table ------------------------------------- //
+#ifndef TEXTURE_BOARDER_SIZE
+#define TEXTURE_BOARDER_SIZE (1)
+#endif
 
 typedef struct {
   b32 in_use;
@@ -213,10 +215,10 @@ static void tex_end(void)
     tex_image* image = &tex_image_array[i];
     tex_rect   rect = tex_get_fit(image->width + 2, image->height + 2);
 
-    u16 offset_x = rect.min_x + 1;
-    u16 offset_y = rect.min_y + 1;
-    u16 size_x   = image->width + 2;
-    u16 size_y   = image->height + 2;
+    u16 offset_x = rect.min_x + TEXTURE_BOARDER_SIZE;
+    u16 offset_y = rect.min_y + TEXTURE_BOARDER_SIZE;
+    u16 size_x   = image->width + 2 * TEXTURE_BOARDER_SIZE;
+    u16 size_y   = image->height + 2 * TEXTURE_BOARDER_SIZE;
 
     _tex_add_entry(image->name, (tex_rect) {
       offset_x,
@@ -228,11 +230,6 @@ static void tex_end(void)
     for (u16 y = 0; y < image->height; ++y) {
       for (u16 x = 0; x < image->width; ++x) {
         _tex_set_pixel(offset_x + x, offset_y + y, _tex_get_pixel(image, x, y));
-
-        if (x == 0)                 _tex_set_pixel(offset_x + x - 1, offset_y + y, _tex_get_pixel(image, x, y));
-        if (x == image->width - 1)  _tex_set_pixel(offset_x + x + 1, offset_y + y, _tex_get_pixel(image, x, y));
-        if (y == 0)                 _tex_set_pixel(offset_x + x, offset_y + y - 1, _tex_get_pixel(image, x, y));
-        if (y == image->height - 1) _tex_set_pixel(offset_x + x, offset_y + y + 1, _tex_get_pixel(image, x, y));
       }
     }
 
