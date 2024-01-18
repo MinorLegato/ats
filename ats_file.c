@@ -48,7 +48,7 @@ static s8 file_read_s8(const char* file_name)
     }
     fclose(fp);
   }
-  return (s8) { size, buffer };
+  return (s8) { buffer, size };
 }
 
 static b32 file_write_str(const char* file_name, s8 buffer)
@@ -202,8 +202,8 @@ static void _dir_update_file_info(dir_iter* it)
 {
   u8* s = it->stack[it->idx].current;
 
-  it->path      = s8("");
-  it->name      = s8("");
+  it->path = s8("");
+  it->name = s8("");
   it->extension = s8("");
 
   u32 i = 0;
@@ -220,9 +220,9 @@ static void _dir_update_file_info(dir_iter* it)
     }
   }
 
-  if (i)     it->path      = (s8) { .len = i, .buf = s };
-  if (e < i) it->name      = (s8) { .len = i - n, .buf = s + n };
-  if (n < i) it->extension = (s8) { .len = i - e, .buf = s + e };
+  if (i)     it->path      = (s8) { .buf = s,     .len = i     };
+  if (e < i) it->name      = (s8) { .buf = s + n, .len = i - n };
+  if (n < i) it->extension = (s8) { .buf = s + e, .len = i - e };
 }
 
 static dir_iter dir_iter_create(const char* path)

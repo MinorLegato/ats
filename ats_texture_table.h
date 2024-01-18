@@ -8,6 +8,7 @@ typedef struct {
   u16 index;
 } tex_id;
 
+#define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
 typedef struct {
   u16 min_x;
   u16 min_y;

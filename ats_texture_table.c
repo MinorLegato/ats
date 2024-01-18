@@ -60,7 +60,6 @@ static tex_id tex_get_id(const char* name)
 {
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
-
   while (texture_table.array[index].in_use) {
     if ((texture_table.array[index].hash == hash) && (strcmp(texture_table.array[index].name, name) == 0)) {
       tex_id id = { index };
@@ -68,8 +67,7 @@ static tex_id tex_get_id(const char* name)
     }
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
-
-  assert(false);
+  assert(0);
   return (tex_id) {0};
 }
 
@@ -104,7 +102,7 @@ static void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
 {
   tex_image image = {0};
 
-  image.user_provided = true;
+  image.user_provided = 1;
   image.width = width;
   image.height = height;
   image.pixels = pixels;
@@ -116,13 +114,17 @@ static void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
 
 static void tex_load_dir(const char* dir_path)
 {
-  for_iter(file_iter, it, file_iter_create(dir_path, "*.png")) {
-    tex_image image = {0};
+  const char* ext[] = { "*.png", "*.jpg" };
 
-    image.pixels = file_load_image(it.current, &image.width, &image.height);
+  for (i32 i = 0; i < countof(ext); ++i) {
+    for_iter(file_iter, it, file_iter_create(dir_path, ext[i])) {
+      tex_image image = {0};
 
-    cstr_copy_without_extension(image.name, it.data.cFileName);
-    tex_image_array[tex_image_count++] = image;
+      image.pixels = file_load_image(it.current, &image.width, &image.height);
+
+      cstr_copy_without_extension(image.name, it.data.cFileName);
+      tex_image_array[tex_image_count++] = image;
+    }
   }
 }
 
@@ -136,7 +138,7 @@ static void tex_begin(u16 width, u16 height)
     mem_array(u32, (usize)(width * height)),
   };
 
-  texture_table.array[0].in_use = true;
+  texture_table.array[0].in_use = 1;
 }
 
 static usize tex_stack_top; 
@@ -169,15 +171,16 @@ static void _tex_add_entry(const char* name, tex_rect rect)
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
   while (texture_table.array[index].in_use) {
-    if ((texture_table.array[index].hash == hash) && (strcmp(texture_table.array[index].name, name) == 0))
-      assert(true);
+    if ((texture_table.array[index].hash == hash) && (strcmp(texture_table.array[index].name, name) == 0)) {
+      assert(0);
+    }
 
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
 
   tex_entry* entry = &texture_table.array[index];
 
-  entry->in_use = true;
+  entry->in_use = 1;
   entry->rect = rect;
   entry->hash = hash;
 

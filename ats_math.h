@@ -10,13 +10,13 @@
 #define castv3i(u) ((v3i) { (i32)(u).x, (i32)(u).y, (i32)(u).z })
 #define castv4i(u) ((v4i) { (i32)(u).x, (i32)(u).y, (i32)(u).z, (i32)(u).w })
 
+#define v2(...) (v2) { __VA_ARGS__ }
 typedef union {
   struct { f32 x, y; };
   f32 e[2];
 } v2;
 
-#define v2(...) (v2) { __VA_ARGS__ }
-
+#define v3(...) (v3) { __VA_ARGS__ }
 typedef union {
   struct { f32 x, y, z; };
   struct { f32 r, g, b; };
@@ -24,8 +24,7 @@ typedef union {
   f32 e[3];
 } v3;
 
-#define v3(...) (v3) { __VA_ARGS__ }
-
+#define v4(...) (v4) { __VA_ARGS__ }
 typedef union {
   struct { f32 x, y, z, w; };
   struct { f32 r, g, b, a; };
@@ -35,76 +34,79 @@ typedef union {
   f32 e[4];
 } v4;
 
-#define v4(...) (v4) { __VA_ARGS__ }
-
+#define v2i(...) (v2i) { __VA_ARGS__ }
 typedef union {
   struct { i32 x, y; };
   i32 e[2];
 } v2i;
 
-#define v2i(...) (v2i) { __VA_ARGS__ }
-
+#define v3i(...) (v3i) { __VA_ARGS__ }
 typedef union {
   struct { i32 x, y, z; };
   struct { v2i xy; };
   i32 e[3];
 } v3i;
 
-#define v3i(...) (v3i) { __VA_ARGS__ }
-
+#define v4i(...) (v4i) { __VA_ARGS__ }
 typedef union {
   struct { i32 x, y, z, w; };
   i32 e[4];
 } v4i;
 
-#define v4i(...) (v4i) { __VA_ARGS__ }
-
+#define m2(...) (m2) { __VA_ARGS__ }
 typedef union {
   struct { v2 x, y; };
   f32 e[4];
 } m2;
 
+#define m3(...) (m3) { __VA_ARGS__ }
 typedef union {
   struct { v3 x, y, z; };
   f32 e[9];
 } m3;
 
+#define m4(...) (m4) { __VA_ARGS__ }
 typedef union {
   struct { v4 x, y, z, w; };
   f32 e[16];
 } m4;
 
+#define r2(...) (r2) { __VA_ARGS__ }
 typedef struct {
   v2 min;
   v2 max;
 } r2;
 
+#define r3(...) (r3) { __VA_ARGS__ }
 typedef struct {
   v3 min;
   v3 max;
 } r3;
 
+#define r2i(...) (r2i) { __VA_ARGS__ }
 typedef struct {
   v2i min;
   v2i max;
 } r2i;
 
+#define r3i(...) (r3i) { __VA_ARGS__ }
 typedef struct {
   v3i min;
   v3i max;
 } r3i;
 
+#define quat(...) (quat) { __VA_ARGS__ }
 typedef struct {
   f32 x, y, z, w;
 } quat;
 
 struct circle {
-  v2  p;
+  v2 p;
   f32 r;
 };
 
 struct sphere {
-  v3  p;
+  v3 p;
   f32 r;
 };
 
@@ -1874,24 +1876,6 @@ static v3 rand_v3(u32* state, f32 min, f32 max)
 
 // ----------------------- hash ------------------------- //
 
-static u32 hash_u32(u32 a)
-{
-  a = (a ^ 61) ^ (a >> 16);
-  a = a + (a << 3);
-  a = a ^ (a >> 4);
-  a = a * 0x27d4eb2d;
-  a = a ^ (a >> 15);
-
-  return a;
-}
-
-static u32 hash_i32(i32 a)
-{
-  union { u32 u; i32 i; } convert;
-  convert.i = a;
-  return hash_u32(convert.u);
-}
-
 static u32 hash_str(const char* str)
 {
   u32 hash = 5381;
@@ -1947,6 +1931,24 @@ static u32 hash_mem(const void *data, u32 size)
   return crc ^ 0xFFFFFFFF;
 }
 
+static u32 hashu(u32 a)
+{
+  a = (a ^ 61) ^ (a >> 16);
+  a = a + (a << 3);
+  a = a ^ (a >> 4);
+  a = a * 0x27d4eb2d;
+  a = a ^ (a >> 15);
+
+  return a;
+}
+
+static u32 hashi(i32 a)
+{
+  union { u32 u; i32 i; } convert;
+  convert.i = a;
+  return hashu(convert.u);
+}
+
 #define HASH_PRIME0 3323784421u
 #define HASH_PRIME1 1449091801u
 #define HASH_PRIME2 4280703257u
@@ -1954,49 +1956,49 @@ static u32 hash_mem(const void *data, u32 size)
 
 static u32 hash2u(u32 x, u32 y)
 {
-  u32 a = hash_i32(x);
-  u32 b = hash_i32(y);
+  u32 a = hashu(x);
+  u32 b = hashu(y);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
 static u32 hash3u(u32 x, u32 y, u32 z)
 {
-  u32 a = hash_u32(x);
-  u32 b = hash_u32(y);
-  u32 c = hash_u32(z);
+  u32 a = hashu(x);
+  u32 b = hashu(y);
+  u32 c = hashu(z);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
 }
 
 static u32 hash4u(u32 x, u32 y, u32 z, u32 w)
 {
-  u32 a = hash_u32(x);
-  u32 b = hash_u32(y);
-  u32 c = hash_u32(z);
-  u32 d = hash_u32(w);
+  u32 a = hashu(x);
+  u32 b = hashu(y);
+  u32 c = hashu(z);
+  u32 d = hashu(w);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
 }
 
 static u32 hash2i(i32 x, i32 y)
 {
-  u32 a = hash_i32(x);
-  u32 b = hash_i32(y);
+  u32 a = hashi(x);
+  u32 b = hashi(y);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1);
 }
 
 static u32 hash3i(i32 x, i32 y, i32 z)
 {
-  u32 a = hash_i32(x);
-  u32 b = hash_i32(y);
-  u32 c = hash_i32(z);
+  u32 a = hashi(x);
+  u32 b = hashi(y);
+  u32 c = hashi(z);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2);
 }
 
 static u32 hash4i(i32 x, i32 y, i32 z, i32 w)
 {
-  u32 a = hash_i32(x);
-  u32 b = hash_i32(y);
-  u32 c = hash_i32(z);
-  u32 d = hash_i32(w);
+  u32 a = hashi(x);
+  u32 b = hashi(y);
+  u32 c = hashi(z);
+  u32 d = hashi(w);
   return (a * HASH_PRIME0) ^ (b * HASH_PRIME1) ^ (c * HASH_PRIME2) ^ (d * HASH_PRIME3);
 }
 

@@ -29,8 +29,8 @@ static void bit_clr(u32* array, u32 index)
 // ========================================== S8 ====================================== //
 
 typedef struct {
-  isize len;
   u8* buf;
+  isize len;
 } s8;
 
 #define S8_ASSERT(s) assert((s).buf && (s).len > 0)
@@ -38,8 +38,8 @@ typedef struct {
 #define S8_FMT "%.*s"
 #define S8_ARG(s) (i32)(s).len, (s).buf
 
-#define s8(text) (s8) { sizeof (text) - 1, text }
-#define S8(text) { sizeof (text) - 1, text }
+#define s8(text) (s8) { (text), sizeof (text) - 1 }
+#define S8(text) { (text), sizeof (text) - 1 }
 
 static b32 s8_eq(s8 a, s8 b)
 {
@@ -322,6 +322,72 @@ static v3 ray3_iter_get_normal(ray3_iter* it)
 
 // ========================================= PRIORITY QUEUE ====================================== //
 
+#define path_node(...) (path_node) { __VA_ARGS__ }
+typedef struct {
+  f32 w;
+  i32 x;
+  i32 y;
+  i32 z;
+} path_node;
+
+typedef struct {
+  u32 len;
+  path_node* buf;
+} path_queue;
+
+static path_queue path_queue_create(usize capacity)
+{
+  path_queue queue = {0};
+  queue.len = 0;
+  queue.buf = mem_array(path_node, capacity);
+  return queue;
+}
+
+static b32 path_queue_empty(path_queue* queue)
+{
+  return queue->len == 0;
+}
+
+static void path_queue_clear(path_queue* queue)
+{
+  queue->len = 0;
+}
+
+static void path_queue_push(path_queue* queue, path_node node)
+{
+  u32 i = queue->len + 1;
+  u32 j = i / 2;
+  while (i > 1 && queue->buf[j].w > node.w) {
+    queue->buf[i] = queue->buf[j];
+    i = j;
+    j = j / 2;
+  }
+  queue->buf[i] = node;
+  queue->len++;
+}
+
+static path_node path_queue_pop(path_queue* queue)
+{
+  path_node node = queue->buf[1];
+  queue->buf[1] = queue->buf[queue->len];
+  queue->len--;
+  u32 i = 1;
+  while (i != queue->len + 1) {
+    u32 k = queue->len + 1;
+    u32 j = 2 * i;
+    if (j <= queue->len && queue->buf[j].w < queue->buf[k].w) {
+      k = j;
+    }
+    if (j + 1 <= queue->len && queue->buf[j + 1].w < queue->buf[k].w) {
+      k = j + 1;
+    }
+    queue->buf[i] = queue->buf[k];
+    i = k;
+  }
+  return node;
+}
+
+#if 0
 typedef struct {
   f32 weight;
   v2i e;
@@ -385,6 +451,7 @@ static f32 priority_queue_pop(v2i* out, priority_queue* queue)
   *out = data.e;
   return data.weight;
 }
+#endif
 
 #if 0
 // =================================================== SPATIAL MAP =================================================== //

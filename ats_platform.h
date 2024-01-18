@@ -11,7 +11,7 @@
 
 static void platform_init(const char* title, int width, int height, int samples);
 static void platform_update(void);
-static f64  platform_get_time(void);
+static f64 platform_get_time(void);
 
 // ===================================================== KEYS =================================================== //
 
