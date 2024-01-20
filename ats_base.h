@@ -93,7 +93,7 @@ typedef uint64_t u64;
 typedef ptrdiff_t isize;
 typedef size_t usize;
 
-typedef u8  b8;
+typedef u8 b8;
 typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;

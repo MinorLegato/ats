@@ -388,72 +388,6 @@ static path_node path_queue_pop(path_queue* queue)
 }
 
 #if 0
-typedef struct {
-  f32 weight;
-  v2i e;
-} priority_queue_entry;
-
-typedef struct {
-  u32 len;
-  priority_queue_entry* array;
-} priority_queue;
-
-static priority_queue priority_queue_create(usize capacity)
-{
-  priority_queue queue = {0};
-  queue.len   = 0;
-  queue.array = mem_array(priority_queue_entry, capacity);
-  return queue;
-}
-
-static b32 priority_queue_empty(priority_queue* queue)
-{
-  return queue->len == 0;
-}
-
-static void priority_queue_clear(priority_queue* queue)
-{
-  queue->len = 0;
-}
-
-static void priority_queue_push(priority_queue* queue, v2i e, f32 weight)
-{
-  priority_queue_entry node = { weight, e };
-  u32 i = queue->len + 1;
-  u32 j = i / 2;
-  while (i > 1 && queue->array[j].weight > node.weight) {
-    queue->array[i] = queue->array[j];
-    i = j;
-    j = j / 2;
-  }
-  queue->array[i] = node;
-  queue->len++;
-}
-
-static f32 priority_queue_pop(v2i* out, priority_queue* queue)
-{
-  priority_queue_entry data = queue->array[1];
-  queue->array[1] = queue->array[queue->len];
-  queue->len--;
-  u32 i = 1;
-  while (i != queue->len + 1) {
-    u32 k = queue->len + 1;
-    u32 j = 2 * i;
-    if (j <= queue->len && queue->array[j].weight < queue->array[k].weight) {
-      k = j;
-    }
-    if (j + 1 <= queue->len && queue->array[j + 1].weight < queue->array[k].weight) {
-      k = j + 1;
-    }
-    queue->array[i] = queue->array[k];
-    i = k;
-  }
-  *out = data.e;
-  return data.weight;
-}
-#endif
-
-#if 0
 // =================================================== SPATIAL MAP =================================================== //
 
 #define SPATIAL_MAX (8 * 4096)
@@ -737,5 +671,4 @@ static v2 tm_cast_angle(struct traverse_map* map, v2 from, f32 angle, f32 max_ra
   return tm_cast_dir(map, from, dir, max_range);
 }
 #endif
-
 
