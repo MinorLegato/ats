@@ -516,6 +516,7 @@ static v4i v4i_add(v4i a, v4i b)
 {
   return (v4i) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w };
 }
+
 // -------- subtraction ------- //
 
 static v2 v2_sub(v2 a, v2 b)
@@ -1394,6 +1395,8 @@ static quat quat_rotate(v3 axis, f32 angle)
   return (quat) { v.x, v.y, v.z, cosf(0.5f * angle) };
 }
 
+// -------------- transform helpers --------- //
+
 static m4 m4_translate(f32 x, f32 y, f32 z)
 {
   return (m4) {
@@ -1414,7 +1417,7 @@ static m4 m4_scale(f32 x, f32 y, f32 z)
   };
 }
 
-// --------------- from quat --------------- //
+// ------------ matrix from quat --------------- //
 
 static m3 m3_from_quat(quat q)
 {

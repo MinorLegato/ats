@@ -31,6 +31,7 @@ typedef struct {
 
 static void at_begin(void);
 static void at_end(void);
+
 static void at_add_entity(const char* name);
 static void at_add_animation(const char* name);
 static void at_add_frame(const char* name);
@@ -41,16 +42,16 @@ static void at_update(at_asset* asset, f32 dt);
 
 // ============================ INTERNAL ================================ //
 
-static at_frame* at_current_frame = NULL;
-static at_animation* at_current_animation = NULL;
-static at_entity* at_current_entity = NULL;
-static at_entity* at_entity_list = NULL;
+static at_frame* at_current_frame = 0;
+static at_animation* at_current_animation = 0;
+static at_entity* at_current_entity = 0;
+static at_entity* at_entity_list = 0;
 
 static void at_add_entity(const char* name)
 {
   assert(name);
-  at_current_animation = NULL;
-  at_current_frame = NULL;
+  at_current_animation = 0;
+  at_current_frame = 0;
 
   at_entity* entity = mem_type(at_entity);
   entity->name = name;
@@ -67,7 +68,7 @@ static void at_add_entity(const char* name)
 static void at_add_animation(const char* name)
 {
   assert(name);
-  at_current_frame = NULL;
+  at_current_frame = 0;
 
   at_animation* animation = mem_type(at_animation);
   animation->name = name;
@@ -103,10 +104,10 @@ static void at_add_frame(const char* name)
 
 static void at_begin(void)
 {
-  at_entity_list = NULL;
-  at_current_entity = NULL;
-  at_current_frame = NULL;
-  at_current_animation = NULL;
+  at_entity_list = 0;
+  at_current_entity = 0;
+  at_current_frame = 0;
+  at_current_animation = 0;
 }
 
 static void at_end(void)
@@ -116,6 +117,7 @@ static void at_end(void)
 
 static b32 at_cstr_equal(const char* a, const char* b)
 {
+  assert(a && b);
   while (*a && *a == *b) {
     a++;
     b++;
@@ -125,6 +127,7 @@ static b32 at_cstr_equal(const char* a, const char* b)
 
 static void at_set(at_asset* asset, const char* name)
 {
+  assert(asset && name);
   if (at_cstr_equal(asset->frame->animation->name, name)) return;
 
   at_animation* animation = asset->entity->animation;
@@ -141,6 +144,7 @@ static void at_set(at_asset* asset, const char* name)
 
 static void at_update(at_asset* asset, f32 dt)
 {
+  assert(asset);
   asset->duration += dt;
   if (asset->duration >= 1.0) {
     asset->frame = asset->frame->next;
@@ -150,15 +154,17 @@ static void at_update(at_asset* asset, f32 dt)
 
 static at_entity* at_get_entity(const char* name)
 {
+  assert(name);
   at_entity* entity = at_entity_list;
   while (entity && !at_cstr_equal(entity->name, name)) {
     entity = entity->next;
   }
-  return entity? entity : NULL;
+  return entity? entity : 0;
 }
 
 static at_asset at_get(const char* name)
 {
+  assert(name);
   at_asset state = {0};
   state.entity = at_get_entity(name);
   state.frame = state.entity->animation->frame;

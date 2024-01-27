@@ -1210,13 +1210,13 @@ static void timer_reset_all(void)
   timer_count = 0;
 }
 
-static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy)
+static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
 {
   int y = 0;
   // @TODO: fix render order within scopes!
   for (int i = timer_count - 1; i >= 0; --i) {
     timer_entry e = timer_array[i];
-    gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, 0xff77ccff, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
+    gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
     y++;
   }
   timer_reset_all();
