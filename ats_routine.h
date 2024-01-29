@@ -65,11 +65,11 @@ typedef struct {
 
 #define rt_step() \
       } if (__mn) __rt->at = __LINE__; \
-      break;  \
+      break; \
       case __LINE__: { \
 
 #define rt_label(name) \
-      } if (__mn) __rt->at = rt_hash(name);  \
+      } if (__mn) __rt->at = rt_hash(name); \
       break; \
       case rt_hash(name): { \
 
