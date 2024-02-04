@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma clang diagnostic push
+
 #include "include/GLFW/glfw3.h"
 
 #define _GLFW_WIN32
@@ -27,4 +29,6 @@
 #pragma comment(lib, "shell32.lib")
 #pragma comment(lib, "user32.lib")
 #endif
+
+#pragma clang diagnostic pop
 

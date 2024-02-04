@@ -14,7 +14,7 @@
 #include "ats_animation_table.h"
 #include "ats_audio_table.h"
 #include "ats_gl.h"
-#include "ats_thread.h"
+//#include "ats_thread.h"
 
 #endif // __ATS_H__
 
