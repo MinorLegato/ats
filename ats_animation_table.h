@@ -29,19 +29,6 @@ typedef struct {
   f32 duration;
 } at_asset;
 
-static void at_begin(void);
-static void at_end(void);
-
-static void at_add_entity(const char* name);
-static void at_add_animation(const char* name);
-static void at_add_frame(const char* name);
-
-static at_asset at_get(const char* name);
-static void at_set(at_asset* asset, const char* name);
-static void at_update(at_asset* asset, f32 dt);
-
-// ============================ INTERNAL ================================ //
-
 static at_frame* at_current_frame = 0;
 static at_animation* at_current_animation = 0;
 static at_entity* at_current_entity = 0;

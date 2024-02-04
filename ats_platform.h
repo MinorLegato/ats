@@ -9,12 +9,6 @@
 #define GLSL(...) "#version 460 core\n" #__VA_ARGS__
 #endif
 
-// ------------------- platform layer ------------------------ //
-
-static void platform_init(const char* title, int width, int height, int samples);
-static void platform_update(void);
-static f64 platform_get_time(void);
-
 // ===================================================== KEYS =================================================== //
 
 #define KEY_UNKNOWN            -1
@@ -388,74 +382,6 @@ static void window_joystick_callback(int joy, int event)
   }
 }
 
-static void platform_init(const char* title, int width, int height, int samples)
-{
-  glfwInit();
-
-  platform_internal.monitor = glfwGetPrimaryMonitor();
-
-  const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
-
-  glfwWindowHint(GLFW_RED_BITS, mode->redBits);
-  glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
-  glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
-  glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-
-  platform.refresh_rate = mode->refreshRate;
-
-#if defined(ATS_OGL46)
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#endif
-
-  glfwWindowHint(GLFW_SAMPLES, samples);
-
-  platform.width  = width;
-  platform.height = height;
-
-  platform_internal.window = glfwCreateWindow(width, height, title, NULL, NULL);
-  platform.native = glfwGetWin32Window(platform_internal.window);
-
-  glfwSetWindowPos(platform_internal.window, (mode->width - width) / 2, (mode->height - height) / 2);
-
-  glfwMakeContextCurrent(platform_internal.window);
-
-#if defined(ATS_OGL46)
-  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-#endif
-
-  glfwSetKeyCallback(platform_internal.window, window_key_callback);
-  glfwSetCharCallback(platform_internal.window, window_char_callback);
-  glfwSetMouseButtonCallback(platform_internal.window, window_mouse_button_callback);
-  glfwSetScrollCallback(platform_internal.window, window_scroll_callback);
-  glfwSetJoystickCallback(window_joystick_callback);
-
-  // init mouse:
-  {
-    double x = 0.0;
-    double y = 0.0;
-
-    glfwGetCursorPos(platform_internal.window, &x, &y);
-
-    platform.mouse.pos.x = (float)x;
-    platform.mouse.pos.y = (float)y;
-  }
-
-  // init connected controllers
-  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
-    if (glfwJoystickPresent(i))
-      platform.gamepad[i].active = 1;
-  }
-
-  glfwSetTime(0.0);
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  platform_update();
-}
-
 static void platform_update(void)
 {
   if (glfwWindowShouldClose(platform_internal.window))
@@ -577,6 +503,74 @@ static void platform_update(void)
 
   platform.time.delta = (float)(glfwGetTime() - platform.time.total);
   platform.time.total += platform.time.delta;
+}
+
+static void platform_init(const char* title, int width, int height, int samples)
+{
+  glfwInit();
+
+  platform_internal.monitor = glfwGetPrimaryMonitor();
+
+  const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
+
+  glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+  glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+  glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+  glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+
+  platform.refresh_rate = mode->refreshRate;
+
+#if defined(ATS_OGL46)
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
+
+  glfwWindowHint(GLFW_SAMPLES, samples);
+
+  platform.width  = width;
+  platform.height = height;
+
+  platform_internal.window = glfwCreateWindow(width, height, title, NULL, NULL);
+  platform.native = glfwGetWin32Window(platform_internal.window);
+
+  glfwSetWindowPos(platform_internal.window, (mode->width - width) / 2, (mode->height - height) / 2);
+
+  glfwMakeContextCurrent(platform_internal.window);
+
+#if defined(ATS_OGL46)
+  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+#endif
+
+  glfwSetKeyCallback(platform_internal.window, window_key_callback);
+  glfwSetCharCallback(platform_internal.window, window_char_callback);
+  glfwSetMouseButtonCallback(platform_internal.window, window_mouse_button_callback);
+  glfwSetScrollCallback(platform_internal.window, window_scroll_callback);
+  glfwSetJoystickCallback(window_joystick_callback);
+
+  // init mouse:
+  {
+    double x = 0.0;
+    double y = 0.0;
+
+    glfwGetCursorPos(platform_internal.window, &x, &y);
+
+    platform.mouse.pos.x = (float)x;
+    platform.mouse.pos.y = (float)y;
+  }
+
+  // init connected controllers
+  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
+    if (glfwJoystickPresent(i))
+      platform.gamepad[i].active = 1;
+  }
+
+  glfwSetTime(0.0);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  platform_update();
 }
 
 static f64 platform_get_time(void)
