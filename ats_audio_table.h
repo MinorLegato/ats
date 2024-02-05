@@ -8,8 +8,17 @@ typedef struct {
 
 // ============================= INTERNAL ============================== //
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 #define CUTE_SOUND_IMPLEMENTATION
 #include "ext/cute_sound.h"
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #ifndef AUDIO_TABLE_SIZE
 #define AUDIO_TABLE_SIZE (256)

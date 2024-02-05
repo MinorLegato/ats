@@ -126,7 +126,7 @@ static void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
   image.height = height;
   image.pixels = pixels;
 
-  strcpy(image.name, name);
+  strcpy_s(image.name, countof(image.name), name);
 
   tex_image_array[tex_image_count++] = image;
 }

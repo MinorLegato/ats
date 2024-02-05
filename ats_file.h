@@ -24,13 +24,14 @@ static usize _file_get_size(FILE* fp)
 
 static FILE* file_open(const char* path, const char* mode)
 {
-  FILE* file = fopen(path, mode);
-  return file;
+  FILE* file = 0;
+  errno_t error = fopen_s(&file, path, mode);
+  return error? 0 : file;
 }
 
 static usize file_get_size(const char* path)
 {
-  FILE* fp = fopen(path, "rb");
+  FILE* fp = file_open(path, "rb");
   if (!fp) return 0;
   usize size = _file_get_size(fp);
   fclose(fp);
@@ -39,12 +40,12 @@ static usize file_get_size(const char* path)
 
 static s8 file_read_s8(const char* file_name)
 {
-  u8* buffer = NULL;
+  char* buffer = NULL;
   isize size = 0;
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
     size   = _file_get_size(fp);
-    buffer = (u8*)mem_alloc(size + 1);
+    buffer = (char*)mem_alloc(size + 1);
     if (buffer) {
       buffer[size] = 0;
       if (fread(buffer, 1, size, fp) == 0) {
@@ -186,14 +187,6 @@ static b32 file_iter_at_directory(file_iter* it)
   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-#if 0
-typedef struct dir_node dir_node;
-struct dir_node {
-  dir_node* prev;
-  file_iter file;
-};
-#endif
-
 typedef struct {
   s8 path;
   s8 name;
@@ -205,7 +198,7 @@ typedef struct {
 
 static void _dir_update_file_info(dir_iter* it)
 {
-  u8* s = it->stack[it->idx].current;
+  char* s = it->stack[it->idx].current;
 
   it->path = s8("");
   it->name = s8("");

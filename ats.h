@@ -1,5 +1,4 @@
-#ifndef __ATS_H__
-#define __ATS_H__
+#pragma once
 
 #include "ats_base.h"
 #include "ats_math.h"
@@ -15,12 +14,6 @@
 #include "ats_audio_table.h"
 #include "ats_gl.h"
 //#include "ats_thread.h"
-
-#endif // __ATS_H__
-
-#ifdef ATS_IMPL
-#ifndef ATS_IMPL_ONCE
-#define ATS_IMPL_ONCE
 
 #ifndef ATS_NO_MAIN
 #ifndef MEM_DEFAULT_SIZE
@@ -52,7 +45,4 @@ int main(void)
 #define main ats_main
 
 #endif // ATS_NO_MAIN
-
-#endif // ATS_IMPL_ONCE
-#endif // ATS_IMPL
 

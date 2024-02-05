@@ -29,7 +29,7 @@ static void bit_clr(u32* array, u32 index)
 // ========================================== S8 ====================================== //
 
 typedef struct {
-  u8* buf;
+  char* buf;
   isize len;
 } s8;
 
