@@ -10,6 +10,7 @@ typedef struct {
 
 static gl_texture gl_bitmap_texture;
 
+// axis used for billboards:
 static v3 gl_forward = { 0, 1, 0 };
 static v3 gl_right = { 1, 0, 0 };
 static v3 gl_up = { 0, 0, 1 };
@@ -94,7 +95,16 @@ static v3 gl_get_world_position(i32 x, i32 y, m4 in_projection, m4 in_modelview)
   f64 result[3];
   f4x4_unproject_64(result, win_x, win_y, win_z, modelview, projection, viewport);
 
-  return (v3) { (f32)result[0], (f32)result[1], (f32)result[2] };
+  return v3((f32)result[0], (f32)result[1], (f32)result[2]);
+}
+
+static v2 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp)
+{
+  v4 clip_space = m4_mulv(mvp, v4(x, y, z, 1.0));
+  v3 ndc = v3_scale(clip_space.xyz, (1.0 / clip_space.w));
+  return v2(
+    (0.5f * (ndc.x + 1.0f)) * platform.width,
+    (0.5f * (1.0f - ndc.y)) * platform.height);
 }
 
 // ------------------------------------- opengl impl ------------------------------------ //
@@ -725,7 +735,7 @@ static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
 
   gl_begin(GL_TRIANGLES);
   gl_color(color);
-  gl_normal(-gl_forward.x, -gl_forward.y, -gl_forward.z);
+  gl_normal(0, 0, 1);
   for (i32 i = 0; str[i] != '\0'; i++) {
     gl_ascii(str[i], x + i * sx, y, z, sx, sy);
   }
