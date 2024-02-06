@@ -8,7 +8,7 @@ typedef struct {
   u16 height;
 } gl_texture;
 
-static gl_texture bitmap_texture;
+static gl_texture gl_bitmap_texture;
 
 static v3 gl_forward = { 0, 1, 0 };
 static v3 gl_right = { 1, 0, 0 };
@@ -384,20 +384,19 @@ static void gl_init(void)
 
   // init bitmap font
   {
-    u32 pixels[8][BITMAP_COUNT * 8] = {0};
+    u32 pixels[8 + 16][BITMAP_COUNT * 8 + 512] = {0};
     for (i32 i = 0; i < BITMAP_COUNT; ++i) {
       for (i32 y = 0; y < 8; ++y) {
         for (i32 x = 0; x < 8; ++x) {
           u64 bit = y * 8 + x;
 
           if (bitascii[i] & (1ull << bit)) {
-            pixels[7 - y][8 * i + x] = 0xffffffff;
+            pixels[7 - y][(8 + 2) * i + x] = 0xffffffff;
           }
         }
       }
     }
-
-    bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8, 8, 0);
+    gl_bitmap_texture = gl_texture_create(pixels, BITMAP_COUNT * 8 + 512, 8 + 16, 0);
   }
 }
 
@@ -705,7 +704,7 @@ static void gl_rect(r2 rect, f32 z, u32 color)
 
 static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
 {
-  tex_rect tex = { c * 8, 0, c * 8 + 8, 8 };
+  tex_rect tex = { c * (8 + 2), 0, c * (8 + 2) + 8, 8 };
   r2 rect = { x, y, x + sx, y + sy };
 
   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
@@ -719,12 +718,15 @@ static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
 static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color)
 {
   glEnable(GL_TEXTURE_2D);
-  gl_texture_bind(&bitmap_texture);
+  glBindTexture(GL_TEXTURE_2D, gl_bitmap_texture.id);
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+  glScalef(1.0 / gl_bitmap_texture.width, 1.0 / gl_bitmap_texture.height, 1.0);
 
   gl_begin(GL_TRIANGLES);
   gl_color(color);
-  gl_normal(0, 0, +1);
-  for (int i = 0; str[i] != '\0'; i++) {
+  gl_normal(-gl_forward.x, -gl_forward.y, -gl_forward.z);
+  for (i32 i = 0; str[i] != '\0'; i++) {
     gl_ascii(str[i], x + i * sx, y, z, sx, sy);
   }
   gl_end();
