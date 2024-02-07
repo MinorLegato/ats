@@ -98,13 +98,14 @@ static v3 gl_get_world_position(i32 x, i32 y, m4 in_projection, m4 in_modelview)
   return v3((f32)result[0], (f32)result[1], (f32)result[2]);
 }
 
-static v2 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp)
+static v3 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp)
 {
   v4 clip_space = m4_mulv(mvp, v4(x, y, z, 1.0));
   v3 ndc = v3_scale(clip_space.xyz, (1.0 / clip_space.w));
-  return v2(
+  return v3(
     (0.5f * (ndc.x + 1.0f)) * platform.width,
-    (0.5f * (1.0f - ndc.y)) * platform.height);
+    (0.5f * (1.0f - ndc.y)) * platform.height,
+    (0.5f * (ndc.z + 1.0f)));
 }
 
 // ------------------------------------- opengl impl ------------------------------------ //
@@ -752,8 +753,8 @@ static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, con
 
   va_start(list, fmt);
   vsnprintf(buffer, 256, fmt, list);
-  gl_string(buffer, x, y, z, sx, sy, color);
   va_end(list);
+  gl_string(buffer, x, y, z, sx, sy, color);
 }
 
 typedef struct {
