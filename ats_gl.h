@@ -105,7 +105,7 @@ static v3 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp)
   return v3(
     (0.5f * (ndc.x + 1.0f)) * platform.width,
     (0.5f * (1.0f - ndc.y)) * platform.height,
-    (0.5f * (ndc.z + 1.0f)));
+    ndc.z);
 }
 
 // ------------------------------------- opengl impl ------------------------------------ //
