@@ -2,8 +2,12 @@
 
 #include "ats_base.h"
 
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "ext/stb_image_resize.h" 
+
 #define TEXTURE_TABLE_SIZE (1024)
 
+#define tex_id(...) ((tex_id) { __VA_ARGS__ })
 typedef struct {
   u16 index;
 } tex_id;
@@ -48,7 +52,7 @@ typedef struct {
 
 static tex_table texture_table;
 static usize tex_image_count;
-static tex_image tex_image_array[1024];
+static tex_image tex_image_array[2048];
 
 static tex_table* tex_get_table(void)
 {
@@ -87,7 +91,7 @@ static tex_id tex_get_id(const char* name)
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
   assert(0);
-  return (tex_id) {0};
+  return tex_id(0);
 }
 
 static tex_rect tex_get(const char* name)
@@ -143,6 +147,38 @@ static void tex_load_dir(const char* dir_path)
 
       cstr_copy_without_extension(image.name, it.data.cFileName);
       tex_image_array[tex_image_count++] = image;
+    }
+  }
+}
+
+static void tex_load_dir_and_scale(const char* dir_path, u16 denominator)
+{
+  const char* ext[] = { "*.png", "*.jpg" };
+
+  assert(denominator);
+
+  for (i32 i = 0; i < countof(ext); ++i) {
+    for_iter(file_iter, it, file_iter_create(dir_path, ext[i])) {
+      u16 width = 0;
+      u16 height = 0;
+      u32* pixels = file_load_image(it.current, &width, &height);
+
+      tex_image image = {0};
+
+      image.user_provided = 1;
+      image.width = width / denominator;
+      image.height = height / denominator;
+      image.pixels = mem_array(u32, image.width * image.height);
+
+      stbir_resize_uint8(
+        (void*)pixels, width, height, 0,
+        (void*)image.pixels, image.width, image.height, 0,
+        4);
+
+      cstr_copy_without_extension(image.name, it.data.cFileName);
+      tex_image_array[tex_image_count++] = image;
+
+      free(pixels);
     }
   }
 }
