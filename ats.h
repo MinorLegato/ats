@@ -12,7 +12,13 @@
 #include "ats_texture_table.h"
 #include "ats_animation_table.h"
 #include "ats_audio_table.h"
+
+#ifdef ATS_OGL46
+#include "ats_gl46.h"
+#else
 #include "ats_gl.h"
+#endif // ATS_OGL46
+
 //#include "ats_thread.h"
 
 #ifndef ATS_NO_MAIN

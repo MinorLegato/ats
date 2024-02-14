@@ -1,13 +1,15 @@
 #pragma once
 
+#ifdef ATS_OGL46
+#include "ext/glad/glad.h"
+#define GLSL(...) "#version 460 core\n" #__VA_ARGS__
+#endif // ATS_OGL46
+
 #include "ext/GLFW/ats_glfw.h"
 
 #ifdef ATS_OGL46
-#include "ext/glad/glad.h"
 #include "ext/glad/glad.c"
-
-#define GLSL(...) "#version 460 core\n" #__VA_ARGS__
-#endif
+#endif // ATS_OGL46
 
 // ===================================================== KEYS =================================================== //
 
