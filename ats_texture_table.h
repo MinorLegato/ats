@@ -21,7 +21,7 @@ typedef struct {
 } tex_rect;
 
 #ifndef TEXTURE_BOARDER_SIZE
-#define TEXTURE_BOARDER_SIZE (1)
+#define TEXTURE_BOARDER_SIZE (2)
 #endif
 
 typedef struct {
@@ -242,7 +242,7 @@ static void _tex_add_entry(const char* name, tex_rect rect)
   strcpy_s(entry->name, 64, name);
 }
 
-static inline u32 _tex_get_pixel(const tex_image* image, u16 x, u16 y)
+static inline u32 _tex_get_image_pixel(const tex_image* image, u16 x, u16 y)
 {
   return image->pixels[y * image->width + x];
 }
@@ -250,6 +250,11 @@ static inline u32 _tex_get_pixel(const tex_image* image, u16 x, u16 y)
 static inline void _tex_set_pixel(u16 x, u16 y, u32 color)
 {
   texture_table.pixels[y * texture_table.width + x] = color;
+}
+
+static inline u32 _tex_get_pixel(u16 x, u16 y)
+{
+  return texture_table.pixels[y * texture_table.width + x];
 }
 
 static void tex_end(void)
@@ -273,16 +278,29 @@ static void tex_end(void)
     u16 size_x   = image->width + 2 * TEXTURE_BOARDER_SIZE;
     u16 size_y   = image->height + 2 * TEXTURE_BOARDER_SIZE;
 
-    _tex_add_entry(image->name, (tex_rect) {
+    tex_rect tex = {
       offset_x,
       offset_y,
-      (u16)(offset_x + image->width),
-      (u16)(offset_y + image->height),
-    });
+      offset_x + image->width,
+      offset_y + image->height,
+    };
+
+    _tex_add_entry(image->name, tex);
 
     for (u16 y = 0; y < image->height; ++y) {
       for (u16 x = 0; x < image->width; ++x) {
-        _tex_set_pixel(offset_x + x, offset_y + y, _tex_get_pixel(image, x, y));
+        u16 tx = offset_x + x;
+        u16 ty = offset_y + y;
+
+        _tex_set_pixel(tx, ty, _tex_get_image_pixel(image, x, y));
+      }
+    }
+
+    for (u16 y = (tex.min_y - TEXTURE_BOARDER_SIZE); y < (tex.max_y + TEXTURE_BOARDER_SIZE); ++y) {
+      for (u16 x = (tex.min_x - TEXTURE_BOARDER_SIZE); x < (tex.max_x + TEXTURE_BOARDER_SIZE); ++x) {
+        _tex_set_pixel(x, y, _tex_get_pixel(
+            clamp(x, tex.min_x, tex.max_x - 1),
+            clamp(y, tex.min_y, tex.max_y - 1)));
       }
     }
 
