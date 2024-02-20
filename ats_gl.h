@@ -534,6 +534,9 @@ static void gl_set_matrix(m4 projection, m4 view)
   glLoadMatrixf(projection.e);
   glMatrixMode(GL_MODELVIEW);
   glLoadMatrixf(view.e);
+  //gl_right   = v3(view.x.x, view.y.x, view.z.x);
+  //gl_up      = v3(view.x.y, view.y.y, view.z.y);
+  //gl_forward = v3(-view.x.z, -view.y.z, -view.z.z);
 }
 
 static void gl_billboard(tex_rect tex, v3 pos, v2 rad, u32 color)

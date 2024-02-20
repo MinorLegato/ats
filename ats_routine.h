@@ -137,3 +137,6 @@ typedef struct {
     goto rt_end_of_routine; \
   } while(0) \
 
+// get current timestep
+#define rt_delta() (__rt->dt)
+

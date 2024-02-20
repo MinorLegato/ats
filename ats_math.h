@@ -100,15 +100,17 @@ typedef struct {
   f32 x, y, z, w;
 } quat;
 
-struct circle {
+#define circle(...) (circle) { __VA_ARGS__ }
+typedef struct {
   v2 p;
   f32 r;
-};
+} circle;
 
-struct sphere {
+#define sphere(...) (sphere) { __VA_ARGS__ }
+typedef struct {
   v3 p;
   f32 r;
-};
+} sphere;
 
 static m2 m2_identity(void)
 {
@@ -1612,13 +1614,13 @@ static frustum frustum_create(m4 m)
 
 // ------------------ contains ------------------ //
 
-static b32 circle_contains(struct circle c, v2 pos)
+static b32 circle_contains(circle c, v2 pos)
 {
   f32 distance = v2_dist_sq(c.p, pos);
   return distance < (c.r * c.r);
 }
 
-static b32 sphere_contains(struct sphere s, v3 pos)
+static b32 sphere_contains(sphere s, v3 pos)
 {
   f32 distance = v3_dist_sq(s.p, pos);
   return distance < (s.r * s.r);
@@ -1665,7 +1667,7 @@ static b32 frustum_contains(frustum fs, v3 pos)
 
 // ------------------ intersect ------------------ //
 
-static b32 circle_intersect(struct circle a, struct circle b)
+static b32 circle_intersect(circle a, circle b)
 {
   f32 dx  = b.p.x - a.p.x;
   f32 dy  = b.p.y - a.p.y;
@@ -1673,7 +1675,7 @@ static b32 circle_intersect(struct circle a, struct circle b)
   return (dx * dx + dy * dy) < (rt * rt);
 }
 
-static b32 sphere_intersect(struct sphere a, struct sphere b)
+static b32 sphere_intersect(sphere a, sphere b)
 {
   f32 dx = b.p.x - a.p.x;
   f32 dy = b.p.y - a.p.y;
@@ -1712,7 +1714,7 @@ static b32 r3i_intersect(r3i a, r3i b)
   return true;
 }
 
-static b32 frustum_intersect_sphere(frustum fs, struct sphere s)
+static b32 frustum_intersect_sphere(frustum fs, sphere s)
 {
   for (i32 i = 0; i < 6; i++) {
     if(fs.planes[i].a * s.p.x + fs.planes[i].b * s.p.y + fs.planes[i].c * s.p.z + fs.planes[i].d <= -s.r) {
@@ -1774,7 +1776,7 @@ static r3i r3i_get_overlap(r3i a, r3i b)
 
 // -------------- get intersect vector ---------- //
 
-static v2 circle_get_intersect_vector(struct circle a, struct circle b)
+static v2 circle_get_intersect_vector(circle a, circle b)
 {
   v2 delta = v2_sub(a.p, b.p);
   f32 depth = v2_len(delta) - (a.r + b.r);
@@ -1782,7 +1784,7 @@ static v2 circle_get_intersect_vector(struct circle a, struct circle b)
   return v2_scale(delta, -depth);
 }
 
-static v3 sphere_get_intersect_vector(struct sphere a, struct sphere b)
+static v3 sphere_get_intersect_vector(sphere a, sphere b)
 {
   v3 delta = v3_sub(a.p, b.p);
   f32 depth = v3_len(delta) - (a.r + b.r);

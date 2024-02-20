@@ -21,9 +21,9 @@ static const float m3id[9] = {1,0,0, 0,1,0, 0,0,1};
 
 #define fop(r,e,a,p,b,i,s) (r) e ((a) p (b)) i (s)
 #define f3op(r,e,a,p,b,i,s)\
-{fop((r)[0],e,(a)[0],p,(b)[0],i,s),\
+{ fop((r)[0],e,(a)[0],p,(b)[0],i,s),\
   fop((r)[1],e,(a)[1],p,(b)[1],i,s),\
-  fop((r)[2],e,(a)[2],p,(b)[2],i,s);}
+  fop((r)[2],e,(a)[2],p,(b)[2],i,s); }
 #define f3set(v,x,y,z) (v)[0]=(x),(v)[1]=(y),(v)[2]=(z)
 #define f3zero(v) f3set(v,0,0,0)
 #define f3unpack(v) (v)[0],(v)[1],(v)[2]
@@ -42,6 +42,7 @@ f3cross(float *r, const float *a, const float *b)
   r[1] = (a[2]*b[0]) - (a[0]*b[2]);
   r[2] = (a[0]*b[1]) - (a[1]*b[0]);
 }
+
 static inline float
 f3box(const float *a, const float *b, const float *c)
 {
