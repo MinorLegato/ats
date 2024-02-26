@@ -55,9 +55,12 @@ main(void) {
 
 static const char* vertex_shader = GLSL(
   layout (location = 0) in vec3 in_pos;
-  layout (location = 1) in vec2 in_uv;
-  layout (location = 2) in vec4 in_color;
+  layout (location = 1) in vec3 in_normal;
+  layout (location = 2) in vec2 in_uv;
+  layout (location = 3) in vec4 in_color;
 
+  out vec3 frag_pos;
+  out vec3 frag_normal;
   out vec2 frag_uv;
   out vec4 frag_color;
 
@@ -65,6 +68,8 @@ static const char* vertex_shader = GLSL(
 
   void main()
   {
+    frag_pos = in_pos;
+    frag_normal = in_normal;
     frag_uv = in_uv;
     frag_color = in_color;
 
@@ -72,6 +77,8 @@ static const char* vertex_shader = GLSL(
   });
 
 static const char* fragment_shader = GLSL(
+  in vec3 frag_pos;
+  in vec3 frag_normal;
   in vec2 frag_uv;
   in vec4 frag_color;
 
@@ -80,15 +87,24 @@ static const char* fragment_shader = GLSL(
   uniform sampler2D tex;
   uniform bool texture_enabled;
 
+  uniform bool fog_enabled;
+  uniform vec3 fog_color;
+
   void main()
   {
-    vec4 color;
-    vec2 tex_scale = 1.0 / textureSize(tex, 0);
+    vec4 color = frag_color;
 
     if (texture_enabled) {
-      color = frag_color * texture(tex, frag_uv * tex_scale);
-    } else {
-      color = frag_color;
+      vec2 tex_scale = 1.0 / textureSize(tex, 0);
+      color = color * texture(tex, frag_uv * tex_scale);
+    }
+
+    if (fog_enabled) {
+      float distance = gl_FragCoord.z / gl_FragCoord.w;
+      float d = 0.2 * distance;
+      float f = 1.0 - clamp(exp2(-1.442695 * d * d), 0.0, 1.0);
+
+      color.rgb = mix(color.rgb, fog_color, f);
     }
 
     if (color.a <= 0) discard;
@@ -162,6 +178,7 @@ static const char* r_post_fx_blur = GLSL(
 
 typedef struct {
   v3 pos;
+  v3 normal;
   v2 uv;
   u32 color;
 } r_vertex_data;
@@ -173,16 +190,16 @@ typedef struct {
   u32 texture;
 } r_target_data;
 
-static gl_buffer       r_post_fx_buffer;
-static gl_texture      r_current_texture;
-static usize           r_target_count;
-static r_target_data   r_target_array[R_TARGET_MAX];
-static gl_shader       r_shader;
-static gl_buffer       r_buffer;
-static u32             r_type;
-static r_vertex_data   r_current;
-static u32             r_vertex_count;
-static r_vertex_data   r_vertex_array[R_VERTEX_MAX];
+static gl_buffer r_post_fx_buffer;
+static gl_texture r_current_texture;
+static usize r_target_count;
+static r_target_data r_target_array[R_TARGET_MAX];
+static gl_shader r_shader;
+static gl_buffer r_buffer;
+static u32 r_type;
+static r_vertex_data r_current;
+static u32 r_vertex_count;
+static r_vertex_data r_vertex_array[R_VERTEX_MAX];
 
 static void r_set_matrix(m4 mvp)
 {
@@ -207,8 +224,9 @@ static void r_init(void)
   gl_buffer_desc buffer_desc = {0};
 
   buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
-  buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
-  buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
+  buffer_desc.layout[1] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, normal) };
+  buffer_desc.layout[2] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
+  buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -225,7 +243,7 @@ static void r_begin_frame(void)
 
 static void r_end_frame(void)
 {
-  //
+  // WOOP
 }
 
 static void r_begin(u32 type)
@@ -236,12 +254,17 @@ static void r_begin(u32 type)
 
 static void r_uv(f32 x, f32 y)
 {
-  r_current.uv = (v2) { x, y };
+  r_current.uv = v2(x, y);
 }
 
 static void r_color(u32 color)
 {
   r_current.color = color;
+}
+
+static void r_normal(f32 x, f32 y, f32 z)
+{
+  r_current.normal = v3(x, y, z);
 }
 
 static void r_vertex(f32 x, f32 y, f32 z)
@@ -270,13 +293,26 @@ static void r_set_texture(const gl_texture* texture)
 static void r_enable_textures(void)
 {
   gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), true);
+  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 1);
 }
 
 static void r_disable_textures(void)
 {
   gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), false);
+  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 0);
+}
+
+static void r_enable_fog(v3 fog_color)
+{
+  gl_use(&r_shader);
+  gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 1);
+  gl_uniform_v3(gl_location(&r_shader, "fog_color"), fog_color);
+}
+
+static void r_disable_fog(void)
+{
+  gl_use(&r_shader);
+  gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 0);
 }
 
 static void r_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
