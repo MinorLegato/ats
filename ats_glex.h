@@ -290,6 +290,7 @@ static void gl_set_texture(const gl_texture* texture)
   r_current_texture = *texture;
 }
 
+#if 0
 static void gl_enable_textures(void)
 {
   gl_use(&r_shader);
@@ -313,6 +314,49 @@ static void gl_disable_fog(void)
 {
   gl_use(&r_shader);
   gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 0);
+}
+#endif
+
+enum {
+  GLEX_NONE,
+  GLEX_TEXTURE,
+  GLEX_FOG,
+};
+
+typedef struct {
+  v3 color;
+} gl_fog_desc;
+
+static void gl_enable(u32 tag, const void* desc)
+{
+  gl_use(&r_shader);
+
+  switch (tag) {
+    case GLEX_TEXTURE: {
+      gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 1);
+    } break;
+
+    case GLEX_FOG: {
+      const gl_fog_desc* fog = (gl_fog_desc*)desc;
+      gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 1);
+      gl_uniform_v3(gl_location(&r_shader, "fog_color"), fog->color);
+    } break;
+  }
+}
+
+static void gl_disable(u32 tag)
+{
+  gl_use(&r_shader);
+
+  switch (tag) {
+    case GLEX_TEXTURE: {
+      gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 0);
+    } break;
+
+    case GLEX_FOG: {
+      gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 0);
+    } break;
+  }
 }
 
 static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
