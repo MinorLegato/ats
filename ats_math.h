@@ -170,6 +170,11 @@ static f32 rsqrt32(f32 n)
   return y;
 }
 
+static i32 absi(i32 x)
+{
+  return 0x7fffffff & x;
+}
+
 static f32 cos_turn(f32 turns)
 {
   return cosf(TAU * turns);

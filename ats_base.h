@@ -113,6 +113,11 @@ typedef u64 b64;
 #define castu32(...)      cast(u32, __VA_ARGS__)
 #define castu64(...)      cast(u64, __VA_ARGS__)
 
+// shorthand
+#define castf(...)        cast(f32, __VA_ARGS__)
+#define casti(...)        cast(i32, __VA_ARGS__)
+#define castu(...)        cast(u32, __VA_ARGS__)
+
 #define match(...) \
   for (u32 _match_hash = hash_str(__VA_ARGS__), _with_hash = 0, _match_found = 0; _match_hash; _match_hash = 0)
 

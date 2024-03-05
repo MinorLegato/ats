@@ -14,13 +14,13 @@
 
 #include "render.c"
 
-int
-main(void) {
+int main(void)
+{
   platform_init("YOLO", 1600, 800, 4);
   r_init();
 
-  //u32 game_pass = r_new_target();
-  //u32 lighting_pass = r_new_target();
+  // u32 game_pass = r_new_target();
+  // u32 lighting_pass = r_new_target();
 
   while (!platform.close) {
     if (platform.keyboard.pressed[KEY_ESCAPE]) {
@@ -77,6 +77,46 @@ static const char* vertex_shader = GLSL(
   });
 
 static const char* fragment_shader = GLSL(
+  struct point_light {
+    vec3 pos;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+
+    float constant;
+    float linear;
+    float quadratic;
+  };
+
+  vec3 calculate_point_light(point_light light, vec3 view_pos, vec3 frag_pos, vec3 frag_normal, vec4 color)
+  {
+    // ambient
+    vec3 ambient = light.ambient * color.rgb;
+
+    // diffuse 
+    vec3 norm = normalize(frag_normal);
+    vec3 light_dir = normalize(light.pos - frag_pos);
+    float diff = max(dot(norm, light_dir), 0.0);
+    vec3 diffuse = light.diffuse * diff * color.rgb;
+
+    // specular
+    vec3 view_dir = normalize(view_pos - frag_pos);
+    vec3 reflect_dir = reflect(-light_dir, norm);  
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 2);
+    vec3 specular = light.specular * spec * color.rgb;  
+
+    // attenuation
+    float distance = length(light.pos - frag_pos);
+    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));    
+
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
+
+    return ambient + diffuse + specular;
+  }
+
   in vec3 frag_pos;
   in vec3 frag_normal;
   in vec2 frag_uv;
@@ -90,6 +130,12 @@ static const char* fragment_shader = GLSL(
   uniform bool fog_enabled;
   uniform vec3 fog_color;
 
+  uniform vec3 view_pos;
+
+  uniform bool lighting_enabled;
+  uniform int light_count;
+  uniform point_light light_array[32];
+
   void main()
   {
     vec4 color = frag_color;
@@ -97,6 +143,16 @@ static const char* fragment_shader = GLSL(
     if (texture_enabled) {
       vec2 tex_scale = 1.0 / textureSize(tex, 0);
       color = color * texture(tex, frag_uv * tex_scale);
+    }
+
+    if (color.a <= 0) discard;
+
+    if (lighting_enabled) {
+      vec3 result;
+      for (int i = 0; i < light_count; ++i) {
+        result += calculate_point_light(light_array[i], view_pos, frag_pos, frag_normal, color);
+      }
+      color.rgb = result;
     }
 
     if (fog_enabled) {
@@ -107,7 +163,6 @@ static const char* fragment_shader = GLSL(
       color.rgb = mix(color.rgb, fog_color, f);
     }
 
-    if (color.a <= 0) discard;
     out_color = color;
   });
 
@@ -190,6 +245,21 @@ typedef struct {
   u32 texture;
 } r_target_data;
 
+typedef struct {
+  v3 pos;
+  
+  v3 ambient;
+  v3 diffuse;
+  v3 specular;
+
+  f32 constant; 
+  f32 linear;
+  f32 quadratic;
+} r_light;
+
+static u32 r_light_count;
+static r_light r_light_array[1024];
+
 static gl_buffer r_post_fx_buffer;
 static gl_texture r_current_texture;
 static usize r_target_count;
@@ -201,10 +271,23 @@ static r_vertex_data r_current;
 static u32 r_vertex_count;
 static r_vertex_data r_vertex_array[R_VERTEX_MAX];
 
-static void gl_set_matrix(m4 mvp)
+static v3 r_view_pos;
+static v3 r_view_dir;
+
+static void gl_set_matrix(m4 projection, m4 view)
 {
+  m4 mvp = m4_mul(projection, view);
+
   gl_use(&r_shader);
   gl_uniform_m4(gl_location(&r_shader, "mvp"), mvp);
+}
+
+static void gl_set_view(v3 pos, v3 dir)
+{
+  r_view_pos = pos;
+  r_view_dir = v3_norm(dir);
+  
+  gl_uniform_v3(gl_location(&r_shader, "view_pos"), r_view_pos);
 }
 
 static void gl_init_ex(void)
@@ -226,7 +309,7 @@ static void gl_init_ex(void)
   buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
   buffer_desc.layout[1] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, normal) };
   buffer_desc.layout[2] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
-  buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), true };
+  buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), 1 };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -238,7 +321,10 @@ static void gl_init_ex(void)
 static void gl_begin_frame(void)
 {
   gl_use(&r_shader);
-  gl_set_matrix(m4_identity());
+  gl_set_matrix(m4_identity(), m4_identity());
+
+  r_view_pos = v3(0);
+  r_light_count = 0;
 }
 
 static void gl_end_frame(void)
@@ -278,6 +364,30 @@ static void gl_end(void)
   gl_use(&r_shader);
   gl_buffer_bind(&r_buffer);
   gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (r_vertex_data));
+
+  // add lights
+  {
+    i32 count = min(32, r_light_count);
+
+    char buffer[256];
+    for (i32 i = 0; i < count; ++i) {
+      r_light light = r_light_array[i];
+
+#define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_v3(gl_location(&r_shader, buffer), light.var);
+#define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_f32(gl_location(&r_shader, buffer), light.var);
+      set_v3(pos);
+      set_v3(ambient);
+      set_v3(diffuse);
+      set_v3(specular);
+      set_f32(constant);
+      set_f32(linear);
+      set_f32(quadratic);
+#undef set_v3
+#undef set_f32
+    }
+
+    gl_uniform_i32(gl_location(&r_shader, "light_count"), count);
+  }
 
   glDrawArrays(r_type, 0, r_vertex_count);
 }
@@ -321,13 +431,10 @@ enum {
   GLEX_NONE,
   GLEX_TEXTURE,
   GLEX_FOG,
+  GLEX_LIGHTING,
 };
 
-typedef struct {
-  v3 color;
-} gl_fog_desc;
-
-static void gl_enable(u32 tag, const void* desc)
+static void gl_enable(u32 tag)
 {
   gl_use(&r_shader);
 
@@ -337,9 +444,11 @@ static void gl_enable(u32 tag, const void* desc)
     } break;
 
     case GLEX_FOG: {
-      const gl_fog_desc* fog = (gl_fog_desc*)desc;
       gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 1);
-      gl_uniform_v3(gl_location(&r_shader, "fog_color"), fog->color);
+    } break;
+
+    case GLEX_LIGHTING: {
+      gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 1);
     } break;
   }
 }
@@ -356,7 +465,33 @@ static void gl_disable(u32 tag)
     case GLEX_FOG: {
       gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 0);
     } break;
+
+    case GLEX_LIGHTING: {
+      gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 0);
+    } break;
   }
+}
+
+static void gl_fog_color(f32 r, f32 g, f32 b)
+{
+  gl_uniform_v3(gl_location(&r_shader, "fog_color"), v3(r, g, b));
+}
+
+static void gl_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
+{
+  if (r_light_count >= countof(r_light_array)) {
+    return;
+  }
+
+  r_light_array[r_light_count++] = (r_light) {
+    .pos = pos,
+    .ambient = ambient,
+    .diffuse = diffuse,
+    .specular = specular,
+    .constant = constant,
+    .linear = linear,
+    .quadratic = quadratic,
+  };
 }
 
 static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
@@ -378,6 +513,7 @@ static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up
   f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
 
   gl_color(color);
+  gl_normal(-r_view_dir.x, -r_view_dir.y, -r_view_dir.z);
 
   gl_uv(tr.min_x, tr.max_y); gl_vertex(ax, ay, az);
   gl_uv(tr.max_x, tr.max_y); gl_vertex(bx, by, bz);
