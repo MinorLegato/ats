@@ -134,7 +134,7 @@ static const char* fragment_shader = GLSL(
 
   uniform bool lighting_enabled;
   uniform int light_count;
-  uniform point_light light_array[32];
+  uniform point_light light_array[16];
 
   void main()
   {
@@ -258,7 +258,7 @@ typedef struct {
 } r_light;
 
 static u32 r_light_count;
-static r_light r_light_array[1024];
+static r_light r_light_array[16];
 
 static gl_buffer r_post_fx_buffer;
 static gl_texture r_current_texture;

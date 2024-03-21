@@ -131,8 +131,8 @@ static void gl_init(void)
 static u32 gl_shader_compile(const char* source, u32 type)
 {
   char log[512] = {0};
-  i32  success  = 0;
-  u32  shader   = glCreateShader(type);
+  i32 success = 0;
+  u32 shader = glCreateShader(type);
 
   glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
@@ -151,8 +151,8 @@ static u32 gl_shader_compile(const char* source, u32 type)
 static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader)
 {
   char log[512] = {0};
-  i32  success  = 0;
-  u32  shader   = glCreateProgram();
+  i32 success = 0;
+  u32 shader = glCreateProgram();
 
   glAttachShader(shader, vertex_shader);
   glAttachShader(shader, fragment_shader);
