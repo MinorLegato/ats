@@ -184,7 +184,7 @@ static const char* r_post_fx_vertex_shader = GLSL(
   });
 
 static const char* r_post_fx_none = GLSL(
-  in  vec2 frag_uv;
+  in vec2 frag_uv;
   out vec4 out_color;
 
   uniform sampler2D tex;
@@ -399,33 +399,6 @@ static void gl_set_texture(const gl_texture* texture)
 
   r_current_texture = *texture;
 }
-
-#if 0
-static void gl_enable_textures(void)
-{
-  gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 1);
-}
-
-static void gl_disable_textures(void)
-{
-  gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 0);
-}
-
-static void gl_enable_fog(v3 fog_color)
-{
-  gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 1);
-  gl_uniform_v3(gl_location(&r_shader, "fog_color"), fog_color);
-}
-
-static void gl_disable_fog(void)
-{
-  gl_use(&r_shader);
-  gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 0);
-}
-#endif
 
 enum {
   GLEX_NONE,
@@ -664,7 +637,7 @@ static void gl_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color)
   v2 pos          = { line_pos.x, line_pos.y };
   v2 scale        = { rad, 0.5f * line_length };
 
-  r_rotated(pos, z, scale, rot, color);
+  gl_rotated(pos, z, scale, rot, color);
 }
 
 static void gl_box(r3 box, u32 color)
@@ -766,7 +739,7 @@ static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
   glClearColor(r, g, b, a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  r_set_texture(&r_current_texture);
+  gl_set_texture(&r_current_texture);
 }
 
 static void gl_end_pass(void)
@@ -785,7 +758,7 @@ static void gl_end_pass(void)
   r_current_target = NULL;
   glEnable(GL_DEPTH_TEST);
 
-  r_set_texture(&r_current_texture);
+  gl_set_texture(&r_current_texture);
 }
 
 #if 0
