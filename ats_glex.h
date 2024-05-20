@@ -306,10 +306,10 @@ static void gl_init_ex(void)
 
   gl_buffer_desc buffer_desc = {0};
 
-  buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
-  buffer_desc.layout[1] = (gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, normal) };
-  buffer_desc.layout[2] = (gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
-  buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), 1 };
+  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
+  buffer_desc.layout[1] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, normal) };
+  buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
+  buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), 1 };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -355,7 +355,7 @@ static void gl_normal(f32 x, f32 y, f32 z)
 
 static void gl_vertex(f32 x, f32 y, f32 z)
 {
-  r_current.pos = (v3) { x, y, z };
+  r_current.pos = v3(x, y, z);
   r_vertex_array[r_vertex_count++] = r_current;
 }
 
@@ -452,19 +452,8 @@ static void gl_fog_color(f32 r, f32 g, f32 b)
 
 static void gl_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
 {
-  if (r_light_count >= countof(r_light_array)) {
-    return;
-  }
-
-  r_light_array[r_light_count++] = (r_light) {
-    .pos = pos,
-    .ambient = ambient,
-    .diffuse = diffuse,
-    .specular = specular,
-    .constant = constant,
-    .linear = linear,
-    .quadratic = quadratic,
-  };
+  if (r_light_count >= countof(r_light_array)) { return; }
+  r_light_array[r_light_count++] = make(r_light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
 static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
@@ -575,8 +564,8 @@ static void gl_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 
 
   m2 rot_matrix = m2_rotate(rot);
 
-  v2 u = m2_mulv(rot_matrix, (v2) { 0, 1 });
-  v2 r = m2_mulv(rot_matrix, (v2) { 1, 0 });
+  v2 u = m2_mulv(rot_matrix, v2(0, 1));
+  v2 r = m2_mulv(rot_matrix, v2(1, 0));
 
   f32 ax = pos.x - rad.x * r.x - rad.y * u.x;
   f32 ay = pos.y - rad.x * r.y - rad.y * u.y;
@@ -603,8 +592,8 @@ static void gl_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color)
 {
   m2 rot_matrix = m2_rotate(rot);
 
-  v2 u = m2_mulv(rot_matrix, (v2) { 0, 1 });
-  v2 r = m2_mulv(rot_matrix, (v2) { 1, 0 });
+  v2 u = m2_mulv(rot_matrix, v2(0, 1));
+  v2 r = m2_mulv(rot_matrix, v2(1, 0));
 
   f32 ax = pos.x - rad.x * r.x - rad.y * u.x;
   f32 ay = pos.y - rad.x * r.y - rad.y * u.y;

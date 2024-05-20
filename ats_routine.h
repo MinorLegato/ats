@@ -40,7 +40,6 @@
 //     // this is repeated until condition_is_true is false
 // }
 // rt_end();
-#include "ats_base.h"  
 
 typedef struct {
   i32 at;
@@ -51,7 +50,26 @@ typedef struct {
 
 #define RT_LABEL_OFFSET 1147483647
 
+#ifndef __cplusplus
+
 #define rt_hash(tag) (RT_LABEL_OFFSET + (tag))
+
+#else
+
+constexpr u32 rt_hash(int tag)
+{
+  return RT_LABEL_OFFSET + tag;
+}
+
+constexpr u32 rt_hash(const char* str)
+{
+  u32 hash = 5381;
+  for (int i = 0; str[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + str[i];
+  return hash;
+}
+
+#endif
 
 #define rt_begin(rt, delta_time) \
   if (rt.wait_for > 0) { \

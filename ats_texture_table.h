@@ -7,12 +7,12 @@
 
 #define TEXTURE_TABLE_SIZE (1024)
 
-#define tex_id(...) ((tex_id) { __VA_ARGS__ })
+#define tex_id(...) (make(tex_id) { __VA_ARGS__ })
 typedef struct {
   u16 index;
 } tex_id;
 
-#define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
+#define tex_rect(...) (make(tex_rect) { __VA_ARGS__ })
 typedef struct {
   u16 min_x;
   u16 min_y;
@@ -90,6 +90,7 @@ static tex_id tex_get_id(const char* name)
     }
     index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
+  puts(name);
   assert(0);
   return tex_id(0);
 }
@@ -163,7 +164,7 @@ static void tex_load_dir_and_scale(const char* dir_path, u16 denominator)
       u16 height = 0;
       u32* pixels = file_load_image(it.current, &width, &height);
 
-      tex_image image = {0};
+      tex_image image = ZERO;
 
       image.user_provided = 1;
       image.width = width / denominator;
@@ -171,8 +172,8 @@ static void tex_load_dir_and_scale(const char* dir_path, u16 denominator)
       image.pixels = mem_array(u32, image.width * image.height);
 
       stbir_resize_uint8(
-        (void*)pixels, width, height, 0,
-        (void*)image.pixels, image.width, image.height, 0,
+        (unsigned char*)pixels, width, height, 0,
+        (unsigned char*)image.pixels, image.width, image.height, 0,
         4);
 
       cstr_copy_without_extension(image.name, it.data.cFileName);
@@ -187,7 +188,7 @@ static void tex_begin(u16 width, u16 height)
 {
   tex_image_count = 0;
 
-  texture_table = (tex_table) {
+  texture_table = make(tex_table) {
     width,
     height, 
     mem_array(u32, (usize)(width * height)),
@@ -260,7 +261,7 @@ static inline u32 _tex_get_pixel(u16 x, u16 y)
 static void tex_end(void)
 {
   tex_stack_top = 0;
-  tex_stack_buf[tex_stack_top++] = (tex_rect) {
+  tex_stack_buf[tex_stack_top++] = make(tex_rect) {
     0,
     0,
     texture_table.width,
@@ -271,7 +272,7 @@ static void tex_end(void)
 
   for (usize i = 0; i < tex_image_count; ++i) {
     tex_image* image = &tex_image_array[i];
-    tex_rect   rect = tex_get_fit(image->width + 2, image->height + 2);
+    tex_rect rect = tex_get_fit(image->width + 2, image->height + 2);
 
     u16 offset_x = rect.min_x + TEXTURE_BOARDER_SIZE;
     u16 offset_y = rect.min_y + TEXTURE_BOARDER_SIZE;
@@ -281,8 +282,8 @@ static void tex_end(void)
     tex_rect tex = {
       offset_x,
       offset_y,
-      offset_x + image->width,
-      offset_y + image->height,
+      (u16)(offset_x + image->width),
+      (u16)(offset_y + image->height),
     };
 
     _tex_add_entry(image->name, tex);

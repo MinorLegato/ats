@@ -1,13 +1,6 @@
 #pragma once
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <float.h>
-#include <assert.h>
-#include <stdbool.h>
-#include <stdint.h>
+#define ATS_BASE
 
 #define PI  (3.14159265359f)
 #define TAU (6.28318530718f)
@@ -72,31 +65,52 @@
        iter_type##_advance(&iter_name))
 
 #define for_each(type, var, ...) \
-  for (struct type* var = (struct type*)0xdeadbeefull; var != NULL; var = NULL) \
-  for (struct type##_iter macro_var(it) = (__VA_ARGS__); \
+  for (type* var = (type*)0xdeadbeefull; var != NULL; var = NULL) \
+  for (type##_iter macro_var(it) = (__VA_ARGS__); \
        (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
        type##_iter_advance(&macro_var(it)))
 
 typedef float f32;
 typedef double f64;
 
-typedef int8_t i8;
-typedef int16_t i16;
-typedef int32_t i32;
-typedef int64_t i64;
+typedef char i8;
+typedef short i16;
+typedef int i32;
+typedef long long i64;
 
-typedef uint8_t u8;
-typedef uint16_t u16;
-typedef uint32_t u32;
-typedef uint64_t u64;
+typedef unsigned char u8;
+typedef unsigned short u16;
+typedef unsigned int u32;
+typedef unsigned long long u64;
 
-typedef ptrdiff_t isize;
-typedef size_t usize;
+static_assert (sizeof (f32) == 4, "type width mismatch");
+static_assert (sizeof (f64) == 8, "type width mismatch");
 
-typedef u8 b8;
+static_assert (sizeof (i8)  == 1, "type width mismatch");
+static_assert (sizeof (i16) == 2, "type width mismatch");
+static_assert (sizeof (i32) == 4, "type width mismatch");
+static_assert (sizeof (i64) == 8, "type width mismatch");
+
+static_assert (sizeof (u8)  == 1, "type width mismatch");
+static_assert (sizeof (u16) == 2, "type width mismatch");
+static_assert (sizeof (u32) == 4, "type width mismatch");
+static_assert (sizeof (u64) == 8, "type width mismatch");
+
+typedef u8  b8;
 typedef u16 b16;
 typedef u32 b32;
 typedef u64 b64;
+
+typedef i64 isize;
+typedef u64 usize;
+
+#ifndef __cplusplus
+#define ZERO {0}
+#define make(type) (type)
+#else
+#define ZERO {}
+#define make(type) type
+#endif
 
 #define cast(type, ...)   ((type)(__VA_ARGS__))
 
@@ -118,9 +132,32 @@ typedef u64 b64;
 #define casti(...)        cast(i32, __VA_ARGS__)
 #define castu(...)        cast(u32, __VA_ARGS__)
 
-#define match(...) \
-  for (u32 _match_hash = hash_str(__VA_ARGS__), _with_hash = 0, _match_found = 0; _match_hash; _match_hash = 0)
+#if defined(__cplusplus)
 
-#define with(...) \
-  if (!_match_found && (_match_found = ((_with_hash = hash_str(__VA_ARGS__)) == _match_hash)))
+template <typename T>
+struct defer_type {
+  T func;
+  defer_type(T f) : func(f) {} 
+  ~defer_type() { func(); }
+};
+
+#define defer defer_type macro_var(defer_) = [&]
+
+constexpr u32 hash(const char* str)
+{
+  u32 hash = 5381;
+  for (int i = 0; str[i] != '\0'; i++)
+    hash = ((hash << 5) + hash) + str[i];
+  return hash;
+}
+
+#define match(...) switch (hash(__VA_ARGS__))
+#define with(...)  case hash(__VA_ARGS__)
+
+#endif // __cplusplus
+
+#include "ats_math.h"
+#include "ats_routine.h"
+#include "ats_mem.h"
+#include "ats_ds.h"
 

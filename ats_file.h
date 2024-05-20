@@ -40,12 +40,12 @@ static usize file_get_size(const char* path)
 
 static s8 file_read_s8(const char* file_name)
 {
-  char* buffer = NULL;
-  isize size = 0;
+  u8* buffer = NULL;
+  usize size = 0;
   FILE* fp = file_open(file_name, "rb");
   if (fp) {
-    size   = _file_get_size(fp);
-    buffer = (char*)mem_alloc(size + 1);
+    size = _file_get_size(fp);
+    buffer = (u8*)mem_alloc(size + 1);
     if (buffer) {
       buffer[size] = 0;
       if (fread(buffer, 1, size, fp) == 0) {
@@ -54,7 +54,7 @@ static s8 file_read_s8(const char* file_name)
     }
     fclose(fp);
   }
-  return (s8) { buffer, size };
+  return make(s8) { buffer, (isize)size };
 }
 
 static b32 file_write_str(const char* file_name, s8 buffer)
@@ -65,7 +65,7 @@ static b32 file_write_str(const char* file_name, s8 buffer)
     fclose(fp);
     return n == buffer.len;
   }
-  return false;
+  return 0;
 }
 
 static b32 file_append_str(const char* file_name, s8 buffer)
@@ -76,7 +76,7 @@ static b32 file_append_str(const char* file_name, s8 buffer)
     fclose(fp);
     return n == buffer.len;
   }
-  return false;
+  return 0;
 }
 
 static b32 file_read_bin(const char* file_name, void* buffer, usize size)
@@ -85,9 +85,9 @@ static b32 file_read_bin(const char* file_name, void* buffer, usize size)
   if (fp) {
     fread(buffer, size, 1, fp);
     fclose(fp);
-    return true;
+    return 1;
   }
-  return false;
+  return 0;
 } 
 
 static b32 file_write_bin(const char* file_name, const void* buffer, usize size)
@@ -98,7 +98,7 @@ static b32 file_write_bin(const char* file_name, const void* buffer, usize size)
     fclose(fp);
     return 1;
   }
-  return false;
+  return 0;
 }
 
 static u32* file_load_image(const char* path, u16* width, u16* height)
@@ -218,14 +218,14 @@ static void _dir_update_file_info(dir_iter* it)
     }
   }
 
-  if (i)     it->path      = (s8) { .buf = s,     .len = i     };
-  if (e < i) it->name      = (s8) { .buf = s + n, .len = i - n };
-  if (n < i) it->extension = (s8) { .buf = s + e, .len = i - e };
+  if (i)     it->path      = make(s8) { (u8*)(s),     (isize)(i)     };
+  if (e < i) it->name      = make(s8) { (u8*)(s + n), (isize)(i - n) };
+  if (n < i) it->extension = make(s8) { (u8*)(s + e), (isize)(i - e) };
 }
 
 static dir_iter dir_iter_create(const char* path)
 {
-  dir_iter it = {0};
+  dir_iter it = ZERO;
   it.stack[it.idx] = file_iter_create(path, NULL);
   _dir_update_file_info(&it);
   return it;

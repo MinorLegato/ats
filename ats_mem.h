@@ -1,10 +1,23 @@
 #pragma once
 
-#include "ats_base.h"
-
 #define MEM_KIB(n) (1024 * (n))
 #define MEM_MIB(n) (1024 * MEM_KIB(n))
 #define MEM_GIB(n) (1024 * MEM_MIB(n))
+
+#define mem_alloc(...) _mem_alloc(make(mem_alloc_desc) { __VA_ARGS__ })
+#define mem_type(type_t, ...)         (type_t*)mem_alloc((sizeof (type_t)), 0, __VA_ARGS__)
+#define mem_array(type_t, count, ...) (type_t*)mem_alloc(((count) * sizeof (type_t)), (usize)(count), __VA_ARGS__)
+
+#define mem_context(arena) scope_guard(mem_push(arena), mem_pop())
+
+#define mem_save(...)       _mem_save(make(mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_restore(...)    _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_begin(...)      _mem_begin(make(mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_end(size, ...)  _mem_end((size), make(mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_scope(...)      scope_guard(_mem_save(make(mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ }))
+
+#define mem_size(ptr)     ((mem_header*)(ptr) - 1)->size
+#define mem_count(ptr)    ((mem_header*)(ptr) - 1)->count
 
 typedef struct mem_index mem_index;
 struct mem_index {
@@ -22,12 +35,7 @@ struct mem_arena {
   mem_arena* next;
 };
 
-static mem_arena* mem_stack = NULL;
-
-#define mem_alloc(...) _mem_alloc((mem_alloc_desc) { __VA_ARGS__ })
-
-#define mem_type(type_t, ...)         (type_t*)mem_alloc((sizeof (type_t)), 0, __VA_ARGS__)
-#define mem_array(type_t, count, ...) (type_t*)mem_alloc(((count) * sizeof (type_t)), (count), __VA_ARGS__)
+static mem_arena* mem_stack;
 
 static void* mem_clear(void* data, usize size)
 {
@@ -64,7 +72,7 @@ typedef struct {
 
 static void* _mem_alloc(mem_alloc_desc desc)
 {
-  mem_arena*  arena  = MEM_GET(desc);
+  mem_arena* arena = MEM_GET(desc);
   mem_header* header = (mem_header*)(arena->buf + arena->pos);
 
   arena->pos += sizeof (mem_header) + desc.size;
@@ -78,17 +86,6 @@ typedef struct {
   usize pad;
   mem_arena* arena;
 } mem_arena_desc;
-
-#define mem_context(arena) scope_guard(mem_push(arena), mem_pop())
-
-#define mem_save(...)       _mem_save((mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_restore(...)    _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_begin(...)      _mem_begin((mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_end(size, ...)  _mem_end((size), (mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_scope(...)      scope_guard(_mem_save((mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ }))
-
-#define mem_size(ptr)     ((mem_header*)(ptr) - 1)->size
-#define mem_count(ptr)    ((mem_header*)(ptr) - 1)->count
 
 static void _mem_save(mem_arena_desc desc)
 {

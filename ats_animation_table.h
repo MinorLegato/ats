@@ -27,7 +27,7 @@ typedef struct {
   at_entity* entity;
   at_frame* frame;
   f32 duration;
-} at_asset;
+} at_state;
 
 static at_frame* at_current_frame = 0;
 static at_animation* at_current_animation = 0;
@@ -112,30 +112,30 @@ static b32 at_cstr_equal(const char* a, const char* b)
   return *a == *b;
 }
 
-static void at_set(at_asset* asset, const char* name)
+static void at_set(at_state* state, const char* name)
 {
-  assert(asset && name);
-  if (at_cstr_equal(asset->frame->animation->name, name)) return;
+  assert(state && name);
+  if (at_cstr_equal(state->frame->animation->name, name)) return;
 
-  at_animation* animation = asset->entity->animation;
+  at_animation* animation = state->entity->animation;
 
   while (animation && !at_cstr_equal(animation->name, name)) {
     animation = animation->next;
   }
 
   if (animation) {
-    asset->frame = animation->frame;
-    asset->duration = 0;
+    state->frame = animation->frame;
+    state->duration = 0;
   }
 }
 
-static void at_update(at_asset* asset, f32 dt)
+static void at_update(at_state* state, f32 dt)
 {
-  assert(asset);
-  asset->duration += dt;
-  if (asset->duration >= 1.0) {
-    asset->frame = asset->frame->next;
-    asset->duration = 0;
+  assert(state);
+  state->duration += dt;
+  if (state->duration >= 1.0) {
+    state->frame = state->frame->next;
+    state->duration = 0;
   }
 }
 
@@ -149,10 +149,10 @@ static at_entity* at_get_entity(const char* name)
   return entity? entity : 0;
 }
 
-static at_asset at_get(const char* name)
+static at_state at_get(const char* name)
 {
   assert(name);
-  at_asset state = {0};
+  at_state state = {0};
   state.entity = at_get_entity(name);
   state.frame = state.entity->animation->frame;
   return state;
