@@ -1657,41 +1657,41 @@ static b32 sphere_contains(sphere s, v3 pos)
 
 static b32 r2_contains(r2 rect, v2 pos)
 {
-  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-  return true;
+  if (pos.x < rect.min.x || pos.x > rect.max.x) return 0;
+  if (pos.y < rect.min.y || pos.y > rect.max.y) return 0;
+  return 1;
 }
 
 static b32 r3_contains(r3 rect, v3 pos)
 {
-  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-  if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
-  return true;
+  if (pos.x < rect.min.x || pos.x > rect.max.x) return 0;
+  if (pos.y < rect.min.y || pos.y > rect.max.y) return 0;
+  if (pos.z < rect.min.z || pos.z > rect.max.z) return 0;
+  return 1;
 }
 
 static b32 r2i_contains(r2i rect, v2i pos)
 {
-  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-  return true;
+  if (pos.x < rect.min.x || pos.x > rect.max.x) return 0;
+  if (pos.y < rect.min.y || pos.y > rect.max.y) return 0;
+  return 1;
 }
 
 static b32 r3i_contains(r3i rect, v3i pos)
 {
-  if (pos.x < rect.min.x || pos.x > rect.max.x) return false;
-  if (pos.y < rect.min.y || pos.y > rect.max.y) return false;
-  if (pos.z < rect.min.z || pos.z > rect.max.z) return false;
-  return true;
+  if (pos.x < rect.min.x || pos.x > rect.max.x) return 0;
+  if (pos.y < rect.min.y || pos.y > rect.max.y) return 0;
+  if (pos.z < rect.min.z || pos.z > rect.max.z) return 0;
+  return 1;
 }
 
 static b32 frustum_contains(frustum fs, v3 pos)
 {
   for (i32 i = 0; i < 6; i++) {
     if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0)
-      return false;
+      return 0;
   }
-  return true;
+  return 1;
 }
 
 // ------------------ intersect ------------------ //
@@ -1715,42 +1715,42 @@ static b32 sphere_intersect(sphere a, sphere b)
 
 static b32 r2_intersect(r2 a, r2 b)
 {
-  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-  return true;
+  if (a.min.x > b.max.x || a.max.x < b.min.x) return 0;
+  if (a.min.y > b.max.y || a.max.y < b.min.y) return 0;
+  return 1;
 }
 
 static b32 r3_intersect(r3 a, r3 b)
 {
-  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-  if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
-  return true;
+  if (a.min.x > b.max.x || a.max.x < b.min.x) return 0;
+  if (a.min.y > b.max.y || a.max.y < b.min.y) return 0;
+  if (a.min.z > b.max.z || a.max.z < b.min.z) return 0;
+  return 1;
 }
 
 static b32 r2i_intersect(r2i a, r2i b)
 {
-  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-  return true;
+  if (a.min.x > b.max.x || a.max.x < b.min.x) return 0;
+  if (a.min.y > b.max.y || a.max.y < b.min.y) return 0;
+  return 1;
 }
 
 static b32 r3i_intersect(r3i a, r3i b)
 {
-  if (a.min.x > b.max.x || a.max.x < b.min.x) return false;
-  if (a.min.y > b.max.y || a.max.y < b.min.y) return false;
-  if (a.min.z > b.max.z || a.max.z < b.min.z) return false;
-  return true;
+  if (a.min.x > b.max.x || a.max.x < b.min.x) return 0;
+  if (a.min.y > b.max.y || a.max.y < b.min.y) return 0;
+  if (a.min.z > b.max.z || a.max.z < b.min.z) return 0;
+  return 1;
 }
 
 static b32 frustum_intersect_sphere(frustum fs, sphere s)
 {
   for (i32 i = 0; i < 6; i++) {
     if(fs.planes[i].a * s.p.x + fs.planes[i].b * s.p.y + fs.planes[i].c * s.p.z + fs.planes[i].d <= -s.r) {
-      return false;
+      return 0;
     }
   }
-  return true;
+  return 1;
 }
 
 static b32 frustum_intersect_r3(frustum fs, r3 rect)
@@ -1764,9 +1764,9 @@ static b32 frustum_intersect_r3(frustum fs, r3 rect)
     if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.max.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.max.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.max.z + fs.planes[i].d > 0) continue;
-    return false;
+    return 0;
   }
-  return true;
+  return 1;
 }
 
 // ------------------- get overlap --------------- //
@@ -2206,7 +2206,7 @@ static b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* model
   fTempo[7] = -fTempo[2];
 
   if (fTempo[7] == 0.0f)
-    return false;
+    return 0;
 
   fTempo[7]= 1.0f / fTempo[7];
 
@@ -2218,7 +2218,7 @@ static b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* model
   result[1] = (fTempo[5] * 0.5f + 0.5f) * viewport[3] + viewport[1];
   result[2] = (1.0f + fTempo[6]) * 0.5f;
 
-  return true;
+  return 1;
 }
 
 static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* modelview, f64* projection, int* viewport)
@@ -2237,7 +2237,7 @@ static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
   f4x4_mulv_64(out, m, in);
 
   if (out[3] == 0.0f)
-    return false;
+    return 0;
 
   out[3] = 1.0f / out[3];
 
@@ -2245,7 +2245,7 @@ static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
   result[1] = out[1] * out[3];
   result[2] = out[2] * out[3];
 
-  return true;
+  return 1;
 }
 
 static m4 m4_invert(m4 m)

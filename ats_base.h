@@ -157,7 +157,11 @@ constexpr u32 hash(const char* str)
 #endif // __cplusplus
 
 #include "ats_math.h"
+#ifndef __clang__
 #include "ats_routine.h"
+#else
+#include "ats_routine_clang.h"
+#endif
 #include "ats_mem.h"
 #include "ats_ds.h"
 

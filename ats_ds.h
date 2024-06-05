@@ -181,7 +181,7 @@ static ray_iter ray_iter_create(v2 pos, v2 dir)
 
 static b32 ray_iter_is_valid(ray_iter* it)
 {
-  return true;
+  return 1;
 }
 
 static void ray_iter_advance(ray_iter* it)
@@ -291,7 +291,7 @@ static ray3_iter ray3_iter_create(v3 pos, v3 dir)
 
 static b32 ray3_iter_is_valid(ray3_iter* it)
 {
-  return true;
+  return 1;
 }
 
 static void ray3_iter_advance(ray3_iter* it)
@@ -477,14 +477,14 @@ static sm_result sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore)
   for_r2(irect, x, y) {
     u32 index = sm_index(map, v2i(x, y));
     for (sm_cell* it = map->table[index]; it; it = it->next) {
-      b32 unique = true;
+      b32 unique = 1;
 
       if (it->e == ignore) continue;
       if (!r2_intersect(rect, it->rect)) continue;
 
       for_range(i, 0, (isize)result.count) {
         if (result.array[i].e == it->e) {
-          unique = false;
+          unique = 0;
           break;
         }
       }
@@ -624,7 +624,7 @@ static v2 tm_cast_dir(traverse_map* map, v2 pos, v2 dir, f32 max_range)
   int step_x = 0;
   int step_y = 0;
 
-  b32 hit  = false; //was there a wall hit?
+  b32 hit  = 0; //was there a wall hit?
   int side = 0; //was a NS or a EW wall hit?
 
   //calculate step and initial sideDist
@@ -657,12 +657,12 @@ static v2 tm_cast_dir(traverse_map* map, v2 pos, v2 dir, f32 max_range)
     }
 
     if (v2_dist(pos, v2((f32)map_x, (f32)map_y)) > (max_range + 1.0f)) {
-      hit = true;
+      hit = 1;
     }
 
     if (kill_on_wall_hit) {
       if (!tm_is_traversable(map, map_x, map_y)) {
-        hit = true;
+        hit = 1;
       }
     }
   } 

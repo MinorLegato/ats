@@ -261,8 +261,13 @@ static struct {
 
   struct {
     f64 total;
-    f32 delta;
+    f64 delta;
   } time;
+
+  struct {
+    f64 target;
+    f64 next;
+  } frame;
 
   struct {
     mouse_mode mode;
@@ -381,6 +386,29 @@ static void window_joystick_callback(int joy, int event)
   if (event == GLFW_DISCONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
   }
+}
+
+static f64 platform_get_time(void)
+{
+  return glfwGetTime();
+}
+
+static void platform_wait(f64 seconds)
+{
+    if (seconds < 0) return;
+
+    f64 destination_time = platform_get_time() + seconds;
+
+    f64 sleep_seconds = seconds - seconds * 0.05;  // NOTE: We reserve a percentage of the time for busy waiting
+    Sleep((unsigned long)(sleep_seconds * 1000.0));
+
+    while (platform_get_time() < destination_time);
+}
+
+static void platform_set_framerate(f64 framerate)
+{
+  glfwSwapInterval(0);
+  platform.frame.target = 1.0 / framerate;
 }
 
 static void platform_poll_events(void)
@@ -509,17 +537,35 @@ static void platform_end_frame(void)
 
     glViewport(0, 0, platform.width, platform.height);
 
-    glfwSwapBuffers(platform_internal.window);
+    //glfwSwapBuffers(platform_internal.window);
 
-    platform.time.delta = (f32)(glfwGetTime() - platform.time.total);
+    platform.time.delta = glfwGetTime() - platform.time.total;
     platform.time.total += platform.time.delta;
   }
 }
 
+static void platform_swap_buffers(void)
+{
+  glfwSwapBuffers(platform_internal.window);
+}
+
 static void platform_update(void)
 {
+  if (platform.frame.target > 0) {
+    f64 current = platform_get_time();
+    platform_wait(platform.frame.next - current);
+    platform.frame.next = current + platform.frame.target;
+  }
+
+  f64 start = platform_get_time();
+  platform_swap_buffers();
   platform_poll_events();
   platform_end_frame();
+  f64 end = platform_get_time();
+
+  if (platform.frame.target > 0) {
+    platform.frame.next -= (end - start);
+  }
 }
 
 static void platform_init(const char* title, int width, int height, int samples)
@@ -588,10 +634,5 @@ static void platform_init(const char* title, int width, int height, int samples)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   platform_update();
-}
-
-static f64 platform_get_time(void)
-{
-  return glfwGetTime();
 }
 
