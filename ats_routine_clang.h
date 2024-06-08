@@ -39,18 +39,15 @@
 // }
 // rt_end();
 
-#define RT_LABEL_OFFSET 1147483647
-#define rt_hash(tag) (RT_LABEL_OFFSET + (tag))
-
 typedef struct {
   void* at;
   f32 wait_for;
   f32 repeat_for;
-} rt_state;
+} rt;
 
-#define rt_begin(rt, delta_time) do { \
+#define rt_begin(state, delta_time) do { \
   __label__ _rt_start, _rt_end; \
-  rt_state* _rt = &(rt); \
+  rt* _rt = &(state); \
   f32 _rt_dt = (delta_time); \
   b32 _rt_mn = 1; \
   if (_rt->wait_for > 0) { _rt->wait_for -= (delta_time); goto _rt_end; } \
@@ -120,89 +117,3 @@ typedef struct {
     goto _rt_end; \
   } while(0)
 
-#if 0
-#define rt_begin(rt, delta_time) \
-  if (rt.wait_for > 0) { \
-    rt.wait_for -= (delta_time); \
-  } else { \
-    rt_state* __rt = &(rt); \
-    f32 __dt = (delta_time); \
-    int __mn = 1; \
-    switch (__rt->at) { \
-      case 0: { \
-
-#define rt_step() \
-      } if (__mn) __rt->at = __LINE__; \
-      break; \
-      case __LINE__: { \
-
-#define rt_label(name) \
-      } if (__mn) __rt->at = rt_hash(name); \
-      break; \
-      case rt_hash(name): { \
-
-#define rt_for(time) \
-        rt_step(); \
-        if (__rt->repeat_for < time) {  \
-          __rt->repeat_for += __dt; \
-          __mn = __rt->repeat_for >= time; \
-          if (__mn) __rt->repeat_for = 0; \
-        } \
-
-#define rt_while(condition) \
-      } if (__mn) __rt->at = __LINE__; \
-      break; \
-      case __LINE__: if (condition) { \
-        __mn = 0 \
-
-#define rt_until(condition) \
-      } if (__mn) __rt->at = ((condition) ? __LINE__ : -__LINE__); \
-      break; \
-      case -__LINE__: \
-                      if (condition) __rt->at = __LINE__; \
-      break; \
-      case __LINE__: { \
-
-#define rt_wait(time) \
-      } if (__mn) { \
-        __rt->wait_for = time; \
-        __rt->at = __LINE__; \
-      } \
-      break; \
-      case __LINE__: { \
-
-#define rt_end() \
-      } if (__mn) __rt->at = -1; \
-      break; \
-    } \
-  } \
-  goto rt_end_of_routine;  \
-  rt_end_of_routine: \
-
-// Flow Statements:
-// These can be used anywhere between rt_begin and rt_end,
-// including if statements, while loops, etc.
-
-// Repeats the block that this is contained within
-// Skips the remainder of the block
-#define rt_repeat() \
-  goto rt_end_of_routine \
-
-// Goes to a given block labeled with `rt_label`
-#define rt_goto(name) \
-  do { \
-    __rt->at = rt_hash(name); \
-    goto rt_end_of_routine; \
-  } while(0) \
-
-// Restarts the entire Coroutine;
-// Jumps back to `rt_begin` on the next frame
-#define rt_restart() \
-  do { \
-    __rt->at = 0; \
-    __rt->wait_for = 0; \
-    __rt->repeat_for = 0; \
-    goto rt_end_of_routine; \
-  } while(0) \
-
-#endif

@@ -1323,6 +1323,13 @@ static f32 v2_get_angle(v2 a, v2 b)
   return atan2f(det, dot);
 }
 
+// --------------- from angle ------------------- //
+
+static v2 v2_from_angle(f32 angle)
+{
+  return v2(cosf(angle), sinf(angle));
+}
+
 // ----------- keep min ---------- //
 
 static v2 v2_keep_min(v2 u)
