@@ -48,11 +48,12 @@ typedef struct {
   f32 repeat_for;
 } rt_state;
 
-#define rt_begin(rt, delta_time) \
-  if ((rt).wait_for > 0) { (rt).wait_for -= (delta_time); goto _rt_end; } \
+#define rt_begin(rt, delta_time) do { \
+  __label__ _rt_start, _rt_end; \
   rt_state* _rt = &(rt); \
   f32 _rt_dt = (delta_time); \
   b32 _rt_mn = 1; \
+  if (_rt->wait_for > 0) { _rt->wait_for -= (delta_time); goto _rt_end; } \
   if (_rt->at) goto *_rt->at; \
   _rt->at = &&_rt_start; \
   _rt_start:;
@@ -91,8 +92,7 @@ typedef struct {
 #define rt_end() \
   if (_rt_mn) _rt->at = &&_rt_end; \
   goto _rt_end; \
-  _rt_end:;
-
+  _rt_end:; } while(0)
 
 // Flow Statements:
 // These can be used anywhere between rt_begin and rt_end,
