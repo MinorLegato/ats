@@ -1,17 +1,14 @@
-// =============================================== ROUTINE ========================================== //
-// copied and modefied from: https://gist.github.com/NoelFB/7a5fa66fc29dd7ed1c11042c30f1b00e
-
 // Example:
 // // Assuming you have a `routine` variable stored somewhere
 // rt_begin(routine);
 // {
 //     // stuff that happens frame 1
 // }
-// rt_wait(1.0f);
+// rt_wait(1.0);
 // {
 //     // after 1.0s, this block runs
 // }
-// rt_for(0.25f);
+// rt_for(0.25);
 // {
 //     // this block repeats for 0.25s
 // }
@@ -19,7 +16,7 @@
 // {
 //     // the following frame, this block is run
 // }
-// rt_label(0);
+// rt_label(name);
 // {
 //     if (something)
 //         rt_repeat();
@@ -50,7 +47,10 @@ typedef struct {
   rt* _rt = &(state); \
   f32 _rt_dt = (delta_time); \
   b32 _rt_mn = 1; \
-  if (_rt->wait_for > 0) { _rt->wait_for -= (delta_time); goto _rt_end; } \
+  if (_rt->wait_for > 0) { \
+    _rt->wait_for -= (delta_time); \
+    goto _rt_end; \
+  } \
   if (_rt->at) goto *_rt->at; \
   _rt->at = &&_rt_start; \
   _rt_start:;

@@ -58,11 +58,13 @@ static const char* vertex_shader = GLSL(
   layout (location = 1) in vec3 in_normal;
   layout (location = 2) in vec2 in_uv;
   layout (location = 3) in vec4 in_color;
+  layout (location = 4) in float in_depth;
 
   out vec3 frag_pos;
   out vec3 frag_normal;
   out vec2 frag_uv;
   out vec4 frag_color;
+  out float frag_depth;
 
   uniform mat4 mvp;
 
@@ -72,6 +74,7 @@ static const char* vertex_shader = GLSL(
     frag_normal = in_normal;
     frag_uv = in_uv;
     frag_color = in_color;
+    frag_depth = in_depth;
 
     gl_Position = mvp * vec4(in_pos, 1);
   });
@@ -121,6 +124,7 @@ static const char* fragment_shader = GLSL(
   in vec3 frag_normal;
   in vec2 frag_uv;
   in vec4 frag_color;
+  in float frag_depth;
 
   out vec4 out_color;
 
@@ -129,6 +133,8 @@ static const char* fragment_shader = GLSL(
 
   uniform bool fog_enabled;
   uniform vec3 fog_color;
+
+  uniform bool depth_enabled;
 
   uniform vec3 view_pos;
 
@@ -146,6 +152,12 @@ static const char* fragment_shader = GLSL(
     }
 
     if (color.a <= 0) discard;
+
+    if (depth_enabled) {
+      gl_FragDepth = frag_depth;
+    } else {
+      gl_FragDepth = gl_FragCoord.z;
+    }
 
     if (lighting_enabled) {
       vec3 result;
@@ -236,6 +248,7 @@ typedef struct {
   v3 normal;
   v2 uv;
   u32 color;
+  f32 depth;
 } r_vertex_data;
 
 typedef struct {
@@ -310,6 +323,7 @@ static void gl_init_ex(void)
   buffer_desc.layout[1] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, normal) };
   buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
   buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), 1 };
+  buffer_desc.layout[4] = make(gl_layout) { 1, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, depth) };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -351,6 +365,11 @@ static void gl_color(u32 color)
 static void gl_normal(f32 x, f32 y, f32 z)
 {
   r_current.normal = v3(x, y, z);
+}
+
+static void gl_depth(f32 depth)
+{
+  r_current.depth = depth;
 }
 
 static void gl_vertex(f32 x, f32 y, f32 z)
@@ -405,6 +424,7 @@ enum {
   GLEX_TEXTURE,
   GLEX_FOG,
   GLEX_LIGHTING,
+  GLEX_DEPTH,
 };
 
 static void gl_enable(u32 tag)
@@ -422,6 +442,10 @@ static void gl_enable(u32 tag)
 
     case GLEX_LIGHTING: {
       gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 1);
+    } break;
+
+    case GLEX_DEPTH: {
+      gl_uniform_i32(gl_location(&r_shader, "depth_enabled"), 1);
     } break;
   }
 }
@@ -441,6 +465,10 @@ static void gl_disable(u32 tag)
 
     case GLEX_LIGHTING: {
       gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 0);
+    } break;
+
+    case GLEX_DEPTH: {
+      gl_uniform_i32(gl_location(&r_shader, "depth_enabled"), 0);
     } break;
   }
 }
@@ -787,7 +815,6 @@ static const char* fs_blur = GLSL(
 
     out_color = col;
   });
-
 
 static const char* fs_edge = GLSL(
   in vec2 frag_uv;
