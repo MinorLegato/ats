@@ -135,7 +135,8 @@ typedef u64 usize;
 #if defined(__cplusplus)
 
 template <typename T>
-struct defer_type {
+struct defer_type
+{
   T func;
   defer_type(T f) : func(f) {} 
   ~defer_type() { func(); }
@@ -146,8 +147,10 @@ struct defer_type {
 constexpr u32 hash(const char* str)
 {
   u32 hash = 5381;
-  for (int i = 0; str[i] != '\0'; i++)
+  for (i32 i = 0; str[i] != '\0'; i++)
+  {
     hash = ((hash << 5) + hash) + str[i];
+  }
   return hash;
 }
 

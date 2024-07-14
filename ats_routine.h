@@ -41,12 +41,14 @@
 // }
 // rt_end();
 
-typedef struct {
+typedef struct rt_state rt_state;
+struct rt_state
+{
   i32 at;
   f32 dt;
   f32 wait_for;
   f32 repeat_for;
-} rt_state;
+};
 
 #define RT_LABEL_OFFSET 1147483647
 
@@ -65,7 +67,9 @@ constexpr u32 rt_hash(const char* str)
 {
   u32 hash = 5381;
   for (int i = 0; str[i] != '\0'; i++)
+  {
     hash = ((hash << 5) + hash) + str[i];
+  }
   return hash;
 }
 

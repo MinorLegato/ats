@@ -2,11 +2,13 @@
 
 #include "ats_base.h"
 
-typedef struct {
+typedef struct gl_texture gl_texture;
+struct gl_texture
+{
   u32 id;
   u16 width;
   u16 height;
-} gl_texture;
+};
 
 static gl_texture gl_bitmap_texture;
 
@@ -112,7 +114,8 @@ static v3 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp)
 
 #define BITMAP_COUNT (256)
 
-static const u64 bitascii[BITMAP_COUNT] = {
+static const u64 bitascii[BITMAP_COUNT] =
+{
   0x0000000000000000,
   0x7e8199bd81a5817e,
   0x7effe7c3ffdbff7e,
@@ -396,12 +399,15 @@ static void gl_init(void)
   // init bitmap font
   {
     u32 pixels[8 + 16][BITMAP_COUNT * 8 + 512] = {0};
-    for (i32 i = 0; i < BITMAP_COUNT; ++i) {
-      for (i32 y = 0; y < 8; ++y) {
-        for (i32 x = 0; x < 8; ++x) {
+    for (i32 i = 0; i < BITMAP_COUNT; ++i)
+    {
+      for (i32 y = 0; y < 8; ++y)
+      {
+        for (i32 x = 0; x < 8; ++x)
+        {
           u64 bit = y * 8 + x;
-
-          if (bitascii[i] & (1ull << bit)) {
+          if (bitascii[i] & (1ull << bit))
+          {
             pixels[7 - y][(8 + 2) * i + x] = 0xffffffff;
           }
         }
@@ -534,9 +540,6 @@ static void gl_set_matrix(m4 projection, m4 view)
   glLoadMatrixf(projection.e);
   glMatrixMode(GL_MODELVIEW);
   glLoadMatrixf(view.e);
-  //gl_right   = v3(view.x.x, view.y.x, view.z.x);
-  //gl_up      = v3(view.x.y, view.y.y, view.z.y);
-  //gl_forward = v3(-view.x.z, -view.y.z, -view.z.z);
 }
 
 static void gl_billboard(tex_rect tex, v3 pos, v2 rad, u32 color)
@@ -718,7 +721,8 @@ static void gl_rect(r2 rect, f32 z, u32 color)
 
 static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
 {
-  tex_rect tex = {
+  tex_rect tex =
+  {
     (u16)(c * (8 + 2)),
     0,
     (u16)(c * (8 + 2) + 8),
@@ -746,7 +750,8 @@ static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
   gl_begin(GL_TRIANGLES);
   gl_color(color);
   gl_normal(0, 0, 1);
-  for (i32 i = 0; str[i] != '\0'; i++) {
+  for (i32 i = 0; str[i] != '\0'; i++)
+  {
     gl_ascii(str[i], x + i * sx, y, z, sx, sy);
   }
   gl_end();
@@ -766,14 +771,16 @@ static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, con
   gl_string(buffer, x, y, z, sx, sy, color);
 }
 
-typedef struct {
+typedef struct timer_entry timer_entry;
+struct timer_entry
+{
   const char* name;
 
   f64 start;
   f64 stop;
 
   u32 depth;
-} timer_entry;
+};
 
 static u32 timer_top;
 static timer_entry timer_stack[512];
@@ -811,7 +818,8 @@ static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
 {
   int y = 0;
   // @TODO: fix render order within scopes!
-  for (int i = timer_count - 1; i >= 0; --i) {
+  for (int i = timer_count - 1; i >= 0; --i)
+  {
     timer_entry e = timer_array[i];
     gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
     y++;

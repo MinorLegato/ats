@@ -36,18 +36,21 @@
 // }
 // rt_end();
 
-typedef struct {
+typedef struct rt rt;
+struct rt
+{
   void* at;
   f32 wait_for;
   f32 repeat_for;
-} rt;
+};
 
 #define rt_begin(state, delta_time) do { \
   __label__ _rt_start, _rt_end; \
   rt* _rt = &(state); \
   f32 _rt_dt = (delta_time); \
   b32 _rt_mn = 1; \
-  if (_rt->wait_for > 0) { \
+  if (_rt->wait_for > 0) \
+  { \
     _rt->wait_for -= (delta_time); \
     goto _rt_end; \
   } \

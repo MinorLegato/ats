@@ -14,131 +14,164 @@
 #ifdef __clang__
 typedef f32 v2 __attribute__((ext_vector_type(2)));
 #else
-typedef union {
+typedef union v2 v2;
+union v2
+{
   struct { f32 x, y; };
   f32 e[2];
-} v2;
+};
 #endif
 
 #define v3(...) make(v3) { __VA_ARGS__ }
 #ifdef __clang__
 typedef f32 v3 __attribute__((ext_vector_type(3)));
 #else
-typedef union {
+typedef union v3 v3;
+union v3
+{
   struct { f32 x, y, z; };
   struct { f32 r, g, b; };
   struct { v2 xy; };
   f32 e[3];
-} v3;
+};
 #endif
 
 #define v4(...) make(v4) { __VA_ARGS__ }
 #ifdef __clang__
 typedef f32 v4 __attribute__((ext_vector_type(4)));
 #else
-typedef union {
+typedef union v4 v4;
+union v4
+{
   struct { f32 x, y, z, w; };
   struct { f32 r, g, b, a; };
   struct { v3 rgb; };
   struct { v2 xy; };
   struct { v3 xyz; };
   f32 e[4];
-} v4;
+};
 #endif
 
 #define v2i(...) make(v2i) { __VA_ARGS__ }
 #ifdef __clang__
 typedef i32 v2i __attribute__((ext_vector_type(2)));
 #else
-typedef union {
+typedef union v2i v2i;
+union v2i
+{
   struct { i32 x, y; };
   i32 e[2];
-} v2i;
+};
 #endif
 
 #define v3i(...) make(v3i) { __VA_ARGS__ }
 #ifdef __clang__
 typedef i32 v3i __attribute__((ext_vector_type(3)));
 #else
-typedef union {
+typedef union v3i v3i;
+union v3i
+{
   struct { i32 x, y, z; };
   struct { v2i xy; };
   i32 e[3];
-} v3i;
+};
 #endif
 
 #define v4i(...) make(v4i) { __VA_ARGS__ }
 #ifdef __clang__
 typedef i32 v4i __attribute__((ext_vector_type(4)));
 #else
-typedef union {
+typedef union v4i v4i;
+union v4i
+{
   struct { i32 x, y, z, w; };
   i32 e[4];
-} v4i;
+};
 #endif
 
 #define m2(...) make(m2) { __VA_ARGS__ }
-typedef union {
+typedef union m2 m2;
+union m2
+{
   f32 e[4];
   struct { v2 x, y; };
-} m2;
+};
 
 #define m3(...) make(m3) { __VA_ARGS__ }
-typedef union {
+typedef union m3 m3;
+union m3
+{
   f32 e[9];
   struct { v3 x, y, z; };
-} m3;
+};
 
 #define m4(...) make(m4) { __VA_ARGS__ }
-typedef union {
+typedef union m4 m4;
+union m4
+{
   f32 e[16];
   struct { v4 x, y, z, w; };
-} m4;
+};
 
 #define r2(...) make(r2) { __VA_ARGS__ }
-typedef struct {
+typedef struct r2 r2;
+struct r2
+{
   v2 min;
   v2 max;
-} r2;
+};
 
 #define r3(...) make(r3) { __VA_ARGS__ }
-typedef struct {
+typedef struct r3 r3;
+struct r3
+{
   v3 min;
   v3 max;
-} r3;
+};
 
 #define r2i(...) make(r2i) { __VA_ARGS__ }
-typedef struct {
+typedef struct r2i r2i;
+struct r2i
+{
   v2i min;
   v2i max;
-} r2i;
+};
 
 #define r3i(...) make(r3i) { __VA_ARGS__ }
-typedef struct {
+typedef struct r3i r3i;
+struct r3i
+{
   v3i min;
   v3i max;
-} r3i;
+};
 
 #define quat(...) make(quat) { __VA_ARGS__ }
-typedef struct {
+typedef struct quat quat;
+struct quat
+{
   f32 x, y, z, w;
-} quat;
+};
 
 #define circle(...) make(circle) { __VA_ARGS__ }
-typedef struct {
+typedef struct circle circle;
+struct circle
+{
   v2 p;
   f32 r;
-} circle;
+};
 
 #define sphere(...) make(sphere) { __VA_ARGS__ }
-typedef struct {
+typedef struct sphere sphere;
+struct sphere
+{
   v3 p;
   f32 r;
-} sphere;
+};
 
 static m2 m2_identity(void)
 {
-  return make(m2) {
+  return make(m2)
+  {
     1, 0,
     0, 1
   };
@@ -146,7 +179,8 @@ static m2 m2_identity(void)
 
 static m3 m3_identity(void)
 {
-  return make(m3) {
+  return make(m3)
+  {
     1, 0, 0,
     0, 1, 0,
     0, 0, 1
@@ -155,7 +189,8 @@ static m3 m3_identity(void)
 
 static m4 m4_identity(void)
 {
-  return make(m4) {
+  return make(m4)
+  {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
@@ -406,15 +441,22 @@ static f32 bounce_ease_out(f32 t)
 {
   f32 n1 = 7.5625f;
   f32 d1 = 2.75f;
-  if (t < 1 / d1) {
+  if (t < 1 / d1)
+  {
     return n1 * t * t;
-  } else if (t < 2 / d1) {
+  }
+  else if (t < 2 / d1)
+  {
     t -= 1.5f / d1;
     return n1 * t * t + 0.75f;
-  } else if (t < 2.5f / d1) {
+  }
+  else if (t < 2.5f / d1)
+  {
     t -= 2.25f / d1;
     return n1 * t * t + 0.9375f;
-  } else {
+  }
+  else
+  {
     t -= 2.625f / d1;
     return n1 * t * t + 0.984375f;
   }
@@ -467,7 +509,8 @@ static v4i v4i_from_array(const i32* a)
 
 static v3 v3_unpack_color(u32 color)
 {
-  return make(v3) {
+  return make(v3)
+  {
     ((color & 0x000000ff) >> 0)  / 255.0f,
     ((color & 0x0000ff00) >> 8)  / 255.0f,
     ((color & 0x00ff0000) >> 16) / 255.0f
@@ -476,7 +519,8 @@ static v3 v3_unpack_color(u32 color)
 
 static v4 v4_unpack_color(u32 color)
 {
-  return make(v4) {
+  return make(v4)
+  {
     ((color & 0x000000ff) >> 0)  / 255.0f,
     ((color & 0x0000ff00) >> 8)  / 255.0f,
     ((color & 0x00ff0000) >> 16) / 255.0f,
@@ -614,7 +658,8 @@ static v4i v4i_mul(v4i a, v4i b)
 
 static v2 m2_mulv(m2 m, v2 u)
 {
-  return make(v2) {
+  return make(v2)
+  {
     m.e[0] * u.x + m.e[2] * u.y,
     m.e[1] * u.x + m.e[3] * u.y
   };
@@ -622,7 +667,8 @@ static v2 m2_mulv(m2 m, v2 u)
 
 static v3 m3_mulv(m3 m, v3 u)
 {
-  return make(v3) {
+  return make(v3)
+  {
     m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
     m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
     m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z
@@ -631,7 +677,8 @@ static v3 m3_mulv(m3 m, v3 u)
 
 static v4 m4_mulv(m4 m, v4 u)
 {
-  return make(v4) {
+  return make(v4)
+  {
     m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
     m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
     m.e[2] * u.x + m.e[6] * u.y + m.e[10] * u.z + m.e[14] * u.w,
@@ -641,7 +688,8 @@ static v4 m4_mulv(m4 m, v4 u)
 
 static m2 m2_mul(m2 a, m2 b)
 {
-  return make(m2) {
+  return make(m2)
+  {
     a.e[0] * b.e[0] + a.e[2] * b.e[1],
     a.e[1] * b.e[0] + a.e[3] * b.e[1],
     a.e[0] * b.e[2] + a.e[2] * b.e[3],
@@ -651,7 +699,8 @@ static m2 m2_mul(m2 a, m2 b)
 
 static m3 m3_mul(m3 a, m3 b)
 {
-  return make(m3) {
+  return make(m3)
+  {
     a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
     a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
     a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
@@ -668,7 +717,8 @@ static m3 m3_mul(m3 a, m3 b)
 
 static m4 m4_mul(m4 a, m4 b)
 {
-  return make(m4) {
+  return make(m4)
+  {
     a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
     a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
     a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
@@ -693,7 +743,8 @@ static m4 m4_mul(m4 a, m4 b)
 
 static quat quat_mul(quat a, quat b)
 {
-  return make(quat) {
+  return make(quat)
+  {
     a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
     a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
     a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
@@ -1026,7 +1077,8 @@ static v4 v4_ceil(v4 u)
 
 static v2 v2_clampf(v2 u, f32 min, f32 max)
 {
-  return make(v2) {
+  return make(v2)
+  {
     clamp(u.x, min, max),
     clamp(u.y, min, max)
   };
@@ -1034,7 +1086,8 @@ static v2 v2_clampf(v2 u, f32 min, f32 max)
 
 static v3 v3_clampf(v3 u, f32 min, f32 max)
 {
-  return make(v3) {
+  return make(v3)
+  {
     clamp(u.x, min, max),
     clamp(u.y, min, max),
     clamp(u.z, min, max)
@@ -1043,7 +1096,8 @@ static v3 v3_clampf(v3 u, f32 min, f32 max)
 
 static v2i v2i_clampi(v2i u, f32 min, f32 max)
 {
-  return make(v2i) {
+  return make(v2i)
+  {
     (i32)clamp(u.x, min, max),
     (i32)clamp(u.y, min, max)
   };
@@ -1051,7 +1105,8 @@ static v2i v2i_clampi(v2i u, f32 min, f32 max)
 
 static v3i v3i_clampi(v3i u, f32 min, f32 max)
 {
-  return make(v3i) {
+  return make(v3i)
+  {
     (i32)clamp(u.x, min, max),
     (i32)clamp(u.y, min, max),
     (i32)clamp(u.z, min, max)
@@ -1060,7 +1115,8 @@ static v3i v3i_clampi(v3i u, f32 min, f32 max)
 
 static v2 v2_clamp(v2 u, r2 r)
 {
-  return make(v2) {
+  return make(v2)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y)
   };
@@ -1068,7 +1124,8 @@ static v2 v2_clamp(v2 u, r2 r)
 
 static v3 v3_clamp(v3 u, r3 r)
 {
-  return make(v3) {
+  return make(v3)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y),
     clamp(u.z, r.min.z, r.max.z)
@@ -1077,7 +1134,8 @@ static v3 v3_clamp(v3 u, r3 r)
 
 static v2i v2i_clamp(v2i u, r2i r)
 {
-  return make(v2i) {
+  return make(v2i)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y)
   };
@@ -1085,7 +1143,8 @@ static v2i v2i_clamp(v2i u, r2i r)
 
 static v3i v3i_clamp(v3i u, r3i r)
 {
-  return make(v3i) {
+  return make(v3i)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y),
     clamp(u.z, r.min.z, r.max.z)
@@ -1096,7 +1155,8 @@ static v3i v3i_clamp(v3i u, r3i r)
 
 static v2 v2_min(v2 a, v2 b)
 {
-  return make(v2) {
+  return make(v2)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y
   };
@@ -1104,7 +1164,8 @@ static v2 v2_min(v2 a, v2 b)
 
 static v3 v3_min(v3 a, v3 b)
 {
-  return make(v3) {
+  return make(v3)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z
@@ -1113,7 +1174,8 @@ static v3 v3_min(v3 a, v3 b)
 
 static v4 v4_min(v4 a, v4 b)
 {
-  return make(v4) {
+  return make(v4)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z,
@@ -1123,7 +1185,8 @@ static v4 v4_min(v4 a, v4 b)
 
 static v2i v2i_min(v2i a, v2i b)
 {
-  return make(v2i) {
+  return make(v2i)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y
   };
@@ -1131,7 +1194,8 @@ static v2i v2i_min(v2i a, v2i b)
 
 static v3i v3i_min(v3i a, v3i b)
 {
-  return make(v3i) {
+  return make(v3i)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z
@@ -1140,7 +1204,8 @@ static v3i v3i_min(v3i a, v3i b)
 
 static v4i v4i_min(v4i a, v4i b)
 {
-  return make(v4i) {
+  return make(v4i)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z,
@@ -1152,7 +1217,8 @@ static v4i v4i_min(v4i a, v4i b)
 
 static v2 v2_max(v2 a, v2 b)
 {
-  return make(v2) {
+  return make(v2)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y
   };
@@ -1160,7 +1226,8 @@ static v2 v2_max(v2 a, v2 b)
 
 static v3 v3_max(v3 a, v3 b)
 {
-  return make(v3) {
+  return make(v3)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z
@@ -1169,7 +1236,8 @@ static v3 v3_max(v3 a, v3 b)
 
 static v4 v4_max(v4 a, v4 b)
 {
-  return make(v4) {
+  return make(v4)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z,
@@ -1179,7 +1247,8 @@ static v4 v4_max(v4 a, v4 b)
 
 static v2i v2i_max(v2i a, v2i b)
 {
-  return make(v2i) {
+  return make(v2i)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y
   };
@@ -1187,7 +1256,8 @@ static v2i v2i_max(v2i a, v2i b)
 
 static v3i v3i_max(v3i a, v3i b)
 {
-  return make(v3i) {
+  return make(v3i)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z
@@ -1196,7 +1266,8 @@ static v3i v3i_max(v3i a, v3i b)
 
 static v4i v4i_max(v4i a, v4i b)
 {
-  return make(v4i) {
+  return make(v4i)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z,
@@ -1208,7 +1279,8 @@ static v4i v4i_max(v4i a, v4i b)
 
 static v2 v2_lerp(v2 a, v2 b, f32 t)
 {
-  return make(v2) {
+  return make(v2)
+  {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y)
   };
@@ -1216,7 +1288,8 @@ static v2 v2_lerp(v2 a, v2 b, f32 t)
 
 static v3 v3_lerp(v3 a, v3 b, f32 t)
 {
-  return make(v3) {
+  return make(v3)
+  {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
     a.z + t * (b.z - a.z)
@@ -1225,7 +1298,8 @@ static v3 v3_lerp(v3 a, v3 b, f32 t)
 
 static v4 v4_lerp(v4 a, v4 b, f32 t)
 {
-  return make(v4) {
+  return make(v4)
+  {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
     a.z + t * (b.z - a.z),
@@ -1307,7 +1381,8 @@ static v4i v4i_sign(v4i u)
 
 static v3 v3_cross(v3 a, v3 b)
 {
-  return make(v3) {
+  return make(v3)
+  {
     a.y * b.z - a.z * b.y,
     a.z * b.x - a.x * b.z,
     a.x * b.y - a.y * b.x
@@ -1396,7 +1471,8 @@ static m3 m3_rotate(v3 axis, f32 angle)
   v3 sa = { s * axis.x, s * axis.y, s * axis.z };
   v3 omca = { k * axis.x, k * axis.y, k * axis.z };
 
-  return make(m3) {
+  return make(m3)
+  {
     omca.x * axis.x + c,
     omca.x * axis.y - sa.z,
     omca.x * axis.z + sa.y,
@@ -1418,7 +1494,8 @@ static m4 m4_rotate(v3 axis, f32 angle)
   v3 sa = { axis.x * sinv, axis.y * sinv, axis.z * sinv };
   v3 omca = { axis.x * inv_cosv, axis.y * inv_cosv, axis.z * inv_cosv };
 
-  return make(m4) {
+  return make(m4)
+  {
     omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
     omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
     omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
@@ -1437,7 +1514,8 @@ static quat quat_rotate(v3 axis, f32 angle)
 
 static m4 m4_translate(f32 x, f32 y, f32 z)
 {
-  return make(m4) {
+  return make(m4)
+  {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
@@ -1447,7 +1525,8 @@ static m4 m4_translate(f32 x, f32 y, f32 z)
 
 static m4 m4_scale(f32 x, f32 y, f32 z)
 {
-  return make(m4) {
+  return make(m4)
+  {
     x, 0, 0, 0,
     0, y, 0, 0,
     0, 0, z, 0,
@@ -1469,7 +1548,8 @@ static m3 m3_from_quat(quat q)
   f32 c2 = c * c;
   f32 d2 = d * d;
 
-  return make(m3) {
+  return make(m3)
+  {
     a2 + b2 - c2 - d2,
     2.0f * (b * c + a * d),
     2.0f * (b * d - a * c),
@@ -1496,7 +1576,8 @@ static m4 m4_from_quat(quat q)
   f32 c2 = c * c;
   f32 d2 = d * d;
 
-  return make(m4) {
+  return make(m4)
+  {
     a2 + b2 - c2 - d2,
     2.0f * (b * c + a * d),
     2.0f * (b * d - a * c),
@@ -1523,7 +1604,8 @@ static m4 m4_from_quat(quat q)
 
 static m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
 {
-  return make(m4) {
+  return make(m4)
+  {
     2 / (r - l), 0, 0, 0,
     0, 2 / (t - b), 0, 0,
     0, 0, -2 / (f - n), 0,
@@ -1535,7 +1617,8 @@ static m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
 {
   f32 a = 1.0f / tanf(y_fov / 2.0f);
 
-  return make(m4) {
+  return make(m4)
+  {
     a / aspect, 0, 0, 0,
     0, a, 0, 0,
     0, 0, -((f + n) / (f - n)), -1,
@@ -1575,16 +1658,20 @@ static m4 m4_look_at(v3 eye, v3 center, v3 up)
 
 // ----------------- plane/frustrum ------------------- //
 
-typedef struct {
+typedef struct frustum_plane frustum_plane;
+struct frustum_plane
+{
   f32 a;
   f32 b;
   f32 c;
   f32 d;
-} frustum_plane;
+};
 
-typedef struct {
+typedef struct frustum frustum;
+struct frustum
+{
   frustum_plane planes[6];
-} frustum;
+};
 
 static frustum_plane plane_normalize(frustum_plane p)
 {
@@ -1694,9 +1781,12 @@ static b32 r3i_contains(r3i rect, v3i pos)
 
 static b32 frustum_contains(frustum fs, v3 pos)
 {
-  for (i32 i = 0; i < 6; i++) {
+  for (i32 i = 0; i < 6; i++)
+  {
     if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0)
+    {
       return 0;
+    }
   }
   return 1;
 }
@@ -1762,7 +1852,8 @@ static b32 frustum_intersect_sphere(frustum fs, sphere s)
 
 static b32 frustum_intersect_r3(frustum fs, r3 rect)
 {
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++)
+  {
     if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
@@ -1780,7 +1871,8 @@ static b32 frustum_intersect_r3(frustum fs, r3 rect)
 
 static r2 r2_get_overlap(r2 a, r2 b)
 {
-  return make(r2) {
+  return make(r2)
+  {
     v2_max(a.min, b.min),
     v2_min(a.max, b.max)
   };
@@ -1788,7 +1880,8 @@ static r2 r2_get_overlap(r2 a, r2 b)
 
 static r3 r3_get_overlap(r3 a, r3 b)
 {
-  return make(r3) {
+  return make(r3)
+  {
     v3_max(a.min, b.min),
     v3_min(a.max, b.max)
   };
@@ -1796,7 +1889,8 @@ static r3 r3_get_overlap(r3 a, r3 b)
 
 static r2i r2i_get_overlap(r2i a, r2i b)
 {
-  return make(r2i) {
+  return make(r2i)
+  {
     v2i_max(a.min, b.min),
     v2i_min(a.max, b.max)
   };
@@ -1804,7 +1898,8 @@ static r2i r2i_get_overlap(r2i a, r2i b)
 
 static r3i r3i_get_overlap(r3i a, r3i b)
 {
-  return make(r3i) {
+  return make(r3i)
+  {
     v3i_max(a.min, b.min),
     v3i_min(a.max, b.max)
   };
@@ -1816,7 +1911,6 @@ static v2 circle_get_intersect_vector(circle a, circle b)
 {
   v2 delta = v2_sub(a.p, b.p);
   f32 depth = v2_len(delta) - (a.r + b.r);
-
   return v2_scale(delta, -depth);
 }
 
@@ -1824,14 +1918,14 @@ static v3 sphere_get_intersect_vector(sphere a, sphere b)
 {
   v3 delta = v3_sub(a.p, b.p);
   f32 depth = v3_len(delta) - (a.r + b.r);
-
   return v3_scale(delta, -depth);
 }
 
 static v2 r2_get_intersect_vector(r2 a, r2 b)
 {
   r2 overlap = r2_get_overlap(a, b);
-  v2 delta = {
+  v2 delta =
+  {
     0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
     0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
   };
@@ -1841,7 +1935,8 @@ static v2 r2_get_intersect_vector(r2 a, r2 b)
 static v3 r3_get_intersect_vector(r3 a, r3 b)
 {
   r3 overlap = r3_get_overlap(a, b);
-  v3 delta = {
+  v3 delta =
+  {
     0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
     0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
     0.5f * (a.min.z + a.max.z) - 0.5f * (b.min.z + b.max.z),
@@ -1852,7 +1947,8 @@ static v3 r3_get_intersect_vector(r3 a, r3 b)
 static v2i r2i_get_intersect_vector(r2i a, r2i b)
 {
   r2i overlap = r2i_get_overlap(a, b);
-  v2i delta = {
+  v2i delta =
+  {
     (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
     (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2,
   };
@@ -1862,7 +1958,8 @@ static v2i r2i_get_intersect_vector(r2i a, r2i b)
 static v3i r3i_get_intersect_vector(r3i a, r3i b)
 {
   r3i overlap = r3i_get_overlap(a, b);
-  v3i delta = {
+  v3i delta =
+  {
     (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
     (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2,
     (a.min.z + a.max.z) / 2 - (b.min.z + b.max.z) / 2,
@@ -1926,7 +2023,9 @@ HASH_API u32 hash_str(const char* str)
 {
   u32 hash = 5381;
   for (int i = 0; str[i] != '\0'; i++)
+  {
     hash = ((hash << 5) + hash) + str[i];
+  }
   return hash;
 }
 
@@ -1970,7 +2069,8 @@ HASH_API u32 crc32(const void *data, u32 size)
 {
   const u8 *d = (const u8*)data;
   u32 crc = 0xFFFFFFFF;
-  while (size--) {
+  while (size--)
+  {
     u32 index = (crc ^ *(d++)) & 0xFF;
     crc = (crc >> 8) ^ crc_table[index];
   }
@@ -1984,7 +2084,6 @@ HASH_API u32 hashu(u32 a)
   a = a ^ (a >> 4);
   a = a * 0x27d4eb2d;
   a = a ^ (a >> 15);
-
   return a;
 }
 
@@ -2213,7 +2312,9 @@ static b32 f4x4_project_64(f64* result, f64 objx, f64 objy, f64 objz, f64* model
   fTempo[7] = -fTempo[2];
 
   if (fTempo[7] == 0.0f)
+  {
     return 0;
+  }
 
   fTempo[7]= 1.0f / fTempo[7];
 
@@ -2244,7 +2345,9 @@ static b32 f4x4_unproject_64(f64* result, f64 winx, f64 winy, f64 winz, f64* mod
   f4x4_mulv_64(out, m, in);
 
   if (out[3] == 0.0f)
+  {
     return 0;
+  }
 
   out[3] = 1.0f / out[3];
 
@@ -2276,7 +2379,8 @@ static m4 m4_invert(m4 m)
   // assumes it is invertible
   f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-  return make(m4) {
+  return make(m4)
+  {
     (m.e[5]  * c[5] - m.e[6]  * c[4] + m.e[7]  * c[3]) * idet,
     (-m.e[1]  * c[5] + m.e[2]  * c[4] - m.e[3]  * c[3]) * idet,
     (m.e[13] * s[5] - m.e[14] * s[4] + m.e[15] * s[3]) * idet,

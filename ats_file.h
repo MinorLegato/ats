@@ -43,12 +43,15 @@ static s8 file_read_s8(const char* file_name)
   u8* buffer = NULL;
   usize size = 0;
   FILE* fp = file_open(file_name, "rb");
-  if (fp) {
+  if (fp)
+  {
     size = _file_get_size(fp);
     buffer = (u8*)mem_alloc(size + 1);
-    if (buffer) {
+    if (buffer)
+    {
       buffer[size] = 0;
-      if (fread(buffer, 1, size, fp) == 0) {
+      if (fread(buffer, 1, size, fp) == 0)
+      {
         buffer = NULL;
       }
     }
@@ -60,7 +63,8 @@ static s8 file_read_s8(const char* file_name)
 static b32 file_write_str(const char* file_name, s8 buffer)
 {
   FILE* fp = file_open(file_name, "w");
-  if (fp) {
+  if (fp)
+  {
     usize n = fwrite(buffer.buf, 1, buffer.len, fp);
     fclose(fp);
     return n == buffer.len;
@@ -71,7 +75,8 @@ static b32 file_write_str(const char* file_name, s8 buffer)
 static b32 file_append_str(const char* file_name, s8 buffer)
 {
   FILE* fp = file_open(file_name, "a");
-  if (fp) {
+  if (fp)
+  {
     usize n = fwrite(buffer.buf, 1, buffer.len, fp);
     fclose(fp);
     return n == buffer.len;
@@ -82,7 +87,8 @@ static b32 file_append_str(const char* file_name, s8 buffer)
 static b32 file_read_bin(const char* file_name, void* buffer, usize size)
 {
   FILE* fp = file_open(file_name, "rb");
-  if (fp) {
+  if (fp)
+  {
     fread(buffer, size, 1, fp);
     fclose(fp);
     return 1;
@@ -93,7 +99,8 @@ static b32 file_read_bin(const char* file_name, void* buffer, usize size)
 static b32 file_write_bin(const char* file_name, const void* buffer, usize size)
 {
   FILE *fp = file_open(file_name, "wb");
-  if (fp) {
+  if (fp)
+  {
     fwrite(buffer, size, 1, fp);
     fclose(fp);
     return 1;
@@ -123,7 +130,9 @@ static void file_free_image(const u32* pixels)
   stbi_image_free((void*)pixels);
 }
 
-typedef struct {
+typedef struct file_iter file_iter;
+struct file_iter
+{
   char current[MAX_PATH];
   char path[MAX_PATH];
 
@@ -131,7 +140,7 @@ typedef struct {
 
   HANDLE handle;
   WIN32_FIND_DATAA data;
-} file_iter;
+};
 
 static int file_iter_is_valid(file_iter* it)
 {
@@ -148,7 +157,8 @@ static void file_cstr_concat(char* out, const char* a, const char* b)
 static void file_iter_advance(file_iter* it)
 {
   it->done = !FindNextFileA(it->handle, &it->data);
-  if (!it->done) {
+  if (!it->done)
+  {
     file_cstr_concat(it->current, it->path, it->data.cFileName);
   }
 }
@@ -161,10 +171,13 @@ static file_iter file_iter_create(const char* path, const char* ext)
   file_iter it = {0};
 
   u32 i = 0;
-  for (i = 0; path[i]; ++i) {
+  for (i = 0; path[i]; ++i)
+  {
     it.path[i] = path[i];
   }
-  if (it.path[i - 1] != '/') {
+
+  if (it.path[i - 1] != '/')
+  {
     it.path[i] = '/';
   }
 
@@ -174,7 +187,8 @@ static file_iter file_iter_create(const char* path, const char* ext)
   it.handle = FindFirstFileA(find_file_str, &it.data);
   it.done = it.handle == INVALID_HANDLE_VALUE;
 
-  if (!it.done) {
+  if (!it.done)
+  {
     file_cstr_concat(it.current, it.path, it.data.cFileName);
   }
 
@@ -187,14 +201,16 @@ static b32 file_iter_at_directory(file_iter* it)
   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-typedef struct {
+typedef struct dir_iter dir_iter;
+struct dir_iter 
+{
   s8 path;
   s8 name;
   s8 extension;
 
   i32 idx;
   file_iter stack[256];
-} dir_iter;
+};
 
 static void _dir_update_file_info(dir_iter* it)
 {
@@ -208,8 +224,10 @@ static void _dir_update_file_info(dir_iter* it)
   u32 e = 0;
   u32 n = 0;
 
-  for (i = 0; s && s[i]; ++i) {
-    switch (s[i]) {
+  for (i = 0; s && s[i]; ++i)
+  {
+    switch (s[i])
+    {
       case '.':
         e = i + 1; break;
       case '\\':
@@ -233,17 +251,21 @@ static dir_iter dir_iter_create(const char* path)
 
 static void dir_iter_advance(dir_iter* it)
 {
-  if (file_iter_at_directory(&it->stack[it->idx])) {
+  if (file_iter_at_directory(&it->stack[it->idx]))
+  {
     it->stack[it->idx + 1] = file_iter_create(it->stack[it->idx].current, NULL);
     file_iter_advance(&it->stack[it->idx]);
     it->idx++;
     _dir_update_file_info(it);
-  } else {
+  }
+  else
+  {
     file_iter_advance(&it->stack[it->idx]);
     _dir_update_file_info(it);
   }
 
-  while ((it->idx >= 0) && !file_iter_is_valid(&it->stack[it->idx])) {
+  while ((it->idx >= 0) && !file_iter_is_valid(&it->stack[it->idx]))
+  {
     it->idx--;
   }
 }

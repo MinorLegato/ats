@@ -30,11 +30,13 @@ typedef struct {
 
 static const char* audio_path = AUDIO_PATH;
 
-typedef struct {
+typedef struct audio_entry audio_entry;
+struct audio_entry
+{
   b32 in_use;
   cs_audio_source_t* source;
   char name[64];
-} audio_entry;
+};
 
 static audio_entry audio_table[AUDIO_TABLE_SIZE];
 
@@ -57,8 +59,10 @@ static audio_id audio_get(const char* name)
 
   if (index == 0) index++;
 
-  while (audio_table[index].in_use) {
-    if (strcmp(audio_table[index].name, name) == 0) {
+  while (audio_table[index].in_use)
+  {
+    if (strcmp(audio_table[index].name, name) == 0)
+    {
       audio_id id = { index };
       return id;
     }
@@ -89,7 +93,8 @@ static audio_id audio_get(const char* name)
   entry->source = cs_load_wav(path, &error);
   //entry->playing = cs_make_def(&entry->source);
 
-  if (error) {
+  if (error)
+  {
     printf("%s ---- path: %s\n", cs_error_as_string(error), path);
   }
 
@@ -117,7 +122,8 @@ static void audio_play(audio_id id, f32 volume)
 {
   audio_entry* entry = audio_get_entry(id);
 
-  if (entry) {
+  if (entry)
+  {
     cs_sound_params_t params = {0};
 
     params.volume = volume;
@@ -130,23 +136,27 @@ static void audio_play(audio_id id, f32 volume)
 static void audio_play_music(audio_id id, f32 volume)
 {
   audio_entry* entry = audio_get_entry(id);
-  if (entry) {
+  if (entry)
+  {
     cs_music_stop(0);
     cs_music_play(entry->source, 0);
   }
 }
 
 #if 0
-void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance) {
+void audio_play_from_source(audio_id id, v3 pos, v3 dir, v3 source, f32 volume, f32 max_distance)
+{
   f32 sound_distance = v3_dist(pos, source);
-  f32 final_volume = volume * Max(1 - sound_distance / max_distance, 0);
+  f32 final_volume = volume * max(1 - sound_distance / max_distance, 0);
 
   if (final_volume <= 0) return;
 
   audio_entry* entry = audio_get_entry(id);
 
-  if (entry) {
-    v2 source_dir = {
+  if (entry)
+  {
+    v2 source_dir =
+    {
       source.x - pos.x,
       source.y - pos.y,
     };

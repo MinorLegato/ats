@@ -199,8 +199,13 @@
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-typedef union {
-  struct {
+typedef union gamepad_buttons gamepad_buttons;
+union gamepad_buttons
+{
+  u32 data;
+
+  struct
+  {
     u32 x : 1;
     u32 a : 1;
     u32 b : 1;
@@ -220,12 +225,12 @@ typedef union {
     u32 right : 1;
     u32 down : 1;
     u32 left : 1;
-  } button;
+  };
+};
 
-  u32 data;
-} gamepad_buttons;
-
-typedef struct {
+typedef struct gamepad gamepad;
+struct gamepad
+{
   b32 active;
 
   v2 left_stick;
@@ -237,16 +242,18 @@ typedef struct {
   gamepad_buttons down;
   gamepad_buttons pressed;
   gamepad_buttons released;
-} gamepad;
+};
 
 typedef u8 mouse_mode;
-enum {
+enum
+{
   MOUSE_MODE_NORMAL,
   MOUSE_MODE_HIDDEN,
   MOUSE_MODE_DISABLED,
 };
 
-static struct {
+static struct
+{
   b32 close;
 
   i32 width;
@@ -259,17 +266,20 @@ static struct {
   b32 fullscreen;
   b32 _fullscreen_state_last_update;
 
-  struct {
+  struct
+  {
     f64 total;
     f64 delta;
   } time;
 
-  struct {
+  struct
+  {
     f64 target;
     f64 next;
   } frame;
 
-  struct {
+  struct
+  {
     mouse_mode mode;
 
     b32 is_down : 1;
@@ -285,7 +295,8 @@ static struct {
     b8 released[MOUSE_BUTTON_LAST + 1];
   } mouse;
 
-  struct {
+  struct
+  {
     i32 key;
     i32 ascii;
 
@@ -306,7 +317,8 @@ static struct {
 
 // ================================ INTERNAL ============================== //
 
-static struct {
+static struct
+{
   GLFWwindow* window;
   GLFWmonitor* monitor;
 } platform_internal;
@@ -317,8 +329,10 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
   (void)a;
   (void)b;
 
-  switch (action) {
-    case GLFW_PRESS: {
+  switch (action)
+  {
+    case GLFW_PRESS:
+    {
       platform.keyboard.key = key;
       platform.keyboard.is_down = 1;
       platform.keyboard.is_pressed = 1;
@@ -327,11 +341,15 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
       platform.keyboard.pressed[key] = 1;
       platform.keyboard.repeat[key] = 1;
     } break;
-    case GLFW_REPEAT: {
+
+    case GLFW_REPEAT:
+    {
       platform.keyboard.is_repeat = 1;
       platform.keyboard.repeat[key] = 1;
     } break;
-    case GLFW_RELEASE: {
+
+    case GLFW_RELEASE:
+    {
       platform.keyboard.is_down = 0;
       platform.keyboard.is_released = 1;
 
@@ -352,14 +370,18 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
   (void)window;
   (void)a;
 
-  switch (action) {
-    case GLFW_PRESS: {
+  switch (action)
+  {
+    case GLFW_PRESS:
+    {
       platform.mouse.is_down = 1;
       platform.mouse.is_pressed = 1;
       platform.mouse.down[button] = 1;
       platform.mouse.pressed[button] = 1;
     } break;
-    case GLFW_RELEASE: {
+
+    case GLFW_RELEASE:
+    {
       platform.mouse.is_down = 0;
       platform.mouse.is_released = 1;
       platform.mouse.down[button] = 0;
@@ -378,12 +400,14 @@ static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset)
 
 static void window_joystick_callback(int joy, int event)
 {
-  if (event == GLFW_CONNECTED) {
+  if (event == GLFW_CONNECTED)
+  {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     platform.gamepad[joy].active = 1;
   }
 
-  if (event == GLFW_DISCONNECTED) {
+  if (event == GLFW_DISCONNECTED)
+  {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
   }
 }
@@ -435,16 +459,20 @@ static void platform_poll_events(void)
       platform.mouse.scroll.x = 0;
       platform.mouse.scroll.y = 0;
 
-      switch (platform.mouse.mode) {
-        case MOUSE_MODE_NORMAL: {
+      switch (platform.mouse.mode)
+      {
+        case MOUSE_MODE_NORMAL:
+        {
           glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         } break;
 
-        case MOUSE_MODE_HIDDEN: {
+        case MOUSE_MODE_HIDDEN:
+        {
           glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         } break;
 
-        case MOUSE_MODE_DISABLED: {
+        case MOUSE_MODE_DISABLED:
+        {
           glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         } break;
       }
@@ -454,8 +482,10 @@ static void platform_poll_events(void)
     {
       GLFWgamepadstate state;
 
-      for (int i = 0; i < JOYSTICK_LAST; ++i) {
-        if (platform.gamepad[i].active) {
+      for (int i = 0; i < JOYSTICK_LAST; ++i)
+      {
+        if (platform.gamepad[i].active)
+        {
           gamepad_buttons old = platform.gamepad[i].down;
 
           platform.gamepad[i].down.data = 0;
@@ -472,26 +502,26 @@ static void platform_poll_events(void)
           platform.gamepad[i].left_trigger = 0.5f * (state.axes[GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
           platform.gamepad[i].right_trigger = 0.5f * (state.axes[GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
 
-          if (state.buttons[GAMEPAD_BUTTON_X]) platform.gamepad[i].down.button.x = 1;
-          if (state.buttons[GAMEPAD_BUTTON_A]) platform.gamepad[i].down.button.a = 1;
-          if (state.buttons[GAMEPAD_BUTTON_B]) platform.gamepad[i].down.button.b = 1;
-          if (state.buttons[GAMEPAD_BUTTON_Y]) platform.gamepad[i].down.button.y = 1;
+          if (state.buttons[GAMEPAD_BUTTON_X]) platform.gamepad[i].down.x = 1;
+          if (state.buttons[GAMEPAD_BUTTON_A]) platform.gamepad[i].down.a = 1;
+          if (state.buttons[GAMEPAD_BUTTON_B]) platform.gamepad[i].down.b = 1;
+          if (state.buttons[GAMEPAD_BUTTON_Y]) platform.gamepad[i].down.y = 1;
 
-          if (state.buttons[GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepad[i].down.button.left_bumper = 1;
-          if (state.buttons[GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepad[i].down.button.right_bumper = 1;
+          if (state.buttons[GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepad[i].down.left_bumper = 1;
+          if (state.buttons[GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepad[i].down.right_bumper = 1;
 
-          if (platform.gamepad[i].left_trigger  > 0.0f) platform.gamepad[i].down.button.left_trigger = 1;
-          if (platform.gamepad[i].right_trigger > 0.0f) platform.gamepad[i].down.button.right_trigger = 1;
+          if (platform.gamepad[i].left_trigger  > 0.0f) platform.gamepad[i].down.left_trigger = 1;
+          if (platform.gamepad[i].right_trigger > 0.0f) platform.gamepad[i].down.right_trigger = 1;
 
-          if (state.buttons[GAMEPAD_BUTTON_BACK]) platform.gamepad[i].down.button.select = 1;
-          if (state.buttons[GAMEPAD_BUTTON_START]) platform.gamepad[i].down.button.start = 1;
-          if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB]) platform.gamepad[i].down.button.left_stick = 1;
-          if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB]) platform.gamepad[i].down.button.right_stick = 1;
+          if (state.buttons[GAMEPAD_BUTTON_BACK]) platform.gamepad[i].down.select = 1;
+          if (state.buttons[GAMEPAD_BUTTON_START]) platform.gamepad[i].down.start = 1;
+          if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB]) platform.gamepad[i].down.left_stick = 1;
+          if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB]) platform.gamepad[i].down.right_stick = 1;
 
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_UP]) platform.gamepad[i].down.button.up = 1;
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT]) platform.gamepad[i].down.button.right = 1;
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN]) platform.gamepad[i].down.button.down = 1;
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT]) platform.gamepad[i].down.button.left = 1;
+          if (state.buttons[GAMEPAD_BUTTON_DPAD_UP]) platform.gamepad[i].down.up = 1;
+          if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT]) platform.gamepad[i].down.right = 1;
+          if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN]) platform.gamepad[i].down.down = 1;
+          if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT]) platform.gamepad[i].down.left = 1;
 
           platform.gamepad[i].pressed.data =  platform.gamepad[i].down.data & ~old.data;
           platform.gamepad[i].released.data = ~platform.gamepad[i].down.data &  old.data;
@@ -513,21 +543,28 @@ static void platform_poll_events(void)
 static void platform_end_frame(void)
 {
   {
-    if (glfwWindowShouldClose(platform_internal.window)) {
+    if (glfwWindowShouldClose(platform_internal.window))
+    {
       platform.close = 1;
     }
 
-    if (platform.close) {
+    if (platform.close)
+    {
       glfwSetWindowShouldClose(platform_internal.window, 1);
     }
 
-    if (platform.fullscreen != platform._fullscreen_state_last_update) {
+    if (platform.fullscreen != platform._fullscreen_state_last_update)
+    {
       const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
 
       if (platform.fullscreen)
+      {
         glfwSetWindowMonitor(platform_internal.window, platform_internal.monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+      }
       else
+      {
         glfwSetWindowMonitor(platform_internal.window, NULL, 64, 64, mode->width - 256, mode->height - 256, mode->refreshRate);
+      }
     }
 
     platform._fullscreen_state_last_update = platform.fullscreen;
@@ -551,7 +588,8 @@ static void platform_swap_buffers(void)
 
 static void platform_update(void)
 {
-  if (platform.frame.target > 0) {
+  if (platform.frame.target > 0)
+  {
     f64 current = platform_get_time();
     platform_wait(platform.frame.next - current);
     platform.frame.next = current + platform.frame.target;
@@ -563,7 +601,8 @@ static void platform_update(void)
   platform_end_frame();
   f64 end = platform_get_time();
 
-  if (platform.frame.target > 0) {
+  if (platform.frame.target > 0)
+  {
     platform.frame.next -= (end - start);
   }
 }
@@ -624,9 +663,12 @@ static void platform_init(const char* title, int width, int height, int samples)
   }
 
   // init connected controllers
-  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
+  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i)
+  {
     if (glfwJoystickPresent(i))
+    {
       platform.gamepad[i].active = 1;
+    }
   }
 
   glfwSetTime(0.0);

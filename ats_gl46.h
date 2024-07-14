@@ -2,37 +2,49 @@
 
 #include "ats_base.h"
 
-typedef struct {
+typedef struct gl_texture gl_texture;
+struct gl_texture
+{
   u32 id;
   u16 width;
   u16 height;
-} gl_texture;
+};
 
-typedef struct {
+typedef struct gl_shader gl_shader;
+struct gl_shader
+{
   u32 id;
-} gl_shader;
+};
 
-typedef struct {
+typedef struct gl_shader_desc gl_shader_desc;
+struct gl_shader_desc
+{
   const char* vs;
   const char* fs;
-} gl_shader_desc;
+};
 
-typedef struct {
+typedef struct gl_buffer gl_buffer;
+struct gl_buffer
+{
   u32 vao;
   u32 vbo;
-} gl_buffer;
+};
 
-typedef struct {
+typedef struct gl_layout gl_layout;
+struct gl_layout
+{
   u32 size;
   u32 type;
   u32 stride;
   u32 offset;
   u32 normalize;
-} gl_layout;
+};
 
-typedef struct {
+typedef struct gl_buffer_desc gl_buffer_desc;
+struct gl_buffer_desc
+{
   gl_layout layout[32];
-} gl_buffer_desc;
+};
 
 static gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b8 is_smooth)
 {
@@ -139,7 +151,8 @@ static u32 gl_shader_compile(const char* source, u32 type)
 
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
-  if (!success) {
+  if (!success)
+  {
     glGetShaderInfoLog(shader, 512, NULL, log);
     puts(log);
     exit(EXIT_FAILURE);
@@ -159,7 +172,8 @@ static u32 gl_shader_link_program(u32 vertex_shader, u32 fragment_shader)
   glLinkProgram(shader);
   glGetProgramiv(shader, GL_LINK_STATUS, &success);
 
-  if (!success) {
+  if (!success)
+  {
     glGetProgramInfoLog(shader, 512, NULL, log);
     puts(log);
     exit(EXIT_FAILURE);
@@ -188,7 +202,8 @@ static gl_shader gl_shader_load_from_file(const char *vs, const char *fs)
 {
   gl_shader shader = {0};
 
-  mem_scope() {
+  mem_scope()
+  {
     s8 vs_content = file_read_s8(vs);
     s8 fs_content = file_read_s8(fs);
 
@@ -264,10 +279,12 @@ static gl_buffer gl_buffer_create(const gl_buffer_desc* desc)
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-  for (u32 i = 0; i < countof(desc->layout); ++i) {
+  for (u32 i = 0; i < countof(desc->layout); ++i)
+  {
     const gl_layout* layout = &desc->layout[i];
 
-    if (layout->size) {
+    if (layout->size)
+    {
       glEnableVertexAttribArray(i);
       glVertexAttribPointer(i, layout->size, layout->type, layout->normalize, layout->stride, (void*)(u64)layout->offset);
     }
@@ -316,7 +333,8 @@ static void gl_texture_bind(const gl_texture* texture)
 
 #define BITMAP_COUNT (256)
 
-static const u64 bitascii[BITMAP_COUNT] = {
+static const u64 bitascii[BITMAP_COUNT] =
+{
   0x0000000000000000,
   0x7e8199bd81a5817e,
   0x7effe7c3ffdbff7e,
@@ -575,11 +593,13 @@ static const u64 bitascii[BITMAP_COUNT] = {
   0x007e424242427e00
 };
 
-typedef struct {
+typedef struct bitmap_vertex bitmap_vertex;
+struct bitmap_vertex
+{
   f32 pos[2];
   f32 uv[2];
   u32 color;
-} bitmap_vertex;
+};
 
 static gl_texture bitmap_texture;
 static gl_shader  bitmap_shader;
@@ -633,12 +653,15 @@ static void gl_init_bitmap_font(void)
   // create and set font texture!
   {
     u32 pixels[8][BITMAP_COUNT * 8] = {0};
-    for (i32 i = 0; i < BITMAP_COUNT; ++i) {
-      for (i32 y = 0; y < 8; ++y) {
-        for (i32 x = 0; x < 8; ++x) {
+    for (i32 i = 0; i < BITMAP_COUNT; ++i)
+    {
+      for (i32 y = 0; y < 8; ++y)
+      {
+        for (i32 x = 0; x < 8; ++x)
+        {
           u64 bit = y * 8 + x;
-
-          if (bitascii[i] & (1ull << bit)) {
+          if (bitascii[i] & (1ull << bit))
+          {
             pixels[7 - y][8 * i + x] = 0xffffffff;
           }
         }
@@ -671,7 +694,8 @@ static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
   gl_texture_bind(&bitmap_texture);
   gl_uniform_m4(gl_location(&bitmap_shader, "mvp"), m4_ortho(0, platform.width, platform.height, 0, -1, 1));
 
-  for (int i = 0; str[i] != '\0'; i++) {
+  for (int i = 0; str[i] != '\0'; i++)
+  {
     gl_ascii(str[i], x + i * sx, y, z, sx, sy, color);
   }
 
@@ -694,14 +718,16 @@ static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, con
   va_end(list);
 }
 
-typedef struct {
+typedef struct timer_entry timer_entry;
+struct timer_entry
+{
   const char* name;
 
   f64 start;
   f64 stop;
 
   u32 depth;
-} timer_entry;
+};
 
 static u32 timer_top;
 static timer_entry timer_stack[512];
@@ -739,7 +765,8 @@ static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
 {
   int y = 0;
   // @TODO: fix render order within scopes!
-  for (int i = timer_count - 1; i >= 0; --i) {
+  for (int i = timer_count - 1; i >= 0; --i)
+  {
     timer_entry e = timer_array[i];
     gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
     y++;
