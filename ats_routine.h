@@ -2,42 +2,42 @@
 
 // =============================================== ROUTINE ========================================== //
 // copied and modefied from: https://gist.github.com/NoelFB/7a5fa66fc29dd7ed1c11042c30f1b00e
-
+//
 // Example:
 // // Assuming you have a `routine` variable stored somewhere
 // rt_begin(routine);
 // {
-//     // stuff that happens frame 1
+//   // stuff that happens frame 1
 // }
 // rt_wait(1.0f);
 // {
-//     // after 1.0s, this block runs
+//   // after 1.0s, this block runs
 // }
 // rt_for(0.25f);
 // {
-//     // this block repeats for 0.25s
+//   // this block repeats for 0.25s
 // }
 // rt_step();
 // {
-//     // the following frame, this block is run
+//   // the following frame, this block is run
 // }
 // rt_label(0);
 // {
-//     if (something)
-//         rt_repeat();
+//   if (something)
+//     rt_repeat();
 //
-//     // not run if rt_repeat() was called
-//     something_else();
+//   // not run if rt_repeat() was called
+//   something_else();
 // }
 // rt_step();
 // {
-//     if (another) rt_goto(0); // jumps to label 0
-//     if (another2) rt_restart();  // jumps to rt_begin
-//     // otherwise the next block will be run next frame
+//   if (another) rt_goto(0); // jumps to label 0
+//   if (another2) rt_restart();  // jumps to rt_begin
+//   // otherwise the next block will be run next frame
 // }
 // rt_while(condition_is_true);
 // {
-//     // this is repeated until condition_is_true is false
+//   // this is repeated until condition_is_true is false
 // }
 // rt_end();
 
@@ -45,42 +45,20 @@ typedef struct rt rt;
 struct rt
 {
   i32 at;
-  f32 dt;
   f32 wait_for;
   f32 repeat_for;
 };
 
 #define RT_LABEL_OFFSET 1147483647
 
-#ifndef __cplusplus
-
 #define rt_hash(tag) (RT_LABEL_OFFSET + (tag))
-
-#else
-
-constexpr u32 rt_hash(int tag)
-{
-  return RT_LABEL_OFFSET + tag;
-}
-
-constexpr u32 rt_hash(const char* str)
-{
-  u32 hash = 5381;
-  for (int i = 0; str[i] != '\0'; i++)
-  {
-    hash = ((hash << 5) + hash) + str[i];
-  }
-  return hash;
-}
-
-#endif
 
 #define rt_begin(routine, delta_time) \
   if ((routine).wait_for > 0) { \
     (routine).wait_for -= (delta_time); \
   } else { \
     rt* __rt = &(routine); \
-    __rt->dt = (delta_time); \
+    f32 __dt = (delta_time); \
     int __mn = 1; \
     switch (__rt->at) { \
       case 0: { \
@@ -98,7 +76,7 @@ constexpr u32 rt_hash(const char* str)
 #define rt_for(time) \
         rt_step(); \
         if (__rt->repeat_for < time) {  \
-          __rt->repeat_for += __rt->dt; \
+          __rt->repeat_for += __dt; \
           __mn = __rt->repeat_for >= time; \
           if (__mn) __rt->repeat_for = 0; \
         } \
@@ -158,7 +136,4 @@ constexpr u32 rt_hash(const char* str)
     __rt->repeat_for = 0; \
     goto rt_end_of_routine; \
   } while(0) \
-
-// get current timestep
-#define rt_delta() (__rt->dt)
 
