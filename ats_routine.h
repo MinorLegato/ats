@@ -41,8 +41,8 @@
 // }
 // rt_end();
 
-typedef struct rt_state rt_state;
-struct rt_state
+typedef struct rt rt;
+struct rt
 {
   i32 at;
   f32 dt;
@@ -75,11 +75,11 @@ constexpr u32 rt_hash(const char* str)
 
 #endif
 
-#define rt_begin(rt, delta_time) \
-  if (rt.wait_for > 0) { \
-    rt.wait_for -= (delta_time); \
+#define rt_begin(routine, delta_time) \
+  if ((routine).wait_for > 0) { \
+    (routine).wait_for -= (delta_time); \
   } else { \
-    rt_state* __rt = &(rt); \
+    rt* __rt = &(routine); \
     __rt->dt = (delta_time); \
     int __mn = 1; \
     switch (__rt->at) { \

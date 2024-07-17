@@ -465,7 +465,6 @@ typedef struct spatial_map spatial_map;
 struct spatial_map
 {
   sm_cell* table[4096];
-
   usize count;
   sm_cell array[SPATIAL_MAX];
 };
