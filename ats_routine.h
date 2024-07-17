@@ -45,8 +45,7 @@ typedef struct rt rt;
 struct rt
 {
   i32 at;
-  f32 wait_for;
-  f32 repeat_for;
+  f32 timer;
 };
 
 #define RT_LABEL_OFFSET 1147483647
@@ -54,8 +53,9 @@ struct rt
 #define rt_hash(tag) (RT_LABEL_OFFSET + (tag))
 
 #define rt_begin(routine, delta_time) \
-  if ((routine).wait_for > 0) { \
-    (routine).wait_for -= (delta_time); \
+  if ((routine).timer < 0) { \
+    (routine).timer += (delta_time); \
+    (routine).timer = clamp_max((routine).timer, 0); \
   } else { \
     rt* __rt = &(routine); \
     f32 __dt = (delta_time); \
@@ -75,10 +75,10 @@ struct rt
 
 #define rt_for(time) \
         rt_step(); \
-        if (__rt->repeat_for < time) {  \
-          __rt->repeat_for += __dt; \
-          __mn = __rt->repeat_for >= time; \
-          if (__mn) __rt->repeat_for = 0; \
+        if (__rt->timer < time) {  \
+          __rt->timer += __dt; \
+          __mn = __rt->timer >= time; \
+          if (__mn) __rt->timer = 0; \
         } \
 
 #define rt_while(condition) \
@@ -97,7 +97,7 @@ struct rt
 
 #define rt_wait(time) \
       } if (__mn) { \
-        __rt->wait_for = time; \
+        __rt->timer = -(time); \
         __rt->at = __LINE__; \
       } \
       break; \
@@ -132,8 +132,7 @@ struct rt
 #define rt_restart() \
   do { \
     __rt->at = 0; \
-    __rt->wait_for = 0; \
-    __rt->repeat_for = 0; \
+    __rt->timer = 0; \
     goto rt_end_of_routine; \
   } while(0) \
 
