@@ -40,7 +40,7 @@ static usize file_get_size(const char* path)
 
 static s8 file_read_s8(const char* file_name)
 {
-  u8* buffer = NULL;
+  u8* buffer = 0;
   usize size = 0;
   FILE* fp = file_open(file_name, "rb");
   if (fp)
@@ -52,7 +52,7 @@ static s8 file_read_s8(const char* file_name)
       buffer[size] = 0;
       if (fread(buffer, 1, size, fp) == 0)
       {
-        buffer = NULL;
+        buffer = 0;
       }
     }
     fclose(fp);
@@ -60,7 +60,7 @@ static s8 file_read_s8(const char* file_name)
   return make(s8) { buffer, (isize)size };
 }
 
-static b32 file_write_str(const char* file_name, s8 buffer)
+static b32 file_write_s8(const char* file_name, s8 buffer)
 {
   FILE* fp = file_open(file_name, "w");
   if (fp)
@@ -84,14 +84,14 @@ static b32 file_append_str(const char* file_name, s8 buffer)
   return 0;
 }
 
-static b32 file_read_bin(const char* file_name, void* buffer, usize size)
+static usize file_read_bin(const char* file_name, void* buffer, usize size)
 {
   FILE* fp = file_open(file_name, "rb");
   if (fp)
   {
-    fread(buffer, size, 1, fp);
+    usize file_size = fread(buffer, 1, size, fp);
     fclose(fp);
-    return 1;
+    return file_size;
   }
   return 0;
 } 
@@ -101,7 +101,7 @@ static b32 file_write_bin(const char* file_name, const void* buffer, usize size)
   FILE *fp = file_open(file_name, "wb");
   if (fp)
   {
-    fwrite(buffer, size, 1, fp);
+    fwrite(buffer, 1, size, fp);
     fclose(fp);
     return 1;
   }
@@ -110,18 +110,14 @@ static b32 file_write_bin(const char* file_name, const void* buffer, usize size)
 
 static u32* file_load_image(const char* path, u16* width, u16* height)
 {
-  u32* pixels = NULL;
-
+  u32* pixels = 0;
   int channels = 0;
-  int w;
-  int h;
-
+  int w = 0;
+  int h = 0;
   pixels = (u32*)stbi_load(path, &w, &h, &channels, 4);
   assert(pixels);
-
   *width  = w;
   *height = h;
-
   return pixels;
 }
 
@@ -167,31 +163,24 @@ static file_iter file_iter_create(const char* path, const char* ext)
 {
   if (!path) path = "./";
   if (!ext)  ext  = "*";
-
   file_iter it = {0};
-
   u32 i = 0;
   for (i = 0; path[i]; ++i)
   {
     it.path[i] = path[i];
   }
-
   if (it.path[i - 1] != '/')
   {
     it.path[i] = '/';
   }
-
   char find_file_str[MAX_PATH] = {0};
   file_cstr_concat(find_file_str, it.path, ext);
-
   it.handle = FindFirstFileA(find_file_str, &it.data);
   it.done = it.handle == INVALID_HANDLE_VALUE;
-
   if (!it.done)
   {
     file_cstr_concat(it.current, it.path, it.data.cFileName);
   }
-
   return it;
 }
 
@@ -207,7 +196,6 @@ struct dir_iter
   s8 path;
   s8 name;
   s8 extension;
-
   i32 idx;
   file_iter stack[256];
 };
@@ -215,15 +203,12 @@ struct dir_iter
 static void _dir_update_file_info(dir_iter* it)
 {
   char* s = it->stack[it->idx].current;
-
   it->path = s8("");
   it->name = s8("");
   it->extension = s8("");
-
   u32 i = 0;
   u32 e = 0;
   u32 n = 0;
-
   for (i = 0; s && s[i]; ++i)
   {
     switch (s[i])
@@ -235,7 +220,6 @@ static void _dir_update_file_info(dir_iter* it)
         n = i + 1; break;
     }
   }
-
   if (i)     it->path      = make(s8) { (u8*)(s),     (isize)(i)     };
   if (e < i) it->name      = make(s8) { (u8*)(s + n), (isize)(i - n) };
   if (n < i) it->extension = make(s8) { (u8*)(s + e), (isize)(i - e) };
@@ -244,16 +228,17 @@ static void _dir_update_file_info(dir_iter* it)
 static dir_iter dir_iter_create(const char* path)
 {
   dir_iter it = ZERO;
-  it.stack[it.idx] = file_iter_create(path, NULL);
+  it.stack[it.idx] = file_iter_create(path, 0);
   _dir_update_file_info(&it);
   return it;
 }
+
 
 static void dir_iter_advance(dir_iter* it)
 {
   if (file_iter_at_directory(&it->stack[it->idx]))
   {
-    it->stack[it->idx + 1] = file_iter_create(it->stack[it->idx].current, NULL);
+    it->stack[it->idx + 1] = file_iter_create(it->stack[it->idx].current, 0);
     file_iter_advance(&it->stack[it->idx]);
     it->idx++;
     _dir_update_file_info(it);
@@ -263,7 +248,6 @@ static void dir_iter_advance(dir_iter* it)
     file_iter_advance(&it->stack[it->idx]);
     _dir_update_file_info(it);
   }
-
   while ((it->idx >= 0) && !file_iter_is_valid(&it->stack[it->idx]))
   {
     it->idx--;

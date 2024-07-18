@@ -1,57 +1,56 @@
 #pragma once
 
-#if 0 // example
+// EXAMPLE:
+//#define ATS_OGL33
+//#include "../ats/ats.h"
+//#include "../ats/ats_platform.h"
+//
+//#include "../ats/ats_file.c"
+//#include "../ats/ats_memory.c"
+//
+//#include "../ats/ats_platform.c"
+//#include "../ats/ats_gl33.c"
+//
+//#include "render.c"
+//
+//int main(void)
+//{
+//  platform_init("YOLO", 1600, 800, 4);
+//  gl_init_ex();
+//
+//  // u32 game_pass = r_new_target();
+//  // u32 lighting_pass = r_new_target();
+//
+//  while (!platform.close)
+//  {
+//    if (platform.keyboard.pressed[KEY_ESCAPE])
+//    {
+//      platform.close = true;
+//    }
+//
+//    m4 projection = m4_perspective(0.5 * PI, platform.aspect_ratio, 0.1, 32);
+//    m4 view = m4_look_at(v3(0, 0, 8), v3(0, 0, 0), v3(0, 1, 0));
+//    m4 mvp = m4_mul(projection, view);
+//
+//    gl_begin_frame();
+//
+//    gl_clear(0xff000000);
+//    gl_set_matrix(mvp);
+//
+//    gl_begin(GL_TRIANGLES);
+//    gl_color(0xffffff00); r_vertex( 0,  1, 0);
+//    gl_color(0xffff00ff); r_vertex(-1, -1, 0);
+//    gl_color(0xff00ffff); r_vertex( 1, -1, 0);
+//    gl_end();
+//
+//    gl_end_frame();
+//
+//    platform_update();
+//  }
+//}
 
-#define ATS_OGL33
-#include "../ats/ats.h"
-#include "../ats/ats_platform.h"
-
-#include "../ats/ats_file.c"
-#include "../ats/ats_memory.c"
-
-#include "../ats/ats_platform.c"
-#include "../ats/ats_gl33.c"
-
-#include "render.c"
-
-int main(void)
-{
-  platform_init("YOLO", 1600, 800, 4);
-  r_init();
-
-  // u32 game_pass = r_new_target();
-  // u32 lighting_pass = r_new_target();
-
-  while (!platform.close) {
-    if (platform.keyboard.pressed[KEY_ESCAPE]) {
-      platform.close = true;
-    }
-
-    m4 projection = m4_perspective(0.5 * PI, platform.aspect_ratio, 0.1, 32);
-    m4 view = m4_look_at(v3(0, 0, 8), v3(0, 0, 0), v3(0, 1, 0));
-    m4 mvp = m4_mul(projection, view);
-
-    r_begin_frame();
-    r_clear(0xff000000);
-    r_set_matrix(mvp);
-
-    r_begin(GL_TRIANGLES);
-    r_color(0xffffff00); r_vertex( 0,  1, 0);
-    r_color(0xffff00ff); r_vertex(-1, -1, 0);
-    r_color(0xff00ffff); r_vertex( 1, -1, 0);
-    r_end();
-
-    r_end_frame();
-
-    platform_update();
-  }
-}
-
-#endif
-
-#define R_VERTEX_MAX (1024 * 1024)
-#define R_MATRIX_MAX (256)
-#define R_TARGET_MAX (256)
+#define GLEX_VERTEX_MAX (1024 * 1024)
+#define GLEX_TARGET_MAX (256)
 
 static const char* vertex_shader = GLSL(
   layout (location = 0) in vec3 in_pos;
@@ -79,7 +78,8 @@ static const char* vertex_shader = GLSL(
   });
 
 static const char* fragment_shader = GLSL(
-  struct point_light {
+  struct point_light
+  {
     vec3 pos;
 
     vec3 ambient;
@@ -95,13 +95,11 @@ static const char* fragment_shader = GLSL(
   {
     // ambient
     vec3 ambient = light.ambient * color.rgb;
-
     // diffuse 
     vec3 norm = normalize(frag_normal);
     vec3 light_dir = normalize(light.pos - frag_pos);
     float diff = max(dot(norm, light_dir), 0.0);
     vec3 diffuse = light.diffuse * diff * color.rgb;
-
     // specular
     vec3 view_dir = normalize(view_pos - frag_pos);
     vec3 reflect_dir = reflect(-light_dir, norm);  
@@ -142,14 +140,16 @@ static const char* fragment_shader = GLSL(
   {
     vec4 color = frag_color;
 
-    if (texture_enabled) {
+    if (texture_enabled)
+    {
       vec2 tex_scale = 1.0 / textureSize(tex, 0);
       color = color * texture(tex, frag_uv * tex_scale);
     }
 
     if (color.a <= 0) discard;
 
-    if (lighting_enabled) {
+    if (lighting_enabled)
+    {
       vec3 result;
       for (int i = 0; i < light_count; ++i) {
         result += calculate_point_light(light_array[i], view_pos, frag_pos, frag_normal, color);
@@ -157,7 +157,8 @@ static const char* fragment_shader = GLSL(
       color.rgb = result;
     }
 
-    if (fog_enabled) {
+    if (fog_enabled)
+    {
       float distance = gl_FragCoord.z / gl_FragCoord.w;
       float d = 0.2 * distance;
       float f = 1.0 - clamp(exp2(-1.442695 * d * d), 0.0, 1.0);
@@ -223,33 +224,43 @@ static const char* r_post_fx_blur = GLSL(
       1.0 / 16, 2.0 / 16, 1.0 / 16);
 
     vec4 sample_tex[9];
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 9; i++)
+    {
       sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
     }
+
     vec4 col = vec4(0.0);
     for (int i = 0; i < 9; i++)
+    {
       col += sample_tex[i] * kernel[i];
+    }
 
     out_color = col;
   });
 
-typedef struct {
+typedef struct gl_vertex_data gl_vertex_data;
+struct gl_vertex_data
+{
   v3 pos;
   v3 normal;
   v2 uv;
   u32 color;
-} r_vertex_data;
+};
 
-typedef struct {
+typedef struct gl_target_data gl_target_data;
+struct gl_target_data
+{
   gl_shader shader;
 
   u32 framebuffer;
   u32 texture;
-} r_target_data;
+  u32 renderbuffer;
+};
 
-typedef struct {
+typedef struct gl_light gl_light;
+struct gl_light
+{
   v3 pos;
-  
   v3 ambient;
   v3 diffuse;
   v3 specular;
@@ -257,24 +268,22 @@ typedef struct {
   f32 constant; 
   f32 linear;
   f32 quadratic;
-} r_light;
+};
 
-static u32 r_light_count;
-static r_light r_light_array[16];
-
-static gl_buffer r_post_fx_buffer;
-static gl_texture r_current_texture;
-static usize r_target_count;
-static r_target_data r_target_array[R_TARGET_MAX];
-static gl_shader r_shader;
-static gl_buffer r_buffer;
-static u32 r_type;
-static r_vertex_data r_current;
-static u32 r_vertex_count;
-static r_vertex_data r_vertex_array[R_VERTEX_MAX];
-
-static v3 r_view_pos;
-static v3 r_view_dir;
+static u32              r_light_count;
+static gl_light         r_light_array[16];
+static gl_buffer        r_post_fx_buffer;
+static gl_texture       r_current_texture;
+static usize            r_target_count;
+static gl_target_data   r_target_array[GLEX_TARGET_MAX];
+static gl_shader        r_shader;
+static gl_buffer        r_buffer;
+static u32              r_type;
+static gl_vertex_data   r_current;
+static u32              r_vertex_count;
+static gl_vertex_data   r_vertex_array[GLEX_VERTEX_MAX];
+static v3               r_view_pos;
+static v3               r_view_dir;
 
 static void gl_set_matrix(m4 projection, m4 view)
 {
@@ -308,10 +317,10 @@ static void gl_init_ex(void)
 
   gl_buffer_desc buffer_desc = {0};
 
-  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, pos) };
-  buffer_desc.layout[1] = make(gl_layout) { 3, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, normal) };
-  buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (r_vertex_data), offsetof(r_vertex_data, uv) };
-  buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (r_vertex_data), offsetof(r_vertex_data, color), 1 };
+  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (gl_vertex_data), offsetof(gl_vertex_data, pos) };
+  buffer_desc.layout[1] = make(gl_layout) { 3, GL_FLOAT,         sizeof (gl_vertex_data), offsetof(gl_vertex_data, normal) };
+  buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (gl_vertex_data), offsetof(gl_vertex_data, uv) };
+  buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (gl_vertex_data), offsetof(gl_vertex_data, color), 1 };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -324,7 +333,6 @@ static void gl_begin_frame(void)
 {
   gl_use(&r_shader);
   gl_set_matrix(m4_identity(), m4_identity());
-
   r_view_pos = v3(0);
   r_light_count = 0;
 }
@@ -365,16 +373,16 @@ static void gl_end(void)
 {
   gl_use(&r_shader);
   gl_buffer_bind(&r_buffer);
-  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (r_vertex_data));
+  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (gl_vertex_data));
 
   // add lights
   {
     i32 count = min(32, r_light_count);
 
     char buffer[256];
-    for (i32 i = 0; i < count; ++i) {
-      r_light light = r_light_array[i];
-
+    for (i32 i = 0; i < count; ++i)
+    {
+      gl_light light = r_light_array[i];
 #define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_v3(gl_location(&r_shader, buffer), light.var);
 #define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_f32(gl_location(&r_shader, buffer), light.var);
       set_v3(pos);
@@ -398,11 +406,11 @@ static void gl_set_texture(const gl_texture* texture)
 {
   gl_use(&r_shader);
   gl_texture_bind(texture);
-
   r_current_texture = *texture;
 }
 
-enum {
+enum
+{
   GLEX_NONE,
   GLEX_TEXTURE,
   GLEX_FOG,
@@ -412,17 +420,17 @@ enum {
 static void gl_enable(u32 tag)
 {
   gl_use(&r_shader);
-
   switch (tag) {
-    case GLEX_TEXTURE: {
+    case GLEX_TEXTURE:
+    {
       gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 1);
     } break;
-
-    case GLEX_FOG: {
+    case GLEX_FOG:
+    {
       gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 1);
     } break;
-
-    case GLEX_LIGHTING: {
+    case GLEX_LIGHTING:
+    {
       gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 1);
     } break;
   }
@@ -431,17 +439,17 @@ static void gl_enable(u32 tag)
 static void gl_disable(u32 tag)
 {
   gl_use(&r_shader);
-
   switch (tag) {
-    case GLEX_TEXTURE: {
+    case GLEX_TEXTURE:
+    {
       gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 0);
     } break;
-
-    case GLEX_FOG: {
+    case GLEX_FOG:
+    {
       gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 0);
     } break;
-
-    case GLEX_LIGHTING: {
+    case GLEX_LIGHTING:
+    {
       gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 0);
     } break;
   }
@@ -455,7 +463,7 @@ static void gl_fog_color(f32 r, f32 g, f32 b)
 static void gl_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
 {
   if (r_light_count >= countof(r_light_array)) { return; }
-  r_light_array[r_light_count++] = make(r_light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
+  r_light_array[r_light_count++] = make(gl_light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
 static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
@@ -691,7 +699,8 @@ static void gl_rect(r2 rect, f32 z, u32 color)
 
 static u32 gl_new_target(const char* fragment_shader)
 {
-  r_target_data* target = r_target_array + r_target_count++;
+  gl_target_data* target = r_target_array + r_target_count++;
+
   gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = r_post_fx_vertex_shader;
@@ -701,22 +710,25 @@ static u32 gl_new_target(const char* fragment_shader)
 
   glGenFramebuffers(1, &target->framebuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, target->framebuffer);
-
+  // color buffer:
   glGenTextures(1, &target->texture);
   glBindTexture(GL_TEXTURE_2D, target->texture);
-
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target->texture, 0);
+  // render buffer:
+  glGenRenderbuffers(1, &target->renderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, target->renderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 2048, 2048);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, target->renderbuffer);
+
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   return r_target_count - 1;
 }
 
-static r_target_data* r_current_target = NULL;
+static gl_target_data* r_current_target = NULL;
 
 static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 {
@@ -727,8 +739,11 @@ static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
   glBindTexture(GL_TEXTURE_2D, r_current_target->texture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
+  glBindRenderbuffer(GL_RENDERBUFFER, r_current_target->renderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, platform.width, platform.height);
+
   glClearColor(r, g, b, a);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   gl_set_texture(&r_current_texture);
 }
@@ -736,7 +751,6 @@ static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 static void gl_end_pass(void)
 {
   glDisable(GL_DEPTH_TEST);
-
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   gl_use(&r_current_target->shader);
@@ -795,7 +809,6 @@ static const char* fs_edge = GLSL(
   out vec4 out_color;
 
   uniform sampler2D tex;
-
   const float offset = 1.0 / 800.0;  
 
   void main()
@@ -818,16 +831,21 @@ static const char* fs_edge = GLSL(
     );
 
     vec4 sample_tex[9];
-    for(int i = 0; i < 9; i++) {
+    for(int i = 0; i < 9; i++)
+    {
       sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
     }
     vec4 col = vec4(0.0);
     for(int i = 0; i < 9; i++)
+    {
       col += sample_tex[i] * kernel[i];
-
-    if (col.a > 0) {
+    }
+    if (col.a > 0)
+    {
       out_color = vec4(0, 0, 0, 0.7);
-    } else {
+    }
+    else
+    {
       out_color = texture(tex, frag_uv.st);
     }
   });
