@@ -713,7 +713,7 @@ static u32 gl_new_target(const char* fragment_shader)
   // color buffer:
   glGenTextures(1, &target->texture);
   glBindTexture(GL_TEXTURE_2D, target->texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target->texture, 0);
@@ -728,7 +728,7 @@ static u32 gl_new_target(const char* fragment_shader)
   return r_target_count - 1;
 }
 
-static gl_target_data* r_current_target = NULL;
+static gl_target_data* r_current_target = 0;
 
 static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 {
@@ -737,7 +737,7 @@ static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
   glBindFramebuffer(GL_FRAMEBUFFER, r_current_target->framebuffer);
 
   glBindTexture(GL_TEXTURE_2D, r_current_target->texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
   glBindRenderbuffer(GL_RENDERBUFFER, r_current_target->renderbuffer);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, platform.width, platform.height);
@@ -750,105 +750,100 @@ static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 
 static void gl_end_pass(void)
 {
-  glDisable(GL_DEPTH_TEST);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   gl_use(&r_current_target->shader);
   gl_buffer_bind(&r_post_fx_buffer);
 
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, r_current_target->texture);
-  glDisable(GL_DEPTH_TEST);
-  glDrawArrays(GL_TRIANGLES, 0, 6);
 
-  r_current_target = NULL;
-  glEnable(GL_DEPTH_TEST);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  r_current_target = 0;
 
   gl_set_texture(&r_current_texture);
 }
 
-#if 0
-static const char* fs_blur = GLSL(
-  in vec2 frag_uv;
-  out vec4 out_color;
-
-  uniform sampler2D tex;
-
-  const float offset = 1.0 / 700.0;
-
-  void main()
-  {
-    vec2 offsets[9] = vec2[](
-      vec2(-offset,  offset),     // top-left
-      vec2( 0.0f,    offset),     // top-center
-      vec2( offset,  offset),     // top-right
-      vec2(-offset,  0.0f),       // center-left
-      vec2( 0.0f,    0.0f),       // center-center
-      vec2( offset,  0.0f),       // center-right
-      vec2(-offset, -offset),     // bottom-left
-      vec2( 0.0f,   -offset),     // bottom-center
-      vec2( offset, -offset));    // bottom-right    
-
-    float kernel[9] = float[](
-      1.0 / 16, 2.0 / 16, 1.0 / 16,
-      2.0 / 16, 4.0 / 16, 2.0 / 16,
-      1.0 / 16, 2.0 / 16, 1.0 / 16);
-
-    vec4 sample_tex[9];
-    for(int i = 0; i < 9; i++) {
-      sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
-    }
-    vec4 col = vec4(0.0);
-    for(int i = 0; i < 9; i++)
-      col += sample_tex[i] * kernel[i];
-
-    out_color = col;
-  });
-
-static const char* fs_edge = GLSL(
-  in vec2 frag_uv;
-  out vec4 out_color;
-
-  uniform sampler2D tex;
-  const float offset = 1.0 / 800.0;  
-
-  void main()
-  {
-    vec2 offsets[9] = vec2[](
-      vec2(-offset,  offset),     // top-left
-      vec2( 0.0f,    offset),     // top-center
-      vec2( offset,  offset),     // top-right
-      vec2(-offset,  0.0f),       // center-left
-      vec2( 0.0f,    0.0f),       // center-center
-      vec2( offset,  0.0f),       // center-right
-      vec2(-offset, -offset),     // bottom-left
-      vec2( 0.0f,   -offset),     // bottom-center
-      vec2( offset, -offset));    // bottom-right    
-
-    float kernel[9] = float[](
-      1,  1, 1,
-      1, -8, 1,
-      1,  1, 1
-    );
-
-    vec4 sample_tex[9];
-    for(int i = 0; i < 9; i++)
-    {
-      sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
-    }
-    vec4 col = vec4(0.0);
-    for(int i = 0; i < 9; i++)
-    {
-      col += sample_tex[i] * kernel[i];
-    }
-    if (col.a > 0)
-    {
-      out_color = vec4(0, 0, 0, 0.7);
-    }
-    else
-    {
-      out_color = texture(tex, frag_uv.st);
-    }
-  });
-
-#endif
+//static const char* fs_blur = GLSL(
+//  in vec2 frag_uv;
+//  out vec4 out_color;
+//
+//  uniform sampler2D tex;
+//
+//  const float offset = 1.0 / 700.0;
+//
+//  void main()
+//  {
+//    vec2 offsets[9] = vec2[](
+//      vec2(-offset,  offset),     // top-left
+//      vec2( 0.0f,    offset),     // top-center
+//      vec2( offset,  offset),     // top-right
+//      vec2(-offset,  0.0f),       // center-left
+//      vec2( 0.0f,    0.0f),       // center-center
+//      vec2( offset,  0.0f),       // center-right
+//      vec2(-offset, -offset),     // bottom-left
+//      vec2( 0.0f,   -offset),     // bottom-center
+//      vec2( offset, -offset));    // bottom-right    
+//
+//    float kernel[9] = float[](
+//      1.0 / 16, 2.0 / 16, 1.0 / 16,
+//      2.0 / 16, 4.0 / 16, 2.0 / 16,
+//      1.0 / 16, 2.0 / 16, 1.0 / 16);
+//
+//    vec4 sample_tex[9];
+//    for(int i = 0; i < 9; i++) {
+//      sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
+//    }
+//    vec4 col = vec4(0.0);
+//    for(int i = 0; i < 9; i++)
+//      col += sample_tex[i] * kernel[i];
+//
+//    out_color = col;
+//  });
+//
+//static const char* fs_edge = GLSL(
+//  in vec2 frag_uv;
+//  out vec4 out_color;
+//
+//  uniform sampler2D tex;
+//  const float offset = 1.0 / 800.0;  
+//
+//  void main()
+//  {
+//    vec2 offsets[9] = vec2[](
+//      vec2(-offset,  offset),     // top-left
+//      vec2( 0.0f,    offset),     // top-center
+//      vec2( offset,  offset),     // top-right
+//      vec2(-offset,  0.0f),       // center-left
+//      vec2( 0.0f,    0.0f),       // center-center
+//      vec2( offset,  0.0f),       // center-right
+//      vec2(-offset, -offset),     // bottom-left
+//      vec2( 0.0f,   -offset),     // bottom-center
+//      vec2( offset, -offset));    // bottom-right    
+//
+//    float kernel[9] = float[](
+//      1,  1, 1,
+//      1, -8, 1,
+//      1,  1, 1
+//    );
+//
+//    vec4 sample_tex[9];
+//    for(int i = 0; i < 9; i++)
+//    {
+//      sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
+//    }
+//    vec4 col = vec4(0.0);
+//    for(int i = 0; i < 9; i++)
+//    {
+//      col += sample_tex[i] * kernel[i];
+//    }
+//    if (col.a > 0)
+//    {
+//      out_color = vec4(0, 0, 0, 0.7);
+//    }
+//    else
+//    {
+//      out_color = texture(tex, frag_uv.st);
+//    }
+//  });
 
