@@ -48,7 +48,7 @@
   for (usize index = 0; index < countof(array); ++index)
 
 #define repeat(count) \
-  for (isize macro_var(index) = 0; macro_var(index) < (count); ++macro_var(index))
+  for (isize macro_var(index) = (count); macro_var(index) > 0; --macro_var(index))
 
 #define for_r2(rect, ix, iy) \
   for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \

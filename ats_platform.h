@@ -9,6 +9,7 @@
 #include "ats_texture_table.h"
 #include "ats_animation_table.h"
 #include "ats_audio_table.h"
+#include "ats_timer.h"
 
 #ifdef ATS_OGL46
 #include "ats_gl46.h"

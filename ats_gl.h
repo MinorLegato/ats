@@ -771,50 +771,7 @@ static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, con
   gl_string(buffer, x, y, z, sx, sy, color);
 }
 
-typedef struct timer_entry timer_entry;
-struct timer_entry
-{
-  const char* name;
-
-  f64 start;
-  f64 stop;
-
-  u32 depth;
-};
-
-static u32 timer_top;
-static timer_entry timer_stack[512];
-
-static u32 timer_count;
-static timer_entry timer_array[512];
-
-#define timer_scope(name) scope_guard(timer_start(name), timer_stop())
-
-static void timer_start(const char* name)
-{
-  timer_entry* entry = timer_stack + timer_top++;
-
-  entry->name = name;
-  entry->start = platform_get_time();
-  entry->stop = 0;
-  entry->depth = timer_top - 1;
-}
-
-static void timer_stop(void)
-{
-  timer_entry* entry = timer_stack + (--timer_top);
-
-  entry->stop = platform_get_time();
-  timer_array[timer_count++] = *entry;
-}
-
-static void timer_reset_all(void)
-{
-  timer_top = 0;
-  timer_count = 0;
-}
-
-static void timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
+static void gl_timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
 {
   int y = 0;
   // @TODO: fix render order within scopes!
