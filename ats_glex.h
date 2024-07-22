@@ -242,12 +242,6 @@ struct glex__vertex
   u32 color;
 };
 
-//typedef struct glex__target glex__target;
-//struct glex__target
-//{
-//  gl_shader shader;
-//};
-
 typedef struct glex__light glex__light;
 struct glex__light
 {
@@ -280,6 +274,7 @@ static struct
     u32 framebuffer;
     u32 texture;
     u32 renderbuffer;
+    gl_shader default_shader;
   } target;
 
   u32 type;
@@ -301,6 +296,13 @@ static void glex_set_view(v3 pos, v3 dir)
   glex.view_pos = pos;
   glex.view_dir = v3_norm(dir);
   gl_uniform_v3(gl_location(&glex.shader, "view_pos"), glex.view_pos);
+}
+
+static void glex_set_texture(const gl_texture* texture)
+{
+  gl_use(&glex.shader);
+  gl_texture_bind(texture);
+  glex.current_texture = *texture;
 }
 
 static void glex_init(void)
@@ -330,6 +332,13 @@ static void glex_init(void)
   glEnable(GL_DEPTH_TEST);
 
   {
+    gl_shader_desc shader_desc = {0};
+
+    shader_desc.vs = glex_post_fx_vertex_shader;
+    shader_desc.fs = glex_post_fx_none;
+
+    glex.target.default_shader = gl_shader_create(shader_desc);
+
     glGenFramebuffers(1, &glex.target.framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, glex.target.framebuffer);
     // color buffer:
@@ -349,17 +358,53 @@ static void glex_init(void)
   }
 }
 
+static void glex_end_pass(void)
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  gl_use(&glex.target.shader);
+  gl_buffer_bind(&glex.post_fx_buffer);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, glex.target.texture);
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  glex_set_texture(&glex.current_texture);
+}
+
+static void glex_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a)
+{
+  glex_end_pass();
+
+  glex.target.shader = shader;
+  glBindFramebuffer(GL_FRAMEBUFFER, glex.target.framebuffer);
+
+  glBindTexture(GL_TEXTURE_2D, glex.target.texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+  glBindRenderbuffer(GL_RENDERBUFFER, glex.target.renderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, platform.width, platform.height);
+
+  glClearColor(r, g, b, a);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+  glex_set_texture(&glex.current_texture);
+}
+
 static void glex_begin_frame(void)
 {
   gl_use(&glex.shader);
   glex_set_matrix(m4_identity(), m4_identity());
   glex.view_pos = v3(0);
   glex.light_count = 0;
+
+  glex_begin_pass(glex.target.default_shader, 0, 0, 0, 1);
 }
 
 static void glex_end_frame(void)
 {
-  // WOOP
+  glex_end_pass();
 }
 
 static void glex_begin(u32 type)
@@ -422,13 +467,6 @@ static void glex_end(void)
   glDrawArrays(glex.type, 0, glex.vertex_count);
 }
 
-static void glex_set_texture(const gl_texture* texture)
-{
-  gl_use(&glex.shader);
-  gl_texture_bind(texture);
-  glex.current_texture = *texture;
-}
-
 enum
 {
   GLEX_NONE,
@@ -484,7 +522,10 @@ static void glex_fog_color(f32 r, f32 g, f32 b)
 
 static void glex_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
 {
-  if (glex.light_count >= countof(glex.light_array)) { return; }
+  if (glex.light_count >= countof(glex.light_array))
+  {
+    return;
+  }
   glex.light_array[glex.light_count++] = make(glex__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
@@ -578,8 +619,8 @@ static void glex_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color)
 
 static void glex_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y)
 {
-  if (flip_x) { swap(f32, tr.min_x, tr.max_x); }
-  if (flip_y) { swap(f32, tr.min_y, tr.max_y); }
+  if (flip_x) swap(f32, tr.min_x, tr.max_x);
+  if (flip_y) swap(f32, tr.min_y, tr.max_y);
 
   glex_color(color);
   glex_uv(tr.min_x, tr.max_y); glex_vertex(rect.min.x, rect.min.y, z);
@@ -592,7 +633,7 @@ static void glex_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 f
 
 static void glex_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y)
 {
-  if (flip_y) { swap(f32, tr.min_y, tr.max_y); }
+  if (flip_y) swap(f32, tr.min_y, tr.max_y);
 
   m2 rot_matrix = m2_rotate(rot);
 
@@ -729,38 +770,6 @@ static gl_shader glex_new_target(const char* fragment_shader)
   return gl_shader_create(shader_desc);
 }
 
-static void glex_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a)
-{
-  glex.target.shader = shader;
-  glBindFramebuffer(GL_FRAMEBUFFER, glex.target.framebuffer);
-
-  glBindTexture(GL_TEXTURE_2D, glex.target.texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-  glBindRenderbuffer(GL_RENDERBUFFER, glex.target.renderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, platform.width, platform.height);
-
-  glClearColor(r, g, b, a);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-  glex_set_texture(&glex.current_texture);
-}
-
-static void glex_end_pass(void)
-{
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  gl_use(&glex.target.shader);
-  gl_buffer_bind(&glex.post_fx_buffer);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, glex.target.texture);
-
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-
-  glex_set_texture(&glex.current_texture);
-}
-
 //static const char* fs_blur = GLSL(
 //  in vec2 frag_uv;
 //  out vec4 out_color;
@@ -788,7 +797,8 @@ static void glex_end_pass(void)
 //      1.0 / 16, 2.0 / 16, 1.0 / 16);
 //
 //    vec4 sample_tex[9];
-//    for(int i = 0; i < 9; i++) {
+//    for(int i = 0; i < 9; i++)
+//    {
 //      sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
 //    }
 //    vec4 col = vec4(0.0);
