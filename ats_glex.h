@@ -49,7 +49,7 @@
 //  }
 //}
 
-#define GLEX_VERTEX_MAX (1024 * 1024)
+#define GLEX_VERTEX_MAX (4 * 1024 * 1024)
 #define GLEX_TARGET_MAX (256)
 
 static const char* vertex_shader = GLSL(
