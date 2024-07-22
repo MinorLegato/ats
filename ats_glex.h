@@ -249,7 +249,6 @@ typedef struct glex__target glex__target;
 struct glex__target
 {
   gl_shader shader;
-
   u32 framebuffer;
   u32 texture;
   u32 renderbuffer;
@@ -262,7 +261,6 @@ struct glex__light
   v3 ambient;
   v3 diffuse;
   v3 specular;
-
   f32 constant; 
   f32 linear;
   f32 quadratic;
@@ -270,21 +268,25 @@ struct glex__light
 
 static struct
 {
-  u32           light_count;
-  glex__light   light_array[16];
-  gl_buffer     post_fx_buffer;
-  gl_texture    current_texture;
-  usize         target_count;
-  glex__target  target_array[GLEX_TARGET_MAX];
+  v3 view_pos;
+  v3 view_dir;
+
+  gl_shader shader;
+  gl_buffer buffer;
+  gl_buffer post_fx_buffer;
+  gl_texture current_texture;
+
+  u32 light_count;
+  glex__light light_array[16];
+
+  usize target_count;
   glex__target* current_target;
-  gl_shader     shader;
-  gl_buffer     buffer;
-  u32           type;
-  glex__vertex  current;
-  u32           vertex_count;
-  glex__vertex  vertex_array[GLEX_VERTEX_MAX];
-  v3            view_pos;
-  v3            view_dir;
+  glex__target target_array[GLEX_TARGET_MAX];
+
+  u32 type;
+  glex__vertex current;
+  u32 vertex_count;
+  glex__vertex vertex_array[GLEX_VERTEX_MAX];
 } glex;
 
 static void glex_set_matrix(m4 projection, m4 view)
