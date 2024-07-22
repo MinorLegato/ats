@@ -52,7 +52,7 @@
 #define GLEX_VERTEX_MAX (4 * 1024 * 1024)
 #define GLEX_TARGET_MAX (256)
 
-static const char* vertex_shader = GLSL(
+static const char* glex_vertex_shader = GLSL(
   layout (location = 0) in vec3 in_pos;
   layout (location = 1) in vec3 in_normal;
   layout (location = 2) in vec2 in_uv;
@@ -77,7 +77,7 @@ static const char* vertex_shader = GLSL(
     gl_Position = pos;
   });
 
-static const char* fragment_shader = GLSL(
+static const char* glex_fragment_shader = GLSL(
   struct point_light
   {
     vec3 pos;
@@ -169,7 +169,7 @@ static const char* fragment_shader = GLSL(
     out_color = color;
   });
 
-static const char* r_post_fx_vertex_shader = GLSL(
+static const char* glex_post_fx_vertex_shader = GLSL(
   out vec2 frag_uv;
 
   const vec2 verts[6] = vec2[](
@@ -186,7 +186,7 @@ static const char* r_post_fx_vertex_shader = GLSL(
     gl_Position = vec4(verts[gl_VertexID], 0, 1);
   });
 
-static const char* r_post_fx_none = GLSL(
+static const char* glex_post_fx_none = GLSL(
   in vec2 frag_uv;
   out vec4 out_color;
 
@@ -197,7 +197,7 @@ static const char* r_post_fx_none = GLSL(
     out_color = texture(tex, frag_uv);
   });
 
-static const char* r_post_fx_blur = GLSL(
+static const char* glex_post_fx_blur = GLSL(
   in  vec2 frag_uv;
   out vec4 out_color;
 
@@ -276,6 +276,7 @@ static gl_buffer    r_post_fx_buffer;
 static gl_texture   r_current_texture;
 static usize        r_target_count;
 static glex_target  r_target_array[GLEX_TARGET_MAX];
+static glex_target* r_current_target;
 static gl_shader    r_shader;
 static gl_buffer    r_buffer;
 static u32          r_type;
@@ -310,8 +311,8 @@ static void gl_init_ex(void)
 
   gl_shader_desc shader_desc = {0};
 
-  shader_desc.vs = vertex_shader;
-  shader_desc.fs = fragment_shader;
+  shader_desc.vs = glex_vertex_shader;
+  shader_desc.fs = glex_fragment_shader;
 
   r_shader = gl_shader_create(shader_desc);
 
@@ -703,7 +704,7 @@ static u32 gl_new_target(const char* fragment_shader)
 
   gl_shader_desc shader_desc = {0};
 
-  shader_desc.vs = r_post_fx_vertex_shader;
+  shader_desc.vs = glex_post_fx_vertex_shader;
   shader_desc.fs = fragment_shader;
 
   target->shader = gl_shader_create(shader_desc);
@@ -727,8 +728,6 @@ static u32 gl_new_target(const char* fragment_shader)
 
   return r_target_count - 1;
 }
-
-static glex_target* r_current_target = 0;
 
 static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 {
