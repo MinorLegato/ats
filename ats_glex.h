@@ -16,10 +16,10 @@
 //int main(void)
 //{
 //  platform_init("YOLO", 1600, 800, 4);
-//  gl_init_ex();
+//  glex_init();
 //
-//  // u32 game_pass = r_new_target();
-//  // u32 lighting_pass = r_new_target();
+//  // u32 game_pass = glex_new_target();
+//  // u32 lighting_pass = glex_new_target();
 //
 //  while (!platform.close)
 //  {
@@ -29,21 +29,21 @@
 //    }
 //
 //    m4 projection = m4_perspective(0.5 * PI, platform.aspect_ratio, 0.1, 32);
-//    m4 view = m4_look_at(v3(0, 0, 8), v3(0, 0, 0), v3(0, 1, 0));
-//    m4 mvp = m4_mul(projection, view);
+//    m4 view       = m4_look_at(v3(0, 0, 8), v3(0, 0, 0), v3(0, 1, 0));
+//    m4 mvp        = m4_mul(projection, view);
 //
-//    gl_begin_frame();
+//    glex_begin_frame();
 //
-//    gl_clear(0xff000000);
-//    gl_set_matrix(mvp);
+//    glex_clear(0xff000000);
+//    glex_set_matrix(mvp);
 //
-//    gl_begin(GL_TRIANGLES);
-//    gl_color(0xffffff00); r_vertex( 0,  1, 0);
-//    gl_color(0xffff00ff); r_vertex(-1, -1, 0);
-//    gl_color(0xff00ffff); r_vertex( 1, -1, 0);
-//    gl_end();
+//    glex_begin(GL_TRIANGLES);
+//    glex_color(0xffffff00); glex_vertex( 0,  1, 0);
+//    glex_color(0xffff00ff); glex_vertex(-1, -1, 0);
+//    glex_color(0xff00ffff); glex_vertex( 1, -1, 0);
+//    glex_end();
 //
-//    gl_end_frame();
+//    glex_end_frame();
 //
 //    platform_update();
 //  }
@@ -67,14 +67,11 @@ static const char* glex_vertex_shader = GLSL(
 
   void main()
   {
-    frag_pos = in_pos;
+    frag_pos    = in_pos;
     frag_normal = in_normal;
-    frag_uv = in_uv;
-    frag_color = in_color;
-
-    vec4 pos = mvp * vec4(in_pos, 1);
-
-    gl_Position = pos;
+    frag_uv     = in_uv;
+    frag_color  = in_color;
+    gl_Position = mvp * vec4(in_pos, 1);
   });
 
 static const char* glex_fragment_shader = GLSL(
@@ -151,7 +148,8 @@ static const char* glex_fragment_shader = GLSL(
     if (lighting_enabled)
     {
       vec3 result;
-      for (int i = 0; i < light_count; ++i) {
+      for (int i = 0; i < light_count; ++i)
+      {
         result += calculate_point_light(light_array[i], view_pos, frag_pos, frag_normal, color);
       }
       color.rgb = result;
@@ -270,36 +268,39 @@ struct glex_light
   f32 quadratic;
 };
 
-static u32          r_light_count;
-static glex_light   r_light_array[16];
-static gl_buffer    r_post_fx_buffer;
-static gl_texture   r_current_texture;
-static usize        r_target_count;
-static glex_target  r_target_array[GLEX_TARGET_MAX];
-static glex_target* r_current_target;
-static gl_shader    r_shader;
-static gl_buffer    r_buffer;
-static u32          r_type;
-static glex_vertex  r_current;
-static u32          r_vertex_count;
-static glex_vertex  r_vertex_array[GLEX_VERTEX_MAX];
-static v3           r_view_pos;
-static v3           r_view_dir;
+static struct
+{
+  u32          light_count;
+  glex_light   light_array[16];
+  gl_buffer    post_fx_buffer;
+  gl_texture   current_texture;
+  usize        target_count;
+  glex_target  target_array[GLEX_TARGET_MAX];
+  glex_target* current_target;
+  gl_shader    shader;
+  gl_buffer    buffer;
+  u32          type;
+  glex_vertex  current;
+  u32          vertex_count;
+  glex_vertex  vertex_array[GLEX_VERTEX_MAX];
+  v3           view_pos;
+  v3           view_dir;
+} glex;
 
 static void gl_set_matrix(m4 projection, m4 view)
 {
   m4 mvp = m4_mul(projection, view);
 
-  gl_use(&r_shader);
-  gl_uniform_m4(gl_location(&r_shader, "mvp"), mvp);
+  gl_use(&glex.shader);
+  gl_uniform_m4(gl_location(&glex.shader, "mvp"), mvp);
 }
 
 static void gl_set_view(v3 pos, v3 dir)
 {
-  r_view_pos = pos;
-  r_view_dir = v3_norm(dir);
+  glex.view_pos = pos;
+  glex.view_dir = v3_norm(dir);
   
-  gl_uniform_v3(gl_location(&r_shader, "view_pos"), r_view_pos);
+  gl_uniform_v3(gl_location(&glex.shader, "view_pos"), glex.view_pos);
 }
 
 static void gl_init_ex(void)
@@ -307,14 +308,14 @@ static void gl_init_ex(void)
   gl_init();
 
   gl_buffer_desc fx_buffer_desc = {0};
-  r_post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
+  glex.post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
 
   gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = glex_vertex_shader;
   shader_desc.fs = glex_fragment_shader;
 
-  r_shader = gl_shader_create(shader_desc);
+  glex.shader = gl_shader_create(shader_desc);
 
   gl_buffer_desc buffer_desc = {0};
 
@@ -323,19 +324,19 @@ static void gl_init_ex(void)
   buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (glex_vertex), offsetof(glex_vertex, uv) };
   buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (glex_vertex), offsetof(glex_vertex, color), 1 };
 
-  r_buffer = gl_buffer_create(&buffer_desc);
+  glex.buffer = gl_buffer_create(&buffer_desc);
 
-  gl_buffer_send(&r_buffer, r_vertex_array, sizeof (r_vertex_array));
+  gl_buffer_send(&glex.buffer, glex.vertex_array, sizeof (glex.vertex_array));
 
   glEnable(GL_DEPTH_TEST);
 }
 
 static void gl_begin_frame(void)
 {
-  gl_use(&r_shader);
+  gl_use(&glex.shader);
   gl_set_matrix(m4_identity(), m4_identity());
-  r_view_pos = v3(0);
-  r_light_count = 0;
+  glex.view_pos = v3(0);
+  glex.light_count = 0;
 }
 
 static void gl_end_frame(void)
@@ -345,47 +346,47 @@ static void gl_end_frame(void)
 
 static void gl_begin(u32 type)
 {
-  r_type = type;
-  r_vertex_count = 0;
+  glex.type = type;
+  glex.vertex_count = 0;
 }
 
 static void gl_uv(f32 x, f32 y)
 {
-  r_current.uv = v2(x, y);
+  glex.current.uv = v2(x, y);
 }
 
 static void gl_color(u32 color)
 {
-  r_current.color = color;
+  glex.current.color = color;
 }
 
 static void gl_normal(f32 x, f32 y, f32 z)
 {
-  r_current.normal = v3(x, y, z);
+  glex.current.normal = v3(x, y, z);
 }
 
 static void gl_vertex(f32 x, f32 y, f32 z)
 {
-  r_current.pos = v3(x, y, z);
-  r_vertex_array[r_vertex_count++] = r_current;
+  glex.current.pos = v3(x, y, z);
+  glex.vertex_array[glex.vertex_count++] = glex.current;
 }
 
 static void gl_end(void)
 {
-  gl_use(&r_shader);
-  gl_buffer_bind(&r_buffer);
-  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (glex_vertex));
+  gl_use(&glex.shader);
+  gl_buffer_bind(&glex.buffer);
+  gl_buffer_send(&glex.buffer, glex.vertex_array, glex.vertex_count * sizeof (glex_vertex));
 
   // add lights
   {
-    i32 count = min(32, r_light_count);
+    i32 count = min(32, glex.light_count);
 
     char buffer[256];
     for (i32 i = 0; i < count; ++i)
     {
-      glex_light light = r_light_array[i];
-#define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_v3(gl_location(&r_shader, buffer), light.var);
-#define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_f32(gl_location(&r_shader, buffer), light.var);
+      glex_light light = glex.light_array[i];
+#define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_v3(gl_location(&glex.shader, buffer), light.var);
+#define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_f32(gl_location(&glex.shader, buffer), light.var);
       set_v3(pos);
       set_v3(ambient);
       set_v3(diffuse);
@@ -397,17 +398,17 @@ static void gl_end(void)
 #undef set_f32
     }
 
-    gl_uniform_i32(gl_location(&r_shader, "light_count"), count);
+    gl_uniform_i32(gl_location(&glex.shader, "light_count"), count);
   }
 
-  glDrawArrays(r_type, 0, r_vertex_count);
+  glDrawArrays(glex.type, 0, glex.vertex_count);
 }
 
 static void gl_set_texture(const gl_texture* texture)
 {
-  gl_use(&r_shader);
+  gl_use(&glex.shader);
   gl_texture_bind(texture);
-  r_current_texture = *texture;
+  glex.current_texture = *texture;
 }
 
 enum
@@ -420,51 +421,51 @@ enum
 
 static void gl_enable(u32 tag)
 {
-  gl_use(&r_shader);
+  gl_use(&glex.shader);
   switch (tag) {
     case GLEX_TEXTURE:
     {
-      gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 1);
+      gl_uniform_i32(gl_location(&glex.shader, "texture_enabled"), 1);
     } break;
     case GLEX_FOG:
     {
-      gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 1);
+      gl_uniform_i32(gl_location(&glex.shader, "fog_enabled"), 1);
     } break;
     case GLEX_LIGHTING:
     {
-      gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 1);
+      gl_uniform_i32(gl_location(&glex.shader, "lighting_enabled"), 1);
     } break;
   }
 }
 
 static void gl_disable(u32 tag)
 {
-  gl_use(&r_shader);
+  gl_use(&glex.shader);
   switch (tag) {
     case GLEX_TEXTURE:
     {
-      gl_uniform_i32(gl_location(&r_shader, "texture_enabled"), 0);
+      gl_uniform_i32(gl_location(&glex.shader, "texture_enabled"), 0);
     } break;
     case GLEX_FOG:
     {
-      gl_uniform_i32(gl_location(&r_shader, "fog_enabled"), 0);
+      gl_uniform_i32(gl_location(&glex.shader, "fog_enabled"), 0);
     } break;
     case GLEX_LIGHTING:
     {
-      gl_uniform_i32(gl_location(&r_shader, "lighting_enabled"), 0);
+      gl_uniform_i32(gl_location(&glex.shader, "lighting_enabled"), 0);
     } break;
   }
 }
 
 static void gl_fog_color(f32 r, f32 g, f32 b)
 {
-  gl_uniform_v3(gl_location(&r_shader, "fog_color"), v3(r, g, b));
+  gl_uniform_v3(gl_location(&glex.shader, "fog_color"), v3(r, g, b));
 }
 
 static void gl_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
 {
-  if (r_light_count >= countof(r_light_array)) { return; }
-  r_light_array[r_light_count++] = make(glex_light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
+  if (glex.light_count >= countof(glex.light_array)) { return; }
+  glex.light_array[glex.light_count++] = make(glex_light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
 static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
@@ -486,7 +487,7 @@ static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up
   f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
 
   gl_color(color);
-  gl_normal(-r_view_dir.x, -r_view_dir.y, -r_view_dir.z);
+  gl_normal(-glex.view_dir.x, -glex.view_dir.y, -glex.view_dir.z);
 
   gl_uv(tr.min_x, tr.max_y); gl_vertex(ax, ay, az);
   gl_uv(tr.max_x, tr.max_y); gl_vertex(bx, by, bz);
@@ -700,7 +701,7 @@ static void gl_rect(r2 rect, f32 z, u32 color)
 
 static u32 gl_new_target(const char* fragment_shader)
 {
-  glex_target* target = r_target_array + r_target_count++;
+  glex_target* target = glex.target_array + glex.target_count++;
 
   gl_shader_desc shader_desc = {0};
 
@@ -726,41 +727,41 @@ static u32 gl_new_target(const char* fragment_shader)
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  return r_target_count - 1;
+  return glex.target_count - 1;
 }
 
 static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 {
-  r_current_target = r_target_array + target;
+  glex.current_target = glex.target_array + target;
 
-  glBindFramebuffer(GL_FRAMEBUFFER, r_current_target->framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, glex.current_target->framebuffer);
 
-  glBindTexture(GL_TEXTURE_2D, r_current_target->texture);
+  glBindTexture(GL_TEXTURE_2D, glex.current_target->texture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-  glBindRenderbuffer(GL_RENDERBUFFER, r_current_target->renderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, glex.current_target->renderbuffer);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, platform.width, platform.height);
 
   glClearColor(r, g, b, a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  gl_set_texture(&r_current_texture);
+  gl_set_texture(&glex.current_texture);
 }
 
 static void gl_end_pass(void)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  gl_use(&r_current_target->shader);
-  gl_buffer_bind(&r_post_fx_buffer);
+  gl_use(&glex.current_target->shader);
+  gl_buffer_bind(&glex.post_fx_buffer);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, r_current_target->texture);
+  glBindTexture(GL_TEXTURE_2D, glex.current_target->texture);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
-  r_current_target = 0;
+  glex.current_target = 0;
 
-  gl_set_texture(&r_current_texture);
+  gl_set_texture(&glex.current_texture);
 }
 
 //static const char* fs_blur = GLSL(
