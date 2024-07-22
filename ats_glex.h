@@ -249,9 +249,6 @@ typedef struct glex__target glex__target;
 struct glex__target
 {
   gl_shader shader;
-  u32 framebuffer;
-  u32 texture;
-  u32 renderbuffer;
 };
 
 typedef struct glex__light glex__light;
@@ -274,10 +271,18 @@ static struct
   gl_shader shader;
   gl_buffer buffer;
   gl_buffer post_fx_buffer;
+
   gl_texture current_texture;
 
   u32 light_count;
   glex__light light_array[16];
+
+  struct
+  {
+    u32 framebuffer;
+    u32 texture;
+    u32 renderbuffer;
+  } target;
 
   usize target_count;
   glex__target* current_target;
@@ -301,7 +306,6 @@ static void glex_set_view(v3 pos, v3 dir)
 {
   glex.view_pos = pos;
   glex.view_dir = v3_norm(dir);
-  
   gl_uniform_v3(gl_location(&glex.shader, "view_pos"), glex.view_pos);
 }
 
@@ -330,6 +334,25 @@ static void glex_init(void)
   gl_buffer_send(&glex.buffer, glex.vertex_array, sizeof (glex.vertex_array));
 
   glEnable(GL_DEPTH_TEST);
+
+  {
+    glGenFramebuffers(1, &glex.target.framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, glex.target.framebuffer);
+    // color buffer:
+    glGenTextures(1, &glex.target.texture);
+    glBindTexture(GL_TEXTURE_2D, glex.target.texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4096, 4096, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glex.target.texture, 0);
+    // render buffer:
+    glGenRenderbuffers(1, &glex.target.renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, glex.target.renderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 4096, 4096);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, glex.target.renderbuffer);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
 }
 
 static void glex_begin_frame(void)
@@ -705,31 +728,12 @@ static void glex_rect(r2 rect, f32 z, u32 color)
 static u32 glex_new_target(const char* fragment_shader)
 {
   glex__target* target = glex.target_array + glex.target_count++;
-
   gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = glex_post_fx_vertex_shader;
   shader_desc.fs = fragment_shader;
 
   target->shader = gl_shader_create(shader_desc);
-
-  glGenFramebuffers(1, &target->framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, target->framebuffer);
-  // color buffer:
-  glGenTextures(1, &target->texture);
-  glBindTexture(GL_TEXTURE_2D, target->texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 2048, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, target->texture, 0);
-  // render buffer:
-  glGenRenderbuffers(1, &target->renderbuffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, target->renderbuffer);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 2048, 2048);
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, target->renderbuffer);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
   return glex.target_count - 1;
 }
 
@@ -737,12 +741,12 @@ static void glex_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 {
   glex.current_target = glex.target_array + target;
 
-  glBindFramebuffer(GL_FRAMEBUFFER, glex.current_target->framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, glex.target.framebuffer);
 
-  glBindTexture(GL_TEXTURE_2D, glex.current_target->texture);
+  glBindTexture(GL_TEXTURE_2D, glex.target.texture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, platform.width, platform.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-  glBindRenderbuffer(GL_RENDERBUFFER, glex.current_target->renderbuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, glex.target.renderbuffer);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, platform.width, platform.height);
 
   glClearColor(r, g, b, a);
@@ -759,7 +763,7 @@ static void glex_end_pass(void)
   gl_buffer_bind(&glex.post_fx_buffer);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, glex.current_target->texture);
+  glBindTexture(GL_TEXTURE_2D, glex.target.texture);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glex.current_target = 0;
