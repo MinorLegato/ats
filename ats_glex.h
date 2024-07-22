@@ -18,9 +18,6 @@
 //  platform_init("YOLO", 1600, 800, 4);
 //  glex_init();
 //
-//  // u32 game_pass = glex_new_target();
-//  // u32 lighting_pass = glex_new_target();
-//
 //  while (!platform.close)
 //  {
 //    if (platform.keyboard.pressed[KEY_ESCAPE])
@@ -245,11 +242,11 @@ struct glex__vertex
   u32 color;
 };
 
-typedef struct glex__target glex__target;
-struct glex__target
-{
-  gl_shader shader;
-};
+//typedef struct glex__target glex__target;
+//struct glex__target
+//{
+//  gl_shader shader;
+//};
 
 typedef struct glex__light glex__light;
 struct glex__light
@@ -279,14 +276,11 @@ static struct
 
   struct
   {
+    gl_shader shader;
     u32 framebuffer;
     u32 texture;
     u32 renderbuffer;
   } target;
-
-  usize target_count;
-  glex__target* current_target;
-  glex__target target_array[GLEX_TARGET_MAX];
 
   u32 type;
   glex__vertex current;
@@ -725,22 +719,19 @@ static void glex_rect(r2 rect, f32 z, u32 color)
   glex_vertex(rect.min.x, rect.min.y, z);
 }
 
-static u32 glex_new_target(const char* fragment_shader)
+static gl_shader glex_new_target(const char* fragment_shader)
 {
-  glex__target* target = glex.target_array + glex.target_count++;
   gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = glex_post_fx_vertex_shader;
   shader_desc.fs = fragment_shader;
 
-  target->shader = gl_shader_create(shader_desc);
-  return glex.target_count - 1;
+  return gl_shader_create(shader_desc);
 }
 
-static void glex_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
+static void glex_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a)
 {
-  glex.current_target = glex.target_array + target;
-
+  glex.target.shader = shader;
   glBindFramebuffer(GL_FRAMEBUFFER, glex.target.framebuffer);
 
   glBindTexture(GL_TEXTURE_2D, glex.target.texture);
@@ -759,14 +750,13 @@ static void glex_end_pass(void)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  gl_use(&glex.current_target->shader);
+  gl_use(&glex.target.shader);
   gl_buffer_bind(&glex.post_fx_buffer);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, glex.target.texture);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
-  glex.current_target = 0;
 
   glex_set_texture(&glex.current_texture);
 }
