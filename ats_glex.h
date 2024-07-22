@@ -238,8 +238,8 @@ static const char* r_post_fx_blur = GLSL(
     out_color = col;
   });
 
-typedef struct gl_vertex_data gl_vertex_data;
-struct gl_vertex_data
+typedef struct glex_vertex glex_vertex;
+struct glex_vertex
 {
   v3 pos;
   v3 normal;
@@ -247,8 +247,8 @@ struct gl_vertex_data
   u32 color;
 };
 
-typedef struct gl_target_data gl_target_data;
-struct gl_target_data
+typedef struct glex_target glex_target;
+struct glex_target
 {
   gl_shader shader;
 
@@ -257,8 +257,8 @@ struct gl_target_data
   u32 renderbuffer;
 };
 
-typedef struct gl_light gl_light;
-struct gl_light
+typedef struct glex_light glex_light;
+struct glex_light
 {
   v3 pos;
   v3 ambient;
@@ -270,20 +270,20 @@ struct gl_light
   f32 quadratic;
 };
 
-static u32              r_light_count;
-static gl_light         r_light_array[16];
-static gl_buffer        r_post_fx_buffer;
-static gl_texture       r_current_texture;
-static usize            r_target_count;
-static gl_target_data   r_target_array[GLEX_TARGET_MAX];
-static gl_shader        r_shader;
-static gl_buffer        r_buffer;
-static u32              r_type;
-static gl_vertex_data   r_current;
-static u32              r_vertex_count;
-static gl_vertex_data   r_vertex_array[GLEX_VERTEX_MAX];
-static v3               r_view_pos;
-static v3               r_view_dir;
+static u32          r_light_count;
+static glex_light   r_light_array[16];
+static gl_buffer    r_post_fx_buffer;
+static gl_texture   r_current_texture;
+static usize        r_target_count;
+static glex_target  r_target_array[GLEX_TARGET_MAX];
+static gl_shader    r_shader;
+static gl_buffer    r_buffer;
+static u32          r_type;
+static glex_vertex  r_current;
+static u32          r_vertex_count;
+static glex_vertex  r_vertex_array[GLEX_VERTEX_MAX];
+static v3           r_view_pos;
+static v3           r_view_dir;
 
 static void gl_set_matrix(m4 projection, m4 view)
 {
@@ -317,10 +317,10 @@ static void gl_init_ex(void)
 
   gl_buffer_desc buffer_desc = {0};
 
-  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (gl_vertex_data), offsetof(gl_vertex_data, pos) };
-  buffer_desc.layout[1] = make(gl_layout) { 3, GL_FLOAT,         sizeof (gl_vertex_data), offsetof(gl_vertex_data, normal) };
-  buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (gl_vertex_data), offsetof(gl_vertex_data, uv) };
-  buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (gl_vertex_data), offsetof(gl_vertex_data, color), 1 };
+  buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (glex_vertex), offsetof(glex_vertex, pos) };
+  buffer_desc.layout[1] = make(gl_layout) { 3, GL_FLOAT,         sizeof (glex_vertex), offsetof(glex_vertex, normal) };
+  buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (glex_vertex), offsetof(glex_vertex, uv) };
+  buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (glex_vertex), offsetof(glex_vertex, color), 1 };
 
   r_buffer = gl_buffer_create(&buffer_desc);
 
@@ -373,7 +373,7 @@ static void gl_end(void)
 {
   gl_use(&r_shader);
   gl_buffer_bind(&r_buffer);
-  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (gl_vertex_data));
+  gl_buffer_send(&r_buffer, r_vertex_array, r_vertex_count * sizeof (glex_vertex));
 
   // add lights
   {
@@ -382,7 +382,7 @@ static void gl_end(void)
     char buffer[256];
     for (i32 i = 0; i < count; ++i)
     {
-      gl_light light = r_light_array[i];
+      glex_light light = r_light_array[i];
 #define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_v3(gl_location(&r_shader, buffer), light.var);
 #define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_f32(gl_location(&r_shader, buffer), light.var);
       set_v3(pos);
@@ -463,7 +463,7 @@ static void gl_fog_color(f32 r, f32 g, f32 b)
 static void gl_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
 {
   if (r_light_count >= countof(r_light_array)) { return; }
-  r_light_array[r_light_count++] = make(gl_light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
+  r_light_array[r_light_count++] = make(glex_light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
 static void gl_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
@@ -699,7 +699,7 @@ static void gl_rect(r2 rect, f32 z, u32 color)
 
 static u32 gl_new_target(const char* fragment_shader)
 {
-  gl_target_data* target = r_target_array + r_target_count++;
+  glex_target* target = r_target_array + r_target_count++;
 
   gl_shader_desc shader_desc = {0};
 
@@ -728,7 +728,7 @@ static u32 gl_new_target(const char* fragment_shader)
   return r_target_count - 1;
 }
 
-static gl_target_data* r_current_target = 0;
+static glex_target* r_current_target = 0;
 
 static void gl_begin_pass(u32 target, f32 r, f32 g, f32 b, f32 a)
 {
