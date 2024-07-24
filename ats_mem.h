@@ -14,6 +14,7 @@
 #define mem_restore(...)    _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ })
 #define mem_begin(...)      _mem_begin(make(mem_arena_desc) { 0, __VA_ARGS__ })
 #define mem_end(size, ...)  _mem_end((size), make(mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_temp mem_begin
 #define mem_scope(...)      scope_guard(_mem_save(make(mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ }))
 
 #define mem_size(ptr)     ((mem_header*)(ptr) - 1)->size

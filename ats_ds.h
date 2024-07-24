@@ -451,36 +451,37 @@ static path_node path_queue_pop(path_queue* queue)
 
 // =================================================== SPATIAL MAP =================================================== //
 
-#define SPATIAL_MAX (8 * 4096)
+#define SPATIAL_TABLE_MAX 4096
+#define SPATIAL_TABLE_MOD 4095
 
-typedef struct sm_cell sm_cell;
-struct sm_cell
+typedef struct sm_node sm_node;
+struct sm_node
 {
+  sm_node* next;
   void* e;
   r2 rect;
-  sm_cell* next;
 };
 
 typedef struct spatial_map spatial_map;
 struct spatial_map
 {
-  sm_cell* table[4096];
-  usize count;
-  sm_cell array[SPATIAL_MAX];
+  sm_node* table[SPATIAL_TABLE_MAX];
+  //usize count;
+  //sm_node array[SPATIAL_MAX];
 };
 
 static void sm_clear(spatial_map* map)
 {
-  for (u32 i = 0; i < SPATIAL_MAX; ++i) {
+  for (u32 i = 0; i < SPATIAL_TABLE_MAX; ++i)
+  {
     map->table[i] = 0;
   }
-  map->count = 0;
 }
 
-static u32 sm_index(spatial_map* map, v2i pos)
+static u32 sm_index(spatial_map* map, i32 x, i32 y)
 {
-  u32 hash = hash_v2i(pos);
-  return hash % countof(map->table);
+  u32 hash = hash2i(x, y);
+  return hash & SPATIAL_TABLE_MOD;
 }
 
 static void sm_add(spatial_map* map, void* e, r2 e_rect)
@@ -490,17 +491,14 @@ static void sm_add(spatial_map* map, void* e, r2 e_rect)
     { (i32)e_rect.min.x, (i32)e_rect.min.y },
     { (i32)e_rect.max.x, (i32)e_rect.max.y },
   };
-
   for_r2(rect, x, y)
   {
-    u32 index = sm_index(map, v2i(x, y));
-    sm_cell* cell = map->array + map->count++;
-
-    cell->e = e;
-    cell->rect = e_rect;
-    cell->next = map->table[index];
-
-    map->table[index] = cell;
+    u32 index = sm_index(map, x, y);
+    sm_node* node = mem_type(sm_node);
+    node->e = e;
+    node->rect = e_rect;
+    node->next = map->table[index];
+    map->table[index] = node;
   }
 }
 
@@ -518,122 +516,78 @@ struct sm_result
   sm_entry* array;
 };
 
-static sm_result sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore)
+static sm_node* sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore)
 {
-  static sm_entry spatial_array[SPATIAL_MAX];
-
-  sm_result result = {0};
-  result.array = spatial_array;
-
+  sm_node* result = 0;
   r2 rect =
   {
     { pos.x - rad.x, pos.y - rad.y },
     { pos.x + rad.x, pos.y + rad.y },
   };
-
   r2i irect =
   {
     { (i32)(pos.x - rad.x), (i32)(pos.y - rad.y) },
     { (i32)(pos.x + rad.x), (i32)(pos.y + rad.y) },
   };
-
   for_r2(irect, x, y)
   {
-    u32 index = sm_index(map, v2i(x, y));
-    for (sm_cell* it = map->table[index]; it; it = it->next)
+    u32 index = sm_index(map, x, y);
+    for (sm_node* it = map->table[index]; it; it = it->next)
     {
       b32 unique = 1;
-
-      if (it->e == ignore) continue;
-      if (!r2_intersect(rect, it->rect)) continue;
-
-      for_range(i, 0, (isize)result.count)
+      if ((it->e == ignore) || !r2_intersect(rect, it->rect))
       {
-        if (result.array[i].e == it->e)
+        continue;
+      }
+      for (sm_node* r = result; r; r = r->next)
+      {
+        if (r->e == it->e)
         {
           unique = 0;
           break;
         }
       }
-
       if (unique)
       {
-        result.array[result.count++] = make(sm_entry)
-        {
-          it->e,
-          it->rect,
-        };
+        sm_node* n = mem_type(sm_node);
+        *n = *it;
+        n->next = result;
+        result = n;
       }
     }
   }
   return result;
-}
-
-typedef struct sm_iter sm_iter;
-struct sm_iter
-{
-  sm_entry* current;
-  u32 index;
-  sm_result result;
-};
-
-static sm_iter sm_get_iterator(spatial_map* map, v2 pos, v2 rad, void* ignore)
-{
-  sm_iter it = {0};
-
-  it.result = sm_in_range(map, pos, rad, ignore);
-  it.current = &it.result.array[0];
-
-  return it;
-}
-
-static b32 sm_iter_is_valid(sm_iter* it)
-{
-  return it->index < it->result.count;
-}
-
-static void sm_iter_advance(sm_iter* it)
-{
-  it->index++;
-  it->current = it->result.array + it->index;
 }
 
 static void* sm_get_closest(spatial_map* map, v2 pos, f32 range, void* ignore, b32 (*condition_proc)(void*))
 {
   void* result = NULL;
   f32 distance = range;
-
-  for_iter(sm_iter, it, sm_get_iterator(map, pos, v2(range, range), ignore))
+  for (sm_node* it = sm_in_range(map, pos, v2(range, range), ignore); it; it = it->next)
   {
-    sm_entry* e = it.current;
-
-    if (condition_proc && !condition_proc(e->e))
+    if (condition_proc && !condition_proc(it->e))
     {
       continue;
     }
-
     v2 e_pos =
     {
-      0.5 * (e->rect.min.x + e->rect.max.x),
-      0.5 * (e->rect.min.y + e->rect.max.y),
+      0.5 * (it->rect.min.x + it->rect.max.x),
+      0.5 * (it->rect.min.y + it->rect.max.y),
     };
-
     f32 new_distance = v2_dist(e_pos, pos);
-
     if (new_distance <= distance)
     {
-      result = e->e;
+      result = it->e;
       distance = new_distance;
     }
   }
-
   return result;
 }
 
 static void* sm_at_position(spatial_map* map, v2 pos)
 {
-  u32 index = sm_index(map, v2i((i32)pos.x, (i32)pos.y));
-  for (sm_cell* it = map->table[index]; it; it = it->next)
+  u32 index = sm_index(map, pos.x, pos.y);
+  for (sm_node* it = map->table[index]; it; it = it->next)
   {
     if (r2_contains(it->rect, pos))
     {
