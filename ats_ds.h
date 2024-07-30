@@ -466,8 +466,6 @@ typedef struct spatial_map spatial_map;
 struct spatial_map
 {
   sm_node* table[SPATIAL_TABLE_MAX];
-  //usize count;
-  //sm_node array[SPATIAL_MAX];
 };
 
 static void sm_clear(spatial_map* map)
@@ -571,8 +569,8 @@ static void* sm_get_closest(spatial_map* map, v2 pos, f32 range, void* ignore, b
     }
     v2 e_pos =
     {
-      0.5 * (it->rect.min.x + it->rect.max.x),
-      0.5 * (it->rect.min.y + it->rect.max.y),
+      0.5f * (it->rect.min.x + it->rect.max.x),
+      0.5f * (it->rect.min.y + it->rect.max.y),
     };
     f32 new_distance = v2_dist(e_pos, pos);
     if (new_distance <= distance)

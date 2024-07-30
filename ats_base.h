@@ -83,18 +83,18 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long u64;
 
-_Static_assert (sizeof (f32) == 4, "type width mismatch");
-_Static_assert (sizeof (f64) == 8, "type width mismatch");
+static_assert (sizeof (f32) == 4, "type width mismatch");
+static_assert (sizeof (f64) == 8, "type width mismatch");
 
-_Static_assert (sizeof (i8)  == 1, "type width mismatch");
-_Static_assert (sizeof (i16) == 2, "type width mismatch");
-_Static_assert (sizeof (i32) == 4, "type width mismatch");
-_Static_assert (sizeof (i64) == 8, "type width mismatch");
+static_assert (sizeof (i8)  == 1, "type width mismatch");
+static_assert (sizeof (i16) == 2, "type width mismatch");
+static_assert (sizeof (i32) == 4, "type width mismatch");
+static_assert (sizeof (i64) == 8, "type width mismatch");
 
-_Static_assert (sizeof (u8)  == 1, "type width mismatch");
-_Static_assert (sizeof (u16) == 2, "type width mismatch");
-_Static_assert (sizeof (u32) == 4, "type width mismatch");
-_Static_assert (sizeof (u64) == 8, "type width mismatch");
+static_assert (sizeof (u8)  == 1, "type width mismatch");
+static_assert (sizeof (u16) == 2, "type width mismatch");
+static_assert (sizeof (u32) == 4, "type width mismatch");
+static_assert (sizeof (u64) == 8, "type width mismatch");
 
 typedef u8  b8;
 typedef u16 b16;

@@ -399,7 +399,7 @@ static void glex_begin_frame(void)
   glex.view_pos = v3(0);
   glex.light_count = 0;
 
-  glex_begin_pass(glex.target.default_shader, 0, 0, 0, 1);
+  glex_begin_pass(glex.target.default_shader, 0, 0, 0, 0);
 }
 
 static void glex_end_frame(void)

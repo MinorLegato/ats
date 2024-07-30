@@ -731,3 +731,19 @@ static void gl_timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
   timer_reset_all();
 }
 
+static void gl_timer_print_max(f32 px, f32 py, f32 sx, f32 sy, u32 color)
+{
+  int y = 0;
+  for (i32 i = 0; i < countof(timer_table); i++)
+  {
+    timer_node e = timer_table[i];
+    if (!e.name)
+    {
+      continue;
+    }
+    gl_string_format(px, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f", e.name, 1000.0 * e.max);
+    y++;
+  }
+  timer_reset_all();
+}
+
