@@ -731,16 +731,31 @@ static void gl_timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
   timer_reset_all();
 }
 
+static int gl__timer_cmp(const void* va, const void* vb)
+{
+  const timer_node* a = va;
+  const timer_node* b = vb;
+  return a->max < b->max? 1 : -1;
+}
+
 static void gl_timer_print_table(f32 px, f32 py, f32 sx, f32 sy, u32 color)
 {
+  static timer_node array[countof(timer_table)];
+  u32 count = 0;
   i32 y = 0;
   for (i32 i = 0; i < countof(timer_table); i++)
   {
-    timer_node e = timer_table[i];
-    if (!e.name)
+    timer_node node = timer_table[i];
+    if (!node.name)
     {
       continue;
     }
+    array[count++] = node;
+  }
+  qsort(array, count, sizeof (timer_node), gl__timer_cmp);
+  for (i32 i = 0; i < count; i++)
+  {
+    timer_node e = array[i];
     gl_string_format(px, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f : %.2f", e.name, 1000.0 * e.max, 1000.0 * e.current);
     y++;
   }
