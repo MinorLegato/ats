@@ -720,7 +720,7 @@ static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, con
 
 static void gl_timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
 {
-  int y = 0;
+  i32 y = 0;
   // @TODO: fix render order within scopes!
   for (int i = timer_count - 1; i >= 0; --i)
   {
@@ -731,9 +731,9 @@ static void gl_timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
   timer_reset_all();
 }
 
-static void gl_timer_print_max(f32 px, f32 py, f32 sx, f32 sy, u32 color)
+static void gl_timer_print_table(f32 px, f32 py, f32 sx, f32 sy, u32 color)
 {
-  int y = 0;
+  i32 y = 0;
   for (i32 i = 0; i < countof(timer_table); i++)
   {
     timer_node e = timer_table[i];
@@ -741,7 +741,7 @@ static void gl_timer_print_max(f32 px, f32 py, f32 sx, f32 sy, u32 color)
     {
       continue;
     }
-    gl_string_format(px, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f", e.name, 1000.0 * e.max);
+    gl_string_format(px, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f : %.2f", e.name, 1000.0 * e.max, 1000.0 * e.current);
     y++;
   }
   timer_reset_all();

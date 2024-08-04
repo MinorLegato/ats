@@ -15,6 +15,7 @@ typedef struct timer_node timer_node;
 struct timer_node
 {
   const char* name;
+  f32 current;
   f32 max;
 };
 
@@ -65,9 +66,10 @@ static void timer_stop(void)
     {
       node->name = entry->name;
     }
-    if (node->max < (entry->stop - entry->start))
+    node->current = entry->stop - entry->start;
+    if (node->max < node->current)
     {
-      node->max = entry->stop - entry->start;
+      node->max = node->current;
     }
   }
 }

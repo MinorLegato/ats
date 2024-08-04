@@ -193,7 +193,7 @@ static const char* glex_post_fx_none = GLSL(
   });
 
 static const char* glex_post_fx_blur = GLSL(
-  in  vec2 frag_uv;
+  in vec2 frag_uv;
   out vec4 out_color;
 
   uniform sampler2D tex;
