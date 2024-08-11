@@ -32,15 +32,18 @@ union v3
   struct { f32 x, y, z; };
   struct { f32 r, g, b; };
   struct { v2 xy; };
+  struct { f32 _x; v2 yz; };
   f32 e[3];
 };
 #endif
 
 #define v4(...) make(v4) { __VA_ARGS__ }
+#define quat(...) make(quat) { __VA_ARGS__ }
 #ifdef __clang__
 typedef f32 v4 __attribute__((ext_vector_type(4)));
 #else
 typedef union v4 v4;
+typedef union v4 quat;
 union v4
 {
   struct { f32 x, y, z, w; };
@@ -143,16 +146,6 @@ struct r3i
 {
   v3i min;
   v3i max;
-};
-
-#define quat(...) make(quat) { __VA_ARGS__ }
-typedef union quat quat;
-union quat
-{
-  struct { f32 x, y, z, w; };
-  struct { v2 xy; };
-  struct { v3 xyz; };
-  f32 e[4];
 };
 
 #define circle(...) make(circle) { __VA_ARGS__ }
@@ -748,10 +741,15 @@ static quat quat_mul(quat a, quat b)
 {
   return make(quat)
   {
-    a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
-    a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
-    a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
-    a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
+    a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,  // i
+    a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,  // j
+    a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,  // k
+    a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,  // 1
+
+    //a.y * b.z - a.z * b.y + a.w * b.x + b.w * a.x,
+    //a.z * b.x - a.x * b.z + a.w * b.y + b.w * a.y,
+    //a.x * b.y - a.y * b.x + a.w * b.z + b.w * a.z,
+    //a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z
   };
 }
 
@@ -1504,6 +1502,14 @@ static m4 m4_rotate(v3 axis, f32 angle)
     omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
     omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
     0, 0, 0, 1
+  };
+}
+
+static quat quat_conj(quat q)
+{
+  return make(quat)
+  {
+    -q.x, -q.y, -q.z, q.w,
   };
 }
 
