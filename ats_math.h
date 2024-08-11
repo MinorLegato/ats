@@ -38,12 +38,11 @@ union v3
 #endif
 
 #define v4(...) make(v4) { __VA_ARGS__ }
-#define quat(...) make(quat) { __VA_ARGS__ }
 #ifdef __clang__
+typedef f32 v4 __attribute__((ext_vector_type(4)));
 typedef f32 v4 __attribute__((ext_vector_type(4)));
 #else
 typedef union v4 v4;
-typedef union v4 quat;
 union v4
 {
   struct { f32 x, y, z, w; };
@@ -54,6 +53,9 @@ union v4
   f32 e[4];
 };
 #endif
+
+#define quat(...) make(quat) { __VA_ARGS__ }
+typedef v4 quat;
 
 #define v2i(...) make(v2i) { __VA_ARGS__ }
 #ifdef __clang__
