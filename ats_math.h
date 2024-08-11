@@ -1511,7 +1511,10 @@ static quat quat_rotate(v3 axis, f32 angle)
 {
   f32 s = sinf(0.5f * angle);
   v3  v = { s * axis.x, s * axis.y, s * axis.z };
-  return make(quat) { v.x, v.y, v.z, cosf(0.5f * angle) };
+  return make(quat)
+  {
+    v.x, v.y, v.z, cosf(0.5f * angle)
+  };
 }
 
 static v3 quat_mulv(quat q, v3 u)
@@ -1519,10 +1522,12 @@ static v3 quat_mulv(quat q, v3 u)
   v3 t = v3_scale(v3_cross(q.xyz, u), 2);
   v3 s = v3_scale(t, q.w);
   v3 c = v3_cross(q.xyz, t);
-  return v3(
+  return make(v3)
+  {
     u.x + s.x + c.x,
     u.y + s.y + c.y,
-    u.z + s.z + c.z);
+    u.z + s.z + c.z
+  };
 }
 
 // -------------- transform helpers --------- //
