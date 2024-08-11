@@ -26,13 +26,11 @@ int main(void)
 #endif
   static u8 memory_buffer[MEM_DEFAULT_SIZE];
   mem_arena default_arena = mem_create(memory_buffer, countof(memory_buffer));
-
   mem_context(&default_arena)
   {
     int result = ats_main();
     (void)result;
   }
-
   return 0;
 }
 
