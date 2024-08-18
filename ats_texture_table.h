@@ -138,7 +138,7 @@ static int tex_cmp_image(const void* va, const void* vb)
   return b->width - a->width;
 }
 
-static void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
+static void tex_add_image(const char* name, void* pixels, u16 width, u16 height)
 {
   tex_image image = {0};
 
@@ -155,15 +155,12 @@ static void tex_add_image(const char* name, u32* pixels, u16 width, u16 height)
 static void tex_load_dir(const char* dir_path)
 {
   const char* ext[] = { "*.png", "*.jpg" };
-
   for (i32 i = 0; i < countof(ext); ++i)
   {
     for_iter(file_iter, it, file_iter_create(dir_path, ext[i]))
     {
       tex_image image = {0};
-
       image.pixels = file_load_image(it.current, &image.width, &image.height);
-
       cstr_copy_without_extension(image.name, it.data.cFileName);
       tex_image_array[tex_image_count++] = image;
     }
@@ -173,9 +170,7 @@ static void tex_load_dir(const char* dir_path)
 static void tex_load_dir_and_scale(const char* dir_path, u16 denominator)
 {
   const char* ext[] = { "*.png", "*.jpg" };
-
   assert(denominator);
-
   for (i32 i = 0; i < countof(ext); ++i)
   {
     for_iter(file_iter, it, file_iter_create(dir_path, ext[i]))
@@ -183,22 +178,17 @@ static void tex_load_dir_and_scale(const char* dir_path, u16 denominator)
       u16 width = 0;
       u16 height = 0;
       u32* pixels = file_load_image(it.current, &width, &height);
-
       tex_image image = ZERO;
-
       image.user_provided = 1;
       image.width = width / denominator;
       image.height = height / denominator;
       image.pixels = mem_array(u32, image.width * image.height);
-
       stbir_resize_uint8(
         (unsigned char*)pixels, width, height, 0,
         (unsigned char*)image.pixels, image.width, image.height, 0,
         4);
-
       cstr_copy_without_extension(image.name, it.data.cFileName);
       tex_image_array[tex_image_count++] = image;
-
       free(pixels);
     }
   }
