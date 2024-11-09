@@ -256,7 +256,6 @@ static f32 shortest_angle_distance(f32 a, f32 b)
 {
   f32 max = 2.0f * PI;
   f32 da  = fmodf(b - a, max);
-
   return fmodf(2.0f * da, max) - da;
 }
 

@@ -542,43 +542,39 @@ static void platform_poll_events(void)
 
 static void platform_end_frame(void)
 {
-  {
-    if (glfwWindowShouldClose(platform_internal.window))
-    {
-      platform.close = 1;
-    }
-
-    if (platform.close)
-    {
-      glfwSetWindowShouldClose(platform_internal.window, 1);
-    }
-
-    if (platform.fullscreen != platform._fullscreen_state_last_update)
-    {
-      const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
-
-      if (platform.fullscreen)
-      {
-        glfwSetWindowMonitor(platform_internal.window, platform_internal.monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-      }
-      else
-      {
-        glfwSetWindowMonitor(platform_internal.window, NULL, 64, 64, mode->width - 256, mode->height - 256, mode->refreshRate);
-      }
-    }
-
-    platform._fullscreen_state_last_update = platform.fullscreen;
-
-    glfwGetWindowSize(platform_internal.window, &platform.width, &platform.height);
-    platform.aspect_ratio = (f32)platform.width / (f32)platform.height;
-
-    glViewport(0, 0, platform.width, platform.height);
-
-    //glfwSwapBuffers(platform_internal.window);
-
-    platform.time.delta = glfwGetTime() - platform.time.total;
-    platform.time.total += platform.time.delta;
+  if (glfwWindowShouldClose(platform_internal.window)) {
+    platform.close = 1;
   }
+
+  if (platform.close) {
+    glfwSetWindowShouldClose(platform_internal.window, 1);
+  }
+
+  if (platform.fullscreen != platform._fullscreen_state_last_update) {
+    const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
+    if (platform.fullscreen) {
+      glfwSetWindowMonitor(platform_internal.window, platform_internal.monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+    } else {
+      glfwSetWindowMonitor(platform_internal.window, NULL, 64, 64, mode->width - 256, mode->height - 256, mode->refreshRate);
+    }
+    if (platform.frame.target > 0) {
+      glfwSwapInterval(0);
+    } else {
+      glfwSwapInterval(1);
+    }
+  }
+
+  platform._fullscreen_state_last_update = platform.fullscreen;
+
+  glfwGetWindowSize(platform_internal.window, &platform.width, &platform.height);
+  platform.aspect_ratio = (f32)platform.width / (f32)platform.height;
+
+  glViewport(0, 0, platform.width, platform.height);
+
+  //glfwSwapBuffers(platform_internal.window);
+
+  platform.time.delta = glfwGetTime() - platform.time.total;
+  platform.time.total += platform.time.delta;
 }
 
 static void platform_swap_buffers(void)
@@ -588,8 +584,7 @@ static void platform_swap_buffers(void)
 
 static void platform_update(void)
 {
-  if (platform.frame.target > 0)
-  {
+  if (platform.frame.target > 0) {
     f64 current = platform_get_time();
     platform_wait(platform.frame.next - current);
     platform.frame.next = current + platform.frame.target;
@@ -601,8 +596,7 @@ static void platform_update(void)
   platform_end_frame();
   f64 end = platform_get_time();
 
-  if (platform.frame.target > 0)
-  {
+  if (platform.frame.target > 0) {
     platform.frame.next -= (end - start);
   }
 }
@@ -610,7 +604,6 @@ static void platform_update(void)
 static void platform_init(const char* title, int width, int height, int samples)
 {
   glfwInit();
-
   platform_internal.monitor = glfwGetPrimaryMonitor();
 
   const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);

@@ -1795,7 +1795,7 @@ static int ray_test_triangle(struct raycast *o, struct ray r, const v3 *tri);
 static int ray_test_sphere(struct raycast *o, struct ray r, struct sphere s);
 static int ray_test_aabb(struct raycast *o, struct ray r, struct aabb a);
 /* sphere */
-static struct sphere sphere(v3 p, float r);
+//static struct sphere sphere(v3 p, float r);
 static struct sphere spheref(float cx, float cy, float cz, float r);
 static struct sphere spherefv(const float *p, float r);
 static int sphere_test_sphere(struct sphere a, struct sphere b);
@@ -1933,14 +1933,14 @@ ray_test_aabb(struct raycast *o, struct ray r, struct aabb a)
     o->n = v3scale(v3mk(0,0,1), sign(pnt.z));
   return 1;
 }
-static struct sphere
-sphere(v3 p, float r)
-{
-  struct sphere s;
-  s.p = p;
-  s.r = r;
-  return s;
-}
+//static struct sphere
+//sphere(v3 p, float r)
+//{
+//  struct sphere s;
+//  s.p = p;
+//  s.r = r;
+//  return s;
+//}
 static struct sphere
 spheref(float cx, float cy, float cz, float r)
 {
