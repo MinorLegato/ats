@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    stbi_write_png("atlas.png", SPRITE_SHEET_SIZE, SPRITE_SHEET_SIZE, 4, sprite_sheet, 0);
+    stbi_write_png("ent_gen.png", SPRITE_SHEET_SIZE, SPRITE_SHEET_SIZE, 4, sprite_sheet, 0);
   }
 
   emit_format("#pragma once\n\n");
@@ -364,6 +364,6 @@ int main(int argc, char* argv[]) {
     emit_format("};\n\n");
   }
 
-  emit_file_to_disk("generated_types.h");
+  emit_file_to_disk("ent_gen.h");
 }
 
