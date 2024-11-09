@@ -168,8 +168,12 @@ static int frame_cmp(const void* va, const void* vb) {
   return (b->w * b->h) - (a->w * a->h);
 }
 
-int main(void) {
-  asset_node_t asset_root = asset_load_directory("assets");
+int main(int argc, char* argv[]) {
+  if (argc < 2) {
+    puts("argument missing: \"path to src folder\"");
+    return 0;
+  }
+  asset_node_t asset_root = asset_load_directory(argv[1]);
   asset_node_t* node = &asset_root;
   parse_assets(node);
 
@@ -231,7 +235,7 @@ int main(void) {
       }
     }
 
-    stbi_write_png("test.png", SPRITE_SHEET_SIZE, SPRITE_SHEET_SIZE, 4, sprite_sheet, 0);
+    stbi_write_png("atlas.png", SPRITE_SHEET_SIZE, SPRITE_SHEET_SIZE, 4, sprite_sheet, 0);
   }
 
   emit_format("#pragma once\n\n");
