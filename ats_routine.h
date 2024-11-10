@@ -42,8 +42,7 @@
 // rt_end();
 
 typedef struct rt rt;
-struct rt
-{
+struct rt {
   i32 at;
   f32 timer;
 };

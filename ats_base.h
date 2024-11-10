@@ -135,8 +135,7 @@ typedef u64 usize;
 #if defined(__cplusplus)
 
 template <typename T>
-struct defer_type
-{
+struct defer_type {
   T func;
   defer_type(T f) : func(f) {} 
   ~defer_type() { func(); }
@@ -144,11 +143,9 @@ struct defer_type
 
 #define defer defer_type macro_var(defer_) = [&]
 
-constexpr u32 hash(const char* str)
-{
+constexpr u32 hash(const char* str) {
   u32 hash = 5381;
-  for (i32 i = 0; str[i] != '\0'; i++)
-  {
+  for (i32 i = 0; str[i] != '\0'; i++) {
     hash = ((hash << 5) + hash) + str[i];
   }
   return hash;
@@ -160,11 +157,7 @@ constexpr u32 hash(const char* str)
 #endif // __cplusplus
 
 #include "ats_math.h"
-//#ifndef __clang__
 #include "ats_routine.h"
-//#else
-//#include "ats_routine_clang.h"
-//#endif
 #include "ats_mem.h"
 #include "ats_ds.h"
 

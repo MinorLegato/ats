@@ -200,12 +200,10 @@
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
 typedef union gamepad_buttons gamepad_buttons;
-union gamepad_buttons
-{
+union gamepad_buttons {
   u32 data;
 
-  struct
-  {
+  struct {
     u32 x : 1;
     u32 a : 1;
     u32 b : 1;
@@ -229,8 +227,7 @@ union gamepad_buttons
 };
 
 typedef struct gamepad gamepad;
-struct gamepad
-{
+struct gamepad {
   b32 active;
 
   v2 left_stick;
@@ -245,15 +242,13 @@ struct gamepad
 };
 
 typedef u8 mouse_mode;
-enum
-{
+enum {
   MOUSE_MODE_NORMAL,
   MOUSE_MODE_HIDDEN,
   MOUSE_MODE_DISABLED,
 };
 
-static struct
-{
+static struct {
   b32 close;
 
   i32 width;
@@ -266,20 +261,17 @@ static struct
   b32 fullscreen;
   b32 _fullscreen_state_last_update;
 
-  struct
-  {
+  struct {
     f64 total;
     f64 delta;
   } time;
 
-  struct
-  {
+  struct {
     f64 target;
     f64 next;
   } frame;
 
-  struct
-  {
+  struct {
     mouse_mode mode;
 
     b32 is_down : 1;
@@ -295,8 +287,7 @@ static struct
     b8 released[MOUSE_BUTTON_LAST + 1];
   } mouse;
 
-  struct
-  {
+  struct {
     i32 key;
     i32 ascii;
 
@@ -317,22 +308,18 @@ static struct
 
 // ================================ INTERNAL ============================== //
 
-static struct
-{
+static struct {
   GLFWwindow* window;
   GLFWmonitor* monitor;
 } platform_internal;
 
-static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
-{
+static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
   (void)window;
   (void)a;
   (void)b;
 
-  switch (action)
-  {
-    case GLFW_PRESS:
-    {
+  switch (action) {
+    case GLFW_PRESS: {
       platform.keyboard.key = key;
       platform.keyboard.is_down = 1;
       platform.keyboard.is_pressed = 1;
@@ -342,14 +329,12 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
       platform.keyboard.repeat[key] = 1;
     } break;
 
-    case GLFW_REPEAT:
-    {
+    case GLFW_REPEAT: {
       platform.keyboard.is_repeat = 1;
       platform.keyboard.repeat[key] = 1;
     } break;
 
-    case GLFW_RELEASE:
-    {
+    case GLFW_RELEASE: {
       platform.keyboard.is_down = 0;
       platform.keyboard.is_released = 1;
 
@@ -359,29 +344,24 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
   }
 }
 
-static void window_char_callback(GLFWwindow* window, unsigned int codepoint)
-{
+static void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
   platform.keyboard.is_ascii  = 1;
   platform.keyboard.ascii     = codepoint;
 }
 
-static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
-{
+static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
   (void)window;
   (void)a;
 
-  switch (action)
-  {
-    case GLFW_PRESS:
-    {
+  switch (action) {
+    case GLFW_PRESS: {
       platform.mouse.is_down = 1;
       platform.mouse.is_pressed = 1;
       platform.mouse.down[button] = 1;
       platform.mouse.pressed[button] = 1;
     } break;
 
-    case GLFW_RELEASE:
-    {
+    case GLFW_RELEASE: {
       platform.mouse.is_down = 0;
       platform.mouse.is_released = 1;
       platform.mouse.down[button] = 0;
@@ -390,53 +370,45 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
   }
 }
 
-static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset)
-{
+static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
   (void)window;
 
   platform.mouse.scroll.x = (f32)xoffset;
   platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void window_joystick_callback(int joy, int event)
-{
-  if (event == GLFW_CONNECTED)
-  {
+static void window_joystick_callback(int joy, int event) {
+  if (event == GLFW_CONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     platform.gamepad[joy].active = 1;
   }
 
-  if (event == GLFW_DISCONNECTED)
-  {
+  if (event == GLFW_DISCONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
   }
 }
 
-static f64 platform_get_time(void)
-{
+static f64 platform_get_time(void) {
   return glfwGetTime();
 }
 
-static void platform_wait(f64 seconds)
-{
-    if (seconds < 0) return;
+static void platform_wait(f64 seconds) {
+  if (seconds < 0) return;
 
-    f64 destination_time = platform_get_time() + seconds;
+  f64 destination_time = platform_get_time() + seconds;
 
-    f64 sleep_seconds = seconds - seconds * 0.05;  // NOTE: We reserve a percentage of the time for busy waiting
-    Sleep((unsigned long)(sleep_seconds * 1000.0));
+  f64 sleep_seconds = seconds - seconds * 0.05;  // NOTE: We reserve a percentage of the time for busy waiting
+  Sleep((unsigned long)(sleep_seconds * 1000.0));
 
-    while (platform_get_time() < destination_time);
+  while (platform_get_time() < destination_time);
 }
 
-static void platform_set_framerate(f64 framerate)
-{
+static void platform_set_framerate(f64 framerate) {
   glfwSwapInterval(0);
   platform.frame.target = 1.0 / framerate;
 }
 
-static void platform_poll_events(void)
-{
+static void platform_poll_events(void) {
   {
     platform.mouse.is_pressed       = 0;
     platform.mouse.is_released      = 0;
@@ -540,8 +512,7 @@ static void platform_poll_events(void)
   }
 }
 
-static void platform_end_frame(void)
-{
+static void platform_end_frame(void) {
   if (glfwWindowShouldClose(platform_internal.window)) {
     platform.close = 1;
   }
@@ -577,13 +548,12 @@ static void platform_end_frame(void)
   platform.time.total += platform.time.delta;
 }
 
-static void platform_swap_buffers(void)
-{
+
+static void platform_swap_buffers(void) {
   glfwSwapBuffers(platform_internal.window);
 }
 
-static void platform_update(void)
-{
+static void platform_update(void) {
   if (platform.frame.target > 0) {
     f64 current = platform_get_time();
     platform_wait(platform.frame.next - current);
@@ -601,8 +571,7 @@ static void platform_update(void)
   }
 }
 
-static void platform_init(const char* title, int width, int height, int samples)
-{
+static void platform_init(const char* title, int width, int height, int samples) {
   glfwInit();
   platform_internal.monitor = glfwGetPrimaryMonitor();
 
@@ -656,10 +625,8 @@ static void platform_init(const char* title, int width, int height, int samples)
   }
 
   // init connected controllers
-  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i)
-  {
-    if (glfwJoystickPresent(i))
-    {
+  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
+    if (glfwJoystickPresent(i)) {
       platform.gamepad[i].active = 1;
     }
   }
