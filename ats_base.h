@@ -42,33 +42,33 @@
 #define def(_val, _def) ((_val) == 0? (_def) : (_val))
 
 #define for_range(index, start, below) \
-  for (isize index = (start); index < (below); ++index)
+    for (isize index = (start); index < (below); ++index)
 
 #define for_array(index, array) \
-  for (usize index = 0; index < countof(array); ++index)
+    for (usize index = 0; index < countof(array); ++index)
 
 #define repeat(count) \
-  for (isize macro_var(index) = (count); macro_var(index) > 0; --macro_var(index))
+    for (isize macro_var(index) = (count); macro_var(index) > 0; --macro_var(index))
 
 #define for_r2(rect, ix, iy) \
-  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+    for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+    for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
 #define for_r3(rect, ix, iy, iz) \
-  for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
-  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+    for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
+    for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+    for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
 #define for_iter(iter_type, iter_name, ...) \
-  for (iter_type iter_name = (__VA_ARGS__); \
-       iter_type##_is_valid(&iter_name); \
-       iter_type##_advance(&iter_name))
+    for (iter_type iter_name = (__VA_ARGS__); \
+         iter_type##_is_valid(&iter_name); \
+         iter_type##_advance(&iter_name))
 
 #define for_each(type, var, ...) \
-  for (type* var = (type*)0xdeadbeefull; var != NULL; var = NULL) \
-  for (type##_iter macro_var(it) = (__VA_ARGS__); \
-       (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
-       type##_iter_advance(&macro_var(it)))
+    for (type* var = (type*)0xdeadbeefull; var != NULL; var = NULL) \
+    for (type##_iter macro_var(it) = (__VA_ARGS__); \
+         (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
+         type##_iter_advance(&macro_var(it)))
 
 typedef float f32;
 typedef double f64;
@@ -136,19 +136,20 @@ typedef u64 usize;
 
 template <typename T>
 struct defer_type {
-  T func;
-  defer_type(T f) : func(f) {} 
-  ~defer_type() { func(); }
+    T func;
+    defer_type(T f) : func(f) {} 
+    ~defer_type() { func(); }
 };
 
 #define defer defer_type macro_var(defer_) = [&]
 
-constexpr u32 hash(const char* str) {
-  u32 hash = 5381;
-  for (i32 i = 0; str[i] != '\0'; i++) {
-    hash = ((hash << 5) + hash) + str[i];
-  }
-  return hash;
+constexpr u32 hash(const char* str)
+{
+    u32 hash = 5381;
+    for (i32 i = 0; str[i] != '\0'; i++) {
+        hash = ((hash << 5) + hash) + str[i];
+    }
+    return hash;
 }
 
 #define match(...) switch (hash(__VA_ARGS__))

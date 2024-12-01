@@ -22,108 +22,108 @@
 
 typedef struct mem_index mem_index;
 struct mem_index {
-  usize pos;
-  mem_index* next;
+    usize pos;
+    mem_index* next;
 };
 
 typedef struct mem_arena mem_arena;
 struct mem_arena {
-  usize pos;
-  usize cap;
-  u8* buf;
+    usize pos;
+    usize cap;
+    u8* buf;
 
-  mem_index* stack;
-  mem_arena* next;
+    mem_index* stack;
+    mem_arena* next;
 };
 
 static mem_arena* mem_stack;
 
 static void* mem_clear(void* data, usize size) {
-  u8* d = (u8*)data;
-  for (usize i = 0; i < size; ++i) {
-    d[i] = 0;
-  }
-  return d;
+    u8* d = (u8*)data;
+    for (usize i = 0; i < size; ++i) {
+        d[i] = 0;
+    }
+    return d;
 }
 
 static mem_arena mem_create(void* data, usize size) {
-  mem_arena arena = {0};
+    mem_arena arena = {0};
 
-  arena.cap = size;
-  arena.buf = (u8*)data;
+    arena.cap = size;
+    arena.buf = (u8*)data;
 
-  return arena;
+    return arena;
 }
 
 #define MEM_GET(arg) ((arg).arena? (arg).arena : (mem_stack))
 
 typedef struct mem_alloc_desc mem_alloc_desc;
 struct mem_alloc_desc {
-  usize size;
-  usize count;
+    usize size;
+    usize count;
 
-  mem_arena* arena;
+    mem_arena* arena;
 };
 
 typedef struct mem_header mem_header;
 struct mem_header {
-  usize size;
-  usize count;
+    usize size;
+    usize count;
 };
 
 static void* _mem_alloc(mem_alloc_desc desc) {
-  mem_arena* arena = MEM_GET(desc);
-  mem_header* header = (mem_header*)(arena->buf + arena->pos);
+    mem_arena* arena = MEM_GET(desc);
+    mem_header* header = (mem_header*)(arena->buf + arena->pos);
 
-  arena->pos += sizeof (mem_header) + desc.size;
-  header->size = desc.size;
-  header->count = desc.count? desc.count : desc.size; 
+    arena->pos += sizeof (mem_header) + desc.size;
+    header->size = desc.size;
+    header->count = desc.count? desc.count : desc.size; 
 
-  return mem_clear(header + 1, desc.size);
+    return mem_clear(header + 1, desc.size);
 }
 
 typedef struct mem_arena_desc mem_arena_desc;
 struct mem_arena_desc {
-  usize pad;
-  mem_arena* arena;
+    usize pad;
+    mem_arena* arena;
 };
 
 static void _mem_save(mem_arena_desc desc) {
-  mem_arena* arena = MEM_GET(desc);
-  usize pos = arena->pos;
-  mem_index* node = mem_type(mem_index, arena);
+    mem_arena* arena = MEM_GET(desc);
+    usize pos = arena->pos;
+    mem_index* node = mem_type(mem_index, arena);
 
-  node->pos = pos;
-  node->next = arena->stack;
+    node->pos = pos;
+    node->next = arena->stack;
 
-  arena->stack = node;
+    arena->stack = node;
 }
 
 static void _mem_restore(mem_arena_desc desc) {
-  mem_arena* arena = MEM_GET(desc);
+    mem_arena* arena = MEM_GET(desc);
 
-  arena->pos = arena->stack->pos;
-  arena->stack = arena->stack->next;
+    arena->pos = arena->stack->pos;
+    arena->stack = arena->stack->next;
 }
 
 static void* _mem_begin(mem_arena_desc desc) {
-  mem_arena* arena = MEM_GET(desc);
-  void* ptr = arena->buf + arena->pos;
-  return ptr;
+    mem_arena* arena = MEM_GET(desc);
+    void* ptr = arena->buf + arena->pos;
+    return ptr;
 }
 
 static void _mem_end(usize size, mem_arena_desc desc) {
-  mem_arena* arena = MEM_GET(desc);
-  arena->pos += size;
+    mem_arena* arena = MEM_GET(desc);
+    arena->pos += size;
 }
 
 
 static void mem_push(mem_arena* arena) {
-  arena->next = mem_stack;
-  mem_stack = arena;
+    arena->next = mem_stack;
+    mem_stack = arena;
 }
 
 static void mem_pop(void) {
-  mem_stack = mem_stack->next;
+    mem_stack = mem_stack->next;
 }
 
