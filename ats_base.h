@@ -143,8 +143,7 @@ struct defer_type {
 
 #define defer defer_type macro_var(defer_) = [&]
 
-constexpr u32 hash(const char* str)
-{
+constexpr u32 hash(const char* str) {
     u32 hash = 5381;
     for (i32 i = 0; str[i] != '\0'; i++) {
         hash = ((hash << 5) + hash) + str[i];

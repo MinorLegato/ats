@@ -7,9 +7,9 @@
 #define DYN_INIT_SIZE (256)
 
 typedef struct {
-  u32 cap;
-  u32 len;
-  u8 buf[];
+    u32 cap;
+    u32 len;
+    u8 buf[];
 } dyn_hdr_t;
 
 #define dyn(type_t) type_t*
@@ -24,20 +24,20 @@ typedef struct {
 #define dyn_sort(xs, cmp_func)  (qsort((xs), dyn_len(xs), sizeof (xs)[0], cmp_func))
 
 static void* dyn__grow(void* xs, u32 element_size) {
-  dyn_hdr_t* hdr = 0;
-  u32 len = 0;
-  u32 cap = 0;
-  if (xs) {
-    hdr = dyn_hdr(xs);
-    len = hdr->len;
-    cap = hdr->cap;
-  }
-  if (len >= cap) {
-    cap = (cap << 1) + (!cap) * DYN_INIT_SIZE;
-    hdr = realloc(hdr, sizeof (dyn_hdr_t) + element_size * cap);
-  }
-  hdr->len = len;
-  hdr->cap = cap;
-  return hdr->buf;
+    dyn_hdr_t* hdr = 0;
+    u32 len = 0;
+    u32 cap = 0;
+    if (xs) {
+        hdr = dyn_hdr(xs);
+        len = hdr->len;
+        cap = hdr->cap;
+    }
+    if (len >= cap) {
+        cap = (cap << 1) + (!cap) * DYN_INIT_SIZE;
+        hdr = realloc(hdr, sizeof (dyn_hdr_t) + element_size * cap);
+    }
+    hdr->len = len;
+    hdr->cap = cap;
+    return hdr->buf;
 }
 
