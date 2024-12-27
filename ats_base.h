@@ -104,14 +104,6 @@ typedef u64 b64;
 typedef i64 isize;
 typedef u64 usize;
 
-#ifndef __cplusplus
-#define ZERO {0}
-#define make(type) (type)
-#else
-#define ZERO {}
-#define make(type) type
-#endif
-
 #define cast(type, ...)   ((type)(__VA_ARGS__))
 
 #define castf32(...)      cast(f32, __VA_ARGS__)
@@ -146,30 +138,6 @@ typedef u64 usize;
 #define arr_get(a, index)       ((a)->array + (index))
 
 #define for_arr(var, array)     for (auto var = arr_begin(array); var < arr_end(array); ++var)
-
-#if defined(__cplusplus)
-
-template <typename T>
-struct defer_type {
-    T func;
-    defer_type(T f) : func(f) {} 
-    ~defer_type() { func(); }
-};
-
-#define defer defer_type macro_var(defer_) = [&]
-
-constexpr u32 hash(const char* str) {
-    u32 hash = 5381;
-    for (i32 i = 0; str[i] != '\0'; i++) {
-        hash = ((hash << 5) + hash) + str[i];
-    }
-    return hash;
-}
-
-#define match(...) switch (hash(__VA_ARGS__))
-#define with(...)  case hash(__VA_ARGS__)
-
-#endif // __cplusplus
 
 #include "ats_math.h"
 #include "ats_routine.h"

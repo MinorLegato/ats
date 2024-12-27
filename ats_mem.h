@@ -4,18 +4,18 @@
 #define MEM_MIB(n) (1024 * MEM_KIB(n))
 #define MEM_GIB(n) (1024 * MEM_MIB(n))
 
-#define mem_alloc(...) _mem_alloc(make(mem_alloc_desc) { __VA_ARGS__ })
+#define mem_alloc(...) _mem_alloc((mem_alloc_desc) { __VA_ARGS__ })
 #define mem_type(type_t, ...)         (type_t*)mem_alloc((sizeof (type_t)), 0, __VA_ARGS__)
 #define mem_array(type_t, count, ...) (type_t*)mem_alloc(((count) * sizeof (type_t)), (usize)(count), __VA_ARGS__)
 
 #define mem_context(arena) scope_guard(mem_push(arena), mem_pop())
 
-#define mem_save(...)       _mem_save(make(mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_restore(...)    _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_begin(...)      _mem_begin(make(mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_end(size, ...)  _mem_end((size), make(mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_save(...)       _mem_save((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_restore(...)    _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_begin(...)      _mem_begin((mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_end(size, ...)  _mem_end((size), (mem_arena_desc) { 0, __VA_ARGS__ })
 #define mem_temp mem_begin
-#define mem_scope(...)      scope_guard(_mem_save(make(mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore(make(mem_arena_desc) { 0, __VA_ARGS__ }))
+#define mem_scope(...)      scope_guard(_mem_save((mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore((mem_arena_desc) { 0, __VA_ARGS__ }))
 
 #define mem_size(ptr)     ((mem_header*)(ptr) - 1)->size
 #define mem_count(ptr)    ((mem_header*)(ptr) - 1)->count

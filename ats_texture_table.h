@@ -7,12 +7,12 @@
 
 #define TEXTURE_TABLE_SIZE (1024)
 
-#define tex_id(...) (make(tex_id) { __VA_ARGS__ })
+#define tex_id(...) ((tex_id) { __VA_ARGS__ })
 typedef struct {
     u16 index;
 } tex_id;
 
-#define tex_rect(...) (make(tex_rect) { __VA_ARGS__ })
+#define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
 typedef struct {
     u16 min_x;
     u16 min_y;
@@ -151,7 +151,7 @@ static void tex_load_dir_and_scale(const char* dir_path, u16 denominator) {
             u16 height = 0;
             u32* pixels = file_load_image(it.current, &width, &height);
 
-            tex_image image = ZERO;
+            tex_image image = {0};
 
             image.user_provided = 1;
             image.width = width / denominator;
@@ -174,7 +174,7 @@ static void tex_load_dir_and_scale(const char* dir_path, u16 denominator) {
 static void tex_begin(u16 width, u16 height) {
     tex_image_count = 0;
 
-    texture_table = make(tex_table) {
+    texture_table = (tex_table) {
         width,
         height, 
         mem_array(u32, (usize)(width * height)),
@@ -241,7 +241,7 @@ static u32 _tex_get_pixel(u16 x, u16 y) {
 
 static void tex_end(void) {
     tex_stack_top = 0;
-    tex_stack_buf[tex_stack_top++] = make(tex_rect) {
+    tex_stack_buf[tex_stack_top++] = (tex_rect) {
         0,
         0,
         texture_table.width,

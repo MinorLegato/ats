@@ -98,7 +98,7 @@ static void s8_iter_advance(s8_iter* it) {
 }
 
 static s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators) {
-    s8_iter it = ZERO;
+    s8_iter it = {0};
     it.content = content;
     for (u32 i = 0; i < delimiters.len; ++i) {
         bit_set(it.del_table, delimiters.buf[i]);
@@ -324,7 +324,7 @@ static v3 ray3_iter_get_normal(ray3_iter* it) {
 
 // ========================================= PRIORITY QUEUE ====================================== //
 
-#define path_node(...) make(path_node) { __VA_ARGS__ }
+#define path_node(...) (path_node) { __VA_ARGS__ }
 typedef struct {
     f32 w;
     i32 x;
