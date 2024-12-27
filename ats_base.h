@@ -132,6 +132,21 @@ typedef u64 usize;
 #define casti(...)        cast(i32, __VA_ARGS__)
 #define castu(...)        cast(u32, __VA_ARGS__)
 
+#define sort(array, count, cmp_func) qsort((array), (count), sizeof ((array)[0]), (cmp_func))
+
+#define __block(...)            do { __VA_ARGS__; } while (0)
+
+#define arr_push(a, ...)        ((a)->array[(a)->count++] = (__VA_ARGS__), arr_end(a) - 1)
+#define arr_pop(a)              (a)->array[--(a)->count]
+#define arr_new(a)              memset((a)->array + (a)->count++, 0, sizeof (a)->array[0])
+#define arr_remove(a, element)  __block((a)->array[(element) - arr_begin(a)] = arr_pop(a); --(element))
+#define arr_sort(a, cmp_func)   sort((a)->array, (a)->count, (cmp_func))
+#define arr_begin(a)            (a)->array
+#define arr_end(a)              (a)->array + (a)->count
+#define arr_get(a, index)       ((a)->array + (index))
+
+#define for_arr(var, array)     for (auto var = arr_begin(array); var < arr_end(array); ++var)
+
 #if defined(__cplusplus)
 
 template <typename T>

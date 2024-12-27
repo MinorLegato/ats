@@ -372,15 +372,12 @@ static path_node path_queue_pop(path_queue* queue) {
     while (i != queue->len + 1) {
         u32 k = queue->len + 1;
         u32 j = 2 * i;
-
         if (j <= queue->len && queue->buf[j].w < queue->buf[k].w) {
             k = j;
         }
-
         if (j + 1 <= queue->len && queue->buf[j + 1].w < queue->buf[k].w) {
             k = j + 1;
         }
-
         queue->buf[i] = queue->buf[k];
         i = k;
     }
