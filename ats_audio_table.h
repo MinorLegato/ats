@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ats_base.h"
-
 typedef struct {
     u16 index;
 } audio_id;

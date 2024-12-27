@@ -1,7 +1,5 @@
 #pragma once
 
-#include <math.h>
-
 #define castv2(u)  ((v2) { (f32)(u).x, (f32)(u).y })
 #define castv3(u)  ((v3) { (f32)(u).x, (f32)(u).y, (f32)(u).z })
 #define castv4(u)  ((v4) { (f32)(u).x, (f32)(u).y, (f32)(u).z, (f32)(u).w })

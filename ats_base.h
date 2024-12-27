@@ -1,6 +1,6 @@
 #pragma once
 
-#define ATS_BASE
+#include <math.h>
 
 #define PI  (3.14159265359f)
 #define TAU (6.28318530718f)
@@ -129,9 +129,9 @@ typedef u64 usize;
 #define __block(...)            do { __VA_ARGS__; } while (0)
 
 #define arr_push(a, ...)        ((a)->array[(a)->count++] = (__VA_ARGS__), arr_end(a) - 1)
-#define arr_pop(a)              (a)->array[--(a)->count]
+#define arr_pop(a)              (a)->array[(a)->count--]
 #define arr_new(a)              memset((a)->array + (a)->count++, 0, sizeof (a)->array[0])
-#define arr_remove(a, element)  __block((a)->array[(element) - arr_begin(a)] = arr_pop(a); --(element))
+#define arr_remove(a, element)  __block((a)->array[(element) - arr_begin(a)] = (a)->array[--(a)->count]; --(element))
 #define arr_sort(a, cmp_func)   sort((a)->array, (a)->count, (cmp_func))
 #define arr_begin(a)            (a)->array
 #define arr_end(a)              (a)->array + (a)->count
