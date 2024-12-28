@@ -139,8 +139,8 @@ typedef u64 usize;
 
 #define for_arr(var, array)     for (auto var = arr_begin(array); var < arr_end(array); ++var)
 
-#include "ats_math.h"
+#include "ats_math.c"
 #include "ats_routine.h"
-#include "ats_mem.h"
-#include "ats_ds.h"
+#include "ats_mem.c"
+#include "ats_ds.c"
 

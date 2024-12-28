@@ -4,16 +4,16 @@
 #include "ats_base.h"
 #endif
 
-#include "ats_glfw.h"
-#include "ats_file.h"
-#include "ats_texture_table.h"
-#include "ats_animation_table.h"
-#include "ats_audio_table.h"
-#include "ats_timer.h"
+#include "ats_glfw.c"
+#include "ats_file.c"
+#include "ats_texture_table.c"
+#include "ats_animation_table.c"
+#include "ats_audio_table.c"
+#include "ats_timer.c"
 
 #ifdef ATS_OGL46
-#include "ats_gl46.h"
+#include "ats_gl46.c"
 #else
-#include "ats_gl.h"
+#include "ats_gl.c"
 #endif
 
