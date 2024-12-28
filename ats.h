@@ -5,6 +5,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdint.h>
+#include <assert.h>
 
 #ifdef ATS_STATIC
 #define ATS_API static
@@ -967,13 +968,88 @@ ATS_API b32   file_write_bin(const char* file_name, const void* buffer, usize si
 ATS_API u32*  file_load_image(const char* path, u16* width, u16* height);
 ATS_API void  file_free_image(const u32* pixels);
 
-ATS_API void dir_open(const char* path, const char* wildcard);
-ATS_API b32 dir_is_valid(void);
-ATS_API void dir_advance(void);
+#define dir_iter(...) for (dir_open(__VA_ARGS__); dir_is_valid(); dir_advance())
+
+ATS_API void  dir_open(const char* path, const char* wildcard);
+ATS_API b32   dir_is_valid(void);
+ATS_API void  dir_advance(void);
 
 ATS_API char* dir_path(void);
 ATS_API char* dir_name(void);
 ATS_API char* dir_extension(void);
+
+// =========================================== TEXTURE TABLE ======================================== //
+// ------------------------------- implementation in ats_texture_table.c ---------------------------- //
+// ================================================================================================== //
+
+#define tex_id(...) ((tex_id) { __VA_ARGS__ })
+typedef struct {
+    u16 index;
+} tex_id;
+
+#define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
+typedef struct {
+    u16 min_x;
+    u16 min_y;
+    u16 max_x;
+    u16 max_y;
+} tex_rect;
+
+ATS_API u32* tex_get_pixels(void);
+ATS_API u16 tex_get_width(void);
+ATS_API u16 tex_get_height(void);
+ATS_API tex_rect tex_get_rect(tex_id id);
+ATS_API tex_id tex_get_id(const char* name);
+ATS_API tex_rect tex_get(const char* name);
+ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height);
+ATS_API void tex_load_dir(const char* path);
+ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator);
+ATS_API void tex_begin(u16 width, u16 height);
+ATS_API void tex_end(void);
+//
+// ========================================= ANIMATION TABLE ======================================== //
+// ----------------------------- implementation in ats_animation_table.c ---------------------------- //
+// ================================================================================================== //
+
+typedef struct at_frame at_frame;
+typedef struct at_animation at_animation;
+typedef struct at_entity at_entity;
+
+struct at_frame {
+    const char* name;
+    tex_rect rect;
+    at_frame* next;
+    at_animation* animation;
+};
+
+struct at_animation {
+    const char* name;
+    at_frame* frame;
+    at_animation* next;
+};
+
+struct at_entity {
+    const char* name;
+    at_animation* animation;
+    at_entity* next;
+};
+
+typedef struct at_state at_state;
+struct at_state {
+    at_entity* entity;
+    at_frame* frame;
+    f32 duration;
+};
+
+ATS_API void at_begin(void);
+ATS_API void at_end(void);
+ATS_API void at_add_entity(const char* name);
+ATS_API void at_add_animation(const char* name);
+ATS_API void at_add_frame(const char* name);
+
+ATS_API void at_set(at_state* state, const char* name);
+ATS_API at_state at_get(const char* name);
+ATS_API void at_update(at_state* state, f32 dt);
 
 // ================================================================================================== //
 // -------------------------------------------------------------------------------------------------- //
@@ -990,9 +1066,9 @@ ATS_API char* dir_extension(void);
 
 //#include "ats_glfw.c"
 #include "ats_file.c"
-//#include "ats_texture_table.c"
-#if 0
+#include "ats_texture_table.c"
 #include "ats_animation_table.c"
+#if 0
 #include "ats_audio_table.c"
 #include "ats_timer.c"
 #endif
