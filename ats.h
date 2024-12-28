@@ -971,9 +971,9 @@ ATS_API void dir_open(const char* path, const char* wildcard);
 ATS_API b32 dir_is_valid(void);
 ATS_API void dir_advance(void);
 
-ATS_API s8 dir_path(void);
-ATS_API s8 dir_name(void);
-ATS_API s8 dir_extension(void);
+ATS_API char* dir_path(void);
+ATS_API char* dir_name(void);
+ATS_API char* dir_extension(void);
 
 // ================================================================================================== //
 // -------------------------------------------------------------------------------------------------- //
@@ -990,8 +990,8 @@ ATS_API s8 dir_extension(void);
 
 //#include "ats_glfw.c"
 #include "ats_file.c"
+//#include "ats_texture_table.c"
 #if 0
-#include "ats_texture_table.c"
 #include "ats_animation_table.c"
 #include "ats_audio_table.c"
 #include "ats_timer.c"
