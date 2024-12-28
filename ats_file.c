@@ -158,9 +158,6 @@ static struct {
     char path[MAX_PATH];
     char name[MAX_PATH];
     char extension[MAX_PATH];
-    //s8 path;
-    //s8 name;
-    //s8 extension;
 
     const char* wildcard;
 
@@ -171,13 +168,14 @@ static struct {
 static void _dir_update_file_info(void) {
     char* s = _dir_iter.stack[_dir_iter.idx].current;
 
-    _dir_iter.path[0]      = '\0';
-    _dir_iter.name[0]      = '\0';
-    _dir_iter.extension[0] = '\0';
+    i32 i = 0;
+    i32 j = 0;
+    i32 e = MAX_PATH;
+    i32 n = MAX_PATH;
 
-    u32 i = 0;
-    u32 e = 0;
-    u32 n = 0;
+    _dir_iter.path[0] = '\0';
+    _dir_iter.name[0] = '\0';
+    _dir_iter.extension[0] = '\0';
 
     for (i = 0; s && s[i]; ++i) {
         _dir_iter.path[i] = s[i];
@@ -188,12 +186,16 @@ static void _dir_update_file_info(void) {
     }
 
     _dir_iter.path[i] = '\0';
-    if (_dir_iter.path[i - 1] != '.') {
-        u32 j = 0;
-        for (j = 0; (n + j) < (e - 1); ++j) _dir_iter.name[j] = s[(n + 1) + j];
-        _dir_iter.name[j] = '\0';
+
+    if (e < MAX_PATH) {
         for (j = 0; (e + j) < (i - 1); ++j) _dir_iter.extension[j] = s[(e + 1) + j];
         _dir_iter.extension[j] = '\0';
+    } else {
+        e = i;
+    }
+    if (n < e) {
+        for (j = 0; (n + j) < (e - 1); ++j) _dir_iter.name[j] = s[(n + 1) + j];
+        _dir_iter.name[j] = '\0';
     }
 }
 
