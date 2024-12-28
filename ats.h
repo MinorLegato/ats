@@ -967,6 +967,14 @@ ATS_API b32   file_write_bin(const char* file_name, const void* buffer, usize si
 ATS_API u32*  file_load_image(const char* path, u16* width, u16* height);
 ATS_API void  file_free_image(const u32* pixels);
 
+ATS_API void dir_open(const char* path, const char* wildcard);
+ATS_API b32 dir_is_valid(void);
+ATS_API void dir_advance(void);
+
+ATS_API s8 dir_path(void);
+ATS_API s8 dir_name(void);
+ATS_API s8 dir_extension(void);
+
 // ================================================================================================== //
 // -------------------------------------------------------------------------------------------------- //
 // ------------------------------------------- IMPLEMENTATION --------------------------------------- //
@@ -980,11 +988,9 @@ ATS_API void  file_free_image(const u32* pixels);
 #include "ats_mem.c"
 #include "ats_ds.c"
 
-#undef min
-#undef max
+//#include "ats_glfw.c"
 #include "ats_file.c"
 #if 0
-#include "ats_glfw.c"
 #include "ats_texture_table.c"
 #include "ats_animation_table.c"
 #include "ats_audio_table.c"

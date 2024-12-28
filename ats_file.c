@@ -154,19 +154,22 @@ ATS_API b32 file_iter_at_directory(struct _file_iter* it) {
     return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-struct _dir_iter {
+static struct {
     s8 path;
     s8 name;
     s8 extension;
+
+    const char* wildcard;
+
     i32 idx;
     struct _file_iter stack[256];
-};
+} _dir_iter;
 
-ATS_API void _dir_update_file_info(struct _dir_iter* it) {
-    char* s = it->stack[it->idx].current;
-    it->path = s8("");
-    it->name = s8("");
-    it->extension = s8("");
+static void _dir_update_file_info(void) {
+    char* s = _dir_iter.stack[_dir_iter.idx].current;
+    _dir_iter.path = s8("");
+    _dir_iter.name = s8("");
+    _dir_iter.extension = s8("");
     u32 i = 0;
     u32 e = 0;
     u32 n = 0;
@@ -179,34 +182,47 @@ ATS_API void _dir_update_file_info(struct _dir_iter* it) {
             n = i + 1; break;
         }
     }
-    if (i)     it->path      = (s8) { (u8*)(s),     (isize)(i)     };
-    if (e < i) it->name      = (s8) { (u8*)(s + n), (isize)(i - n) };
-    if (n < i) it->extension = (s8) { (u8*)(s + e), (isize)(i - e) };
+    if (i)     _dir_iter.path      = (s8) { (u8*)(s),     (isize)(i)     };
+    if (e < i) _dir_iter.name      = (s8) { (u8*)(s + n), (isize)(i - n) };
+    if (n < i) _dir_iter.extension = (s8) { (u8*)(s + e), (isize)(i - e) };
 }
 
-ATS_API struct _dir_iter dir_iter_create(const char* path) {
-    struct _dir_iter it = {0};
-    it.stack[it.idx] = file_iter_create(path, 0);
-    _dir_update_file_info(&it);
-    return it;
+ATS_API void dir_open(const char* path, const char* wildcard) {
+    memset(&_dir_iter, 0, sizeof _dir_iter);
+    _dir_iter.wildcard = wildcard;
+    _dir_iter.stack[_dir_iter.idx] = file_iter_create(path, _dir_iter.wildcard);
+    _dir_update_file_info();
 }
 
-ATS_API void dir_iter_advance(struct _dir_iter* it) {
-    if (file_iter_at_directory(&it->stack[it->idx])) {
-        it->stack[it->idx + 1] = file_iter_create(it->stack[it->idx].current, 0);
-        file_iter_advance(&it->stack[it->idx]);
-        it->idx++;
-        _dir_update_file_info(it);
+ATS_API void dir_advance(void) {
+    if (file_iter_at_directory(&_dir_iter.stack[_dir_iter.idx])) {
+        _dir_iter.stack[_dir_iter.idx + 1] = file_iter_create(_dir_iter.stack[_dir_iter.idx].current, _dir_iter.wildcard);
+        file_iter_advance(&_dir_iter.stack[_dir_iter.idx]);
+        _dir_iter.idx++;
+        _dir_update_file_info();
     } else {
-        file_iter_advance(&it->stack[it->idx]);
-        _dir_update_file_info(it);
+        file_iter_advance(&_dir_iter.stack[_dir_iter.idx]);
+        _dir_update_file_info();
     }
-    while ((it->idx >= 0) && !file_iter_is_valid(&it->stack[it->idx])) {
-        it->idx--;
+    while ((_dir_iter.idx >= 0) && !file_iter_is_valid(&_dir_iter.stack[_dir_iter.idx])) {
+        _dir_iter.idx--;
     }
 }
 
-ATS_API b32 dir_iter_is_valid(struct _dir_iter* it) {
-    return it->idx >= 0;
+ATS_API b32 dir_is_valid(void) {
+    return _dir_iter.idx >= 0;
 }
+
+ATS_API s8 dir_path(void) {
+    return _dir_iter.path;
+}
+
+ATS_API s8 dir_name(void) {
+    return _dir_iter.name;
+}
+
+ATS_API s8 dir_extension(void) {
+    return _dir_iter.extension;
+}
+
 
