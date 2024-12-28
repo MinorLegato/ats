@@ -1270,19 +1270,6 @@ ATS_API m4 m4_look_at(v3 eye, v3 center, v3 up) {
 
 // ----------------- plane/frustrum ------------------- //
 
-typedef struct frustum_plane frustum_plane;
-struct frustum_plane {
-    f32 a;
-    f32 b;
-    f32 c;
-    f32 d;
-};
-
-typedef struct frustum frustum;
-struct frustum {
-    frustum_plane planes[6];
-};
-
 static frustum_plane plane_normalize(frustum_plane p) {
     f32 r_len = rsqrt32(p.a * p.a + p.b * p.b + p.c * p.c);
 

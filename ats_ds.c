@@ -155,34 +155,6 @@ ATS_API v2 ray_iter_get_normal(ray_iter* it) {
 
 // =========================================== RAY ITER 3D ========================================== //
 
-typedef struct ray3_iter ray3_iter;
-struct ray3_iter {
-    v3 pos;
-    v3 dir;
-
-    //which box of the map we're in
-    i32 map_x;
-    i32 map_y;
-    i32 map_z;
-
-    //length of ray from current position to next x or y-side
-    f32 side_dist_x;
-    f32 side_dist_y;
-    f32 side_dist_z;
-
-    //length of ray from one x or y-side to next x or y-side
-    f32 delta_dist_x;
-    f32 delta_dist_y;
-    f32 delta_dist_z;
-
-    //what direction to step in x or y-direction (either +1 or -1)
-    i32 step_x;
-    i32 step_y;
-    i32 step_z;
-
-    i32 side; // was a NS or a EW wall hit?
-};
-
 ATS_API ray3_iter ray3_iter_create(v3 pos, v3 dir) {
     ray3_iter it = {0};
 

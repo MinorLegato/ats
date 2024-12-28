@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ats_base.h"
-
 typedef struct gl_texture gl_texture;
 struct gl_texture {
     u32 id;

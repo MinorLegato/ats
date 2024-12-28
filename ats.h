@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
 #include <stdint.h>
@@ -859,11 +861,10 @@ ATS_API void* sm_at_position(spatial_map* map, v2 pos);
 // }
 // rt_end();
 
-typedef struct rt rt;
-struct rt {
+typedef struct rt {
     i32 at;
     f32 timer;
-};
+} rt;
 
 #define RT_LABEL_OFFSET 1147483647
 
@@ -953,9 +954,22 @@ struct rt {
         goto rt_end_of_routine; \
     } while(0) \
 
+// ================================================ FILE ============================================ //
+// ------------------------------------ implementation in ats_file.c -------------------------------- //
+// ================================================================================================== //
+
+ATS_API usize file_get_size(const char* path);
+ATS_API s8    file_read_s8(const char* file_name);
+ATS_API b32   file_write_s8(const char* file_name, s8 buffer);
+ATS_API b32   file_append_str(const char* file_name, s8 buffer);
+ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size);
+ATS_API b32   file_write_bin(const char* file_name, const void* buffer, usize size);
+ATS_API u32*  file_load_image(const char* path, u16* width, u16* height);
+ATS_API void  file_free_image(const u32* pixels);
+
 // ================================================================================================== //
 // -------------------------------------------------------------------------------------------------- //
-// -------------------------------------------- IMPLEMENTATION -------------------------------------- //
+// ------------------------------------------- IMPLEMENTATION --------------------------------------- //
 // -------------------------------------------------------------------------------------------------- //
 // ================================================================================================== //
 #ifdef ATS_IMPL
@@ -968,17 +982,21 @@ struct rt {
 
 #undef min
 #undef max
-#include "ats_glfw.c"
 #include "ats_file.c"
+#if 0
+#include "ats_glfw.c"
 #include "ats_texture_table.c"
 #include "ats_animation_table.c"
 #include "ats_audio_table.c"
 #include "ats_timer.c"
+#endif
 
+#if 0
 #ifdef ATS_OGL46
 #include "ats_gl46.c"
 #else
 #include "ats_gl.c"
+#endif
 #endif
 
 #endif // ATS_IMPL_ONCE
