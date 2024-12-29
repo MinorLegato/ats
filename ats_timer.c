@@ -1,4 +1,4 @@
-#pragma once
+#include "ats.h"
 
 typedef struct timer_entry timer_entry;
 struct timer_entry {
@@ -27,7 +27,6 @@ static timer_node timer_table[512];
 
 static void timer_start(const char* name) {
     timer_entry* entry = timer_stack + timer_top++;
-
     entry->name = name;
     entry->start = platform_get_time();
     entry->stop = 0;
@@ -44,12 +43,10 @@ static timer_node* timer_node_next(timer_node* node)  {
 
 static void timer_stop(void) {
     timer_entry* entry = timer_stack + (--timer_top);
-
     {
         entry->stop = platform_get_time();
         timer_array[timer_count++] = *entry;
     }
-
     {
         u32 hash = hash_str(entry->name);
         u32 index = hash & 511;

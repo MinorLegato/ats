@@ -690,13 +690,13 @@ ATS_API void bit_set(u32* array, u32 index);
 ATS_API b32  bit_get(u32* array, u32 index);
 ATS_API void bit_clr(u32* array, u32 index);
 
-typedef struct s8 {
+typedef struct {
     u8* buf;
     isize len;
 } s8;
 
 #define S8_ITER_TABLE (256 >> 5)
-typedef struct s8_iter {
+typedef struct {
     s8 current;
     s8 content;
 
@@ -719,7 +719,7 @@ ATS_API s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators);
 ATS_API b32 s8_iter_is_valid(s8_iter* it);
 ATS_API void s8_iter_advance(s8_iter* it);
 
-typedef struct ray_iter {
+typedef struct {
     v2 pos;
     v2 dir;
 
@@ -748,7 +748,7 @@ ATS_API void ray_iter_advance(ray_iter* it);
 ATS_API v2 ray_iter_get_position(ray_iter* it);
 ATS_API v2 ray_iter_get_normal(ray_iter* it);
 
-typedef struct ray3_iter {
+typedef struct {
     v3 pos;
     v3 dir;
 
@@ -782,14 +782,14 @@ ATS_API v3 ray3_iter_get_position(ray3_iter* it);
 ATS_API v3 ray3_iter_get_normal(ray3_iter* it);
 
 #define path_node(...) (path_node) { __VA_ARGS__ }
-typedef struct path_node {
+typedef struct {
     f32 w;
     i32 x;
     i32 y;
     i32 z;
 } path_node;
 
-typedef struct path_queue {
+typedef struct {
     u32 len;
     path_node* buf;
 } path_queue;
@@ -809,7 +809,7 @@ typedef struct sm_node {
     r2 rect;
 } sm_node;
 
-typedef struct spatial_map {
+typedef struct {
     sm_node* table[SPATIAL_TABLE_MAX];
 } spatial_map;
 
@@ -1006,7 +1006,7 @@ ATS_API void tex_load_dir(const char* path);
 ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator);
 ATS_API void tex_begin(u16 width, u16 height);
 ATS_API void tex_end(void);
-//
+
 // ========================================= ANIMATION TABLE ======================================== //
 // ----------------------------- implementation in ats_animation_table.c ---------------------------- //
 // ================================================================================================== //
@@ -1034,12 +1034,11 @@ struct at_entity {
     at_entity* next;
 };
 
-typedef struct at_state at_state;
-struct at_state {
+typedef struct at_state {
     at_entity* entity;
     at_frame* frame;
     f32 duration;
-};
+} at_state;
 
 ATS_API void at_begin(void);
 ATS_API void at_end(void);
@@ -1050,6 +1049,10 @@ ATS_API void at_add_frame(const char* name);
 ATS_API void at_set(at_state* state, const char* name);
 ATS_API at_state at_get(const char* name);
 ATS_API void at_update(at_state* state, f32 dt);
+
+// ============================================ PLATFORM ============================================ //
+// ------------------ implementation depended on ATS_PLATFORM_... (default glfw)  ------------------- //
+// ================================================================================================== //
 
 // ================================================================================================== //
 // -------------------------------------------------------------------------------------------------- //
@@ -1064,16 +1067,15 @@ ATS_API void at_update(at_state* state, f32 dt);
 #include "ats_mem.c"
 #include "ats_ds.c"
 
-//#include "ats_glfw.c"
 #include "ats_file.c"
 #include "ats_texture_table.c"
 #include "ats_animation_table.c"
-#if 0
-#include "ats_audio_table.c"
-#include "ats_timer.c"
-#endif
 
 #if 0
+#include "ats_glfw.c"
+#include "ats_audio_table.c"
+#include "ats_timer.c"
+
 #ifdef ATS_OGL46
 #include "ats_gl46.c"
 #else
