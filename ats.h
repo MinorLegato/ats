@@ -53,33 +53,33 @@
 #define def(_val, _def) ((_val) == 0? (_def) : (_val))
 
 #define for_range(index, start, below) \
-    for (isize index = (start); index < (below); ++index)
+  for (isize index = (start); index < (below); ++index)
 
 #define for_array(index, array) \
-    for (usize index = 0; index < countof(array); ++index)
+  for (usize index = 0; index < countof(array); ++index)
 
 #define repeat(count) \
-    for (isize macro_var(index) = (count); macro_var(index) > 0; --macro_var(index))
+  for (isize macro_var(index) = (count); macro_var(index) > 0; --macro_var(index))
 
 #define for_r2(rect, ix, iy) \
-    for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-    for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
 #define for_r3(rect, ix, iy, iz) \
-    for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
-    for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
-    for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
+  for (i32 iz = rect.min.z; iz <= rect.max.z; ++iz) \
+  for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
+  for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
 #define for_iter(iter_type, iter_name, ...) \
-    for (iter_type iter_name = (__VA_ARGS__); \
-         iter_type##_is_valid(&iter_name); \
-         iter_type##_advance(&iter_name))
+  for (iter_type iter_name = (__VA_ARGS__); \
+       iter_type##_is_valid(&iter_name); \
+       iter_type##_advance(&iter_name))
 
 #define for_each(type, var, ...) \
-    for (type* var = (type*)0xdeadbeefull; var != NULL; var = NULL) \
-    for (type##_iter macro_var(it) = (__VA_ARGS__); \
-         (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
-         type##_iter_advance(&macro_var(it)))
+  for (type* var = (type*)0xdeadbeefull; var != NULL; var = NULL) \
+  for (type##_iter macro_var(it) = (__VA_ARGS__); \
+       (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
+       type##_iter_advance(&macro_var(it)))
 
 typedef float  f32;
 typedef double f64;
@@ -154,9 +154,10 @@ typedef u64 usize;
 typedef f32 v2 __attribute__((ext_vector_type(2)));
 #else
 typedef union v2 v2;
-union v2 {
-    struct { f32 x, y; };
-    f32 e[2];
+union v2
+{
+  struct { f32 x, y; };
+  f32 e[2];
 };
 #endif
 
@@ -165,12 +166,13 @@ union v2 {
 typedef f32 v3 __attribute__((ext_vector_type(3)));
 #else
 typedef union v3 v3;
-union v3 {
-    struct { f32 x, y, z; };
-    struct { f32 r, g, b; };
-    struct { v2 xy; };
-    struct { f32 _x; v2 yz; };
-    f32 e[3];
+union v3
+{
+  struct { f32 x, y, z; };
+  struct { f32 r, g, b; };
+  struct { v2 xy; };
+  struct { f32 _x; v2 yz; };
+  f32 e[3];
 };
 #endif
 
@@ -180,13 +182,14 @@ typedef f32 v4 __attribute__((ext_vector_type(4)));
 typedef f32 v4 __attribute__((ext_vector_type(4)));
 #else
 typedef union v4 v4;
-union v4 {
-    struct { f32 x, y, z, w; };
-    struct { f32 r, g, b, a; };
-    struct { v3 rgb; };
-    struct { v2 xy; };
-    struct { v3 xyz; };
-    f32 e[4];
+union v4
+{
+  struct { f32 x, y, z, w; };
+  struct { f32 r, g, b, a; };
+  struct { v3 rgb; };
+  struct { v2 xy; };
+  struct { v3 xyz; };
+  f32 e[4];
 };
 #endif
 
@@ -198,9 +201,10 @@ typedef v4 quat;
 typedef i32 v2i __attribute__((ext_vector_type(2)));
 #else
 typedef union v2i v2i;
-union v2i {
-    struct { i32 x, y; };
-    i32 e[2];
+union v2i
+{
+  struct { i32 x, y; };
+  i32 e[2];
 };
 #endif
 
@@ -209,10 +213,11 @@ union v2i {
 typedef i32 v3i __attribute__((ext_vector_type(3)));
 #else
 typedef union v3i v3i;
-union v3i {
-    struct { i32 x, y, z; };
-    struct { v2i xy; };
-    i32 e[3];
+union v3i
+{
+  struct { i32 x, y, z; };
+  struct { v2i xy; };
+  i32 e[3];
 };
 #endif
 
@@ -221,86 +226,98 @@ union v3i {
 typedef i32 v4i __attribute__((ext_vector_type(4)));
 #else
 typedef union v4i v4i;
-union v4i {
-    struct { i32 x, y, z, w; };
-    i32 e[4];
+union v4i
+{
+  struct { i32 x, y, z, w; };
+  i32 e[4];
 };
 #endif
 
 #define m2(...) (m2) { __VA_ARGS__ }
 typedef union m2 m2;
-union m2 {
-    f32 e[4];
-    struct { v2 x, y; };
+union m2
+{
+  f32 e[4];
+  struct { v2 x, y; };
 };
 
 #define m3(...) (m3) { __VA_ARGS__ }
 typedef union m3 m3;
-union m3 {
-    f32 e[9];
-    struct { v3 x, y, z; };
+union m3
+{
+  f32 e[9];
+  struct { v3 x, y, z; };
 };
 
 #define m4(...) (m4) { __VA_ARGS__ }
 typedef union m4 m4;
-union m4 {
-    f32 e[16];
-    struct { v4 x, y, z, w; };
+union m4
+{
+  f32 e[16];
+  struct { v4 x, y, z, w; };
 };
 
 #define r2(...) (r2) { __VA_ARGS__ }
 typedef struct r2 r2;
-struct r2 {
-    v2 min;
-    v2 max;
+struct r2
+{
+  v2 min;
+  v2 max;
 };
 
 #define r3(...) (r3) { __VA_ARGS__ }
 typedef struct r3 r3;
-struct r3 {
-    v3 min;
-    v3 max;
+struct r3
+{
+  v3 min;
+  v3 max;
 };
 
 #define r2i(...) (r2i) { __VA_ARGS__ }
 typedef struct r2i r2i;
-struct r2i {
-    v2i min;
-    v2i max;
+struct r2i
+{
+  v2i min;
+  v2i max;
 };
 
 #define r3i(...) (r3i) { __VA_ARGS__ }
 typedef struct r3i r3i;
-struct r3i {
-    v3i min;
-    v3i max;
+struct r3i
+{
+  v3i min;
+  v3i max;
 };
 
 #define circle(...) (circle) { __VA_ARGS__ }
 typedef struct circle circle;
-struct circle {
-    v2 p;
-    f32 r;
+struct circle
+{
+  v2 p;
+  f32 r;
 };
 
 #define sphere(...) (sphere) { __VA_ARGS__ }
 typedef struct sphere sphere;
-struct sphere {
-    v3 p;
-    f32 r;
+struct sphere
+{
+  v3 p;
+  f32 r;
 };
 
 typedef struct frustum_plane frustum_plane;
-struct frustum_plane {
-    f32 a;
-    f32 b;
-    f32 c;
-    f32 d;
+struct frustum_plane
+{
+  f32 a;
+  f32 b;
+  f32 c;
+  f32 d;
 };
 
 typedef struct frustum frustum;
-struct frustum {
-    frustum_plane planes[6];
+struct frustum
+{
+  frustum_plane planes[6];
 };
 
 
@@ -630,19 +647,21 @@ ATS_API m4 m4_invert(m4 m); // assumes it is invertible
 #define MEM_GIB(n) (1024 * MEM_MIB(n))
 
 typedef struct mem_index mem_index;
-struct mem_index {
-    usize pos;
-    mem_index* next;
+struct mem_index
+{
+  usize pos;
+  mem_index* next;
 };
 
 typedef struct mem_arena mem_arena;
-struct mem_arena {
-    usize pos;
-    usize cap;
-    u8* buf;
+struct mem_arena
+{
+  usize pos;
+  usize cap;
+  u8* buf;
 
-    mem_index* stack;
-    mem_arena* next;
+  mem_index* stack;
+  mem_arena* next;
 };
 
 ATS_API mem_arena mem_create(void* data, usize size);
@@ -665,15 +684,17 @@ ATS_API void mem_pop(void);
 
 // -------------------- internal --------------- //
 
-struct _mem_arena_desc {
-    usize pad;
-    mem_arena* arena;
+struct _mem_arena_desc
+{
+  usize pad;
+  mem_arena* arena;
 };
 
-struct _mem_alloc_desc {
-    usize size;
-    usize count;
-    mem_arena* arena;
+struct _mem_alloc_desc
+{
+  usize size;
+  usize count;
+  mem_arena* arena;
 };
 
 ATS_API void* _mem_alloc(struct _mem_alloc_desc desc);
@@ -690,20 +711,22 @@ ATS_API void bit_set(u32* array, u32 index);
 ATS_API b32  bit_get(u32* array, u32 index);
 ATS_API void bit_clr(u32* array, u32 index);
 
-typedef struct {
-    u8* buf;
-    isize len;
+typedef struct
+{
+  u8* buf;
+  isize len;
 } s8;
 
 #define S8_ITER_TABLE (256 >> 5)
-typedef struct {
-    s8 current;
-    s8 content;
+typedef struct
+{
+  s8 current;
+  s8 content;
 
-    u32 idx;
+  u32 idx;
 
-    u32 del_table[S8_ITER_TABLE];
-    u32 sep_table[S8_ITER_TABLE];
+  u32 del_table[S8_ITER_TABLE];
+  u32 sep_table[S8_ITER_TABLE];
 } s8_iter;
 
 #define S8_FMT "%.*s"
@@ -719,27 +742,28 @@ ATS_API s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators);
 ATS_API b32 s8_iter_is_valid(s8_iter* it);
 ATS_API void s8_iter_advance(s8_iter* it);
 
-typedef struct {
-    v2 pos;
-    v2 dir;
+typedef struct
+{
+  v2 pos;
+  v2 dir;
 
-    //which box of the map we're in
-    i32 map_x;
-    i32 map_y;
+  //which box of the map we're in
+  i32 map_x;
+  i32 map_y;
 
-    //length of ray from current position to next x or y-side
-    f32 side_dist_x;
-    f32 side_dist_y;
+  //length of ray from current position to next x or y-side
+  f32 side_dist_x;
+  f32 side_dist_y;
 
-    //length of ray from one x or y-side to next x or y-side
-    f32 delta_dist_x;
-    f32 delta_dist_y;
+  //length of ray from one x or y-side to next x or y-side
+  f32 delta_dist_x;
+  f32 delta_dist_y;
 
-    //what direction to step in x or y-direction (either +1 or -1)
-    i32 step_x;
-    i32 step_y;
+  //what direction to step in x or y-direction (either +1 or -1)
+  i32 step_x;
+  i32 step_y;
 
-    i32 side; // was a NS or a EW wall hit?
+  i32 side; // was a NS or a EW wall hit?
 } ray_iter;
 
 ATS_API ray_iter ray_iter_create(v2 pos, v2 dir);
@@ -748,31 +772,32 @@ ATS_API void ray_iter_advance(ray_iter* it);
 ATS_API v2 ray_iter_get_position(ray_iter* it);
 ATS_API v2 ray_iter_get_normal(ray_iter* it);
 
-typedef struct {
-    v3 pos;
-    v3 dir;
+typedef struct
+{
+  v3 pos;
+  v3 dir;
 
-    //which box of the map we're in
-    i32 map_x;
-    i32 map_y;
-    i32 map_z;
+  //which box of the map we're in
+  i32 map_x;
+  i32 map_y;
+  i32 map_z;
 
-    //length of ray from current position to next x or y-side
-    f32 side_dist_x;
-    f32 side_dist_y;
-    f32 side_dist_z;
+  //length of ray from current position to next x or y-side
+  f32 side_dist_x;
+  f32 side_dist_y;
+  f32 side_dist_z;
 
-    //length of ray from one x or y-side to next x or y-side
-    f32 delta_dist_x;
-    f32 delta_dist_y;
-    f32 delta_dist_z;
+  //length of ray from one x or y-side to next x or y-side
+  f32 delta_dist_x;
+  f32 delta_dist_y;
+  f32 delta_dist_z;
 
-    //what direction to step in x or y-direction (either +1 or -1)
-    i32 step_x;
-    i32 step_y;
-    i32 step_z;
+  //what direction to step in x or y-direction (either +1 or -1)
+  i32 step_x;
+  i32 step_y;
+  i32 step_z;
 
-    i32 side; // was a NS or a EW wall hit?
+  i32 side; // was a NS or a EW wall hit?
 } ray3_iter;
 
 ATS_API ray3_iter ray3_iter_create(v3 pos, v3 dir);
@@ -782,16 +807,18 @@ ATS_API v3 ray3_iter_get_position(ray3_iter* it);
 ATS_API v3 ray3_iter_get_normal(ray3_iter* it);
 
 #define path_node(...) (path_node) { __VA_ARGS__ }
-typedef struct {
-    f32 w;
-    i32 x;
-    i32 y;
-    i32 z;
+typedef struct
+{
+  f32 w;
+  i32 x;
+  i32 y;
+  i32 z;
 } path_node;
 
-typedef struct {
-    u32 len;
-    path_node* buf;
+typedef struct
+{
+  u32 len;
+  path_node* buf;
 } path_queue;
 
 ATS_API path_queue path_queue_create(usize capacity);
@@ -803,14 +830,16 @@ ATS_API path_node path_queue_pop(path_queue* queue);
 #define SPATIAL_TABLE_MAX 4096
 #define SPATIAL_TABLE_MOD 4095
 
-typedef struct sm_node {
-    struct sm_node* next;
-    void* e;
-    r2 rect;
+typedef struct sm_node
+{
+  struct sm_node* next;
+  void* e;
+  r2 rect;
 } sm_node;
 
-typedef struct {
-    sm_node* table[SPATIAL_TABLE_MAX];
+typedef struct
+{
+  sm_node* table[SPATIAL_TABLE_MAX];
 } spatial_map;
 
 ATS_API void sm_clear(spatial_map* map);
@@ -863,8 +892,8 @@ ATS_API void* sm_at_position(spatial_map* map, v2 pos);
 // rt_end();
 
 typedef struct rt {
-    i32 at;
-    f32 timer;
+  i32 at;
+  f32 timer;
 } rt;
 
 #define RT_LABEL_OFFSET 1147483647
@@ -872,63 +901,63 @@ typedef struct rt {
 #define rt_hash(tag) (RT_LABEL_OFFSET + (tag))
 
 #define rt_begin(routine, delta_time) \
-    if ((routine).timer < 0) { \
-        (routine).timer += (delta_time); \
-        (routine).timer = clamp_max((routine).timer, 0); \
-    } else { \
-        rt* __rt = &(routine); \
-        f32 __dt = (delta_time); \
-        int __mn = 1; \
-        switch (__rt->at) { \
-            case 0: { \
+  if ((routine).timer < 0) { \
+    (routine).timer += (delta_time); \
+    (routine).timer = clamp_max((routine).timer, 0); \
+  } else { \
+    rt* __rt = &(routine); \
+    f32 __dt = (delta_time); \
+    int __mn = 1; \
+    switch (__rt->at) { \
+      case 0: { \
 
 #define rt_step() \
-            } if (__mn) __rt->at = __LINE__; \
-            break; \
-            case __LINE__: { \
+      } if (__mn) __rt->at = __LINE__; \
+      break; \
+      case __LINE__: { \
 
 #define rt_label(name) \
-            } if (__mn) __rt->at = rt_hash(name); \
-            break; \
-            case rt_hash(name): { \
+      } if (__mn) __rt->at = rt_hash(name); \
+      break; \
+      case rt_hash(name): { \
 
 #define rt_for(time) \
-                rt_step(); \
-                if (__rt->timer < time) {  \
-                    __rt->timer += __dt; \
-                    __mn = __rt->timer >= time; \
-                    if (__mn) __rt->timer = 0; \
-                } \
+        rt_step(); \
+        if (__rt->timer < time) {  \
+          __rt->timer += __dt; \
+          __mn = __rt->timer >= time; \
+          if (__mn) __rt->timer = 0; \
+        } \
 
 #define rt_while(condition) \
-            } if (__mn) __rt->at = __LINE__; \
-            break; \
-            case __LINE__: if (condition) { \
-                __mn = 0 \
+      } if (__mn) __rt->at = __LINE__; \
+      break; \
+      case __LINE__: if (condition) { \
+        __mn = 0 \
 
 #define rt_until(condition) \
-            } if (__mn) __rt->at = ((condition) ? __LINE__ : -__LINE__); \
-            break; \
-            case -__LINE__: \
-                            if (condition) __rt->at = __LINE__; \
-            break; \
-            case __LINE__: { \
+      } if (__mn) __rt->at = ((condition) ? __LINE__ : -__LINE__); \
+      break; \
+      case -__LINE__: \
+                      if (condition) __rt->at = __LINE__; \
+      break; \
+      case __LINE__: { \
 
 #define rt_wait(time) \
-            } if (__mn) { \
-                __rt->timer = -(time); \
-                __rt->at = __LINE__; \
-            } \
-            break; \
-            case __LINE__: { \
+      } if (__mn) { \
+        __rt->timer = -(time); \
+        __rt->at = __LINE__; \
+      } \
+      break; \
+      case __LINE__: { \
 
 #define rt_end() \
-            } if (__mn) __rt->at = -1; \
-            break; \
-        } \
+      } if (__mn) __rt->at = -1; \
+      break; \
     } \
-    goto rt_end_of_routine;  \
-    rt_end_of_routine: \
+  } \
+  goto rt_end_of_routine;  \
+  rt_end_of_routine: \
 
 // Flow Statements:
 // These can be used anywhere between rt_begin and rt_end,
@@ -937,23 +966,23 @@ typedef struct rt {
 // Repeats the block that this is contained within
 // Skips the remainder of the block
 #define rt_repeat() \
-    goto rt_end_of_routine \
+  goto rt_end_of_routine \
 
 // Goes to a given block labeled with `rt_label`
 #define rt_goto(name) \
-    do { \
-        __rt->at = rt_hash(name); \
-        goto rt_end_of_routine; \
-    } while(0) \
+  do { \
+    __rt->at = rt_hash(name); \
+    goto rt_end_of_routine; \
+  } while(0) \
 
 // Restarts the entire Coroutine;
 // Jumps back to `rt_begin` on the next frame
 #define rt_restart() \
-    do { \
-        __rt->at = 0; \
-        __rt->timer = 0; \
-        goto rt_end_of_routine; \
-    } while(0) \
+  do { \
+    __rt->at = 0; \
+    __rt->timer = 0; \
+    goto rt_end_of_routine; \
+  } while(0) \
 
 // ================================================ FILE ============================================ //
 // ------------------------------------ implementation in ats_file.c -------------------------------- //
@@ -983,16 +1012,18 @@ ATS_API char* dir_extension(void);
 // ================================================================================================== //
 
 #define tex_id(...) ((tex_id) { __VA_ARGS__ })
-typedef struct {
-    u16 index;
+typedef struct
+{
+  u16 index;
 } tex_id;
 
 #define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
-typedef struct {
-    u16 min_x;
-    u16 min_y;
-    u16 max_x;
-    u16 max_y;
+typedef struct
+{
+  u16 min_x;
+  u16 min_y;
+  u16 max_x;
+  u16 max_y;
 } tex_rect;
 
 ATS_API u32* tex_get_pixels(void);
@@ -1011,33 +1042,37 @@ ATS_API void tex_end(void);
 // ----------------------------- implementation in ats_animation_table.c ---------------------------- //
 // ================================================================================================== //
 
-typedef struct at_frame at_frame;
+typedef struct at_frame     at_frame;
 typedef struct at_animation at_animation;
-typedef struct at_entity at_entity;
+typedef struct at_entity    at_entity;
 
-struct at_frame {
-    const char* name;
-    tex_rect rect;
-    at_frame* next;
-    at_animation* animation;
+struct at_frame
+{
+  const char* name;
+  tex_rect rect;
+  at_frame* next;
+  at_animation* animation;
 };
 
-struct at_animation {
-    const char* name;
-    at_frame* frame;
-    at_animation* next;
+struct at_animation
+{
+  const char* name;
+  at_frame* frame;
+  at_animation* next;
 };
 
-struct at_entity {
-    const char* name;
-    at_animation* animation;
-    at_entity* next;
+struct at_entity
+{
+  const char* name;
+  at_animation* animation;
+  at_entity* next;
 };
 
-typedef struct at_state {
-    at_entity* entity;
-    at_frame* frame;
-    f32 duration;
+typedef struct at_state
+{
+  at_entity* entity;
+  at_frame* frame;
+  f32 duration;
 } at_state;
 
 ATS_API void at_begin(void);
@@ -1054,6 +1089,9 @@ ATS_API void at_update(at_state* state, f32 dt);
 // ------------------ implementation depended on ATS_PLATFORM_... (default glfw)  ------------------- //
 // ================================================================================================== //
 
+ATS_API void platform_init(const char* title, int width, int height, int samples);
+ATS_API void platform_update(void);
+
 // ================================================================================================== //
 // -------------------------------------------------------------------------------------------------- //
 // ------------------------------------------- IMPLEMENTATION --------------------------------------- //
@@ -1067,12 +1105,12 @@ ATS_API void at_update(at_state* state, f32 dt);
 #include "ats_mem.c"
 #include "ats_ds.c"
 
+#include "ats_glfw.c"
+
 #include "ats_file.c"
 #include "ats_texture_table.c"
 #include "ats_animation_table.c"
 
-#if 0
-#include "ats_glfw.c"
 #include "ats_audio_table.c"
 #include "ats_timer.c"
 
@@ -1080,7 +1118,6 @@ ATS_API void at_update(at_state* state, f32 dt);
 #include "ats_gl46.c"
 #else
 #include "ats_gl.c"
-#endif
 #endif
 
 #endif // ATS_IMPL_ONCE

@@ -603,9 +603,9 @@ static void gl_init_bitmap_font(void) {
 
     gl_buffer_desc buffer_desc = {0};
 
-    buffer_desc.layout[0] = make(gl_layout) { 2, GL_FLOAT, sizeof (bitmap_vertex), offsetof(bitmap_vertex, pos) };
-    buffer_desc.layout[1] = make(gl_layout) { 2, GL_FLOAT, sizeof (bitmap_vertex), offsetof(bitmap_vertex, uv) };
-    buffer_desc.layout[2] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (bitmap_vertex), offsetof(bitmap_vertex, color), true };
+    buffer_desc.layout[0] = (gl_layout) { 2, GL_FLOAT, sizeof (bitmap_vertex), offsetof(bitmap_vertex, pos) };
+    buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT, sizeof (bitmap_vertex), offsetof(bitmap_vertex, uv) };
+    buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (bitmap_vertex), offsetof(bitmap_vertex, color), true };
 
     bitmap_buffer = gl_buffer_create(&buffer_desc);
 
@@ -631,12 +631,12 @@ static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
     r2 tex_rect = { { c * 8.0f + 0.1f, 0.1f }, { c * 8.0f + 7.9f, 7.9f } };
     r2 rect = { { x, y }, { x + sx, y + sy } };
 
-    bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.min.x, rect.min.y, tex_rect.min.x, tex_rect.max.y, color };
-    bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.max.x, rect.min.y, tex_rect.max.x, tex_rect.max.y, color };
-    bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.max.x, rect.max.y, tex_rect.max.x, tex_rect.min.y, color };
-    bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.max.x, rect.max.y, tex_rect.max.x, tex_rect.min.y, color };
-    bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.min.x, rect.max.y, tex_rect.min.x, tex_rect.min.y, color };
-    bitmap_array[bitmap_count++] = make(bitmap_vertex) { rect.min.x, rect.min.y, tex_rect.min.x, tex_rect.max.y, color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { rect.min.x, rect.min.y, tex_rect.min.x, tex_rect.max.y, color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { rect.max.x, rect.min.y, tex_rect.max.x, tex_rect.max.y, color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { rect.max.x, rect.max.y, tex_rect.max.x, tex_rect.min.y, color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { rect.max.x, rect.max.y, tex_rect.max.x, tex_rect.min.y, color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { rect.min.x, rect.max.y, tex_rect.min.x, tex_rect.min.y, color };
+    bitmap_array[bitmap_count++] = (bitmap_vertex) { rect.min.x, rect.min.y, tex_rect.min.x, tex_rect.max.y, color };
 }
 
 static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
