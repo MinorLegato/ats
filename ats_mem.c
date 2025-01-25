@@ -2,70 +2,79 @@
 
 static mem_arena* mem_stack;
 
-ATS_API mem_arena mem_create(void* data, usize size) {
-    mem_arena arena = {0};
+ATS_API mem_arena mem_create(void* data, usize size)
+{
+  mem_arena arena = {0};
 
-    arena.cap = size;
-    arena.buf = (u8*)data;
+  arena.cap = size;
+  arena.buf = (u8*)data;
 
-    return arena;
+  return arena;
 }
 
 #define MEM_GET(arg) ((arg).arena? (arg).arena : (mem_stack))
 
 typedef struct mem_header mem_header;
-struct mem_header {
-    usize size;
-    usize count;
+struct mem_header
+{
+  usize size;
+  usize count;
 };
 
-ATS_API void* _mem_alloc(struct _mem_alloc_desc desc) {
-    mem_arena* arena = MEM_GET(desc);
-    mem_header* header = (mem_header*)(arena->buf + arena->pos);
+ATS_API void* _mem_alloc(struct _mem_alloc_desc desc)
+{
+  mem_arena* arena = MEM_GET(desc);
+  mem_header* header = (mem_header*)(arena->buf + arena->pos);
 
-    arena->pos += sizeof (mem_header) + desc.size;
-    header->size = desc.size;
-    header->count = desc.count? desc.count : desc.size; 
+  arena->pos += sizeof (mem_header) + desc.size;
+  header->size = desc.size;
+  header->count = desc.count? desc.count : desc.size; 
 
-    return memset(header + 1, 0, desc.size);
+  return memset(header + 1, 0, desc.size);
 }
 
-ATS_API void _mem_save(struct _mem_arena_desc desc) {
-    mem_arena* arena = MEM_GET(desc);
-    usize pos = arena->pos;
-    mem_index* node = mem_type(mem_index, arena);
+ATS_API void _mem_save(struct _mem_arena_desc desc)
+{
+  mem_arena* arena = MEM_GET(desc);
+  usize pos = arena->pos;
+  mem_index* node = mem_type(mem_index, arena);
 
-    node->pos = pos;
-    node->next = arena->stack;
+  node->pos = pos;
+  node->next = arena->stack;
 
-    arena->stack = node;
+  arena->stack = node;
 }
 
-ATS_API void _mem_restore(struct _mem_arena_desc desc) {
-    mem_arena* arena = MEM_GET(desc);
+ATS_API void _mem_restore(struct _mem_arena_desc desc)
+{
+  mem_arena* arena = MEM_GET(desc);
 
-    arena->pos = arena->stack->pos;
-    arena->stack = arena->stack->next;
+  arena->pos = arena->stack->pos;
+  arena->stack = arena->stack->next;
 }
 
-ATS_API void* _mem_begin(struct _mem_arena_desc desc) {
-    mem_arena* arena = MEM_GET(desc);
-    void* ptr = arena->buf + arena->pos;
-    return ptr;
+ATS_API void* _mem_begin(struct _mem_arena_desc desc)
+{
+  mem_arena* arena = MEM_GET(desc);
+  void* ptr = arena->buf + arena->pos;
+  return ptr;
 }
 
-ATS_API void _mem_end(usize size, struct _mem_arena_desc desc) {
-    mem_arena* arena = MEM_GET(desc);
-    arena->pos += size;
+ATS_API void _mem_end(usize size, struct _mem_arena_desc desc)
+{
+  mem_arena* arena = MEM_GET(desc);
+  arena->pos += size;
 }
 
 
-ATS_API void mem_push(mem_arena* arena) {
-    arena->next = mem_stack;
-    mem_stack = arena;
+ATS_API void mem_push(mem_arena* arena)
+{
+  arena->next = mem_stack;
+  mem_stack = arena;
 }
 
-ATS_API void mem_pop(void) {
-    mem_stack = mem_stack->next;
+ATS_API void mem_pop(void)
+{
+  mem_stack = mem_stack->next;
 }
 
