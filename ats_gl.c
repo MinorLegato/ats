@@ -722,10 +722,10 @@ static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
 {
   tex_rect tex =
   {
-    (u16)(c * (8 + 2)),
-    0,
-    (u16)(c * (8 + 2) + 8),
-    8
+    .min_x = (u16)(c * (8 + 2)),
+    .min_y = 0,
+    .max_x = (u16)(c * (8 + 2) + 8),
+    .max_y = 8
   };
 
   r2 rect = { { x, y }, { x + sx, y + sy } };

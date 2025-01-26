@@ -111,49 +111,46 @@ ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height
 
 ATS_API void tex_load_dir(const char* path)
 {
-  const char* ext[] = { "*.png", "*.jpg" };
-  for (i32 i = 0; i < countof(ext); ++i)
+  dir_iter(path)
   {
-    dir_iter(path, ext[i])
-    {
-      tex_image image = {0};
-      image.pixels = file_load_image(dir_path(), &image.width, &image.height);
-      strcpy_s(image.name, countof(image.name), dir_name());
-      tex_image_array[tex_image_count++] = image;
-    }
+    const char* ext = dir_extension();
+    if (strcmp(ext, "png") != 0 && strcmp(ext, "jpg") != 0) continue;
+
+    tex_image image = {0};
+    image.pixels = file_load_image(dir_path(), &image.width, &image.height);
+    strcpy_s(image.name, countof(image.name), dir_name());
+    tex_image_array[tex_image_count++] = image;
   }
 }
 
 ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator)
 {
   assert(denominator);
-  const char* ext[] = { "*.png", "*.jpg" };
-
-  for (i32 i = 0; i < countof(ext); ++i)
+  dir_iter(path)
   {
-    dir_iter(path, ext[i])
-    {
-      u16 width = 0;
-      u16 height = 0;
-      u32* pixels = file_load_image(dir_path(), &width, &height);
+    const char* ext = dir_extension();
+    if (strcmp(ext, "png") != 0 && strcmp(ext, "jpg") != 0) continue;
 
-      tex_image image = {0};
+    u16 width = 0;
+    u16 height = 0;
+    u32* pixels = file_load_image(dir_path(), &width, &height);
 
-      image.user_provided = 1;
-      image.width = width / denominator;
-      image.height = height / denominator;
-      image.pixels = mem_array(u32, image.width * image.height);
+    tex_image image = {0};
 
-      stbir_resize_uint8(
-        (unsigned char*)pixels, width, height, 0,
-        (unsigned char*)image.pixels, image.width, image.height, 0,
-        4);
+    image.user_provided = 1;
+    image.width = width / denominator;
+    image.height = height / denominator;
+    image.pixels = mem_array(u32, image.width * image.height);
 
-      strcpy_s(image.name, countof(image.name), dir_name());
-      tex_image_array[tex_image_count++] = image;
+    stbir_resize_uint8(
+      (unsigned char*)pixels, width, height, 0,
+      (unsigned char*)image.pixels, image.width, image.height, 0,
+      4);
 
-      free(pixels);
-    }
+    strcpy_s(image.name, countof(image.name), dir_name());
+    tex_image_array[tex_image_count++] = image;
+
+    free(pixels);
   }
 }
 

@@ -307,10 +307,10 @@ static void glex_init(void) {
 
     gl_buffer_desc buffer_desc = {0};
 
-    buffer_desc.layout[0] = make(gl_layout) { 3, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, pos) };
-    buffer_desc.layout[1] = make(gl_layout) { 3, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, normal) };
-    buffer_desc.layout[2] = make(gl_layout) { 2, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, uv) };
-    buffer_desc.layout[3] = make(gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (glex__vertex), offsetof(glex__vertex, color), 1 };
+    buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, pos) };
+    buffer_desc.layout[1] = (gl_layout) { 3, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, normal) };
+    buffer_desc.layout[2] = (gl_layout) { 2, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, uv) };
+    buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (glex__vertex), offsetof(glex__vertex, color), 1 };
 
     glex.buffer = gl_buffer_create(&buffer_desc);
 
@@ -491,7 +491,7 @@ static void glex_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 cons
     {
         return;
     }
-    glex.light_array[glex.light_count++] = make(glex__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
+    glex.light_array[glex.light_count++] = (glex__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
 static void glex_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up) {

@@ -76,8 +76,7 @@ ATS_API b32 file_append_str(const char* file_name, s8 buffer)
   return 0;
 }
 
-ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size)
-{
+ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size) {
   FILE* fp = _file_open(file_name, "rb");
   if (fp)
   {
@@ -107,7 +106,7 @@ ATS_API u32* file_load_image(const char* path, u16* width, u16* height)
   int w = 0;
   int h = 0;
   pixels = (u32*)stbi_load(path, &w, &h, &channels, 4);
-  assert(pixels);
+  assert(pixels != 0);
   *width  = w;
   *height = h;
   return pixels;
@@ -187,8 +186,6 @@ static struct
   char name[MAX_PATH];
   char extension[MAX_PATH];
 
-  const char* wildcard;
-
   i32 idx;
   struct _file_iter stack[256];
 } _dir_iter;
@@ -227,6 +224,7 @@ static void _dir_update_file_info(void)
   {
     e = i;
   }
+
   if (n < e)
   {
     for (j = 0; (n + j) < (e - 1); ++j) _dir_iter.name[j] = s[(n + 1) + j];
@@ -234,11 +232,10 @@ static void _dir_update_file_info(void)
   }
 }
 
-ATS_API void dir_open(const char* path, const char* wildcard)
+ATS_API void dir_open(const char* path)
 {
   memset(&_dir_iter, 0, sizeof _dir_iter);
-  _dir_iter.wildcard = wildcard;
-  _dir_iter.stack[_dir_iter.idx] = file_iter_create(path, _dir_iter.wildcard);
+  _dir_iter.stack[_dir_iter.idx] = file_iter_create(path, 0);
   _dir_update_file_info();
 }
 
@@ -246,7 +243,7 @@ ATS_API void dir_advance(void)
 {
   if (file_iter_at_directory(&_dir_iter.stack[_dir_iter.idx]))
   {
-    _dir_iter.stack[_dir_iter.idx + 1] = file_iter_create(_dir_iter.stack[_dir_iter.idx].current, _dir_iter.wildcard);
+    _dir_iter.stack[_dir_iter.idx + 1] = file_iter_create(_dir_iter.stack[_dir_iter.idx].current, 0);
     file_iter_advance(&_dir_iter.stack[_dir_iter.idx]);
     _dir_iter.idx++;
     _dir_update_file_info();
@@ -281,5 +278,4 @@ ATS_API char* dir_extension(void)
 {
   return _dir_iter.extension;
 }
-
 

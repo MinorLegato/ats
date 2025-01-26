@@ -999,7 +999,7 @@ ATS_API void  file_free_image(const u32* pixels);
 
 #define dir_iter(...) for (dir_open(__VA_ARGS__); dir_is_valid(); dir_advance())
 
-ATS_API void  dir_open(const char* path, const char* wildcard);
+ATS_API void  dir_open(const char* path);
 ATS_API b32   dir_is_valid(void);
 ATS_API void  dir_advance(void);
 
