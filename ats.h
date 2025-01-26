@@ -1011,12 +1011,6 @@ ATS_API char* dir_extension(void);
 // ------------------------------- implementation in ats_texture_table.c ---------------------------- //
 // ================================================================================================== //
 
-#define tex_id(...) ((tex_id) { __VA_ARGS__ })
-typedef struct
-{
-  u16 index;
-} tex_id;
-
 #define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
 typedef struct
 {
@@ -1029,8 +1023,6 @@ typedef struct
 ATS_API u32* tex_get_pixels(void);
 ATS_API u16 tex_get_width(void);
 ATS_API u16 tex_get_height(void);
-ATS_API tex_rect tex_get_rect(tex_id id);
-ATS_API tex_id tex_get_id(const char* name);
 ATS_API tex_rect tex_get(const char* name);
 ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height);
 ATS_API void tex_load_dir(const char* path);

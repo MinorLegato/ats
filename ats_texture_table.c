@@ -3,20 +3,18 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "ext/stb_image_resize.h" 
 
-#ifndef TEXTURE_BOARDER_SIZE
-#define TEXTURE_BOARDER_SIZE (2)
+#ifndef TEXTURE_BORDER_SIZE
+#define TEXTURE_BORDER_SIZE (2)
 #endif
 
 #define TEXTURE_TABLE_SIZE (1024)
 
-typedef struct
+typedef struct tex_node
 {
-  b32 in_use;
-  u32 hash;
-
+  struct tex_node* next;
   tex_rect rect;
   char name[64];
-} tex_entry;
+} tex_node;
 
 typedef struct
 {
@@ -24,7 +22,7 @@ typedef struct
   u16 height;
   u32* pixels;
 
-  tex_entry array[TEXTURE_TABLE_SIZE];
+  tex_node* array[TEXTURE_TABLE_SIZE];
 } tex_table;
 
 typedef struct
@@ -57,35 +55,19 @@ ATS_API u16 tex_get_height(void)
   return texture_table.height;
 }
 
-ATS_API tex_rect tex_get_rect(tex_id id)
-{
-  return texture_table.array[id.index].rect;
-}
-
-ATS_API tex_id tex_get_id(const char* name)
+ATS_API tex_rect tex_get(const char* name)
 {
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
-
-  while (texture_table.array[index].in_use)
+  for (tex_node* node = texture_table.array[index]; node; node = node->next)
   {
-    if ((texture_table.array[index].hash == hash) && (strcmp(texture_table.array[index].name, name) == 0))
+    if (strcmp(node->name, name) == 0)
     {
-      tex_id id = { index };
-      return id;
+      return node->rect;
     }
-    index = (index + 1) % TEXTURE_TABLE_SIZE;
   }
-
-  puts(name);
   assert(0);
-
-  return tex_id(0);
-}
-
-ATS_API tex_rect tex_get(const char* name)
-{
-  return tex_get_rect(tex_get_id(name));
+  return tex_rect(0);
 }
 
 static int tex_cmp_image(const void* va, const void* vb)
@@ -164,8 +146,6 @@ ATS_API void tex_begin(u16 width, u16 height)
     height, 
     mem_array(u32, (usize)(width * height)),
   };
-
-  texture_table.array[0].in_use = 1;
 }
 
 static usize tex_stack_top; 
@@ -201,22 +181,13 @@ static void _tex_add_entry(const char* name, tex_rect rect)
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
-  while (texture_table.array[index].in_use)
-  {
-    if ((texture_table.array[index].hash == hash) && (strcmp(texture_table.array[index].name, name) == 0))
-    {
-      assert(0);
-    }
-    index = (index + 1) % TEXTURE_TABLE_SIZE;
-  }
+  tex_node* node = mem_type(tex_node);
 
-  tex_entry* entry = &texture_table.array[index];
+  node->next = texture_table.array[index];
+  node->rect = rect;
+  strcpy_s(node->name, 64, name);
 
-  entry->in_use = 1;
-  entry->rect = rect;
-  entry->hash = hash;
-
-  strcpy_s(entry->name, 64, name);
+  texture_table.array[index] = node;
 }
 
 static u32 _tex_get_image_pixel(const tex_image* image, u16 x, u16 y)
@@ -252,10 +223,10 @@ ATS_API void tex_end(void)
     tex_image* image = &tex_image_array[i];
     tex_rect rect = _tex_get_fit(image->width + 2, image->height + 2);
 
-    u16 offset_x = rect.min_x + TEXTURE_BOARDER_SIZE;
-    u16 offset_y = rect.min_y + TEXTURE_BOARDER_SIZE;
-    u16 size_x   = image->width + 2 * TEXTURE_BOARDER_SIZE;
-    u16 size_y   = image->height + 2 * TEXTURE_BOARDER_SIZE;
+    u16 offset_x = rect.min_x + TEXTURE_BORDER_SIZE;
+    u16 offset_y = rect.min_y + TEXTURE_BORDER_SIZE;
+    u16 size_x   = image->width + 2 * TEXTURE_BORDER_SIZE;
+    u16 size_y   = image->height + 2 * TEXTURE_BORDER_SIZE;
 
     tex_rect tex =
     {
@@ -277,9 +248,9 @@ ATS_API void tex_end(void)
       }
     }
 
-    for (u16 y = (tex.min_y - TEXTURE_BOARDER_SIZE); y < (tex.max_y + TEXTURE_BOARDER_SIZE); ++y)
+    for (u16 y = (tex.min_y - TEXTURE_BORDER_SIZE); y < (tex.max_y + TEXTURE_BORDER_SIZE); ++y)
     {
-      for (u16 x = (tex.min_x - TEXTURE_BOARDER_SIZE); x < (tex.max_x + TEXTURE_BOARDER_SIZE); ++x)
+      for (u16 x = (tex.min_x - TEXTURE_BORDER_SIZE); x < (tex.max_x + TEXTURE_BORDER_SIZE); ++x)
       {
         _tex_set_pixel(x, y, _tex_get_pixel(
             clamp(x, tex.min_x, tex.max_x - 1),
