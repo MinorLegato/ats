@@ -320,7 +320,17 @@ ATS_API void tex_save(const char* name)
       emit("  FT_%s,\n", node->name);
     }
   }
-  emit("} frame_tag_t;\n");
+  emit("  FT_count,\n");
+  emit("} frame_tag_t;\n\n");
+  emit("static frame_info_t frame_info_table[FT_count] = \n{\n");
+  for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
+  {
+    for (tex_node* node = texture_table.array[i]; node; node = node->next)
+    {
+      emit("  ")
+    }
+  }
+  emit("};\n\n");
 #undef emit
 
   file_write_bin(header_filename, file_content, it - file_content);
