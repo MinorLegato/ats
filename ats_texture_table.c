@@ -3,11 +3,14 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "ext/stb_image_resize.h" 
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "ext/stb_image_write.h" 
+
 #ifndef TEXTURE_BORDER_SIZE
 #define TEXTURE_BORDER_SIZE (2)
 #endif
 
-#define TEXTURE_TABLE_SIZE (1024)
+#define TEXTURE_TABLE_SIZE (4096)
 
 typedef struct tex_node
 {
@@ -139,7 +142,6 @@ ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator)
 ATS_API void tex_begin(u16 width, u16 height)
 {
   tex_image_count = 0;
-
   texture_table = (tex_table)
   {
     width,
@@ -210,10 +212,10 @@ ATS_API void tex_end(void)
   tex_stack_top = 0;
   tex_stack_buf[tex_stack_top++] = (tex_rect)
   {
-    0,
-    0,
-    texture_table.width,
-    texture_table.height,
+    .min_x = 0,
+    .min_y = 0,
+    .max_x = texture_table.width,
+    .max_y = texture_table.height,
   };
 
   qsort(tex_image_array, tex_image_count, sizeof (tex_image), tex_cmp_image);
@@ -230,10 +232,10 @@ ATS_API void tex_end(void)
 
     tex_rect tex =
     {
-      offset_x,
-      offset_y,
-      (u16)(offset_x + image->width),
-      (u16)(offset_y + image->height),
+      .min_x = offset_x,
+      .min_y = offset_y,
+      .max_x = (u16)(offset_x + image->width),
+      .max_y = (u16)(offset_y + image->height),
     };
 
     _tex_add_entry(image->name, tex);
@@ -292,5 +294,35 @@ ATS_API void tex_end(void)
 
   tex_image_count = 0;
   tex_stack_top = 0;
+}
+
+ATS_API void tex_save(const char* name)
+{
+  char image_filename[256] = {0};
+  char header_filename[256] = {0};
+
+  sprintf(image_filename, "%s.png", name);
+  sprintf(header_filename, "%s.h", name);
+
+  stbi_write_png(image_filename, texture_table.width, texture_table.height, 4, texture_table.pixels, 0);
+
+  char* file_content = mem_temp();
+  char* it = file_content;
+
+#define emit(...) it += sprintf(it, __VA_ARGS__)
+  emit("// GENERATED FILE\n");
+  emit("#pragma once\n\n");
+  emit("typedef enum frame_tag\n{\n");
+  for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
+  {
+    for (tex_node* node = texture_table.array[i]; node; node = node->next)
+    {
+      emit("  FT_%s,\n", node->name);
+    }
+  }
+  emit("} frame_tag_t;\n");
+#undef emit
+
+  file_write_bin(header_filename, file_content, it - file_content);
 }
 

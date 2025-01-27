@@ -736,7 +736,6 @@ typedef struct
 
 ATS_API b32 s8_eq(s8 a, s8 b);
 ATS_API b32 s8_empty(s8 s);
-ATS_API s8  s8_append(s8 a, s8 b);
 
 ATS_API s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators);
 ATS_API b32 s8_iter_is_valid(s8_iter* it);
@@ -1029,6 +1028,7 @@ ATS_API void tex_load_dir(const char* path);
 ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator);
 ATS_API void tex_begin(u16 width, u16 height);
 ATS_API void tex_end(void);
+ATS_API void tex_save(const char* name);
 
 // ========================================= ANIMATION TABLE ======================================== //
 // ----------------------------- implementation in ats_animation_table.c ---------------------------- //

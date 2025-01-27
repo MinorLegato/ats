@@ -43,11 +43,6 @@ ATS_API b32 s8_empty(s8 s)
   return s.len == 0;
 }
 
-ATS_API s8 s8_append(s8 a, s8 b)
-{
-  return s8(0);
-}
-
 ATS_API b32 s8_iter_is_valid(s8_iter* it)
 {
   return it->current.len > 0;
