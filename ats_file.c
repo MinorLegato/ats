@@ -1,6 +1,5 @@
 #include "ats.h"
 
-//#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -14,12 +13,15 @@ static usize _file_get_size(FILE* fp)
   return size;
 }
 
+#define _file_open stbi__fopen
+#if 0
 static FILE* _file_open(const char* path, const char* mode)
 {
   FILE* file = 0;
   errno_t error = fopen_s(&file, path, mode);
   return error? 0 : file;
 }
+#endif
 
 ATS_API usize file_get_size(const char* path)
 {
@@ -246,17 +248,16 @@ ATS_API void dir_advance(void)
     _dir_iter.stack[_dir_iter.idx + 1] = file_iter_create(_dir_iter.stack[_dir_iter.idx].current, 0);
     file_iter_advance(&_dir_iter.stack[_dir_iter.idx]);
     _dir_iter.idx++;
-    _dir_update_file_info();
   }
   else
   {
     file_iter_advance(&_dir_iter.stack[_dir_iter.idx]);
-    _dir_update_file_info();
   }
   while ((_dir_iter.idx >= 0) && !file_iter_is_valid(&_dir_iter.stack[_dir_iter.idx]))
   {
     _dir_iter.idx--;
   }
+  _dir_update_file_info();
 }
 
 ATS_API b32 dir_is_valid(void)

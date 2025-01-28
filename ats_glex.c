@@ -1,22 +1,15 @@
 #pragma once
 
 // EXAMPLE:
-//#define ATS_OGL33
+//#define ATS_IMPL
+//#define ATS_OGL46
 //#include "../ats/ats.h"
 //#include "../ats/ats_platform.h"
-//
-//#include "../ats/ats_file.c"
-//#include "../ats/ats_memory.c"
-//
-//#include "../ats/ats_platform.c"
-//#include "../ats/ats_gl33.c"
-//
-//#include "render.c"
 //
 //int main(void)
 //{
 //  platform_init("YOLO", 1600, 800, 4);
-//  glex_init();
+//  d3_init();
 //
 //  while (!platform.close)
 //  {
@@ -29,18 +22,17 @@
 //    m4 view       = m4_look_at(v3(0, 0, 8), v3(0, 0, 0), v3(0, 1, 0));
 //    m4 mvp        = m4_mul(projection, view);
 //
-//    glex_begin_frame();
+//    d3_begin_frame();
 //
-//    glex_clear(0xff000000);
-//    glex_set_matrix(mvp);
+//    d3_set_matrix(mvp);
 //
-//    glex_begin(GL_TRIANGLES);
-//    glex_color(0xffffff00); glex_vertex( 0,  1, 0);
-//    glex_color(0xffff00ff); glex_vertex(-1, -1, 0);
-//    glex_color(0xff00ffff); glex_vertex( 1, -1, 0);
-//    glex_end();
+//    d3_begin(GL_TRIANGLES);
+//    d3_color(0xffffff00); d3_vertex( 0,  1, 0);
+//    d3_color(0xffff00ff); d3_vertex(-1, -1, 0);
+//    d3_color(0xff00ffff); d3_vertex( 1, -1, 0);
+//    d3_end();
 //
-//    glex_end_frame();
+//    d3_end_frame();
 //
 //    platform_update();
 //  }
@@ -49,7 +41,7 @@
 #define GLEX_VERTEX_MAX (4 * 1024 * 1024)
 #define GLEX_TARGET_MAX (256)
 
-static const char* glex_vertex_shader = GLSL(
+static const char* d3_vertex_shader = GLSL(
     layout (location = 0) in vec3 in_pos;
     layout (location = 1) in vec3 in_normal;
     layout (location = 2) in vec2 in_uv;
@@ -71,7 +63,7 @@ static const char* glex_vertex_shader = GLSL(
         gl_Position = mvp * vec4(in_pos, 1);
     });
 
-static const char* glex_fragment_shader = GLSL(
+static const char* d3_fragment_shader = GLSL(
     struct point_light
     {
         vec3 pos;
@@ -159,7 +151,7 @@ static const char* glex_fragment_shader = GLSL(
         out_color = color;
     });
 
-static const char* glex_post_fx_vertex_shader = GLSL(
+static const char* d3_post_fx_vertex_shader = GLSL(
     out vec2 frag_uv;
 
     const vec2 verts[6] = vec2[](
@@ -176,7 +168,7 @@ static const char* glex_post_fx_vertex_shader = GLSL(
         gl_Position = vec4(verts[gl_VertexID], 0, 1);
     });
 
-static const char* glex_post_fx_none = GLSL(
+static const char* d3_post_fx_none = GLSL(
     in vec2 frag_uv;
     out vec4 out_color;
 
@@ -187,7 +179,7 @@ static const char* glex_post_fx_none = GLSL(
         out_color = texture(tex, frag_uv);
     });
 
-static const char* glex_post_fx_blur = GLSL(
+static const char* d3_post_fx_blur = GLSL(
     in vec2 frag_uv;
     out vec4 out_color;
 
@@ -228,16 +220,16 @@ static const char* glex_post_fx_blur = GLSL(
         out_color = col;
     });
 
-typedef struct glex__vertex glex__vertex;
-struct glex__vertex {
+typedef struct d3__vertex d3__vertex;
+struct d3__vertex {
     v3 pos;
     v3 normal;
     v2 uv;
     u32 color;
 };
 
-typedef struct glex__light glex__light;
-struct glex__light {
+typedef struct d3__light d3__light;
+struct d3__light {
     v3 pos;
     v3 ambient;
     v3 diffuse;
@@ -258,7 +250,7 @@ static struct {
     gl_texture current_texture;
 
     u32 light_count;
-    glex__light light_array[16];
+    d3__light light_array[16];
 
     struct {
         gl_shader shader;
@@ -269,48 +261,48 @@ static struct {
     } target;
 
     u32 type;
-    glex__vertex current;
+    d3__vertex current;
     u32 vertex_count;
-    glex__vertex vertex_array[GLEX_VERTEX_MAX];
+    d3__vertex vertex_array[GLEX_VERTEX_MAX];
 } glex;
 
-static void glex_set_matrix(m4 projection, m4 view) {
+static void d3_set_matrix(m4 projection, m4 view) {
     m4 mvp = m4_mul(projection, view);
 
     gl_use(&glex.shader);
     gl_uniform_m4(gl_location(&glex.shader, "mvp"), mvp);
 }
 
-static void glex_set_view(v3 pos, v3 dir) {
+static void d3_set_view(v3 pos, v3 dir) {
     glex.view_pos = pos;
     glex.view_dir = v3_norm(dir);
     gl_uniform_v3(gl_location(&glex.shader, "view_pos"), glex.view_pos);
 }
 
-static void glex_set_texture(const gl_texture* texture) {
+static void d3_set_texture(const gl_texture* texture) {
     gl_use(&glex.shader);
     gl_texture_bind(texture);
     glex.current_texture = *texture;
 }
 
-static void glex_init(void) {
+static void d3_init(void) {
     gl_init();
     gl_buffer_desc fx_buffer_desc = {0};
     glex.post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
 
     gl_shader_desc shader_desc = {0};
 
-    shader_desc.vs = glex_vertex_shader;
-    shader_desc.fs = glex_fragment_shader;
+    shader_desc.vs = d3_vertex_shader;
+    shader_desc.fs = d3_fragment_shader;
 
     glex.shader = gl_shader_create(shader_desc);
 
     gl_buffer_desc buffer_desc = {0};
 
-    buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, pos) };
-    buffer_desc.layout[1] = (gl_layout) { 3, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, normal) };
-    buffer_desc.layout[2] = (gl_layout) { 2, GL_FLOAT,         sizeof (glex__vertex), offsetof(glex__vertex, uv) };
-    buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (glex__vertex), offsetof(glex__vertex, color), 1 };
+    buffer_desc.layout[0] = (gl_layout) { 3, GL_FLOAT,         sizeof (d3__vertex), offsetof(d3__vertex, pos) };
+    buffer_desc.layout[1] = (gl_layout) { 3, GL_FLOAT,         sizeof (d3__vertex), offsetof(d3__vertex, normal) };
+    buffer_desc.layout[2] = (gl_layout) { 2, GL_FLOAT,         sizeof (d3__vertex), offsetof(d3__vertex, uv) };
+    buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (d3__vertex), offsetof(d3__vertex, color), 1 };
 
     glex.buffer = gl_buffer_create(&buffer_desc);
 
@@ -321,8 +313,8 @@ static void glex_init(void) {
     {
         gl_shader_desc shader_desc = {0};
 
-        shader_desc.vs = glex_post_fx_vertex_shader;
-        shader_desc.fs = glex_post_fx_none;
+        shader_desc.vs = d3_post_fx_vertex_shader;
+        shader_desc.fs = d3_post_fx_none;
 
         glex.target.default_shader = gl_shader_create(shader_desc);
 
@@ -345,7 +337,7 @@ static void glex_init(void) {
     }
 }
 
-static void glex_end_pass(void) {
+static void d3_end_pass(void) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     gl_use(&glex.target.shader);
@@ -356,11 +348,11 @@ static void glex_end_pass(void) {
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    glex_set_texture(&glex.current_texture);
+    d3_set_texture(&glex.current_texture);
 }
 
-static void glex_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a) {
-    glex_end_pass();
+static void d3_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a) {
+    d3_end_pass();
 
     glex.target.shader = shader;
     glBindFramebuffer(GL_FRAMEBUFFER, glex.target.framebuffer);
@@ -374,48 +366,48 @@ static void glex_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a) {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    glex_set_texture(&glex.current_texture);
+    d3_set_texture(&glex.current_texture);
 }
 
-static void glex_begin_frame(void) {
+static void d3_begin_frame(void) {
     gl_use(&glex.shader);
-    glex_set_matrix(m4_identity(), m4_identity());
+    d3_set_matrix(m4_identity(), m4_identity());
     glex.view_pos = v3(0);
     glex.light_count = 0;
 
-    glex_begin_pass(glex.target.default_shader, 0, 0, 0, 0);
+    d3_begin_pass(glex.target.default_shader, 0, 0, 0, 0);
 }
 
-static void glex_end_frame(void) {
-    glex_end_pass();
+static void d3_end_frame(void) {
+    d3_end_pass();
 }
 
-static void glex_begin(u32 type) {
+static void d3_begin(u32 type) {
     glex.type = type;
     glex.vertex_count = 0;
 }
 
-static void glex_uv(f32 x, f32 y) {
+static void d3_uv(f32 x, f32 y) {
     glex.current.uv = v2(x, y);
 }
 
-static void glex_color(u32 color) {
+static void d3_color(u32 color) {
     glex.current.color = color;
 }
 
-static void glex_normal(f32 x, f32 y, f32 z) {
+static void d3_normal(f32 x, f32 y, f32 z) {
     glex.current.normal = v3(x, y, z);
 }
 
-static void glex_vertex(f32 x, f32 y, f32 z) {
+static void d3_vertex(f32 x, f32 y, f32 z) {
     glex.current.pos = v3(x, y, z);
     glex.vertex_array[glex.vertex_count++] = glex.current;
 }
 
-static void glex_end(void) {
+static void d3_end(void) {
     gl_use(&glex.shader);
     gl_buffer_bind(&glex.buffer);
-    gl_buffer_send(&glex.buffer, glex.vertex_array, glex.vertex_count * sizeof (glex__vertex));
+    gl_buffer_send(&glex.buffer, glex.vertex_array, glex.vertex_count * sizeof (d3__vertex));
 
     // add lights
     {
@@ -424,7 +416,7 @@ static void glex_end(void) {
         char buffer[256];
         for (i32 i = 0; i < count; ++i)
         {
-            glex__light light = glex.light_array[i];
+            d3__light light = glex.light_array[i];
 #define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_v3(gl_location(&glex.shader, buffer), light.var);
 #define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_f32(gl_location(&glex.shader, buffer), light.var);
             set_v3(pos);
@@ -452,7 +444,7 @@ enum
     GLEX_LIGHTING,
 };
 
-static void glex_enable(u32 tag) {
+static void d3_enable(u32 tag) {
     gl_use(&glex.shader);
     switch (tag) {
         case GLEX_TEXTURE: {
@@ -467,7 +459,7 @@ static void glex_enable(u32 tag) {
     }
 }
 
-static void glex_disable(u32 tag) {
+static void d3_disable(u32 tag) {
     gl_use(&glex.shader);
     switch (tag) {
         case GLEX_TEXTURE: {
@@ -482,19 +474,19 @@ static void glex_disable(u32 tag) {
     }
 }
 
-static void glex_fog_color(f32 r, f32 g, f32 b) {
+static void d3_fog_color(f32 r, f32 g, f32 b) {
     gl_uniform_v3(gl_location(&glex.shader, "fog_color"), v3(r, g, b));
 }
 
-static void glex_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic) {
+static void d3_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic) {
     if (glex.light_count >= countof(glex.light_array))
     {
         return;
     }
-    glex.light_array[glex.light_count++] = (glex__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
+    glex.light_array[glex.light_count++] = (d3__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
-static void glex_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
+static void d3_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
     f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
     f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
     f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -511,88 +503,88 @@ static void glex_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 
     f32 dy = pos.y - right.y * rad.x + up.y * rad.y;
     f32 dz = pos.z - right.z * rad.x + up.z * rad.y;
 
-    glex_color(color);
-    glex_normal(-glex.view_dir.x, -glex.view_dir.y, -glex.view_dir.z);
+    d3_color(color);
+    d3_normal(-glex.view_dir.x, -glex.view_dir.y, -glex.view_dir.z);
 
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(ax, ay, az);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(bx, by, bz);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(cx, cy, cz);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(ax, ay, az);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(bx, by, bz);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(cx, cy, cz);
 
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(cx, cy, cz);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(dx, dy, dz);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(ax, ay, az);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(cx, cy, cz);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(dx, dy, dz);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(ax, ay, az);
 }
 
-static void glex_texture_box(tex_rect tr, r3 box, u32 color) {
-    glex_color(color);
+static void d3_texture_box(tex_rect tr, r3 box, u32 color) {
+    d3_color(color);
 
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.min.z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.min.z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(box.min.x, box.max.y, box.min.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.min.z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.min.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(box.min.x, box.max.y, box.min.z);
 
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.max.z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(box.min.x, box.max.y, box.max.z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.max.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.max.z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(box.min.x, box.max.y, box.max.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.max.z);
 
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.min.x, box.max.y, box.max.z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(box.min.x, box.max.y, box.min.z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(box.min.x, box.min.y, box.max.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.min.x, box.max.y, box.max.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.min.x, box.max.y, box.max.z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(box.min.x, box.max.y, box.min.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(box.min.x, box.min.y, box.max.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.min.x, box.max.y, box.max.z);
 
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(box.max.x, box.max.y, box.min.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(box.max.x, box.max.y, box.min.z);
 
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(box.min.x, box.min.y, box.max.z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.min.y, box.min.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(box.min.x, box.min.y, box.max.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.min.z);
 
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.max.y, box.min.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(box.max.x, box.max.y, box.min.z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(box.min.x, box.max.y, box.min.z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(box.min.x, box.max.y, box.max.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.max.y, box.min.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(box.max.x, box.max.y, box.min.z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.max.y, box.min.z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void glex_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color) {
-    glex_color(color);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(rect.min.x, rect.min.y, z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(rect.max.x, rect.min.y, z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(rect.max.x, rect.max.y, z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(rect.max.x, rect.max.y, z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(rect.min.x, rect.max.y, z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(rect.min.x, rect.min.y, z);
+static void d3_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color) {
+    d3_color(color);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(rect.min.x, rect.min.y, z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(rect.max.x, rect.min.y, z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(rect.max.x, rect.max.y, z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(rect.max.x, rect.max.y, z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(rect.min.x, rect.max.y, z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void glex_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y) {
+static void d3_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y) {
     if (flip_x) swap(f32, tr.min_x, tr.max_x);
     if (flip_y) swap(f32, tr.min_y, tr.max_y);
 
-    glex_color(color);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(rect.min.x, rect.min.y, z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(rect.max.x, rect.min.y, z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(rect.max.x, rect.max.y, z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(rect.max.x, rect.max.y, z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(rect.min.x, rect.max.y, z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(rect.min.x, rect.min.y, z);
+    d3_color(color);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(rect.min.x, rect.min.y, z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(rect.max.x, rect.min.y, z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(rect.max.x, rect.max.y, z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(rect.max.x, rect.max.y, z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(rect.min.x, rect.max.y, z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void glex_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
+static void d3_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
     if (flip_y) swap(f32, tr.min_y, tr.max_y);
 
     m2 rot_matrix = m2_rotate(rot);
@@ -612,16 +604,16 @@ static void glex_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u3
     f32 dx = pos.x - rad.x * r.x + rad.y * u.x;
     f32 dy = pos.y - rad.x * r.y + rad.y * u.y;
 
-    glex_color(color);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(ax, ay, z);
-    glex_uv(tr.max_x, tr.max_y); glex_vertex(bx, by, z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(cx, cy, z);
-    glex_uv(tr.max_x, tr.min_y); glex_vertex(cx, cy, z);
-    glex_uv(tr.min_x, tr.min_y); glex_vertex(dx, dy, z);
-    glex_uv(tr.min_x, tr.max_y); glex_vertex(ax, ay, z);
+    d3_color(color);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(ax, ay, z);
+    d3_uv(tr.max_x, tr.max_y); d3_vertex(bx, by, z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(cx, cy, z);
+    d3_uv(tr.max_x, tr.min_y); d3_vertex(cx, cy, z);
+    d3_uv(tr.min_x, tr.min_y); d3_vertex(dx, dy, z);
+    d3_uv(tr.min_x, tr.max_y); d3_vertex(ax, ay, z);
 }
 
-static void glex_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
+static void d3_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
     m2 rot_matrix = m2_rotate(rot);
 
     v2 u = m2_mulv(rot_matrix, v2(0, 1));
@@ -639,16 +631,16 @@ static void glex_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
     f32 dx = pos.x - rad.x * r.x + rad.y * u.x;
     f32 dy = pos.y - rad.x * r.y + rad.y * u.y;
 
-    glex_color(color);
-    glex_vertex(ax, ay, z);
-    glex_vertex(bx, by, z);
-    glex_vertex(cx, cy, z);
-    glex_vertex(cx, cy, z);
-    glex_vertex(dx, dy, z);
-    glex_vertex(ax, ay, z);
+    d3_color(color);
+    d3_vertex(ax, ay, z);
+    d3_vertex(bx, by, z);
+    d3_vertex(cx, cy, z);
+    d3_vertex(cx, cy, z);
+    d3_vertex(dx, dy, z);
+    d3_vertex(ax, ay, z);
 }
 
-static void glex_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color) {
+static void d3_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color) {
     v2 line         = v2_sub(p1, p0);
     f32 line_length = v2_len(line);
     v2 line_pos     = v2_add(p0, v2_scale(line, 0.5f));
@@ -657,69 +649,69 @@ static void glex_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color) {
     v2 pos          = { line_pos.x, line_pos.y };
     v2 scale        = { rad, 0.5f * line_length };
 
-    glex_rotated(pos, z, scale, rot, color);
+    d3_rotated(pos, z, scale, rot, color);
 }
 
-static void glex_box(r3 box, u32 color) {
-    glex_color(color);
+static void d3_box(r3 box, u32 color) {
+    d3_color(color);
 
-    glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_vertex(box.max.x, box.max.y, box.min.z);
-    glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_vertex(box.max.x, box.max.y, box.min.z);
-    glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_vertex(box.min.x, box.max.y, box.min.z);
+    d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_vertex(box.max.x, box.max.y, box.min.z);
+    d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_vertex(box.max.x, box.max.y, box.min.z);
+    d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_vertex(box.min.x, box.max.y, box.min.z);
 
-    glex_vertex(box.min.x, box.min.y, box.max.z);
-    glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_vertex(box.min.x, box.max.y, box.max.z);
-    glex_vertex(box.min.x, box.min.y, box.max.z);
+    d3_vertex(box.min.x, box.min.y, box.max.z);
+    d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_vertex(box.min.x, box.max.y, box.max.z);
+    d3_vertex(box.min.x, box.min.y, box.max.z);
 
-    glex_vertex(box.min.x, box.max.y, box.max.z);
-    glex_vertex(box.min.x, box.max.y, box.min.z);
-    glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_vertex(box.min.x, box.min.y, box.max.z);
-    glex_vertex(box.min.x, box.max.y, box.max.z);
+    d3_vertex(box.min.x, box.max.y, box.max.z);
+    d3_vertex(box.min.x, box.max.y, box.min.z);
+    d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_vertex(box.min.x, box.min.y, box.max.z);
+    d3_vertex(box.min.x, box.max.y, box.max.z);
 
-    glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_vertex(box.max.x, box.max.y, box.min.z);
+    d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_vertex(box.max.x, box.max.y, box.min.z);
 
-    glex_vertex(box.min.x, box.min.y, box.min.z);
-    glex_vertex(box.max.x, box.min.y, box.min.z);
-    glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_vertex(box.max.x, box.min.y, box.max.z);
-    glex_vertex(box.min.x, box.min.y, box.max.z);
-    glex_vertex(box.min.x, box.min.y, box.min.z);
+    d3_vertex(box.min.x, box.min.y, box.min.z);
+    d3_vertex(box.max.x, box.min.y, box.min.z);
+    d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_vertex(box.max.x, box.min.y, box.max.z);
+    d3_vertex(box.min.x, box.min.y, box.max.z);
+    d3_vertex(box.min.x, box.min.y, box.min.z);
 
-    glex_vertex(box.min.x, box.max.y, box.min.z);
-    glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_vertex(box.max.x, box.max.y, box.min.z);
-    glex_vertex(box.max.x, box.max.y, box.max.z);
-    glex_vertex(box.min.x, box.max.y, box.min.z);
-    glex_vertex(box.min.x, box.max.y, box.max.z);
+    d3_vertex(box.min.x, box.max.y, box.min.z);
+    d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_vertex(box.max.x, box.max.y, box.min.z);
+    d3_vertex(box.max.x, box.max.y, box.max.z);
+    d3_vertex(box.min.x, box.max.y, box.min.z);
+    d3_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void glex_rect(r2 rect, f32 z, u32 color) {
-    glex_color(color);
-    glex_vertex(rect.min.x, rect.min.y, z);
-    glex_vertex(rect.max.x, rect.min.y, z);
-    glex_vertex(rect.max.x, rect.max.y, z);
-    glex_vertex(rect.max.x, rect.max.y, z);
-    glex_vertex(rect.min.x, rect.max.y, z);
-    glex_vertex(rect.min.x, rect.min.y, z);
+static void d3_rect(r2 rect, f32 z, u32 color) {
+    d3_color(color);
+    d3_vertex(rect.min.x, rect.min.y, z);
+    d3_vertex(rect.max.x, rect.min.y, z);
+    d3_vertex(rect.max.x, rect.max.y, z);
+    d3_vertex(rect.max.x, rect.max.y, z);
+    d3_vertex(rect.min.x, rect.max.y, z);
+    d3_vertex(rect.min.x, rect.min.y, z);
 }
 
-static gl_shader glex_new_target(const char* fragment_shader) {
+static gl_shader d3_new_target(const char* fragment_shader) {
     gl_shader_desc shader_desc = {0};
 
-    shader_desc.vs = glex_post_fx_vertex_shader;
+    shader_desc.vs = d3_post_fx_vertex_shader;
     shader_desc.fs = fragment_shader;
 
     return gl_shader_create(shader_desc);

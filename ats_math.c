@@ -68,12 +68,12 @@ ATS_API i32 absi(i32 x)
 
 ATS_API f32 cos_turn(f32 turns)
 {
-  return cosf(TAU * turns);
+  return cos(TAU * turns);
 }
 
 ATS_API f32 sin_turn(f32 turns)
 {
-  return sinf(TAU * turns);
+  return sin(TAU * turns);
 }
 
 ATS_API f32 cos_turn01(f32 turns)
@@ -89,8 +89,8 @@ ATS_API f32 sin_turn01(f32 turns)
 ATS_API f32 shortest_angle_distance(f32 a, f32 b)
 {
   f32 max = 2.0f * PI;
-  f32 da  = fmodf(b - a, max);
-  return fmodf(2.0f * da, max) - da;
+  f32 da  = fmod(b - a, max);
+  return fmod(2.0f * da, max) - da;
 }
 
 ATS_API f32 lerp_angle(f32 a, f32 b, f32 t) {
@@ -99,17 +99,17 @@ ATS_API f32 lerp_angle(f32 a, f32 b, f32 t) {
 
 ATS_API f32 sine_ease_in(f32 t)
 {
-  return 1 - cosf((t * PI) / 2);
+  return 1 - cos((t * PI) / 2);
 }
 
 ATS_API f32 sine_ease_out(f32 t)
 {
-  return sinf((t * PI) / 2);
+  return sin((t * PI) / 2);
 }
 
 ATS_API f32 sine_ease_in_out(f32 t)
 {
-  return -0.5f * (cosf(PI * t) - 1);
+  return -0.5f * (cos(PI * t) - 1);
 }
 
 ATS_API f32 quad_ease_in(f32 t)
@@ -181,17 +181,17 @@ ATS_API f32 quint_ease_in_out(f32 t)
 
 ATS_API f32 expo_ease_in(f32 t)
 {
-  return (t == 0)? 0 : powf(2, 10 * t - 10);
+  return (t == 0)? 0 : pow(2, 10 * t - 10);
 }
 
 ATS_API f32 expo_ease_out(f32 t)
 {
-  return (t == 1)? 1 : (1 - powf(2, -10 * t));
+  return (t == 1)? 1 : (1 - pow(2, -10 * t));
 }
 
 ATS_API f32 expo_ease_in_out(f32 t)
 {
-  return (t == 0)? 0 : (t == 1)? 1 : t < 0.5? powf(2, 20 * t - 10) / 2 : (2 - powf(2, -20 * t + 10)) / 2;
+  return (t == 0)? 0 : (t == 1)? 1 : t < 0.5? pow(2, 20 * t - 10) / 2 : (2 - pow(2, -20 * t + 10)) / 2;
 }
 
 ATS_API f32 circ_ease_in(f32 t)
@@ -231,8 +231,8 @@ ATS_API f32 back_ease_in_out(f32 t)
   f32 c1 = 1.70158f;
   f32 c2 = c1 * 1.525f;
   return (t < 0.5f)?
-    0.5f * (powf(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) :
-    0.5f * (powf(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2);
+    0.5f * (pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) :
+    0.5f * (pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2);
 }
 
 ATS_API f32 elastic_ease_in(f32 t)
@@ -242,7 +242,7 @@ ATS_API f32 elastic_ease_in(f32 t)
     0 :
     (t == 1)?
     1 :
-    -powf(2, 10 * t - 10) * sinf((t * 10 - 10.75f) * c4);
+    -pow(2, 10 * t - 10) * sin((t * 10 - 10.75f) * c4);
 }
 
 ATS_API f32 elastic_ease_out(f32 t)
@@ -252,7 +252,7 @@ ATS_API f32 elastic_ease_out(f32 t)
     0 :
     t == 1?
     1 :
-    powf(2, -10 * t) * sinf((t * 10 - 0.75f) * c4) + 1;
+    pow(2, -10 * t) * sin((t * 10 - 0.75f) * c4) + 1;
 }
 
 ATS_API f32 elastic_ease_in_out(f32 t)
@@ -263,8 +263,8 @@ ATS_API f32 elastic_ease_in_out(f32 t)
     t == 1?
     1 :
     t < 0.5f?
-    -0.5f * (powf(2, 20 * t - 10)  * sinf((20 * t - 11.125f) * c5)) :
-    +0.5f * (powf(2, -20 * t + 10) * sinf((20 * t - 11.125f) * c5)) + 1;
+    -0.5f * (pow(2, 20 * t - 10)  * sin((20 * t - 11.125f) * c5)) :
+    +0.5f * (pow(2, -20 * t + 10) * sin((20 * t - 11.125f) * c5)) + 1;
 }
 
 ATS_API f32 bounce_ease_out(f32 t)
@@ -876,34 +876,34 @@ ATS_API v3 v3_project(v3 a, v3 b)
 
 ATS_API v2 v2_floor(v2 u)
 {
-  return (v2) { floorf(u.x), floorf(u.y) };
+  return (v2) { floor(u.x), floor(u.y) };
 }
 
 ATS_API v3 v3_floor(v3 u)
 {
-  return (v3) { floorf(u.x), floorf(u.y), floorf(u.z) };
+  return (v3) { floor(u.x), floor(u.y), floor(u.z) };
 }
 
 ATS_API v4 v4_floor(v4 u)
 {
-  return (v4) { floorf(u.x), floorf(u.y), floorf(u.z), floorf(u.w) };
+  return (v4) { floor(u.x), floor(u.y), floor(u.z), floor(u.w) };
 }
 
 // -------------- ceil --------------- //
 
 ATS_API v2 v2_ceil(v2 u)
 {
-  return (v2) { ceilf(u.x), ceilf(u.y) };
+  return (v2) { ceil(u.x), ceil(u.y) };
 }
 
 ATS_API v3 v3_ceil(v3 u)
 {
-  return (v3) { ceilf(u.x), ceilf(u.y), ceilf(u.z) };
+  return (v3) { ceil(u.x), ceil(u.y), ceil(u.z) };
 }
 
 ATS_API v4 v4_ceil(v4 u)
 {
-  return (v4) { ceilf(u.x), ceilf(u.y), ceilf(u.z), ceilf(u.w) };
+  return (v4) { ceil(u.x), ceil(u.y), ceil(u.z), ceil(u.w) };
 }
 
 // -------------- clamp --------------- //
@@ -1231,22 +1231,22 @@ ATS_API f32 v2_get_angle(v2 a, v2 b)
 {
   f32 det = a.x * b.y - b.x * a.y;
   f32 dot = a.x * b.x + a.y * b.y;
-  return atan2f(det, dot);
+  return atan2(det, dot);
 }
 
 // --------------- from angle ------------------- //
 
 ATS_API v2 v2_from_angle(f32 angle)
 {
-  return v2(cosf(angle), sinf(angle));
+  return v2(cos(angle), sin(angle));
 }
 
 // ----------- keep min ---------- //
 
 ATS_API v2 v2_keep_min(v2 u)
 {
-  f32 dx = fabsf(u.x);
-  f32 dy = fabsf(u.y);
+  f32 dx = fabs(u.x);
+  f32 dy = fabs(u.y);
   if (dx <= dy) return (v2) { u.x, 0 };
   if (dy <= dx) return (v2) { 0, u.y };
   return u;
@@ -1254,9 +1254,9 @@ ATS_API v2 v2_keep_min(v2 u)
 
 ATS_API v3 v3_keep_min(v3 u)
 {
-  f32 dx = fabsf(u.x);
-  f32 dy = fabsf(u.y);
-  f32 dz = fabsf(u.z);
+  f32 dx = fabs(u.x);
+  f32 dy = fabs(u.y);
+  f32 dz = fabs(u.z);
   if (dx <= dy && dx <= dz) return (v3) { u.x, 0, 0 };
   if (dy <= dx && dy <= dz) return (v3) { 0, u.y, 0 };
   if (dz <= dx && dz <= dy) return (v3) { 0, 0, u.z };
@@ -1267,8 +1267,8 @@ ATS_API v3 v3_keep_min(v3 u)
 
 ATS_API v2 v2_mask_min(v2 u)
 {
-  f32 dx = fabsf(u.x);
-  f32 dy = fabsf(u.y);
+  f32 dx = fabs(u.x);
+  f32 dy = fabs(u.y);
 
   if (dx <= dy) return (v2) { 0, 1 };
   if (dy <= dx) return (v2) { 1, 0 };
@@ -1279,9 +1279,9 @@ ATS_API v2 v2_mask_min(v2 u)
 
 ATS_API v3 v3_mask_min(v3 u)
 {
-  f32 dx = fabsf(u.x);
-  f32 dy = fabsf(u.y);
-  f32 dz = fabsf(u.z);
+  f32 dx = fabs(u.x);
+  f32 dy = fabs(u.y);
+  f32 dz = fabs(u.z);
 
   if (dx <= dy && dx <= dz) return (v3) { 0, 1, 1 };
   if (dy <= dx && dy <= dz) return (v3) { 1, 0, 1 };
@@ -1294,15 +1294,15 @@ ATS_API v3 v3_mask_min(v3 u)
 
 ATS_API m2 m2_rotate(f32 angle)
 {
-  f32 c = cosf(angle);
-  f32 s = sinf(angle);
+  f32 c = cos(angle);
+  f32 s = sin(angle);
   return (m2) { c, s, -s, c };
 }
 
 ATS_API m3 m3_rotate(v3 axis, f32 angle)
 {
-  f32 c = cosf(angle);
-  f32 s = sinf(angle);
+  f32 c = cos(angle);
+  f32 s = sin(angle);
   f32 k = 1.0f - c;
 
   v3 sa = { s * axis.x, s * axis.y, s * axis.z };
@@ -1324,8 +1324,8 @@ ATS_API m3 m3_rotate(v3 axis, f32 angle)
 
 ATS_API m4 m4_rotate(v3 axis, f32 angle)
 {
-  f32 cosv = cosf(angle);
-  f32 sinv = sinf(angle);
+  f32 cosv = cos(angle);
+  f32 sinv = sin(angle);
   f32 inv_cosv = 1.0f - cosv;
 
   v3 sa = { axis.x * sinv, axis.y * sinv, axis.z * sinv };
@@ -1350,11 +1350,11 @@ ATS_API quat quat_conj(quat q)
 
 ATS_API quat quat_rotate(v3 axis, f32 angle)
 {
-  f32 s = sinf(0.5f * angle);
+  f32 s = sin(0.5f * angle);
   v3  v = { s * axis.x, s * axis.y, s * axis.z };
   return (quat)
   {
-    v.x, v.y, v.z, cosf(0.5f * angle)
+    v.x, v.y, v.z, cos(0.5f * angle)
   };
 }
 
@@ -1476,7 +1476,7 @@ ATS_API m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
 
 ATS_API m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
 {
-  f32 a = 1.0f / tanf(y_fov / 2.0f);
+  f32 a = 1.0f / tan(y_fov / 2.0f);
 
   return (m4)
   {
@@ -1690,7 +1690,7 @@ ATS_API b32 frustum_intersect_sphere(frustum fs, sphere s)
 {
   for (i32 i = 0; i < 6; i++)
   {
-    if(fs.planes[i].a * s.p.x + fs.planes[i].b * s.p.y + fs.planes[i].c * s.p.z + fs.planes[i].d <= -s.r)
+    if (fs.planes[i].a * s.p.x + fs.planes[i].b * s.p.y + fs.planes[i].c * s.p.z + fs.planes[i].d <= -s.r)
     {
       return 0;
     }
