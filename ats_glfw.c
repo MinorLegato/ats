@@ -669,7 +669,6 @@ ATS_API void platform_init(const char* title, int width, int height, int samples
   glfwSetTime(0.0);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   platform_update();
 }
 

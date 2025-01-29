@@ -763,6 +763,7 @@ static void gl_timer_print_table(f32 px, f32 py, f32 sx, f32 sy, u32 color)
     gl_string_format(px, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f : %.2f", e.name, 1000.0 * e.max, 1000.0 * e.current);
     y++;
   }
+
   timer_reset_all();
 }
 
