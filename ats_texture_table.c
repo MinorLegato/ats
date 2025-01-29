@@ -16,6 +16,7 @@ typedef struct tex_node
 {
   struct tex_node* next;
   tex_rect rect;
+  tex_rect fitted;
   char name[64];
 } tex_node;
 
@@ -184,15 +185,17 @@ static tex_rect _tex_get_fit(u16 width, u16 height)
   return rect;
 }
 
-static void _tex_add_entry(const char* name, tex_rect rect)
+static void _tex_add_entry(const char* name, tex_rect rect, tex_rect fitted)
 {
   u32 hash  = hash_str(name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
   tex_node* node = mem_type(tex_node);
 
-  node->next = texture_table.array[index];
-  node->rect = rect;
+  node->next    = texture_table.array[index];
+  node->rect    = rect;
+  node->fitted  = fitted;
+
   tex__str_copy(node->name, 64, name);
 
   texture_table.array[index] = node;
@@ -244,7 +247,12 @@ ATS_API void tex_end(void)
       .max_y = (u16)(offset_y + image->height),
     };
 
-    _tex_add_entry(image->name, tex);
+    tex_rect fitted = {
+      .min_x = 0xffff,
+      .min_y = 0xffff,
+      .max_x = 0,
+      .max_y = 0,
+    };
 
     for (u16 y = 0; y < image->height; ++y)
     {
@@ -252,9 +260,24 @@ ATS_API void tex_end(void)
       {
         u16 tx = offset_x + x;
         u16 ty = offset_y + y;
-        _tex_set_pixel(tx, ty, _tex_get_image_pixel(image, x, y));
+        u32 pixel = _tex_get_image_pixel(image, x, y);
+        _tex_set_pixel(tx, ty, pixel);
+        if (pixel)
+        {
+          fitted.min_x = min(fitted.min_x, x);
+          fitted.min_y = min(fitted.min_y, y);
+          fitted.max_x = max(fitted.max_x, x);
+          fitted.max_y = max(fitted.max_y, y);
+        }
       }
     }
+
+    fitted.min_x += offset_x;
+    fitted.min_y += offset_y;
+    fitted.max_x += offset_x;
+    fitted.max_y += offset_y;
+
+    _tex_add_entry(image->name, tex, fitted);
 
     for (u16 y = (tex.min_y - TEXTURE_BORDER_SIZE); y < (tex.max_y + TEXTURE_BORDER_SIZE); ++y)
     {
@@ -330,18 +353,28 @@ ATS_API void tex_save(const char* name)
   emit("} frame_tag_t;\n\n");
   emit("typedef struct frame_info_t\n{\n");
   emit("  tex_rect rect;\n");
+  emit("  tex_rect fitted;\n");
   emit("} frame_info_t;\n\n");
   emit("static frame_info_t frame_info_table[FT_count] = \n{\n");
   for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
   {
     for (tex_node* node = texture_table.array[i]; node; node = node->next)
     {
+      tex_rect rect   = node->rect;
+      tex_rect fitted = node->fitted;
+
+      emit("  [FT_%s] = {\n", node->name),
+      emit("    .rect   = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
+      emit("    .fitted = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
+      emit("  },\n");
+#if 0
       emit("  [FT_%s] = { .rect = { %d, %d, %d, %d } },\n",
            node->name,
            node->rect.min_x,
            node->rect.min_y,
            node->rect.max_x,
            node->rect.max_y);
+#endif
     }
   }
   emit("};\n\n");
