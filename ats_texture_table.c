@@ -12,8 +12,6 @@
 
 #define TEXTURE_TABLE_SIZE (4096)
 
-//#define strcpy_s(a, n, b) strcpy(a, b)
-
 typedef struct tex_node
 {
   struct tex_node* next;
@@ -82,7 +80,7 @@ static int tex_cmp_image(const void* va, const void* vb)
   return b->width - a->width;
 }
 
-static void __str_copy(char* s, usize count, const char* d)
+static void tex__str_copy(char* s, usize count, const char* d)
 {
   while (count-- && *d)
     *(s++) = *(d++);
@@ -97,7 +95,7 @@ ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height
   image.height = height;
   image.pixels = pixels;
 
-  __str_copy(image.name, countof(image.name), name);
+  tex__str_copy(image.name, countof(image.name), name);
 
   tex_image_array[tex_image_count++] = image;
 }
@@ -111,7 +109,7 @@ ATS_API void tex_load_dir(const char* path)
 
     tex_image image = {0};
     image.pixels = file_load_image(dir_path(), &image.width, &image.height);
-    __str_copy(image.name, countof(image.name), dir_name());
+    tex__str_copy(image.name, countof(image.name), dir_name());
     tex_image_array[tex_image_count++] = image;
   }
 }
@@ -140,7 +138,7 @@ ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator)
       (unsigned char*)image.pixels, image.width, image.height, 0,
       4);
 
-    __str_copy(image.name, countof(image.name), dir_name());
+    tex__str_copy(image.name, countof(image.name), dir_name());
     tex_image_array[tex_image_count++] = image;
 
     free(pixels);
@@ -195,7 +193,7 @@ static void _tex_add_entry(const char* name, tex_rect rect)
 
   node->next = texture_table.array[index];
   node->rect = rect;
-  __str_copy(node->name, 64, name);
+  tex__str_copy(node->name, 64, name);
 
   texture_table.array[index] = node;
 }
