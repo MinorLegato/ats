@@ -352,6 +352,7 @@ ATS_API void tex_save(const char* name)
   emit("  FT_count,\n");
   emit("} frame_tag_t;\n\n");
   emit("typedef struct frame_info_t\n{\n");
+  emit("  frame_tag_t next;\n");
   emit("  tex_rect rect;\n");
   emit("  tex_rect fitted;\n");
   emit("} frame_info_t;\n\n");
@@ -364,17 +365,10 @@ ATS_API void tex_save(const char* name)
       tex_rect fitted = node->fitted;
 
       emit("  [FT_%s] = {\n", node->name),
+      emit("    .next   = FT_%s,\n", node->name);
       emit("    .rect   = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
       emit("    .fitted = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
       emit("  },\n");
-#if 0
-      emit("  [FT_%s] = { .rect = { %d, %d, %d, %d } },\n",
-           node->name,
-           node->rect.min_x,
-           node->rect.min_y,
-           node->rect.max_x,
-           node->rect.max_y);
-#endif
     }
   }
   emit("};\n\n");
