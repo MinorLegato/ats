@@ -20,6 +20,11 @@ typedef struct tex_node
   char name[64];
 } tex_node;
 
+typedef struct tex_anim
+{
+  //
+} tex_anim;
+
 typedef struct
 {
   u16 width;
@@ -341,22 +346,25 @@ ATS_API void tex_save(const char* name)
 #define emit(...) it += sprintf(it, __VA_ARGS__)
   emit("// GENERATED FILE\n");
   emit("#pragma once\n\n");
-  emit("typedef enum frame_tag\n{\n");
+  emit("typedef enum tex_tag\n{\n");
+  
   for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
   {
     for (tex_node* node = texture_table.array[i]; node; node = node->next)
     {
-      emit("  FT_%s,\n", node->name);
+      emit("  TEX_%s,\n", node->name);
     }
   }
-  emit("  FT_count,\n");
-  emit("} frame_tag_t;\n\n");
-  emit("typedef struct frame_info_t\n{\n");
-  emit("  frame_tag_t next;\n");
+
+  emit("  TEX_count,\n");
+  emit("} tex_tag;\n\n");
+  emit("typedef struct tex_info_t\n{\n");
+  emit("  tex_tag next;\n");
   emit("  tex_rect rect;\n");
   emit("  tex_rect fitted;\n");
-  emit("} frame_info_t;\n\n");
-  emit("static frame_info_t frame_info_table[FT_count] = \n{\n");
+  emit("} tex_info_t;\n\n");
+  emit("static tex_info_t tex_info_table[TEX_count] = \n{\n");
+
   for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
   {
     for (tex_node* node = texture_table.array[i]; node; node = node->next)
@@ -364,13 +372,14 @@ ATS_API void tex_save(const char* name)
       tex_rect rect   = node->rect;
       tex_rect fitted = node->fitted;
 
-      emit("  [FT_%s] = {\n", node->name),
-      emit("    .next   = FT_%s,\n", node->name);
+      emit("  [TEX_%s] =\n  {\n", node->name),
+      emit("    .next   = TEX_%s,\n", node->name);
       emit("    .rect   = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
       emit("    .fitted = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
       emit("  },\n");
     }
   }
+
   emit("};\n\n");
 #undef emit
 
