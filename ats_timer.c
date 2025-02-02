@@ -49,22 +49,25 @@ static timer_node* timer_node_next(timer_node* node)
 static void timer_stop(void)
 {
   timer_entry* entry = timer_stack + (--timer_top);
-  {
-    entry->stop = platform_get_time();
-    timer_array[timer_count++] = *entry;
-  }
+
+  entry->stop = platform_get_time();
+  timer_array[timer_count++] = *entry;
+
   {
     u32 hash = hash_str(entry->name);
     u32 index = hash & 511;
     timer_node* node = &timer_table[index];
+
     while (node->name && (strcmp(entry->name, node->name) != 0))
     {
       node = timer_node_next(node);
     }
+
     if (!node->name)
     {
       node->name = entry->name;
     }
+
     node->current = entry->stop - entry->start;
     if (node->max < node->current)
     {

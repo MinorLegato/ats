@@ -122,25 +122,30 @@ static const char* d3_fragment_shader = GLSL(
   uniform int light_count;
   uniform point_light light_array[16];
 
-  void main() {
+  void main()
+  {
     vec4 color = frag_color;
 
-    if (texture_enabled) {
+    if (texture_enabled)
+    {
       vec2 tex_scale = 1.0 / textureSize(tex, 0);
       color = color * texture(tex, frag_uv * tex_scale);
     }
 
     if (color.a <= 0) discard;
 
-    if (lighting_enabled) {
+    if (lighting_enabled)
+    {
       vec3 result;
-      for (int i = 0; i < light_count; ++i) {
+      for (int i = 0; i < light_count; ++i)
+      {
         result += calculate_point_light(light_array[i], view_pos, frag_pos, frag_normal, color);
       }
       color.rgb = result;
     }
 
-    if (fog_enabled) {
+    if (fog_enabled)
+    {
       float distance = gl_FragCoord.z / gl_FragCoord.w;
       float d = 0.2 * distance;
       float f = 1.0 - clamp(exp2(-1.442695 * d * d), 0.0, 1.0);
@@ -522,9 +527,8 @@ static void d3_fog_color(f32 r, f32 g, f32 b)
 static void d3_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
 {
   if (d3.light_count >= countof(d3.light_array))
-  {
     return;
-  }
+
   d3.light_array[d3.light_count++] = (d3__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 

@@ -25,66 +25,59 @@ ATS_API void bit_clr(u32* array, u32 index)
 
 // ========================================== S8 ====================================== //
 
-ATS_API b32 s8_eq(s8 a, s8 b)
+ATS_API b32 str_iter_is_valid(str_iter* it)
 {
-  if (a.len != b.len) return 0;
-  for (u32 i = 0; i < a.len; ++i)
+  return it->current != 0;
+}
+
+ATS_API void str_iter_advance(str_iter* it)
+{
+  if (it->end)
   {
-    if (a.buf[i] != b.buf[i])
+    *it->end = it->saved;
+    it->current = it->end;
+    it->end = 0;
+  }
+  while (*it->current && bit_get(it->del_table, it->current[0]) && !bit_get(it->sep_table, it->current[0]))
+  {
+    it->current++;
+  }
+  if (!(*it->current))
+  {
+    it->current = 0;
+    return;
+  }
+  it->end = it->current + 1;
+  if (!bit_get(it->sep_table, it->current[0]))
+  {
+    while (*it->end && !bit_get(it->del_table, it->end[0]) && !bit_get(it->sep_table, it->end[0]))
     {
-      return 0;
+      it->end++;
     }
   }
-  return 1;
+  it->saved = *it->end;
+  *it->end = '\0';
 }
 
-ATS_API b32 s8_empty(s8 s)
+ATS_API str_iter str_iter_create(char* content, const char* delimiters, const char* separators)
 {
-  return s.len == 0;
-}
+  str_iter it = {0};
+  it.current = content;
 
-ATS_API b32 s8_iter_is_valid(s8_iter* it)
-{
-  return it->current.len > 0;
-}
+  if (!delimiters) delimiters = "";
+  if (!separators) separators = "";
 
-ATS_API void s8_iter_advance(s8_iter* it)
-{
-  while ((it->content.len > 0) && bit_get(it->del_table, it->content.buf[0]) && !bit_get(it->sep_table, it->content.buf[0]))
+  for (u32 i = 0; delimiters[i]; ++i)
   {
-    it->content.buf++;
-    it->content.len--;
+    bit_set(it.del_table, delimiters[i]);
   }
 
-  it->current = it->content;
-  it->current.len = it->content.len != 0;
-  it->content.buf += it->current.len;
-  it->content.len -= it->current.len;
+  for (u32 i = 0; separators[i]; ++i)
+  {
+    bit_set(it.sep_table, separators[i]);
+  }
 
-  if (!bit_get(it->sep_table, it->current.buf[0]))
-  {
-    while ((it->current.len > 0) && !bit_get(it->del_table, it->content.buf[0]) && !bit_get(it->sep_table, it->content.buf[0]))
-    {
-      it->content.buf++;
-      it->content.len--;
-      it->current.len++;
-    }
-  }
-}
-
-ATS_API s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators)
-{
-  s8_iter it = {0};
-  it.content = content;
-  for (u32 i = 0; i < delimiters.len; ++i)
-  {
-    bit_set(it.del_table, delimiters.buf[i]);
-  }
-  for (u32 i = 0; i < separators.len; ++i)
-  {
-    bit_set(it.sep_table, separators.buf[i]);
-  }
-  s8_iter_advance(&it);
+  str_iter_advance(&it);
   return it;
 }
 

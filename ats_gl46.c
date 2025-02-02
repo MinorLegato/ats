@@ -196,23 +196,16 @@ static gl_shader gl_shader_create(gl_shader_desc desc)
   return shader;
 }
 
-static gl_shader gl_shader_load_from_file(const char *vs, const char *fs)
+static gl_shader gl_shader_load_from_file(const char *vs_path, const char *fs_path)
 {
   gl_shader shader = {0};
-
   mem_scope()
   {
-    s8 vs_content = file_read_s8(vs);
-    s8 fs_content = file_read_s8(fs);
-
     gl_shader_desc desc = {0};
-
-    desc.vs = (char*)vs_content.buf;
-    desc.fs = (char*)fs_content.buf;
-
+    desc.vs = file_read(vs_path);
+    desc.fs = file_read(fs_path);
     shader = gl_shader_create(desc);
   }
-
   return shader;
 }
 

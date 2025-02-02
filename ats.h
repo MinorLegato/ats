@@ -135,7 +135,7 @@ typedef u64 usize;
 #define arr_end(a)              (a)->array + (a)->count
 #define arr_get(a, index)       ((a)->array + (index))
 
-#define for_arr(var, array)     for (auto var = arr_begin(array); var < arr_end(array); ++var)
+#define for_arr(type, var, array) for (type* var = arr_begin(array); var < arr_end(array); ++var)
 
 // ================================================= MATH =========================================== //
 // ------------------------------------- implementation in ats_math.c ------------------------------- //
@@ -213,8 +213,7 @@ union v2i
 typedef i32 v3i __attribute__((ext_vector_type(3)));
 #else
 typedef union v3i v3i;
-union v3i
-{
+union v3i {
   struct { i32 x, y, z; };
   struct { v2i xy; };
   i32 e[3];
@@ -668,40 +667,40 @@ ATS_API mem_arena mem_create(void* data, usize size);
 ATS_API void mem_push(mem_arena* arena);
 ATS_API void mem_pop(void);
 
-#define mem_alloc(...)                  _mem_alloc((struct _mem_alloc_desc) { __VA_ARGS__ })
+#define mem_alloc(...)                  mem__alloc((struct mem__alloc_desc) { __VA_ARGS__ })
 #define mem_type(type, ...)             (type*)mem_alloc((sizeof (type)), 0, __VA_ARGS__)
 #define mem_array(type, count, ...)     (type*)mem_alloc(((count) * sizeof (type)), (usize)(count), __VA_ARGS__)
 
 #define mem_context(arena)      scope_guard(mem_push(arena), mem_pop())
-#define mem_save(...)           _mem_save((struct _mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_restore(...)        _mem_restore((struct _mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_begin(...)          _mem_begin((struct _mem_arena_desc) { 0, __VA_ARGS__ })
-#define mem_end(size, ...)      _mem_end((size), (struct _mem_arena_desc) { 0, __VA_ARGS__ })
+#define mem_save(...)           mem__save((struct mem__arena_desc) { 0, __VA_ARGS__ })
+#define mem_restore(...)        mem__restore((struct mem__arena_desc) { 0, __VA_ARGS__ })
+#define mem_begin(...)          mem__begin((struct mem__arena_desc) { 0, __VA_ARGS__ })
+#define mem_end(size, ...)      mem__end((size), (struct mem__arena_desc) { 0, __VA_ARGS__ })
 #define mem_temp                mem_begin
-#define mem_scope(...)          scope_guard(_mem_save((struct _mem_arena_desc) { 0, __VA_ARGS__ }), _mem_restore((struct _mem_arena_desc) { 0, __VA_ARGS__ }))
+#define mem_scope(...)          scope_guard(mem__save((struct mem__arena_desc) { 0, __VA_ARGS__ }), mem__restore((struct mem__arena_desc) { 0, __VA_ARGS__ }))
 #define mem_size(ptr)           ((mem_header*)(ptr) - 1)->size
 #define mem_count(ptr)          ((mem_header*)(ptr) - 1)->count
 
 // -------------------- internal --------------- //
 
-struct _mem_arena_desc
+struct mem__arena_desc
 {
   usize pad;
   mem_arena* arena;
 };
 
-struct _mem_alloc_desc
+struct mem__alloc_desc
 {
   usize size;
   usize count;
   mem_arena* arena;
 };
 
-ATS_API void* _mem_alloc(struct _mem_alloc_desc desc);
-ATS_API void  _mem_save(struct _mem_arena_desc desc);
-ATS_API void  _mem_restore(struct _mem_arena_desc desc);
-ATS_API void* _mem_begin(struct _mem_arena_desc desc);
-ATS_API void  _mem_end(usize size, struct _mem_arena_desc desc);
+ATS_API void* mem__alloc(struct mem__alloc_desc desc);
+ATS_API void  mem__save(struct mem__arena_desc desc);
+ATS_API void  mem__restore(struct mem__arena_desc desc);
+ATS_API void* mem__begin(struct mem__arena_desc desc);
+ATS_API void  mem__end(usize size, struct mem__arena_desc desc);
 
 // ================================================= DS ============================================= //
 // ------------------------------------- implementation in ats_ds.c --------------------------------- //
@@ -711,35 +710,27 @@ ATS_API void bit_set(u32* array, u32 index);
 ATS_API b32  bit_get(u32* array, u32 index);
 ATS_API void bit_clr(u32* array, u32 index);
 
+#define STR_ITER_TABLE (256 >> 5)
 typedef struct
 {
-  u8* buf;
-  isize len;
-} s8;
+  char* current;
+  char* end;
 
-#define S8_ITER_TABLE (256 >> 5)
-typedef struct
-{
-  s8 current;
-  s8 content;
+  char saved;
 
-  u32 idx;
+  u32 del_table[STR_ITER_TABLE];
+  u32 sep_table[STR_ITER_TABLE];
+} str_iter;
 
-  u32 del_table[S8_ITER_TABLE];
-  u32 sep_table[S8_ITER_TABLE];
-} s8_iter;
+ATS_API str_iter str_iter_create(char* content, const char* delimiters, const char* separators);
+ATS_API b32 str_iter_is_valid(str_iter* it);
+ATS_API void str_iter_advance(str_iter* it);
 
-#define S8_FMT "%.*s"
-#define S8_ARG(s) (i32)(s).len, (s).buf
-#define s8(text) (s8) { (u8*)(text), sizeof (text) - 1 }
-#define S8(text) { (u8*)(text), sizeof (text) - 1 }
-
-ATS_API b32 s8_eq(s8 a, s8 b);
-ATS_API b32 s8_empty(s8 s);
-
-ATS_API s8_iter s8_iter_create(s8 content, s8 delimiters, s8 separators);
-ATS_API b32 s8_iter_is_valid(s8_iter* it);
-ATS_API void s8_iter_advance(s8_iter* it);
+#define for_str(var, ...) \
+  for (char* var = "start"; var; var = 0) \
+  for (str_iter macro_var(it) = str_iter_create(__VA_ARGS__); \
+       (var = macro_var(it).current, str_iter_is_valid(&macro_var(it))); \
+       str_iter_advance(&macro_var(it)))
 
 typedef struct
 {
@@ -890,7 +881,8 @@ ATS_API void* sm_at_position(spatial_map* map, v2 pos);
 // }
 // rt_end();
 
-typedef struct rt {
+typedef struct rt
+{
   i32 at;
   f32 timer;
 } rt;
@@ -988,13 +980,15 @@ typedef struct rt {
 // ================================================================================================== //
 
 ATS_API usize file_get_size(const char* path);
-ATS_API s8    file_read_s8(const char* file_name);
-ATS_API b32   file_write_s8(const char* file_name, s8 buffer);
-ATS_API b32   file_append_str(const char* file_name, s8 buffer);
+ATS_API char* file_read(const char* file_name);
+ATS_API b32 file_write(const char* file_name, const char* buffer);
+ATS_API b32 file_append(const char* file_name, const char* buffer);
+
 ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size);
-ATS_API b32   file_write_bin(const char* file_name, const void* buffer, usize size);
-ATS_API u32*  file_load_image(const char* path, u16* width, u16* height);
-ATS_API void  file_free_image(const u32* pixels);
+ATS_API b32 file_write_bin(const char* file_name, const void* buffer, usize size);
+
+ATS_API u32* file_load_image(const char* path, u16* width, u16* height);
+ATS_API void file_free_image(const u32* pixels);
 
 #define dir_iter(...) for (dir_open(__VA_ARGS__); dir_is_valid(); dir_advance())
 
@@ -1025,18 +1019,19 @@ ATS_API u16 tex_get_height(void);
 ATS_API tex_rect tex_get(const char* name);
 ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height);
 ATS_API void tex_load_dir(const char* path);
-ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator);
 ATS_API void tex_begin(u16 width, u16 height);
 ATS_API void tex_end(void);
 ATS_API void tex_save(const char* name);
+
+//ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator);
 
 // ========================================= ANIMATION TABLE ======================================== //
 // ----------------------------- implementation in ats_animation_table.c ---------------------------- //
 // ================================================================================================== //
 
-typedef struct at_frame     at_frame;
+typedef struct at_frame at_frame;
 typedef struct at_animation at_animation;
-typedef struct at_entity    at_entity;
+typedef struct at_entity at_entity;
 
 struct at_frame
 {

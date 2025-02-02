@@ -32,53 +32,55 @@ ATS_API usize file_get_size(const char* path)
   return size;
 }
 
-ATS_API s8 file_read_s8(const char* file_name)
+ATS_API char* file_read(const char* file_name)
 {
-  u8* buffer = 0;
+  char* buffer = 0;
   usize size = 0;
-  FILE* fp = _file_open(file_name, "rb");
+  FILE* fp = _file_open(file_name, "r");
   if (fp)
   {
     size = _file_get_size(fp);
-    buffer = (u8*)mem_alloc(size + 1);
+    buffer = (char*)mem_alloc(size + 1);
     if (buffer)
     {
       buffer[size] = 0;
-      if (fread(buffer, 1, size, fp) == 0)
-      {
+      if (fread(buffer, 1, size, fp) == 0) {
         buffer = 0;
       }
     }
     fclose(fp);
   }
-  return (s8) { buffer, (isize)size };
+  return buffer;
 }
 
-ATS_API b32 file_write_s8(const char* file_name, s8 buffer)
+ATS_API b32 file_write(const char* file_name, const char* buffer)
 {
   FILE* fp = _file_open(file_name, "w");
+  usize size = strlen(buffer);
   if (fp)
   {
-    usize n = fwrite(buffer.buf, 1, buffer.len, fp);
+    usize n = fwrite(buffer, 1, size, fp);
     fclose(fp);
-    return n == buffer.len;
+    return n == size;
   }
   return 0;
 }
 
-ATS_API b32 file_append_str(const char* file_name, s8 buffer)
+ATS_API b32 file_append(const char* file_name, const char* buffer)
 {
   FILE* fp = _file_open(file_name, "a");
+  usize size = strlen(buffer);
   if (fp)
   {
-    usize n = fwrite(buffer.buf, 1, buffer.len, fp);
+    usize n = fwrite(buffer, 1, size, fp);
     fclose(fp);
-    return n == buffer.len;
+    return n == size;
   }
   return 0;
 }
 
-ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size) {
+ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size)
+{
   FILE* fp = _file_open(file_name, "rb");
   if (fp)
   {
@@ -126,7 +128,7 @@ static void _file_cstr_concat(char* out, const char* a, const char* b)
   *(out) = '\0';
 }
 
-struct _file_iter
+struct file__iter
 {
   char current[MAX_PATH];
   char path[MAX_PATH];
@@ -137,25 +139,24 @@ struct _file_iter
   WIN32_FIND_DATAA data;
 };
 
-ATS_API int file_iter_is_valid(struct _file_iter* it)
+ATS_API int file_iter_is_valid(struct file__iter* it)
 {
   return !it->done;
 }
 
-ATS_API void file_iter_advance(struct _file_iter* it)
+ATS_API void file_iter_advance(struct file__iter* it)
 {
   it->done = !FindNextFileA(it->handle, &it->data);
-  if (!it->done)
-  {
+  if (!it->done) {
     _file_cstr_concat(it->current, it->path, it->data.cFileName);
   }
 }
 
-ATS_API struct _file_iter file_iter_create(const char* path, const char* ext)
+ATS_API struct file__iter file_iter_create(const char* path, const char* ext)
 {
   if (!path) path = "./";
   if (!ext)  ext  = "*";
-  struct _file_iter it = {0};
+  struct file__iter it = {0};
   u32 i = 0;
   for (i = 0; path[i]; ++i)
   {
@@ -176,7 +177,7 @@ ATS_API struct _file_iter file_iter_create(const char* path, const char* ext)
   return it;
 }
 
-ATS_API b32 file_iter_at_directory(struct _file_iter* it)
+ATS_API b32 file_iter_at_directory(struct file__iter* it)
 {
   const char* n = it->data.cFileName;
   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
@@ -189,25 +190,25 @@ static struct
   char extension[MAX_PATH];
 
   i32 idx;
-  struct _file_iter stack[256];
-} _dir_iter;
+  struct file__iter stack[256];
+} dir__iter;
 
-static void _dir_update_file_info(void)
+static void dir__update_file_info(void)
 {
-  char* s = _dir_iter.stack[_dir_iter.idx].current;
+  char* s = dir__iter.stack[dir__iter.idx].current;
 
   i32 i = 0;
   i32 j = 0;
   i32 e = MAX_PATH;
   i32 n = MAX_PATH;
 
-  _dir_iter.path[0] = '\0';
-  _dir_iter.name[0] = '\0';
-  _dir_iter.extension[0] = '\0';
+  dir__iter.path[0] = '\0';
+  dir__iter.name[0] = '\0';
+  dir__iter.extension[0] = '\0';
 
   for (i = 0; s && s[i]; ++i)
   {
-    _dir_iter.path[i] = s[i];
+    dir__iter.path[i] = s[i];
     switch (s[i])
     {
       case '\\': case '/': n = i; break;
@@ -215,12 +216,12 @@ static void _dir_update_file_info(void)
     }
   }
 
-  _dir_iter.path[i] = '\0';
+  dir__iter.path[i] = '\0';
 
   if (e < MAX_PATH)
   {
-    for (j = 0; (e + j) < (i - 1); ++j) _dir_iter.extension[j] = s[(e + 1) + j];
-    _dir_iter.extension[j] = '\0';
+    for (j = 0; (e + j) < (i - 1); ++j) dir__iter.extension[j] = s[(e + 1) + j];
+    dir__iter.extension[j] = '\0';
   }
   else
   {
@@ -229,54 +230,54 @@ static void _dir_update_file_info(void)
 
   if (n < e)
   {
-    for (j = 0; (n + j) < (e - 1); ++j) _dir_iter.name[j] = s[(n + 1) + j];
-    _dir_iter.name[j] = '\0';
+    for (j = 0; (n + j) < (e - 1); ++j) dir__iter.name[j] = s[(n + 1) + j];
+    dir__iter.name[j] = '\0';
   }
 }
 
 ATS_API void dir_open(const char* path)
 {
-  memset(&_dir_iter, 0, sizeof _dir_iter);
-  _dir_iter.stack[_dir_iter.idx] = file_iter_create(path, 0);
-  _dir_update_file_info();
+  memset(&dir__iter, 0, sizeof dir__iter);
+  dir__iter.stack[dir__iter.idx] = file_iter_create(path, 0);
+  dir__update_file_info();
 }
 
 ATS_API void dir_advance(void)
 {
-  if (file_iter_at_directory(&_dir_iter.stack[_dir_iter.idx]))
+  if (file_iter_at_directory(&dir__iter.stack[dir__iter.idx]))
   {
-    _dir_iter.stack[_dir_iter.idx + 1] = file_iter_create(_dir_iter.stack[_dir_iter.idx].current, 0);
-    file_iter_advance(&_dir_iter.stack[_dir_iter.idx]);
-    _dir_iter.idx++;
+    dir__iter.stack[dir__iter.idx + 1] = file_iter_create(dir__iter.stack[dir__iter.idx].current, 0);
+    file_iter_advance(&dir__iter.stack[dir__iter.idx]);
+    dir__iter.idx++;
   }
   else
   {
-    file_iter_advance(&_dir_iter.stack[_dir_iter.idx]);
+    file_iter_advance(&dir__iter.stack[dir__iter.idx]);
   }
-  while ((_dir_iter.idx >= 0) && !file_iter_is_valid(&_dir_iter.stack[_dir_iter.idx]))
+  while ((dir__iter.idx >= 0) && !file_iter_is_valid(&dir__iter.stack[dir__iter.idx]))
   {
-    _dir_iter.idx--;
+    dir__iter.idx--;
   }
-  _dir_update_file_info();
+  dir__update_file_info();
 }
 
 ATS_API b32 dir_is_valid(void)
 {
-  return _dir_iter.idx >= 0;
+  return dir__iter.idx >= 0;
 }
 
 ATS_API char* dir_path(void)
 {
-  return _dir_iter.path;
+  return dir__iter.path;
 }
 
 ATS_API char* dir_name(void)
 {
-  return _dir_iter.name;
+  return dir__iter.name;
 }
 
 ATS_API char* dir_extension(void)
 {
-  return _dir_iter.extension;
+  return dir__iter.extension;
 }
 

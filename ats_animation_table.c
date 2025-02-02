@@ -77,10 +77,10 @@ ATS_API void at_set(at_state* state, const char* name)
   assert(state && name);
   if (strcmp(state->frame->animation->name, name) == 0) return;
   at_animation* animation = state->entity->animation;
+
   while (animation && (strcmp(animation->name, name) != 0))
-  {
     animation = animation->next;
-  }
+
   if (animation)
   {
     state->frame = animation->frame;
@@ -92,6 +92,7 @@ ATS_API void at_update(at_state* state, f32 dt)
 {
   assert(state);
   state->duration += dt;
+
   if (state->duration >= 1.0)
   {
     state->frame = state->frame->next;
@@ -103,10 +104,10 @@ static at_entity* _at_get_entity(const char* name)
 {
   assert(name);
   at_entity* entity = at_entity_list;
+
   while (entity && (strcmp(entity->name, name) != 0))
-  {
     entity = entity->next;
-  }
+
   return entity? entity : 0;
 }
 
