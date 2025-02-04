@@ -12,20 +12,6 @@
 
 #define TEXTURE_TABLE_SIZE (4096)
 
-typedef struct tex_ent
-{
-  struct tex_ent* next;
-  char name[64];
-} tex_ent;
-
-typedef struct tex_anim
-{
-  struct tex_anim* next;
-
-  u32 frame_count;
-  char name[64];
-} tex_anim;
-
 typedef struct tex_frame
 {
   struct tex_frame* next;
@@ -34,6 +20,8 @@ typedef struct tex_frame
   tex_rect fitted;
 
   char name[64];
+  char anim[64];
+  char entity[64];
 } tex_frame;
 
 typedef struct
@@ -45,7 +33,9 @@ typedef struct
 
   const u32* pixels;
 
-  char name[256];
+  char name[64];
+  char anim[64];
+  char entity[64];
 } tex_image;
 
 static struct tex
@@ -55,8 +45,6 @@ static struct tex
   u32* pixels;
 
   tex_frame* frame[TEXTURE_TABLE_SIZE];
-  tex_anim* anim[TEXTURE_TABLE_SIZE];
-  tex_ent* ent[TEXTURE_TABLE_SIZE];
 
   struct
   {
@@ -106,10 +94,11 @@ static int tex_cmp_image(const void* va, const void* vb)
   return b->width - a->width;
 }
 
-static void tex__str_copy(char* s, usize count, const char* d)
+static void tex__str_copy(char* d, usize count, const char* s)
 {
-  while (count-- && *d)
-    *(s++) = *(d++);
+  while (count-- && *s)
+    *(d++) = *(s++);
+  *d = '\0';
 }
 
 static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 height)
@@ -120,7 +109,42 @@ static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 
   image->height = height;
   image->pixels = pixels;
 
-  tex__str_copy(image->name, countof(image->name), name);
+  u32 count = 0;
+  u32 index = 0;
+  char array[8][64] = {0};
+
+  while (*name && (*name != '.'))
+  {
+    array[count][index++] = *(name++);
+    if (*name == '/' || *name == '\\')
+    {
+      name++;
+      count++;
+      index = 0;
+    }
+  }
+
+  tex__str_copy(image->name, countof(image->name), array[count]);
+
+  switch (count)
+  {
+    case 0:
+    {
+      tex__str_copy(image->entity, countof(image->name), array[count]);
+      tex__str_copy(image->anim, countof(image->name), "idle");
+    } break;
+    case 1:
+    {
+      tex__str_copy(image->entity, countof(image->name), array[0]);
+      tex__str_copy(image->anim, countof(image->name), "idle");
+    } break;
+    case 2:
+    {
+      tex__str_copy(image->entity, countof(image->name), array[0]);
+      tex__str_copy(image->anim, countof(image->name), array[1]);
+    } break;
+    default: assert(0);
+  }
 
   return image;
 }
@@ -131,9 +155,9 @@ ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height
   image->user_provided = 1;
 }
 
-ATS_API void tex_load_dir(const char* path)
+ATS_API void tex_load_dir(const char* texture_path)
 {
-  dir_iter(path)
+  dir_iter(texture_path)
   {
     const char* ext = dir_extension();
     if (strcmp(ext, "png") != 0 && strcmp(ext, "jpg") != 0) continue;
@@ -142,7 +166,10 @@ ATS_API void tex_load_dir(const char* path)
     u16 height = 0;
     u32* pixels = file_load_image(dir_path(), &width, &height);
 
-    tex__new_image(dir_name(), pixels, width, height);
+    char* path = dir_path() + strlen(texture_path);
+    while (*path == '/' || *path == '\\') path++;
+
+    tex__new_image(path, pixels, width, height);
   }
 }
 
@@ -211,9 +238,9 @@ static tex_rect tex__get_fit(u16 width, u16 height)
   return rect;
 }
 
-static void tex__add_entry(const char* name, tex_rect rect, tex_rect fitted)
+static void tex__add_frame(tex_image* image, tex_rect rect, tex_rect fitted)
 {
-  u32 hash = hash_str(name);
+  u32 hash = hash_str(image->name);
   u16 index = hash % TEXTURE_TABLE_SIZE;
 
   tex_frame* node = mem_type(tex_frame);
@@ -221,7 +248,8 @@ static void tex__add_entry(const char* name, tex_rect rect, tex_rect fitted)
   node->next = tex.frame[index];
   node->rect = rect;
   node->fitted = fitted;
-  tex__str_copy(node->name, 64, name);
+
+  tex__str_copy(node->name, 64, image->name);
 
   tex.frame[index] = node;
 }
@@ -302,7 +330,7 @@ ATS_API void tex_end(void)
     fitted.max_x += offset_x;
     fitted.max_y += offset_y;
 
-    tex__add_entry(image->name, full, fitted);
+    tex__add_frame(image, full, fitted);
 
     for (u16 y = (full.min_y - TEXTURE_BORDER_SIZE); y < (full.max_y + TEXTURE_BORDER_SIZE); ++y)
     {

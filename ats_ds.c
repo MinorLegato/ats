@@ -99,8 +99,8 @@ ATS_API ray_iter ray_iter_create(v2 pos, v2 dir)
   it.side_dist_y = 0;
 
   //length of ray from one x or y-side to next x or y-side
-  it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabsf(1.0f / dir.x);
-  it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabsf(1.0f / dir.y);
+  it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabs(1.0f / dir.x);
+  it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabs(1.0f / dir.y);
 
   //what direction to step in x or y-direction (either +1 or -1)
   it.step_x = 0;
@@ -186,9 +186,9 @@ ATS_API ray3_iter ray3_iter_create(v3 pos, v3 dir)
   it.map_z = (i32)pos.z;
 
   //length of ray from one x or y-side to next x or y-side
-  it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabsf(1.0f / dir.x);
-  it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabsf(1.0f / dir.y);
-  it.delta_dist_z = (dir.z == 0.0f) ? 1e30 : fabsf(1.0f / dir.z);
+  it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabs(1.0f / dir.x);
+  it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabs(1.0f / dir.y);
+  it.delta_dist_z = (dir.z == 0.0f) ? 1e30 : fabs(1.0f / dir.z);
 
   it.side = 0; //was a NS, EW or a UD wall hit?
 

@@ -726,7 +726,7 @@ ATS_API str_iter str_iter_create(char* content, const char* delimiters, const ch
 ATS_API b32 str_iter_is_valid(str_iter* it);
 ATS_API void str_iter_advance(str_iter* it);
 
-#define for_str(var, ...) \
+#define str_iter(var, ...) \
   for (char* var = "start"; var; var = 0) \
   for (str_iter macro_var(it) = str_iter_create(__VA_ARGS__); \
        (var = macro_var(it).current, str_iter_is_valid(&macro_var(it))); \
@@ -992,9 +992,11 @@ ATS_API void file_free_image(const u32* pixels);
 
 #define dir_iter(...) for (dir_open(__VA_ARGS__); dir_is_valid(); dir_advance())
 
-ATS_API void  dir_open(const char* path);
-ATS_API b32   dir_is_valid(void);
-ATS_API void  dir_advance(void);
+ATS_API i32 dir_depth(void);
+
+ATS_API void dir_open(const char* path);
+ATS_API b32 dir_is_valid(void);
+ATS_API void dir_advance(void);
 
 ATS_API char* dir_path(void);
 ATS_API char* dir_name(void);

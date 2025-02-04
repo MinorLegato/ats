@@ -193,6 +193,11 @@ static struct
   struct file__iter stack[256];
 } dir__iter;
 
+ATS_API i32 dir_depth(void)
+{
+  return dir__iter.idx;
+}
+
 static void dir__update_file_info(void)
 {
   char* s = dir__iter.stack[dir__iter.idx].current;
