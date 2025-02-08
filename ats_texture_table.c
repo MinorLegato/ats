@@ -454,18 +454,32 @@ ATS_API void tex_save(const char* name)
     emit("} tex_entity_tag;\n\n");
   }
   
-#if 0
   // enum animation:
   {
+    u32 used_count = 0;
+    char* used_array[TEXTURE_TABLE_SIZE];
+
     emit("typedef enum tex_animation_tag {\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
-      for (tex_animation* node = tex.animation[i]; node; node = node->next)
-        emit("  TEX_ANIMATION_%s,\n", node->name);
+      for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          u32 emit_enum = 1;
+          for (u32 j = 0; j < used_count; ++j) {
+            if (strcmp(used_array[j], animation->name) == 0) {
+              emit_enum = 0;
+              break;
+            }
+          }
+          if (emit_enum) {
+            emit("  TEX_ANIMATION_%s,\n", animation->name);
+            used_array[used_count++] = animation->name;
+          }
+        }
+      }
     }
     emit("  TEX_ANIMATION_count,\n");
     emit("} tex_animation_tag;\n\n");
   }
-#endif
 
   // enum frame:
   {
@@ -483,32 +497,50 @@ ATS_API void tex_save(const char* name)
     emit("} tex_frame_tag;\n\n");
   }
 
-  emit("typedef struct tex_info {\n");
-  emit("  tex_frame_tag next;\n");
-  emit("  tex_rect rect;\n");
-  emit("  tex_rect fitted;\n");
-  emit("} tex_info;\n\n");
-  emit("static tex_info tex_info_table[TEX_FRAME_count] = {\n");
+  // entity -> animation lookup table:
+  {
+    emit("static tex_frame_tag tex_animation_table[TEX_ENTITY_count][TEX_ANIMATION_count] = {\n");
+    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
+      for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        emit("  [TEX_ENTITY_%s] = {\n", entity->name);
+        for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          tex_frame* frame = animation->frame;
+          emit("    [TEX_ANIMATION_%s] = TEX_FRAME_%s,\n", animation->name, frame->name);
+        }
+        emit("  },\n");
+      }
+    }
+    emit("};\n\n");
+  }
 
-  for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
-    for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
-      for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
-        for (tex_frame* frame = animation->frame; frame; frame = frame->next) {
-          tex_rect rect = frame->rect;
-          tex_rect fitted = frame->fitted;
-          tex_frame* next = frame->next? frame->next : animation->frame;
+  // frame lookup table:
+  {
+    emit("typedef struct tex_info {\n");
+    emit("  tex_frame_tag next;\n");
+    emit("  tex_rect rect;\n");
+    emit("  tex_rect fitted;\n");
+    emit("} tex_info;\n\n");
+    emit("static tex_info tex_info_table[TEX_FRAME_count] = {\n");
 
-          emit("  [TEX_FRAME_%s] = {\n", frame->name),
-          emit("    .next   = TEX_FRAME_%s,\n", next->name);
-          emit("    .rect   = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
-          emit("    .fitted = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
-          emit("  },\n");
+    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
+      for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          for (tex_frame* frame = animation->frame; frame; frame = frame->next) {
+            tex_rect rect = frame->rect;
+            tex_rect fitted = frame->fitted;
+            tex_frame* next = frame->next? frame->next : animation->frame;
+
+            emit("  [TEX_FRAME_%s] = {\n", frame->name),
+            emit("    .next   = TEX_FRAME_%s,\n", next->name);
+            emit("    .rect   = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
+            emit("    .fitted = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
+            emit("  },\n");
+          }
         }
       }
     }
+    emit("};\n\n");
   }
-
-  emit("};\n\n");
 #undef emit
 
   file_write_bin(header_filename, file_content, it - file_content);
