@@ -14,10 +14,6 @@
 #define TEXTURE_TABLE_SIZE  (1 << TEXTURE_TABLE_LOG2)
 #define TEXTURE_TABLE_MOD   (TEXTURE_TABLE_SIZE - 1)
 
-typedef struct tex_entity tex_entity;
-typedef struct tex_animation tex_animation;
-typedef struct tex_frame tex_frame;
-
 struct tex_frame {
   struct tex_frame* next;
 
@@ -28,15 +24,15 @@ struct tex_frame {
 };
 
 struct tex_animation {
-  tex_animation* next;
-  tex_frame* frame;
+  struct tex_animation* next;
+  struct tex_frame* frame;
 
   char name[64];
 };
 
 struct tex_entity {
-  tex_entity* next;
-  tex_animation* animation;
+  struct tex_entity* next;
+  struct tex_animation* animation;
 
   char name[64];
 };
@@ -59,7 +55,7 @@ static struct {
   u16 height;
   u32* pixels;
 
-  tex_entity* entity[TEXTURE_TABLE_SIZE];
+  struct tex_entity* entity[TEXTURE_TABLE_SIZE];
 
   struct {
     u32 count;
@@ -148,26 +144,26 @@ static tex_rect tex__get_fit(u16 width, u16 height)
   return rect;
 }
 
-static tex_entity* tex__get_entity(const char* name)
+static struct tex_entity* tex__get_entity(const char* name)
 {
   u32 hash = hash_str(name);
   u32 index = hash & TEXTURE_TABLE_MOD;
-  for (tex_entity* e = tex.entity[index]; e; e = e->next) {
+  for (struct tex_entity* e = tex.entity[index]; e; e = e->next) {
     if (strcmp(e->name, name) == 0) {
       return e;
     }
   }
-  tex_entity* e = mem_type(tex_entity);
+  struct tex_entity* e = mem_type(struct tex_entity);
   e->next = tex.entity[index];
   tex__str_copy(e->name, countof(e->name), name);
   tex.entity[index] = e;
   return e;
 }
 
-static tex_animation* tex__get_animation(tex_entity* e, const char* name)
+static struct tex_animation* tex__get_animation(struct tex_entity* e, const char* name)
 {
-  tex_animation* prev = 0;
-  tex_animation* node = 0;
+  struct tex_animation* prev = 0;
+  struct tex_animation* node = 0;
   for (node = e->animation; node; node = node->next) {
     int cmp = strcmp(node->name, name);
     if (cmp == 0) return node;
@@ -176,7 +172,7 @@ static tex_animation* tex__get_animation(tex_entity* e, const char* name)
     }
     prev = node;
   }
-  tex_animation* anim = mem_type(tex_animation);
+  struct tex_animation* anim = mem_type(struct tex_animation);
   anim->next = node;
   tex__str_copy(anim->name, countof(anim->name), name);
   if (prev) {
@@ -187,10 +183,10 @@ static tex_animation* tex__get_animation(tex_entity* e, const char* name)
   return anim;
 }
 
-static tex_frame* tex__get_frame(tex_animation* a, const char* name)
+static struct tex_frame* tex__get_frame(struct tex_animation* a, const char* name)
 {
-  tex_frame* prev = 0;
-  tex_frame* node = 0;
+  struct tex_frame* prev = 0;
+  struct tex_frame* node = 0;
   for (node = a->frame; node; node = node->next) {
     int cmp = strcmp(node->name, name);
     if (cmp == 0) return node;
@@ -199,7 +195,7 @@ static tex_frame* tex__get_frame(tex_animation* a, const char* name)
     }
     prev = node;
   }
-  tex_frame* frame = mem_type(tex_frame);
+  struct tex_frame* frame = mem_type(struct tex_frame);
   frame->next = node;
   tex__str_copy(frame->name, countof(frame->name), name);
   if (prev) {
@@ -215,13 +211,9 @@ static void tex__add_frame(tex_image* image, tex_rect rect, tex_rect fitted)
   u32 hash = hash_str(image->frame);
   u16 index = hash & TEXTURE_TABLE_MOD;
 
-  tex_entity* entity = tex__get_entity(image->entity);
-  tex_animation* animation = tex__get_animation(entity, image->animation);
-  tex_frame* frame = tex__get_frame(animation, image->frame);
-
-#if 0
-  tex_frame* frame = mem_type(tex_frame);
-#endif
+  struct tex_entity* entity = tex__get_entity(image->entity);
+  struct tex_animation* animation = tex__get_animation(entity, image->animation);
+  struct tex_frame* frame = tex__get_frame(animation, image->frame);
 
   frame->rect = rect;
   frame->fitted = fitted;
@@ -445,13 +437,13 @@ ATS_API void tex_save(const char* name)
 
   // enum entity:
   {
-    emit("typedef enum tex_entity_tag {\n");
+    emit("typedef enum {\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
-      for (tex_entity* node = tex.entity[i]; node; node = node->next)
+      for (struct tex_entity* node = tex.entity[i]; node; node = node->next)
         emit("  TEX_ENTITY_%s,\n", node->name);
     }
     emit("  TEX_ENTITY_count,\n");
-    emit("} tex_entity_tag;\n\n");
+    emit("} tex_entity;\n\n");
   }
   
   // enum animation:
@@ -459,10 +451,10 @@ ATS_API void tex_save(const char* name)
     u32 used_count = 0;
     char* used_array[TEXTURE_TABLE_SIZE];
 
-    emit("typedef enum tex_animation_tag {\n");
+    emit("typedef enum {\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
-      for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
-        for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
           u32 emit_enum = 1;
           for (u32 j = 0; j < used_count; ++j) {
             if (strcmp(used_array[j], animation->name) == 0) {
@@ -478,33 +470,33 @@ ATS_API void tex_save(const char* name)
       }
     }
     emit("  TEX_ANIMATION_count,\n");
-    emit("} tex_animation_tag;\n\n");
+    emit("} tex_animation;\n\n");
   }
 
   // enum frame:
   {
-    emit("typedef enum tex_frame_tag {\n");
+    emit("typedef enum {\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
-      for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
-        for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
-          for (tex_frame* frame = animation->frame; frame; frame = frame->next) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          for (struct tex_frame* frame = animation->frame; frame; frame = frame->next) {
             emit("  TEX_FRAME_%s,\n", frame->name);
           }
         }
       }
     }
     emit("  TEX_FRAME_count,\n");
-    emit("} tex_frame_tag;\n\n");
+    emit("} tex_frame;\n\n");
   }
 
   // entity -> animation lookup table:
   {
-    emit("static tex_frame_tag tex_animation_table[TEX_ENTITY_count][TEX_ANIMATION_count] = {\n");
+    emit("static tex_frame tex_animation_table[TEX_ENTITY_count][TEX_ANIMATION_count] = {\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
-      for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
         emit("  [TEX_ENTITY_%s] = {\n", entity->name);
-        for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
-          tex_frame* frame = animation->frame;
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          struct tex_frame* frame = animation->frame;
           emit("    [TEX_ANIMATION_%s] = TEX_FRAME_%s,\n", animation->name, frame->name);
         }
         emit("  },\n");
@@ -516,24 +508,26 @@ ATS_API void tex_save(const char* name)
   // frame lookup table:
   {
     emit("typedef struct tex_info {\n");
-    emit("  tex_frame_tag next;\n");
+    emit("  tex_frame next;\n");
+    emit("  tex_animation animation;\n");
     emit("  tex_rect rect;\n");
     emit("  tex_rect fitted;\n");
     emit("} tex_info;\n\n");
     emit("static tex_info tex_info_table[TEX_FRAME_count] = {\n");
 
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
-      for (tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
-        for (tex_animation* animation = entity->animation; animation; animation = animation->next) {
-          for (tex_frame* frame = animation->frame; frame; frame = frame->next) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          for (struct tex_frame* frame = animation->frame; frame; frame = frame->next) {
             tex_rect rect = frame->rect;
             tex_rect fitted = frame->fitted;
-            tex_frame* next = frame->next? frame->next : animation->frame;
+            struct tex_frame* next = frame->next? frame->next : animation->frame;
 
             emit("  [TEX_FRAME_%s] = {\n", frame->name),
-            emit("    .next   = TEX_FRAME_%s,\n", next->name);
-            emit("    .rect   = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
-            emit("    .fitted = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
+            emit("    .next       = TEX_FRAME_%s,\n", next->name);
+            emit("    .animation  = TEX_ANIMATION_%s,\n", animation->name);
+            emit("    .rect       = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
+            emit("    .fitted     = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
             emit("  },\n");
           }
         }
