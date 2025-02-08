@@ -443,7 +443,6 @@ ATS_API void tex_save(const char* name)
   emit("// GENERATED FILE\n");
   emit("#pragma once\n\n");
 
-#if 0
   // enum entity:
   {
     emit("typedef enum tex_entity_tag {\n");
@@ -455,6 +454,7 @@ ATS_API void tex_save(const char* name)
     emit("} tex_entity_tag;\n\n");
   }
   
+#if 0
   // enum animation:
   {
     emit("typedef enum tex_animation_tag {\n");
