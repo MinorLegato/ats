@@ -37,12 +37,10 @@ ATS_API char* file_read(const char* file_name)
   char* buffer = 0;
   usize size = 0;
   FILE* fp = _file_open(file_name, "r");
-  if (fp)
-  {
+  if (fp) {
     size = _file_get_size(fp);
     buffer = (char*)mem_alloc(size + 1);
-    if (buffer)
-    {
+    if (buffer) {
       buffer[size] = 0;
       if (fread(buffer, 1, size, fp) == 0) {
         buffer = 0;
@@ -57,8 +55,7 @@ ATS_API b32 file_write(const char* file_name, const char* buffer)
 {
   FILE* fp = _file_open(file_name, "w");
   usize size = strlen(buffer);
-  if (fp)
-  {
+  if (fp) {
     usize n = fwrite(buffer, 1, size, fp);
     fclose(fp);
     return n == size;
@@ -70,8 +67,7 @@ ATS_API b32 file_append(const char* file_name, const char* buffer)
 {
   FILE* fp = _file_open(file_name, "a");
   usize size = strlen(buffer);
-  if (fp)
-  {
+  if (fp) {
     usize n = fwrite(buffer, 1, size, fp);
     fclose(fp);
     return n == size;
@@ -82,8 +78,7 @@ ATS_API b32 file_append(const char* file_name, const char* buffer)
 ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size)
 {
   FILE* fp = _file_open(file_name, "rb");
-  if (fp)
-  {
+  if (fp) {
     usize file_size = fread(buffer, 1, size, fp);
     fclose(fp);
     return file_size;
@@ -94,8 +89,7 @@ ATS_API usize file_read_bin(const char* file_name, void* buffer, usize size)
 ATS_API b32 file_write_bin(const char* file_name, const void* buffer, usize size)
 {
   FILE *fp = _file_open(file_name, "wb");
-  if (fp)
-  {
+  if (fp) {
     fwrite(buffer, 1, size, fp);
     fclose(fp);
     return 1;
@@ -158,20 +152,17 @@ ATS_API struct file__iter file_iter_create(const char* path, const char* ext)
   if (!ext)  ext  = "*";
   struct file__iter it = {0};
   u32 i = 0;
-  for (i = 0; path[i]; ++i)
-  {
+  for (i = 0; path[i]; ++i) {
     it.path[i] = path[i];
   }
-  if (it.path[i - 1] != '/')
-  {
+  if (it.path[i - 1] != '/') {
     it.path[i] = '/';
   }
   char find_file_str[MAX_PATH] = {0};
   _file_cstr_concat(find_file_str, it.path, ext);
   it.handle = FindFirstFileA(find_file_str, &it.data);
   it.done = it.handle == INVALID_HANDLE_VALUE;
-  if (!it.done)
-  {
+  if (!it.done) {
     _file_cstr_concat(it.current, it.path, it.data.cFileName);
   }
   return it;
@@ -183,8 +174,7 @@ ATS_API b32 file_iter_at_directory(struct file__iter* it)
   return (n[0] != '.') && (it->data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
-static struct
-{
+static struct {
   char path[MAX_PATH];
   char name[MAX_PATH];
   char extension[MAX_PATH];
@@ -211,11 +201,9 @@ static void dir__update_file_info(void)
   dir__iter.name[0] = '\0';
   dir__iter.extension[0] = '\0';
 
-  for (i = 0; s && s[i]; ++i)
-  {
+  for (i = 0; s && s[i]; ++i) {
     dir__iter.path[i] = s[i];
-    switch (s[i])
-    {
+    switch (s[i]) {
       case '\\': case '/': n = i; break;
       case '.':            e = i; break;
     }
@@ -223,18 +211,14 @@ static void dir__update_file_info(void)
 
   dir__iter.path[i] = '\0';
 
-  if (e < MAX_PATH)
-  {
+  if (e < MAX_PATH) {
     for (j = 0; (e + j) < (i - 1); ++j) dir__iter.extension[j] = s[(e + 1) + j];
     dir__iter.extension[j] = '\0';
-  }
-  else
-  {
+  } else {
     e = i;
   }
 
-  if (n < e)
-  {
+  if (n < e) {
     for (j = 0; (n + j) < (e - 1); ++j) dir__iter.name[j] = s[(n + 1) + j];
     dir__iter.name[j] = '\0';
   }
@@ -249,18 +233,14 @@ ATS_API void dir_open(const char* path)
 
 ATS_API void dir_advance(void)
 {
-  if (file_iter_at_directory(&dir__iter.stack[dir__iter.idx]))
-  {
+  if (file_iter_at_directory(&dir__iter.stack[dir__iter.idx])) {
     dir__iter.stack[dir__iter.idx + 1] = file_iter_create(dir__iter.stack[dir__iter.idx].current, 0);
     file_iter_advance(&dir__iter.stack[dir__iter.idx]);
     dir__iter.idx++;
-  }
-  else
-  {
+  } else {
     file_iter_advance(&dir__iter.stack[dir__iter.idx]);
   }
-  while ((dir__iter.idx >= 0) && !file_iter_is_valid(&dir__iter.stack[dir__iter.idx]))
-  {
+  while ((dir__iter.idx >= 0) && !file_iter_is_valid(&dir__iter.stack[dir__iter.idx])) {
     dir__iter.idx--;
   }
   dir__update_file_info();

@@ -32,26 +32,21 @@ ATS_API b32 str_iter_is_valid(str_iter* it)
 
 ATS_API void str_iter_advance(str_iter* it)
 {
-  if (it->end)
-  {
+  if (it->end) {
     *it->end = it->saved;
     it->current = it->end;
     it->end = 0;
   }
-  while (*it->current && bit_get(it->del_table, it->current[0]) && !bit_get(it->sep_table, it->current[0]))
-  {
+  while (*it->current && bit_get(it->del_table, it->current[0]) && !bit_get(it->sep_table, it->current[0])) {
     it->current++;
   }
-  if (!(*it->current))
-  {
+  if (!(*it->current)) {
     it->current = 0;
     return;
   }
   it->end = it->current + 1;
-  if (!bit_get(it->sep_table, it->current[0]))
-  {
-    while (*it->end && !bit_get(it->del_table, it->end[0]) && !bit_get(it->sep_table, it->end[0]))
-    {
+  if (!bit_get(it->sep_table, it->current[0])) {
+    while (*it->end && !bit_get(it->del_table, it->end[0]) && !bit_get(it->sep_table, it->end[0])) {
       it->end++;
     }
   }
@@ -67,13 +62,11 @@ ATS_API str_iter str_iter_create(char* content, const char* delimiters, const ch
   if (!delimiters) delimiters = "";
   if (!separators) separators = "";
 
-  for (u32 i = 0; delimiters[i]; ++i)
-  {
+  for (u32 i = 0; delimiters[i]; ++i) {
     bit_set(it.del_table, delimiters[i]);
   }
 
-  for (u32 i = 0; separators[i]; ++i)
-  {
+  for (u32 i = 0; separators[i]; ++i) {
     bit_set(it.sep_table, separators[i]);
   }
 
@@ -109,24 +102,18 @@ ATS_API ray_iter ray_iter_create(v2 pos, v2 dir)
   it.side = 0; //was a NS or a EW wall hit?
 
   //calculate step and initial sideDist
-  if (dir.x < 0)
-  {
+  if (dir.x < 0) {
     it.step_x = -1;
     it.side_dist_x = (pos.x - it.map_x) * it.delta_dist_x;
-  }
-  else
-  {
+  } else {
     it.step_x = 1;
     it.side_dist_x = (it.map_x + 1.0 - pos.x) * it.delta_dist_x;
   }
 
-  if (dir.y < 0)
-  {
+  if (dir.y < 0) {
     it.step_y = -1;
     it.side_dist_y = (pos.y - it.map_y) * it.delta_dist_y;
-  }
-  else
-  {
+  } else {
     it.step_y = 1;
     it.side_dist_y = (it.map_y + 1.0 - pos.y) * it.delta_dist_y;
   }
@@ -142,14 +129,11 @@ ATS_API b32 ray_iter_is_valid(ray_iter* it)
 ATS_API void ray_iter_advance(ray_iter* it)
 {
   //jump to next map square, either in x-direction, or in y-direction
-  if (it->side_dist_x < it->side_dist_y)
-  {
+  if (it->side_dist_x < it->side_dist_y) {
     it->side_dist_x += it->delta_dist_x;
     it->map_x += it->step_x;
     it->side = 0;
-  }
-  else
-  {
+  } else {
     it->side_dist_y += it->delta_dist_y;
     it->map_y += it->step_y;
     it->side = 1;
@@ -193,35 +177,26 @@ ATS_API ray3_iter ray3_iter_create(v3 pos, v3 dir)
   it.side = 0; //was a NS, EW or a UD wall hit?
 
   //calculate step and initial side dist
-  if (dir.x < 0)
-  {
+  if (dir.x < 0) {
     it.step_x = -1;
     it.side_dist_x = (pos.x - it.map_x) * it.delta_dist_x;
-  }
-  else
-  {
+  } else {
     it.step_x = 1;
     it.side_dist_x = (it.map_x + 1.0 - pos.x) * it.delta_dist_x;
   }
 
-  if (dir.y < 0)
-  {
+  if (dir.y < 0) {
     it.step_y = -1;
     it.side_dist_y = (pos.y - it.map_y) * it.delta_dist_y;
-  }
-  else
-  {
+  } else {
     it.step_y = 1;
     it.side_dist_y = (it.map_y + 1.0 - pos.y) * it.delta_dist_y;
   }
 
-  if (dir.z < 0)
-  {
+  if (dir.z < 0) {
     it.step_z = -1;
     it.side_dist_z = (pos.z - it.map_z) * it.delta_dist_z;
-  }
-  else
-  {
+  } else {
     it.step_z = 1;
     it.side_dist_z = (it.map_z + 1.0 - pos.z) * it.delta_dist_z;
   }
@@ -237,20 +212,15 @@ ATS_API b32 ray3_iter_is_valid(ray3_iter* it)
 ATS_API void ray3_iter_advance(ray3_iter* it)
 {
   // jump to next map square, either in x, y, or in z direction.
-  if ((it->side_dist_x < it->side_dist_y) && (it->side_dist_x < it->side_dist_z))
-  {
+  if ((it->side_dist_x < it->side_dist_y) && (it->side_dist_x < it->side_dist_z)) {
     it->side_dist_x += it->delta_dist_x;
     it->map_x += it->step_x;
     it->side = 0;
-  }
-  else if ((it->side_dist_y < it->side_dist_z) && (it->side_dist_y < it->side_dist_z))
-  {
+  } else if ((it->side_dist_y < it->side_dist_z) && (it->side_dist_y < it->side_dist_z)) {
     it->side_dist_y += it->delta_dist_y;
     it->map_y += it->step_y;
     it->side = 1;
-  }
-  else
-  {
+  } else {
     it->side_dist_z += it->delta_dist_z;
     it->map_z += it->step_z;
     it->side = 2;
@@ -298,8 +268,7 @@ ATS_API void path_queue_push(path_queue* queue, path_node node)
 {
   u32 i = queue->len + 1;
   u32 j = i / 2;
-  while (i > 1 && queue->buf[j].w > node.w)
-  {
+  while (i > 1 && queue->buf[j].w > node.w) {
     queue->buf[i] = queue->buf[j];
     i = j;
     j = j / 2;
@@ -314,16 +283,13 @@ ATS_API path_node path_queue_pop(path_queue* queue)
   queue->buf[1] = queue->buf[queue->len];
   queue->len--;
   u32 i = 1;
-  while (i != queue->len + 1)
-  {
+  while (i != queue->len + 1) {
     u32 k = queue->len + 1;
     u32 j = 2 * i;
-    if (j <= queue->len && queue->buf[j].w < queue->buf[k].w)
-    {
+    if (j <= queue->len && queue->buf[j].w < queue->buf[k].w) {
       k = j;
     }
-    if (j + 1 <= queue->len && queue->buf[j + 1].w < queue->buf[k].w)
-    {
+    if (j + 1 <= queue->len && queue->buf[j + 1].w < queue->buf[k].w) {
       k = j + 1;
     }
     queue->buf[i] = queue->buf[k];
@@ -336,8 +302,7 @@ ATS_API path_node path_queue_pop(path_queue* queue)
 
 ATS_API void sm_clear(spatial_map* map)
 {
-  for (u32 i = 0; i < SPATIAL_TABLE_MAX; ++i)
-  {
+  for (u32 i = 0; i < SPATIAL_TABLE_MAX; ++i) {
     map->table[i] = 0;
   }
 }
@@ -350,8 +315,7 @@ ATS_API u32 sm_index(spatial_map* map, i32 x, i32 y)
 
 ATS_API void sm_add(spatial_map* map, void* e, r2 e_rect)
 {
-  r2i rect =
-  {
+  r2i rect = {
     { (i32)e_rect.min.x, (i32)e_rect.min.y },
     { (i32)e_rect.max.x, (i32)e_rect.max.y },
   };
@@ -369,34 +333,27 @@ ATS_API void sm_add(spatial_map* map, void* e, r2 e_rect)
 ATS_API sm_node* sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore)
 {
   sm_node* result = 0;
-  r2 rect =
-  {
+  r2 rect = {
     { pos.x - rad.x, pos.y - rad.y },
     { pos.x + rad.x, pos.y + rad.y },
   };
-  r2i irect =
-  {
+  r2i irect = {
     { (i32)(pos.x - rad.x), (i32)(pos.y - rad.y) },
     { (i32)(pos.x + rad.x), (i32)(pos.y + rad.y) },
   };
 
-  for_r2(irect, x, y)
-  {
+  for_r2(irect, x, y) {
     u32 index = sm_index(map, x, y);
-    for (sm_node* it = map->table[index]; it; it = it->next)
-    {
+    for (sm_node* it = map->table[index]; it; it = it->next) {
       b32 unique = 1;
       if ((it->e == ignore) || !r2_intersect(rect, it->rect)) continue;
-      for (sm_node* r = result; r; r = r->next)
-      {
-        if (r->e == it->e)
-        {
+      for (sm_node* r = result; r; r = r->next) {
+        if (r->e == it->e) {
           unique = 0;
           break;
         }
       }
-      if (unique)
-      {
+      if (unique) {
         sm_node* n = mem_type(sm_node);
         *n = *it;
         n->next = result;
@@ -411,17 +368,14 @@ ATS_API void* sm_get_closest(spatial_map* map, v2 pos, f32 range, void* ignore, 
 {
   void* result = NULL;
   f32 distance = range;
-  for (sm_node* it = sm_in_range(map, pos, v2(range, range), ignore); it; it = it->next)
-  {
+  for (sm_node* it = sm_in_range(map, pos, v2(range, range), ignore); it; it = it->next) {
     if (condition_proc && !condition_proc(it->e)) continue;
-    v2 e_pos =
-    {
+    v2 e_pos = {
       0.5f * (it->rect.min.x + it->rect.max.x),
       0.5f * (it->rect.min.y + it->rect.max.y),
     };
     f32 new_distance = v2_dist(e_pos, pos);
-    if (new_distance <= distance)
-    {
+    if (new_distance <= distance) {
       result = it->e;
       distance = new_distance;
     }
@@ -432,10 +386,8 @@ ATS_API void* sm_get_closest(spatial_map* map, v2 pos, f32 range, void* ignore, 
 ATS_API void* sm_at_position(spatial_map* map, v2 pos)
 {
   u32 index = sm_index(map, pos.x, pos.y);
-  for (sm_node* it = map->table[index]; it; it = it->next)
-  {
-    if (r2_contains(it->rect, pos))
-    {
+  for (sm_node* it = map->table[index]; it; it = it->next) {
+    if (r2_contains(it->rect, pos)) {
       return it->e;
     }
   }

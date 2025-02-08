@@ -154,8 +154,7 @@ typedef u64 usize;
 typedef f32 v2 __attribute__((ext_vector_type(2)));
 #else
 typedef union v2 v2;
-union v2
-{
+union v2 {
   struct { f32 x, y; };
   f32 e[2];
 };
@@ -166,8 +165,7 @@ union v2
 typedef f32 v3 __attribute__((ext_vector_type(3)));
 #else
 typedef union v3 v3;
-union v3
-{
+union v3 {
   struct { f32 x, y, z; };
   struct { f32 r, g, b; };
   struct { v2 xy; };
@@ -182,8 +180,7 @@ typedef f32 v4 __attribute__((ext_vector_type(4)));
 typedef f32 v4 __attribute__((ext_vector_type(4)));
 #else
 typedef union v4 v4;
-union v4
-{
+union v4 {
   struct { f32 x, y, z, w; };
   struct { f32 r, g, b, a; };
   struct { v3 rgb; };
@@ -201,8 +198,7 @@ typedef v4 quat;
 typedef i32 v2i __attribute__((ext_vector_type(2)));
 #else
 typedef union v2i v2i;
-union v2i
-{
+union v2i {
   struct { i32 x, y; };
   i32 e[2];
 };
@@ -225,8 +221,7 @@ union v3i {
 typedef i32 v4i __attribute__((ext_vector_type(4)));
 #else
 typedef union v4i v4i;
-union v4i
-{
+union v4i {
   struct { i32 x, y, z, w; };
   i32 e[4];
 };
@@ -234,79 +229,69 @@ union v4i
 
 #define m2(...) (m2) { __VA_ARGS__ }
 typedef union m2 m2;
-union m2
-{
+union m2 {
   f32 e[4];
   struct { v2 x, y; };
 };
 
 #define m3(...) (m3) { __VA_ARGS__ }
 typedef union m3 m3;
-union m3
-{
+union m3 {
   f32 e[9];
   struct { v3 x, y, z; };
 };
 
 #define m4(...) (m4) { __VA_ARGS__ }
 typedef union m4 m4;
-union m4
-{
+union m4 {
   f32 e[16];
   struct { v4 x, y, z, w; };
 };
 
 #define r2(...) (r2) { __VA_ARGS__ }
 typedef struct r2 r2;
-struct r2
-{
+struct r2 {
   v2 min;
   v2 max;
 };
 
 #define r3(...) (r3) { __VA_ARGS__ }
 typedef struct r3 r3;
-struct r3
-{
+struct r3 {
   v3 min;
   v3 max;
 };
 
 #define r2i(...) (r2i) { __VA_ARGS__ }
 typedef struct r2i r2i;
-struct r2i
-{
+struct r2i {
   v2i min;
   v2i max;
 };
 
 #define r3i(...) (r3i) { __VA_ARGS__ }
 typedef struct r3i r3i;
-struct r3i
-{
+struct r3i {
   v3i min;
   v3i max;
 };
 
 #define circle(...) (circle) { __VA_ARGS__ }
 typedef struct circle circle;
-struct circle
-{
+struct circle {
   v2 p;
   f32 r;
 };
 
 #define sphere(...) (sphere) { __VA_ARGS__ }
 typedef struct sphere sphere;
-struct sphere
-{
+struct sphere {
   v3 p;
   f32 r;
 };
 
 typedef struct frustum_plane frustum_plane;
-struct frustum_plane
-{
+struct frustum_plane {
   f32 a;
   f32 b;
   f32 c;
@@ -314,8 +299,7 @@ struct frustum_plane
 };
 
 typedef struct frustum frustum;
-struct frustum
-{
+struct frustum {
   frustum_plane planes[6];
 };
 
@@ -646,15 +630,13 @@ ATS_API m4 m4_invert(m4 m); // assumes it is invertible
 #define MEM_GIB(n) (1024 * MEM_MIB(n))
 
 typedef struct mem_index mem_index;
-struct mem_index
-{
+struct mem_index {
   usize pos;
   mem_index* next;
 };
 
 typedef struct mem_arena mem_arena;
-struct mem_arena
-{
+struct mem_arena {
   usize pos;
   usize cap;
   u8* buf;
@@ -683,14 +665,12 @@ ATS_API void mem_pop(void);
 
 // -------------------- internal --------------- //
 
-struct mem__arena_desc
-{
+struct mem__arena_desc {
   usize pad;
   mem_arena* arena;
 };
 
-struct mem__alloc_desc
-{
+struct mem__alloc_desc {
   usize size;
   usize count;
   mem_arena* arena;
@@ -711,8 +691,7 @@ ATS_API b32  bit_get(u32* array, u32 index);
 ATS_API void bit_clr(u32* array, u32 index);
 
 #define STR_ITER_TABLE (256 >> 5)
-typedef struct
-{
+typedef struct {
   char* current;
   char* end;
 
@@ -732,8 +711,7 @@ ATS_API void str_iter_advance(str_iter* it);
        (var = macro_var(it).current, str_iter_is_valid(&macro_var(it))); \
        str_iter_advance(&macro_var(it)))
 
-typedef struct
-{
+typedef struct {
   v2 pos;
   v2 dir;
 
@@ -762,8 +740,7 @@ ATS_API void ray_iter_advance(ray_iter* it);
 ATS_API v2 ray_iter_get_position(ray_iter* it);
 ATS_API v2 ray_iter_get_normal(ray_iter* it);
 
-typedef struct
-{
+typedef struct {
   v3 pos;
   v3 dir;
 
@@ -797,16 +774,14 @@ ATS_API v3 ray3_iter_get_position(ray3_iter* it);
 ATS_API v3 ray3_iter_get_normal(ray3_iter* it);
 
 #define path_node(...) (path_node) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   f32 w;
   i32 x;
   i32 y;
   i32 z;
 } path_node;
 
-typedef struct
-{
+typedef struct {
   u32 len;
   path_node* buf;
 } path_queue;
@@ -820,15 +795,13 @@ ATS_API path_node path_queue_pop(path_queue* queue);
 #define SPATIAL_TABLE_MAX 4096
 #define SPATIAL_TABLE_MOD 4095
 
-typedef struct sm_node
-{
+typedef struct sm_node {
   struct sm_node* next;
   void* e;
   r2 rect;
 } sm_node;
 
-typedef struct
-{
+typedef struct {
   sm_node* table[SPATIAL_TABLE_MAX];
 } spatial_map;
 
@@ -881,8 +854,7 @@ ATS_API void* sm_at_position(spatial_map* map, v2 pos);
 // }
 // rt_end();
 
-typedef struct rt
-{
+typedef struct rt {
   i32 at;
   f32 timer;
 } rt;
@@ -1007,8 +979,7 @@ ATS_API char* dir_extension(void);
 // ================================================================================================== //
 
 #define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
-typedef struct
-{
+typedef struct {
   u16 min_x;
   u16 min_y;
   u16 max_x;
@@ -1019,11 +990,12 @@ ATS_API u32* tex_get_pixels(void);
 ATS_API u16 tex_get_width(void);
 ATS_API u16 tex_get_height(void);
 ATS_API tex_rect tex_get(const char* name);
-ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height);
-ATS_API void tex_load_dir(const char* path);
+ATS_API void tex_save(const char* name);
+
 ATS_API void tex_begin(u16 width, u16 height);
 ATS_API void tex_end(void);
-ATS_API void tex_save(const char* name);
+ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height);
+ATS_API void tex_load_dir(const char* path);
 
 //ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator);
 
@@ -1035,30 +1007,26 @@ typedef struct at_frame at_frame;
 typedef struct at_animation at_animation;
 typedef struct at_entity at_entity;
 
-struct at_frame
-{
+struct at_frame {
   const char* name;
   tex_rect rect;
   at_frame* next;
   at_animation* animation;
 };
 
-struct at_animation
-{
+struct at_animation {
   const char* name;
   at_frame* frame;
   at_animation* next;
 };
 
-struct at_entity
-{
+struct at_entity {
   const char* name;
   at_animation* animation;
   at_entity* next;
 };
 
-typedef struct at_state
-{
+typedef struct at_state {
   at_entity* entity;
   at_frame* frame;
   f32 duration;
