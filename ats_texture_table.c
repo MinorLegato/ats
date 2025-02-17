@@ -14,7 +14,8 @@
 #define TEXTURE_TABLE_SIZE  (1 << TEXTURE_TABLE_LOG2)
 #define TEXTURE_TABLE_MOD   (TEXTURE_TABLE_SIZE - 1)
 
-struct tex_frame {
+struct tex_frame
+{
   struct tex_frame* next;
 
   tex_rect rect;
@@ -23,21 +24,24 @@ struct tex_frame {
   char name[64];
 };
 
-struct tex_animation {
+struct tex_animation
+{
   struct tex_animation* next;
   struct tex_frame* frame;
 
   char name[64];
 };
 
-struct tex_entity {
+struct tex_entity
+{
   struct tex_entity* next;
   struct tex_animation* animation;
 
   char name[64];
 };
 
-typedef struct {
+typedef struct
+{
   b32 user_provided;
 
   u16 width;
@@ -50,19 +54,22 @@ typedef struct {
   char frame[64];
 } tex_image;
 
-static struct {
+static struct
+{
   u16 width;
   u16 height;
   u32* pixels;
 
   struct tex_entity* entity[TEXTURE_TABLE_SIZE];
 
-  struct {
+  struct
+  {
     u32 count;
     tex_image array[2048];
   } image;
 
-  struct {
+  struct
+  {
     u32 count; 
     tex_rect array[4096];
   } stack;
@@ -94,9 +101,11 @@ static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 
   u32 index = 0;
   char array[8][64] = {0};
 
-  while (*name && (*name != '.')) {
+  while (*name && (*name != '.'))
+  {
     array[count][index++] = *(name++);
-    if (*name == '/' || *name == '\\') {
+    if (*name == '/' || *name == '\\')
+    {
       name++;
       count++;
       index = 0;
@@ -105,16 +114,20 @@ static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 
 
   tex__str_copy(image->frame, countof(image->frame), array[count]);
 
-  switch (count) {
-    case 0: {
+  switch (count)
+  {
+    case 0:
+    {
       tex__str_copy(image->entity, countof(image->frame), array[count]);
       tex__str_copy(image->animation, countof(image->frame), "idle");
     } break;
-    case 1: {
+    case 1:
+    {
       tex__str_copy(image->entity, countof(image->frame), array[0]);
       tex__str_copy(image->animation, countof(image->frame), "idle");
     } break;
-    case 2: {
+    case 2:
+    {
       tex__str_copy(image->entity, countof(image->frame), array[0]);
       tex__str_copy(image->animation, countof(image->frame), array[1]);
     } break;
@@ -135,7 +148,8 @@ static b32 _rect_contains_image(tex_rect rect, u16 width, u16 height)
 static tex_rect tex__get_fit(u16 width, u16 height)
 {
   u32 j = 0;
-  for (j = 0; j < tex.stack.count; ++j) {
+  for (j = 0; j < tex.stack.count; ++j)
+  {
     if (_rect_contains_image(tex.stack.array[j], width, height))
       break;
   }
@@ -148,8 +162,10 @@ static struct tex_entity* tex__get_entity(const char* name)
 {
   u32 hash = hash_str(name);
   u32 index = hash & TEXTURE_TABLE_MOD;
-  for (struct tex_entity* e = tex.entity[index]; e; e = e->next) {
-    if (strcmp(e->name, name) == 0) {
+  for (struct tex_entity* e = tex.entity[index]; e; e = e->next)
+  {
+    if (strcmp(e->name, name) == 0)
+    {
       return e;
     }
   }
@@ -164,20 +180,23 @@ static struct tex_animation* tex__get_animation(struct tex_entity* e, const char
 {
   struct tex_animation* prev = 0;
   struct tex_animation* node = 0;
-  for (node = e->animation; node; node = node->next) {
+  for (node = e->animation; node; node = node->next)
+  {
     int cmp = strcmp(node->name, name);
     if (cmp == 0) return node;
-    if (cmp > 0) {
+    if (cmp > 0)
       break;
-    }
     prev = node;
   }
   struct tex_animation* anim = mem_type(struct tex_animation);
   anim->next = node;
   tex__str_copy(anim->name, countof(anim->name), name);
-  if (prev) {
+  if (prev)
+  {
     prev->next = anim;
-  } else {
+  }
+  else
+  {
     e->animation = anim;
   }
   return anim;
@@ -187,7 +206,8 @@ static struct tex_frame* tex__get_frame(struct tex_animation* a, const char* nam
 {
   struct tex_frame* prev = 0;
   struct tex_frame* node = 0;
-  for (node = a->frame; node; node = node->next) {
+  for (node = a->frame; node; node = node->next)
+  {
     int cmp = strcmp(node->name, name);
     if (cmp == 0) return node;
     if (cmp > 0) {
@@ -198,9 +218,12 @@ static struct tex_frame* tex__get_frame(struct tex_animation* a, const char* nam
   struct tex_frame* frame = mem_type(struct tex_frame);
   frame->next = node;
   tex__str_copy(frame->name, countof(frame->name), name);
-  if (prev) {
+  if (prev)
+  {
     prev->next = frame;
-  } else {
+  }
+  else
+  {
     a->frame = frame;
   }
   return frame;

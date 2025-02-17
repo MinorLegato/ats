@@ -339,6 +339,9 @@ static void d3_init(void)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4096, 4096, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, d3.target.texture, 0);
     // render buffer:
     glGenRenderbuffers(1, &d3.target.renderbuffer);
@@ -763,7 +766,7 @@ static void d3_rect(r2 rect, f32 z, u32 color)
   d3_vertex(rect.min.x, rect.min.y, z);
 }
 
-static gl_shader d3_new_target(const char* fragment_shader)
+static gl_shader d3_create_target(const char* fragment_shader)
 {
   gl_shader_desc shader_desc = {0};
 

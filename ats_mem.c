@@ -15,7 +15,8 @@ ATS_API mem_arena mem_create(void* data, usize size)
 #define MEM_GET(arg) ((arg).arena? (arg).arena : (mem_stack))
 
 typedef struct mem_header mem_header;
-struct mem_header {
+struct mem_header
+{
   usize size;
   usize count;
 };
@@ -64,7 +65,6 @@ ATS_API void mem__end(usize size, struct mem__arena_desc desc)
   mem_arena* arena = MEM_GET(desc);
   arena->pos += size;
 }
-
 
 ATS_API void mem_push(mem_arena* arena)
 {

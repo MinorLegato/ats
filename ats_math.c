@@ -2,7 +2,8 @@
 
 ATS_API m2 m2_identity(void)
 {
-  return (m2) {
+  return (m2)
+  {
     1, 0,
     0, 1
   };
@@ -10,7 +11,8 @@ ATS_API m2 m2_identity(void)
 
 ATS_API m3 m3_identity(void)
 {
-  return (m3) {
+  return (m3)
+  {
     1, 0, 0,
     0, 1, 0,
     0, 0, 1
@@ -19,7 +21,8 @@ ATS_API m3 m3_identity(void)
 
 ATS_API m4 m4_identity(void)
 {
-  return (m4) {
+  return (m4)
+  {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
@@ -272,13 +275,18 @@ ATS_API f32 bounce_ease_out(f32 t)
   if (t < 1 / d1)
   {
     return n1 * t * t;
-  } else if (t < 2 / d1) {
+  }
+  else if (t < 2 / d1)
+  {
     t -= 1.5f / d1;
     return n1 * t * t + 0.75f;
-  } else if (t < 2.5f / d1) {
+  }
+  else if (t < 2.5f / d1) {
     t -= 2.25f / d1;
     return n1 * t * t + 0.9375f;
-  } else {
+  }
+  else
+  {
     t -= 2.625f / d1;
     return n1 * t * t + 0.984375f;
   }
@@ -332,7 +340,8 @@ ATS_API v4i v4i_from_array(const i32* a)
 
 ATS_API v3 v3_unpack_color(u32 color)
 {
-  return (v3) {
+  return (v3)
+  {
     ((color & 0x000000ff) >> 0)  / 255.0f,
     ((color & 0x0000ff00) >> 8)  / 255.0f,
     ((color & 0x00ff0000) >> 16) / 255.0f
@@ -341,7 +350,8 @@ ATS_API v3 v3_unpack_color(u32 color)
 
 ATS_API v4 v4_unpack_color(u32 color)
 {
-  return (v4) {
+  return (v4)
+  {
     ((color & 0x000000ff) >> 0)  / 255.0f,
     ((color & 0x0000ff00) >> 8)  / 255.0f,
     ((color & 0x00ff0000) >> 16) / 255.0f,
@@ -479,7 +489,8 @@ ATS_API v4i v4i_mul(v4i a, v4i b)
 
 ATS_API v2 m2_mulv(m2 m, v2 u)
 {
-  return (v2) {
+  return (v2)
+  {
     m.e[0] * u.x + m.e[2] * u.y,
     m.e[1] * u.x + m.e[3] * u.y
   };
@@ -487,7 +498,8 @@ ATS_API v2 m2_mulv(m2 m, v2 u)
 
 ATS_API v3 m3_mulv(m3 m, v3 u)
 {
-  return (v3) {
+  return (v3)
+  {
     m.e[0] * u.x + m.e[3] * u.y + m.e[6] * u.z,
     m.e[1] * u.x + m.e[4] * u.y + m.e[7] * u.z,
     m.e[2] * u.x + m.e[5] * u.y + m.e[8] * u.z
@@ -496,7 +508,8 @@ ATS_API v3 m3_mulv(m3 m, v3 u)
 
 ATS_API v4 m4_mulv(m4 m, v4 u)
 {
-  return (v4) {
+  return (v4)
+  {
     m.e[0] * u.x + m.e[4] * u.y + m.e[8]  * u.z + m.e[12] * u.w,
     m.e[1] * u.x + m.e[5] * u.y + m.e[9]  * u.z + m.e[13] * u.w,
     m.e[2] * u.x + m.e[6] * u.y + m.e[10] * u.z + m.e[14] * u.w,
@@ -506,7 +519,8 @@ ATS_API v4 m4_mulv(m4 m, v4 u)
 
 ATS_API m2 m2_mul(m2 a, m2 b)
 {
-  return (m2) {
+  return (m2)
+  {
     a.e[0] * b.e[0] + a.e[2] * b.e[1],
     a.e[1] * b.e[0] + a.e[3] * b.e[1],
     a.e[0] * b.e[2] + a.e[2] * b.e[3],
@@ -516,7 +530,8 @@ ATS_API m2 m2_mul(m2 a, m2 b)
 
 ATS_API m3 m3_mul(m3 a, m3 b)
 {
-  return (m3) {
+  return (m3)
+  {
     a.e[0] * b.e[0] + a.e[3] * b.e[1]  + a.e[6] * b.e[2],
     a.e[1] * b.e[0] + a.e[4] * b.e[1]  + a.e[7] * b.e[2],
     a.e[2] * b.e[0] + a.e[5] * b.e[1]  + a.e[8] * b.e[2],
@@ -533,7 +548,8 @@ ATS_API m3 m3_mul(m3 a, m3 b)
 
 ATS_API m4 m4_mul(m4 a, m4 b)
 {
-  return (m4) {
+  return (m4)
+  {
     a.e[0] * b.e[0]  + a.e[4] * b.e[1]  + a.e[8]  * b.e[2]  + a.e[12] * b.e[3],
     a.e[1] * b.e[0]  + a.e[5] * b.e[1]  + a.e[9]  * b.e[2]  + a.e[13] * b.e[3],
     a.e[2] * b.e[0]  + a.e[6] * b.e[1]  + a.e[10] * b.e[2]  + a.e[14] * b.e[3],
@@ -558,7 +574,8 @@ ATS_API m4 m4_mul(m4 a, m4 b)
 
 ATS_API quat quat_mul(quat a, quat b)
 {
-  return (quat) {
+  return (quat)
+  {
     a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,  // i
     a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,  // j
     a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,  // k
@@ -892,14 +909,17 @@ ATS_API v4 v4_ceil(v4 u)
 
 ATS_API v2 v2_clampf(v2 u, f32 min, f32 max)
 {
-  return (v2) {
+  return (v2)
+  {
     clamp(u.x, min, max),
     clamp(u.y, min, max)
   };
 }
 
-ATS_API v3 v3_clampf(v3 u, f32 min, f32 max) {
-  return (v3) {
+ATS_API v3 v3_clampf(v3 u, f32 min, f32 max)
+{
+  return (v3)
+  {
     clamp(u.x, min, max),
     clamp(u.y, min, max),
     clamp(u.z, min, max)
@@ -908,22 +928,26 @@ ATS_API v3 v3_clampf(v3 u, f32 min, f32 max) {
 
 ATS_API v2i v2i_clampi(v2i u, f32 min, f32 max)
 {
-  return (v2i) {
+  return (v2i)
+  {
     (i32)clamp(u.x, min, max),
     (i32)clamp(u.y, min, max)
   };
 }
 
 ATS_API v3i v3i_clampi(v3i u, f32 min, f32 max) {
-  return (v3i) {
+  return (v3i)
+  {
     (i32)clamp(u.x, min, max),
     (i32)clamp(u.y, min, max),
     (i32)clamp(u.z, min, max)
   };
 }
 
-ATS_API v2 v2_clamp(v2 u, r2 r) {
-  return (v2) {
+ATS_API v2 v2_clamp(v2 u, r2 r)
+{
+  return (v2)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y)
   };
@@ -931,7 +955,8 @@ ATS_API v2 v2_clamp(v2 u, r2 r) {
 
 ATS_API v3 v3_clamp(v3 u, r3 r)
 {
-  return (v3) {
+  return (v3)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y),
     clamp(u.z, r.min.z, r.max.z)
@@ -940,7 +965,8 @@ ATS_API v3 v3_clamp(v3 u, r3 r)
 
 ATS_API v2i v2i_clamp(v2i u, r2i r)
 {
-  return (v2i) {
+  return (v2i)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y)
   };
@@ -948,7 +974,8 @@ ATS_API v2i v2i_clamp(v2i u, r2i r)
 
 ATS_API v3i v3i_clamp(v3i u, r3i r)
 {
-  return (v3i) {
+  return (v3i)
+  {
     clamp(u.x, r.min.x, r.max.x),
     clamp(u.y, r.min.y, r.max.y),
     clamp(u.z, r.min.z, r.max.z)
@@ -959,7 +986,8 @@ ATS_API v3i v3i_clamp(v3i u, r3i r)
 
 ATS_API v2 v2_min(v2 a, v2 b)
 {
-  return (v2) {
+  return (v2)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y
   };
@@ -967,7 +995,8 @@ ATS_API v2 v2_min(v2 a, v2 b)
 
 ATS_API v3 v3_min(v3 a, v3 b)
 {
-  return (v3) {
+  return (v3)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z
@@ -976,7 +1005,8 @@ ATS_API v3 v3_min(v3 a, v3 b)
 
 ATS_API v4 v4_min(v4 a, v4 b)
 {
-  return (v4) {
+  return (v4)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z,
@@ -986,7 +1016,8 @@ ATS_API v4 v4_min(v4 a, v4 b)
 
 ATS_API v2i v2i_min(v2i a, v2i b)
 {
-  return (v2i) {
+  return (v2i)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y
   };
@@ -994,7 +1025,8 @@ ATS_API v2i v2i_min(v2i a, v2i b)
 
 ATS_API v3i v3i_min(v3i a, v3i b)
 {
-  return (v3i) {
+  return (v3i)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z
@@ -1003,7 +1035,8 @@ ATS_API v3i v3i_min(v3i a, v3i b)
 
 ATS_API v4i v4i_min(v4i a, v4i b)
 {
-  return (v4i) {
+  return (v4i)
+  {
     a.x < b.x? a.x : b.x,
     a.y < b.y? a.y : b.y,
     a.z < b.z? a.z : b.z,
@@ -1015,7 +1048,8 @@ ATS_API v4i v4i_min(v4i a, v4i b)
 
 ATS_API v2 v2_max(v2 a, v2 b)
 {
-  return (v2) {
+  return (v2)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y
   };
@@ -1023,7 +1057,8 @@ ATS_API v2 v2_max(v2 a, v2 b)
 
 ATS_API v3 v3_max(v3 a, v3 b)
 {
-  return (v3) {
+  return (v3)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z
@@ -1032,7 +1067,8 @@ ATS_API v3 v3_max(v3 a, v3 b)
 
 ATS_API v4 v4_max(v4 a, v4 b)
 {
-  return (v4) {
+  return (v4)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z,
@@ -1051,7 +1087,8 @@ ATS_API v2i v2i_max(v2i a, v2i b)
 
 ATS_API v3i v3i_max(v3i a, v3i b)
 {
-  return (v3i) {
+  return (v3i)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z
@@ -1060,7 +1097,8 @@ ATS_API v3i v3i_max(v3i a, v3i b)
 
 ATS_API v4i v4i_max(v4i a, v4i b)
 {
-  return (v4i) {
+  return (v4i)
+  {
     a.x > b.x? a.x : b.x,
     a.y > b.y? a.y : b.y,
     a.z > b.z? a.z : b.z,
@@ -1072,7 +1110,8 @@ ATS_API v4i v4i_max(v4i a, v4i b)
 
 ATS_API v2 v2_lerp(v2 a, v2 b, f32 t)
 {
-  return (v2) {
+  return (v2)
+  {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y)
   };
@@ -1080,7 +1119,8 @@ ATS_API v2 v2_lerp(v2 a, v2 b, f32 t)
 
 ATS_API v3 v3_lerp(v3 a, v3 b, f32 t)
 {
-  return (v3) {
+  return (v3)
+  {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
     a.z + t * (b.z - a.z)
@@ -1089,7 +1129,8 @@ ATS_API v3 v3_lerp(v3 a, v3 b, f32 t)
 
 ATS_API v4 v4_lerp(v4 a, v4 b, f32 t)
 {
-  return (v4) {
+  return (v4)
+  {
     a.x + t * (b.x - a.x),
     a.y + t * (b.y - a.y),
     a.z + t * (b.z - a.z),
@@ -1108,7 +1149,8 @@ ATS_API f32 spline(f32 f, f32 a, f32 b, f32 c, f32 d)
 ATS_API v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d)
 {
   f32 inv = 1.0f - f;
-  return (v2) {
+  return (v2)
+  {
     ((d.x * f + c.x * inv) * f + (c.x * f + b.x * inv) * inv) * f + ((c.x * f + b.x * inv) * f + (b.x * f + a.x * inv) * inv) * inv,
     ((d.y * f + c.y * inv) * f + (c.y * f + b.y * inv) * inv) * f + ((c.y * f + b.y * inv) * f + (b.y * f + a.y * inv) * inv) * inv
   };
@@ -1117,7 +1159,8 @@ ATS_API v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d)
 ATS_API v3 v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d)
 {
   f32 inv = 1.0f - f;
-  return (v3) {
+  return (v3)
+  {
     ((d.x * f + c.x * inv) * f + (c.x * f + b.x * inv) * inv) * f + ((c.x * f + b.x * inv) * f + (b.x * f + a.x * inv) * inv) * inv,
     ((d.y * f + c.y * inv) * f + (c.y * f + b.y * inv) * inv) * f + ((c.y * f + b.y * inv) * f + (b.y * f + a.y * inv) * inv) * inv,
     ((d.z * f + c.z * inv) * f + (c.z * f + b.z * inv) * inv) * f + ((c.z * f + b.z * inv) * f + (b.z * f + a.z * inv) * inv) * inv
@@ -1127,7 +1170,8 @@ ATS_API v3 v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d)
 ATS_API v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d)
 {
   f32 inv = 1.0f - f;
-  return (v4) {
+  return (v4)
+  {
     ((d.x * f + c.x * inv) * f + (c.x * f + b.x * inv) * inv) * f + ((c.x * f + b.x * inv) * f + (b.x * f + a.x * inv) * inv) * inv,
     ((d.y * f + c.y * inv) * f + (c.y * f + b.y * inv) * inv) * f + ((c.y * f + b.y * inv) * f + (b.y * f + a.y * inv) * inv) * inv,
     ((d.z * f + c.z * inv) * f + (c.z * f + b.z * inv) * inv) * f + ((c.z * f + b.z * inv) * f + (b.z * f + a.z * inv) * inv) * inv,
@@ -1171,7 +1215,8 @@ ATS_API v4i v4i_sign(v4i u)
 
 ATS_API v3 v3_cross(v3 a, v3 b)
 {
-  return (v3) {
+  return (v3)
+  {
     a.y * b.z - a.z * b.y,
     a.z * b.x - a.x * b.z,
     a.x * b.y - a.y * b.x
@@ -1191,7 +1236,7 @@ ATS_API f32 v2_get_angle(v2 a, v2 b)
 
 ATS_API v2 v2_from_angle(f32 angle)
 {
-  return v2(cos(angle), sin(angle));
+  return (v2) { cos(angle), sin(angle) };
 }
 
 // ----------- keep min ---------- //
@@ -1226,8 +1271,7 @@ ATS_API v2 v2_mask_min(v2 u)
   if (dx <= dy) return (v2) { 0, 1 };
   if (dy <= dx) return (v2) { 1, 0 };
 
-  return (v2)
-  { 1, 1 };
+  return (v2) { 1, 1 };
 }
 
 ATS_API v3 v3_mask_min(v3 u)
@@ -1284,7 +1328,8 @@ ATS_API m4 m4_rotate(v3 axis, f32 angle)
   v3 sa = { axis.x * sinv, axis.y * sinv, axis.z * sinv };
   v3 omca = { axis.x * inv_cosv, axis.y * inv_cosv, axis.z * inv_cosv };
 
-  return (m4) {
+  return (m4)
+  {
     omca.x * axis.x + cosv,  omca.x * axis.y - sa.x,  omca.x * axis.z + sa.y, 0,
     omca.y * axis.x + sa.z,  omca.y * axis.y + cosv,  omca.y * axis.z - sa.x, 0,
     omca.z * axis.x - sa.y,  omca.z * axis.y + sa.x,  omca.z * axis.z + cosv, 0,
@@ -1303,7 +1348,8 @@ ATS_API quat quat_rotate(v3 axis, f32 angle)
 {
   f32 s = sin(0.5f * angle);
   v3  v = { s * axis.x, s * axis.y, s * axis.z };
-  return (quat) {
+  return (quat)
+  {
     v.x, v.y, v.z, cos(0.5f * angle)
   };
 }
@@ -1313,7 +1359,8 @@ ATS_API v3 quat_mulv(quat q, v3 u)
   v3 t = v3_scale(v3_cross(q.xyz, u), 2);
   v3 s = v3_scale(t, q.w);
   v3 c = v3_cross(q.xyz, t);
-  return (v3) {
+  return (v3)
+  {
     u.x + s.x + c.x,
     u.y + s.y + c.y,
     u.z + s.z + c.z
@@ -1324,7 +1371,8 @@ ATS_API v3 quat_mulv(quat q, v3 u)
 
 ATS_API m4 m4_translate(f32 x, f32 y, f32 z)
 {
-  return (m4) {
+  return (m4)
+  {
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
@@ -1334,7 +1382,8 @@ ATS_API m4 m4_translate(f32 x, f32 y, f32 z)
 
 ATS_API m4 m4_scale(f32 x, f32 y, f32 z)
 {
-  return (m4) {
+  return (m4)
+  {
     x, 0, 0, 0,
     0, y, 0, 0,
     0, 0, z, 0,
@@ -1356,7 +1405,8 @@ ATS_API m3 m3_from_quat(quat q)
   f32 c2 = c * c;
   f32 d2 = d * d;
 
-  return (m3) {
+  return (m3)
+  {
     a2 + b2 - c2 - d2,
     2.0f * (b * c + a * d),
     2.0f * (b * d - a * c),
@@ -1383,7 +1433,8 @@ ATS_API m4 m4_from_quat(quat q)
   f32 c2 = c * c;
   f32 d2 = d * d;
 
-  return (m4) {
+  return (m4)
+  {
     a2 + b2 - c2 - d2,
     2.0f * (b * c + a * d),
     2.0f * (b * d - a * c),
@@ -1410,7 +1461,8 @@ ATS_API m4 m4_from_quat(quat q)
 
 ATS_API m4 m4_ortho(f32 l, f32 r, f32 b, f32 t, f32 n, f32 f)
 {
-  return (m4) {
+  return (m4)
+  {
     2 / (r - l), 0, 0, 0,
     0, 2 / (t - b), 0, 0,
     0, 0, -2 / (f - n), 0,
@@ -1422,7 +1474,8 @@ ATS_API m4 m4_perspective(f32 y_fov, f32 aspect, f32 n, f32 f)
 {
   f32 a = 1.0f / tan(y_fov / 2.0f);
 
-  return (m4) {
+  return (m4)
+  {
     a / aspect, 0, 0, 0,
     0, a, 0, 0,
     0, 0, -((f + n) / (f - n)), -1,
@@ -1570,10 +1623,10 @@ ATS_API b32 r3i_contains(r3i rect, v3i pos)
 
 ATS_API b32 frustum_contains(frustum fs, v3 pos)
 {
-  for (i32 i = 0; i < 6; i++) {
-    if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0) {
+  for (i32 i = 0; i < 6; i++)
+  {
+    if (fs.planes[i].a * pos.x + fs.planes[i].b * pos.y + fs.planes[i].c * pos.z + fs.planes[i].d <= 0)
       return 0;
-    }
   }
   return 1;
 }
@@ -1629,17 +1682,18 @@ ATS_API b32 r3i_intersect(r3i a, r3i b)
 
 ATS_API b32 frustum_intersect_sphere(frustum fs, sphere s)
 {
-  for (i32 i = 0; i < 6; i++) {
-    if (fs.planes[i].a * s.p.x + fs.planes[i].b * s.p.y + fs.planes[i].c * s.p.z + fs.planes[i].d <= -s.r) {
+  for (i32 i = 0; i < 6; i++)
+  {
+    if (fs.planes[i].a * s.p.x + fs.planes[i].b * s.p.y + fs.planes[i].c * s.p.z + fs.planes[i].d <= -s.r)
       return 0;
-    }
   }
   return 1;
 }
 
 ATS_API b32 frustum_intersect_r3(frustum fs, r3 rect)
 {
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++)
+  {
     if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.max.x + fs.planes[i].b * rect.min.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
     if (fs.planes[i].a * rect.min.x + fs.planes[i].b * rect.max.y + fs.planes[i].c * rect.min.z + fs.planes[i].d > 0) continue;
@@ -1657,7 +1711,8 @@ ATS_API b32 frustum_intersect_r3(frustum fs, r3 rect)
 
 ATS_API r2 r2_get_overlap(r2 a, r2 b)
 {
-  return (r2) {
+  return (r2)
+  {
     v2_max(a.min, b.min),
     v2_min(a.max, b.max)
   };
@@ -1665,7 +1720,8 @@ ATS_API r2 r2_get_overlap(r2 a, r2 b)
 
 ATS_API r3 r3_get_overlap(r3 a, r3 b)
 {
-  return (r3) {
+  return (r3)
+  {
     v3_max(a.min, b.min),
     v3_min(a.max, b.max)
   };
@@ -1673,7 +1729,8 @@ ATS_API r3 r3_get_overlap(r3 a, r3 b)
 
 ATS_API r2i r2i_get_overlap(r2i a, r2i b)
 {
-  return (r2i) {
+  return (r2i)
+  {
     v2i_max(a.min, b.min),
     v2i_min(a.max, b.max)
   };
@@ -1681,7 +1738,8 @@ ATS_API r2i r2i_get_overlap(r2i a, r2i b)
 
 ATS_API r3i r3i_get_overlap(r3i a, r3i b)
 {
-  return (r3i) {
+  return (r3i)
+  {
     v3i_max(a.min, b.min),
     v3i_min(a.max, b.max)
   };
@@ -1706,7 +1764,8 @@ ATS_API v3 sphere_get_intersect_vector(sphere a, sphere b)
 ATS_API v2 r2_get_intersect_vector(r2 a, r2 b)
 {
   r2 overlap = r2_get_overlap(a, b);
-  v2 delta = {
+  v2 delta =
+  {
     0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
     0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
   };
@@ -1716,7 +1775,8 @@ ATS_API v2 r2_get_intersect_vector(r2 a, r2 b)
 ATS_API v3 r3_get_intersect_vector(r3 a, r3 b)
 {
   r3 overlap = r3_get_overlap(a, b);
-  v3 delta = {
+  v3 delta =
+  {
     0.5f * (a.min.x + a.max.x) - 0.5f * (b.min.x + b.max.x),
     0.5f * (a.min.y + a.max.y) - 0.5f * (b.min.y + b.max.y),
     0.5f * (a.min.z + a.max.z) - 0.5f * (b.min.z + b.max.z),
@@ -1727,7 +1787,8 @@ ATS_API v3 r3_get_intersect_vector(r3 a, r3 b)
 ATS_API v2i r2i_get_intersect_vector(r2i a, r2i b)
 {
   r2i overlap = r2i_get_overlap(a, b);
-  v2i delta = {
+  v2i delta =
+  {
     (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
     (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2,
   };
@@ -1737,7 +1798,8 @@ ATS_API v2i r2i_get_intersect_vector(r2i a, r2i b)
 ATS_API v3i r3i_get_intersect_vector(r3i a, r3i b)
 {
   r3i overlap = r3i_get_overlap(a, b);
-  v3i delta = {
+  v3i delta =
+  {
     (a.min.x + a.max.x) / 2 - (b.min.x + b.max.x) / 2,
     (a.min.y + a.max.y) / 2 - (b.min.y + b.max.y) / 2,
     (a.min.z + a.max.z) / 2 - (b.min.z + b.max.z) / 2,
@@ -1800,7 +1862,8 @@ ATS_API u32 hash_str(const char* str)
   return hash;
 }
 
-static const u32 crc_table[] = {
+static const u32 crc_table[] =
+{
   0x00000000, 0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b, 0x1a864db2, 0x1e475005,
   0x2608edb8, 0x22c9f00f, 0x2f8ad6d6, 0x2b4bcb61, 0x350c9b64, 0x31cd86d3, 0x3c8ea00a, 0x384fbdbd,
   0x4c11db70, 0x48d0c6c7, 0x4593e01e, 0x4152fda9, 0x5f15adac, 0x5bd4b01b, 0x569796c2, 0x52568b75,
@@ -1838,8 +1901,9 @@ static const u32 crc_table[] = {
 ATS_API u32 crc32(const void *data, u32 size)
 {
   const u8 *d = (const u8*)data;
-  u32 crc = 0xFFFFFFFF;
-  while (size--) {
+  u32 crc = 0xffffffff;
+  while (size--)
+  {
     u32 index = (crc ^ *(d++)) & 0xFF;
     crc = (crc >> 8) ^ crc_table[index];
   }
@@ -2146,7 +2210,8 @@ ATS_API m4 m4_invert(m4 m)
   // assumes it is invertible
   f32 idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
-  return (m4) {
+  return (m4)
+  {
     (m.e[5]   * c[5] - m.e[6]  * c[4] + m.e[7]  * c[3]) * idet,
     (-m.e[1]  * c[5] + m.e[2]  * c[4] - m.e[3]  * c[3]) * idet,
     (m.e[13]  * s[5] - m.e[14] * s[4] + m.e[15] * s[3]) * idet,
