@@ -2021,9 +2021,19 @@ ATS_API u32 pack_color_v4(v4 color)
   return pack_color_f32(color.r, color.g, color.b, color.a);
 }
 
+ATS_API u32 pack_color_f4v(const f32* color)
+{
+  return pack_color_f32(color[0], color[1], color[2], color[3]);
+}
+
 ATS_API u32 pack_color_v3(v3 color, f32 a)
 {
   return pack_color_f32(color.r, color.g, color.b, a);
+}
+
+ATS_API u32 pack_color_f3v(const f32* color, f32 a)
+{
+  return pack_color_f32(color[0], color[1], color[2], a);
 }
 
 // -------------------- f64 matrix funcs ------------------- //

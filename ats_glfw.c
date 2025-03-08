@@ -576,7 +576,6 @@ static void platform_end_frame(void)
   platform.time.total += platform.time.delta;
 }
 
-
 static void platform_swap_buffers(void)
 {
   glfwSwapBuffers(platform_internal.window);
@@ -629,7 +628,7 @@ ATS_API void platform_init(const char* title, int width, int height, int samples
   platform.width  = width;
   platform.height = height;
 
-  platform_internal.window = glfwCreateWindow(width, height, title, NULL, NULL);
+  platform_internal.window = glfwCreateWindow(width, height, title, 0, 0);
   platform.native = glfwGetWin32Window(platform_internal.window);
 
   glfwSetWindowPos(platform_internal.window, (mode->width - width) / 2, (mode->height - height) / 2);
@@ -661,9 +660,7 @@ ATS_API void platform_init(const char* title, int width, int height, int samples
   for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i)
   {
     if (glfwJoystickPresent(i))
-    {
       platform.gamepad[i].active = 1;
-    }
   }
 
   glfwSetTime(0.0);

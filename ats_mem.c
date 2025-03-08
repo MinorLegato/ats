@@ -2,6 +2,13 @@
 
 static mem_arena* mem_stack;
 
+ATS_API void mem_init(void* data, usize size)
+{
+  static mem_arena arena;
+  arena = mem_create(data, size);
+  mem_push(&arena);
+}
+
 ATS_API mem_arena mem_create(void* data, usize size)
 {
   mem_arena arena = {0};

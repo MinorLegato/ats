@@ -626,8 +626,10 @@ ATS_API u32 hash_v4i(v4i k);
 
 ATS_API u32 pack_color_u8(u8 r, u8 g, u8 b, u8 a);
 ATS_API u32 pack_color_f32(f32 r, f32 g, f32 b, f32 a);
+ATS_API u32 pack_color_f4v(const f32* color);
 ATS_API u32 pack_color_v4(v4 color);
 ATS_API u32 pack_color_v3(v3 color, f32 a);
+ATS_API u32 pack_color_f3v(const f32* color, f32 a);
 
 ATS_API void f4x4_mul_64(f64 *R, const f64 *a, const f64 *b);
 ATS_API void f4x4_mulv_64(f64 *out, const f64 *M, const f64 *v);
@@ -663,6 +665,7 @@ struct mem_arena
   mem_arena* next;
 };
 
+ATS_API void mem_init(void* data, usize size);
 ATS_API mem_arena mem_create(void* data, usize size);
 ATS_API void mem_push(mem_arena* arena);
 ATS_API void mem_pop(void);
@@ -921,17 +924,17 @@ typedef struct
           if (__mn) __rt->timer = 0; \
         } \
 
-#define rt_while(condition) \
+#define rt_while(...) \
       } if (__mn) __rt->at = __LINE__; \
       break; \
-      case __LINE__: if (condition) { \
+      case __LINE__: if (__VA_ARGS__) { \
         __mn = 0 \
 
-#define rt_until(condition) \
-      } if (__mn) __rt->at = ((condition) ? __LINE__ : -__LINE__); \
+#define rt_until(...) \
+      } if (__mn) __rt->at = ((__VA_ARGS__) ? __LINE__ : -__LINE__); \
       break; \
       case -__LINE__: \
-                      if (condition) __rt->at = __LINE__; \
+                      if (__VA_ARGS__) __rt->at = __LINE__; \
       break; \
       case __LINE__: { \
 
@@ -959,6 +962,14 @@ typedef struct
 // Skips the remainder of the block
 #define rt_repeat() \
   goto rt_end_of_routine \
+
+// Repeats the block that this is contained within after waiting for 'time'
+// Skips the remainder of the block
+#define rt_repeat_after(time) \
+  do { \
+    __rt->timer = -(time); \
+    goto rt_end_of_routine; \
+  } while (0);
 
 // Goes to a given block labeled with `rt_label`
 #define rt_goto(name) \

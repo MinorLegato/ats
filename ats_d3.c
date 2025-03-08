@@ -38,8 +38,9 @@
 //  }
 //}
 
-#define D3_VERTEX_MAX (4 * 1024 * 1024)
-#define D3_TARGET_MAX (256)
+#define D3_VERTEX_MAX   (4 * 1024 * 1024)
+#define D3_TARGET_MAX   (256)
+#define D3_LIGHT_MAX    (16)
 
 static const char* d3_vertex_shader = GLSL(
   layout (location = 0) in vec3 in_pos;
@@ -234,8 +235,7 @@ struct d3__vertex
   u32 color;
 };
 
-typedef struct d3__light d3__light;
-struct d3__light
+typedef struct
 {
   v3 pos;
   v3 ambient;
@@ -244,7 +244,18 @@ struct d3__light
   f32 constant; 
   f32 linear;
   f32 quadratic;
-};
+} d3__light;
+
+typedef struct
+{
+  u32 pos;
+  u32 ambient;
+  u32 diffuse;
+  u32 specular;
+  u32 constant; 
+  u32 linear;
+  u32 quadratic;
+} d3__light_uniform;
 
 static struct
 {
@@ -275,19 +286,32 @@ static struct
   d3__vertex current;
   u32 vertex_count;
   d3__vertex vertex_array[D3_VERTEX_MAX];
+
+  struct
+  {
+    u32 mvp;
+    u32 view_pos;
+    u32 texture_enabled;
+    u32 lighting_enabled;
+    u32 fog_enabled;
+    u32 fog_color;
+
+    u32 light_count;
+    d3__light_uniform light_array[D3_LIGHT_MAX];
+  } uniform;
 } d3;
 
 static void d3_set_matrix(m4 mvp)
 {
   gl_use(&d3.shader);
-  gl_uniform_m4(gl_location(&d3.shader, "mvp"), mvp);
+  gl_uniform_m4(d3.uniform.mvp, mvp);
 }
 
 static void d3_set_view(v3 pos, v3 dir)
 {
   d3.view_pos = pos;
   d3.view_dir = v3_norm(dir);
-  gl_uniform_v3(gl_location(&d3.shader, "view_pos"), d3.view_pos);
+  gl_uniform_v3(d3.uniform.view_pos, d3.view_pos);
 }
 
 static void d3_set_texture(const gl_texture* texture)
@@ -353,6 +377,36 @@ static void d3_init(void)
   }
 
   d3.clear_color = 0xff000000;
+
+  // setup uniforms:
+  {
+    gl_use(&d3.shader);
+    d3.uniform.mvp              = gl_location(&d3.shader, "mvp");
+    d3.uniform.view_pos         = gl_location(&d3.shader, "view_pos");
+    d3.uniform.texture_enabled  = gl_location(&d3.shader, "texture_enabled");
+    d3.uniform.lighting_enabled = gl_location(&d3.shader, "lighting_enabled");
+    d3.uniform.fog_enabled      = gl_location(&d3.shader, "fog_enabled");
+    d3.uniform.fog_color        = gl_location(&d3.shader, "fog_color");
+    d3.uniform.light_count      = gl_location(&d3.shader, "light_count");
+
+    char buffer[256];
+    for (i32 i = 0; i < D3_LIGHT_MAX; ++i)
+    {
+      d3__light_uniform* uniform = d3.uniform.light_array + i;
+#define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(&d3.shader, buffer);
+#define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(&d3.shader, buffer);
+      set_v3(pos);
+      set_v3(ambient);
+      set_v3(diffuse);
+      set_v3(specular);
+      set_f32(constant);
+      set_f32(linear);
+      set_f32(quadratic);
+#undef set_v3
+#undef set_f32
+    }
+
+  }
 }
 
 static void d3_end_pass(void)
@@ -449,26 +503,25 @@ static void d3_end(void)
 
   // add lights
   {
-    i32 count = min(32, d3.light_count);
+    i32 count = min(16, d3.light_count);
 
     char buffer[256];
     for (i32 i = 0; i < count; ++i)
     {
       d3__light light = d3.light_array[i];
-#define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_v3(gl_location(&d3.shader, buffer), light.var);
-#define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); gl_uniform_f32(gl_location(&d3.shader, buffer), light.var);
-      set_v3(pos);
-      set_v3(ambient);
-      set_v3(diffuse);
-      set_v3(specular);
-      set_f32(constant);
-      set_f32(linear);
-      set_f32(quadratic);
-#undef set_v3
-#undef set_f32
-    }
+      d3__light_uniform uniform = d3.uniform.light_array[i];
 
-    gl_uniform_i32(gl_location(&d3.shader, "light_count"), count);
+      gl_uniform_v3(uniform.pos, light.pos);
+
+      gl_uniform_v3(uniform.pos, light.pos);
+      gl_uniform_v3(uniform.ambient, light.ambient);
+      gl_uniform_v3(uniform.diffuse, light.diffuse);
+      gl_uniform_v3(uniform.specular, light.specular);
+      gl_uniform_f32(uniform.constant, light.constant);
+      gl_uniform_f32(uniform.linear, light.linear);
+      gl_uniform_f32(uniform.quadratic, light.quadratic);
+    }
+    gl_uniform_i32(d3.uniform.light_count, count);
   }
 
   glDrawArrays(d3.type, 0, d3.vertex_count);
@@ -489,15 +542,15 @@ static void d3_enable(u32 tag)
   {
     case D3_TEXTURE:
     {
-      gl_uniform_i32(gl_location(&d3.shader, "texture_enabled"), 1);
+      gl_uniform_i32(d3.uniform.texture_enabled, 1);
     } break;
     case D3_FOG:
     {
-      gl_uniform_i32(gl_location(&d3.shader, "fog_enabled"), 1);
+      gl_uniform_i32(d3.uniform.fog_enabled, 1);
     } break;
     case D3_LIGHTING:
     {
-      gl_uniform_i32(gl_location(&d3.shader, "lighting_enabled"), 1);
+      gl_uniform_i32(d3.uniform.lighting_enabled, 1);
     } break;
   }
 }
@@ -509,22 +562,22 @@ static void d3_disable(u32 tag)
   {
     case D3_TEXTURE:
     {
-      gl_uniform_i32(gl_location(&d3.shader, "texture_enabled"), 0);
+      gl_uniform_i32(d3.uniform.texture_enabled, 0);
     } break;
     case D3_FOG:
     {
-      gl_uniform_i32(gl_location(&d3.shader, "fog_enabled"), 0);
+      gl_uniform_i32(d3.uniform.fog_enabled, 0);
     } break;
     case D3_LIGHTING:
     {
-      gl_uniform_i32(gl_location(&d3.shader, "lighting_enabled"), 0);
+      gl_uniform_i32(d3.uniform.lighting_enabled, 0);
     } break;
   }
 }
 
 static void d3_fog_color(f32 r, f32 g, f32 b)
 {
-  gl_uniform_v3(gl_location(&d3.shader, "fog_color"), v3(r, g, b));
+  gl_uniform_v3(d3.uniform.fog_color, v3(r, g, b));
 }
 
 static void d3_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
@@ -697,13 +750,13 @@ static void d3_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color)
 
 static void d3_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color)
 {
-  v2 line         = v2_sub(p1, p0);
-  f32 line_length = v2_len(line);
-  v2 line_pos     = v2_add(p0, v2_scale(line, 0.5f));
-  v2 axis         = { 0.0f, -1.0f };
-  f32 rot         = v2_get_angle(axis, line);
-  v2 pos          = { line_pos.x, line_pos.y };
-  v2 scale        = { rad, 0.5f * line_length };
+  v2  line         = v2_sub(p1, p0);
+  f32 line_length  = v2_len(line);
+  v2  line_pos     = v2_add(p0, v2_scale(line, 0.5f));
+  v2  axis         = { 0.0f, -1.0f };
+  f32 rot          = v2_get_angle(axis, line);
+  v2  pos          = { line_pos.x, line_pos.y };
+  v2  scale        = { rad, 0.5f * line_length };
 
   d3_rotated(pos, z, scale, rot, color);
 }
