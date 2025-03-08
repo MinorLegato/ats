@@ -470,6 +470,7 @@ ATS_API void tex_save(const char* name)
   // enum entity:
   {
     emit("typedef enum {\n");
+    emit("  TEX_ENTITY_none,\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
     {
       for (struct tex_entity* node = tex.entity[i]; node; node = node->next)
@@ -515,6 +516,7 @@ ATS_API void tex_save(const char* name)
   // enum frame:
   {
     emit("typedef enum {\n");
+    emit("  TEX_FRAME_none,\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
     {
       for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
