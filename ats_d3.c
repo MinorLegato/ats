@@ -303,7 +303,7 @@ static struct
 
 static void d3_set_matrix(m4 mvp)
 {
-  gl_use(&d3.shader);
+  gl_use(d3.shader);
   gl_uniform_m4(d3.uniform.mvp, mvp);
 }
 
@@ -314,18 +314,18 @@ static void d3_set_view(v3 pos, v3 dir)
   gl_uniform_v3(d3.uniform.view_pos, d3.view_pos);
 }
 
-static void d3_set_texture(const gl_texture* texture)
+static void d3_set_texture(gl_texture texture)
 {
-  gl_use(&d3.shader);
+  gl_use(d3.shader);
   gl_texture_bind(texture);
-  d3.current_texture = *texture;
+  d3.current_texture = texture;
 }
 
 static void d3_init(void)
 {
   gl_init();
   gl_buffer_desc fx_buffer_desc = {0};
-  d3.post_fx_buffer = gl_buffer_create(&fx_buffer_desc);
+  d3.post_fx_buffer = gl_buffer_create(fx_buffer_desc);
 
   gl_shader_desc shader_desc = {0};
 
@@ -341,9 +341,9 @@ static void d3_init(void)
   buffer_desc.layout[2] = (gl_layout) { 2, GL_FLOAT,         sizeof (d3__vertex), offsetof(d3__vertex, uv) };
   buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (d3__vertex), offsetof(d3__vertex, color), 1 };
 
-  d3.buffer = gl_buffer_create(&buffer_desc);
+  d3.buffer = gl_buffer_create(buffer_desc);
 
-  gl_buffer_send(&d3.buffer, d3.vertex_array, sizeof (d3.vertex_array));
+  gl_buffer_send(d3.buffer, d3.vertex_array, sizeof (d3.vertex_array));
 
   glEnable(GL_DEPTH_TEST);
 
@@ -380,21 +380,21 @@ static void d3_init(void)
 
   // setup uniforms:
   {
-    gl_use(&d3.shader);
-    d3.uniform.mvp              = gl_location(&d3.shader, "mvp");
-    d3.uniform.view_pos         = gl_location(&d3.shader, "view_pos");
-    d3.uniform.texture_enabled  = gl_location(&d3.shader, "texture_enabled");
-    d3.uniform.lighting_enabled = gl_location(&d3.shader, "lighting_enabled");
-    d3.uniform.fog_enabled      = gl_location(&d3.shader, "fog_enabled");
-    d3.uniform.fog_color        = gl_location(&d3.shader, "fog_color");
-    d3.uniform.light_count      = gl_location(&d3.shader, "light_count");
+    gl_use(d3.shader);
+    d3.uniform.mvp              = gl_location(d3.shader, "mvp");
+    d3.uniform.view_pos         = gl_location(d3.shader, "view_pos");
+    d3.uniform.texture_enabled  = gl_location(d3.shader, "texture_enabled");
+    d3.uniform.lighting_enabled = gl_location(d3.shader, "lighting_enabled");
+    d3.uniform.fog_enabled      = gl_location(d3.shader, "fog_enabled");
+    d3.uniform.fog_color        = gl_location(d3.shader, "fog_color");
+    d3.uniform.light_count      = gl_location(d3.shader, "light_count");
 
     char buffer[256];
     for (i32 i = 0; i < D3_LIGHT_MAX; ++i)
     {
       d3__light_uniform* uniform = d3.uniform.light_array + i;
-#define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(&d3.shader, buffer);
-#define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(&d3.shader, buffer);
+#define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(d3.shader, buffer);
+#define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(d3.shader, buffer);
       set_v3(pos);
       set_v3(ambient);
       set_v3(diffuse);
@@ -413,15 +413,15 @@ static void d3_end_pass(void)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  gl_use(&d3.target.shader);
-  gl_buffer_bind(&d3.post_fx_buffer);
+  gl_use(d3.target.shader);
+  gl_buffer_bind(d3.post_fx_buffer);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, d3.target.texture);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
-  d3_set_texture(&d3.current_texture);
+  d3_set_texture(d3.current_texture);
 }
 
 static void d3_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a)
@@ -440,7 +440,7 @@ static void d3_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a)
   glClearColor(r, g, b, a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-  d3_set_texture(&d3.current_texture);
+  d3_set_texture(d3.current_texture);
 }
 
 static void d3_clear_color(u32 color)
@@ -450,7 +450,7 @@ static void d3_clear_color(u32 color)
 
 static void d3_begin_frame(void)
 {
-  gl_use(&d3.shader);
+  gl_use(d3.shader);
   d3_set_matrix(m4_identity());
   d3.view_pos = v3(0);
   d3.light_count = 0;
@@ -497,9 +497,9 @@ static void d3_vertex(f32 x, f32 y, f32 z)
 
 static void d3_end(void)
 {
-  gl_use(&d3.shader);
-  gl_buffer_bind(&d3.buffer);
-  gl_buffer_send(&d3.buffer, d3.vertex_array, d3.vertex_count * sizeof (d3__vertex));
+  gl_use(d3.shader);
+  gl_buffer_bind(d3.buffer);
+  gl_buffer_send(d3.buffer, d3.vertex_array, d3.vertex_count * sizeof (d3__vertex));
 
   // add lights
   {
@@ -537,7 +537,7 @@ enum
 
 static void d3_enable(u32 tag)
 {
-  gl_use(&d3.shader);
+  gl_use(d3.shader);
   switch (tag)
   {
     case D3_TEXTURE:
@@ -557,7 +557,7 @@ static void d3_enable(u32 tag)
 
 static void d3_disable(u32 tag)
 {
-  gl_use(&d3.shader);
+  gl_use(d3.shader);
   switch (tag)
   {
     case D3_TEXTURE:
@@ -586,6 +586,11 @@ static void d3_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 consta
     return;
 
   d3.light_array[d3.light_count++] = (d3__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
+}
+
+static void d3_add_simple_light(v3 pos, v3 color, f32 constant, f32 linear, f32 quadratic)
+{
+  d3_add_light(pos, color, color, color, constant, linear, quadratic);
 }
 
 static void d3_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)

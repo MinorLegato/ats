@@ -209,14 +209,14 @@ static gl_shader gl_shader_load_from_file(const char *vs_path, const char *fs_pa
   return shader;
 }
 
-static void gl_use(const gl_shader* shader)
+static void gl_use(gl_shader shader)
 {
-  glUseProgram(shader->id);
+  glUseProgram(shader.id);
 }
 
-static u32 gl_location(const gl_shader* shader, const char* name)
+static u32 gl_location(gl_shader shader, const char* name)
 {
-  return glGetUniformLocation(shader->id, name);
+  return glGetUniformLocation(shader.id, name);
 }
 
 static void gl_uniform_i32(u32 location, i32 i)
@@ -259,7 +259,7 @@ static void gl_uniform_m4(u32 location, m4 m)
   glUniformMatrix4fv(location, 1, GL_FALSE, m.e);
 }
 
-static gl_buffer gl_buffer_create(const gl_buffer_desc* desc)
+static gl_buffer gl_buffer_create(gl_buffer_desc desc)
 {
   u32 vao = 0;
   u32 vbo = 0;
@@ -270,14 +270,13 @@ static gl_buffer gl_buffer_create(const gl_buffer_desc* desc)
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-  for (u32 i = 0; i < countof(desc->layout); ++i)
+  for (u32 i = 0; i < countof(desc.layout); ++i)
   {
-    const gl_layout* layout = &desc->layout[i];
-
-    if (layout->size)
+    gl_layout layout = desc.layout[i];
+    if (layout.size)
     {
       glEnableVertexAttribArray(i);
-      glVertexAttribPointer(i, layout->size, layout->type, layout->normalize, layout->stride, (void*)(u64)layout->offset);
+      glVertexAttribPointer(i, layout.size, layout.type, layout.normalize, layout.stride, (void*)(u64)layout.offset);
     }
   }
 
@@ -289,15 +288,15 @@ static gl_buffer gl_buffer_create(const gl_buffer_desc* desc)
   return result;
 }
 
-static void gl_buffer_bind(const gl_buffer* buffer)
+static void gl_buffer_bind(gl_buffer buffer)
 {
-  glBindVertexArray(buffer->vao);
-  glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
+  glBindVertexArray(buffer.vao);
+  glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo);
 }
 
-static void gl_buffer_send(const gl_buffer* buffer, const void* data, u32 size)
+static void gl_buffer_send(gl_buffer buffer, const void* data, u32 size)
 {
-  glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, buffer.vbo);
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
@@ -315,9 +314,9 @@ static void gl_texture_update(gl_texture* texture, const void *pixels, u16 width
   glGenerateMipmap(GL_TEXTURE_2D);
 }
 
-static void gl_texture_bind(const gl_texture* texture)
+static void gl_texture_bind(gl_texture texture)
 {
-  glBindTexture(GL_TEXTURE_2D, texture->id);
+  glBindTexture(GL_TEXTURE_2D, texture.id);
 }
 
 // ======================================= FONT ====================================== //
@@ -641,7 +640,7 @@ static void gl_init_bitmap_font(void)
   buffer_desc.layout[1] = (gl_layout) { 2, GL_FLOAT, sizeof (bitmap_vertex), offsetof(bitmap_vertex, uv) };
   buffer_desc.layout[2] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (bitmap_vertex), offsetof(bitmap_vertex, color), true };
 
-  bitmap_buffer = gl_buffer_create(&buffer_desc);
+  bitmap_buffer = gl_buffer_create(buffer_desc);
 
   // create and set font texture!
   {
@@ -682,18 +681,18 @@ static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
 {
   bitmap_count = 0;
 
-  gl_use(&bitmap_shader);
+  gl_use(bitmap_shader);
   glActiveTexture(GL_TEXTURE0);
-  gl_texture_bind(&bitmap_texture);
-  gl_uniform_m4(gl_location(&bitmap_shader, "mvp"), m4_ortho(0, platform.width, platform.height, 0, -1, 1));
+  gl_texture_bind(bitmap_texture);
+  gl_uniform_m4(gl_location(bitmap_shader, "mvp"), m4_ortho(0, platform.width, platform.height, 0, -1, 1));
 
   for (int i = 0; str[i] != '\0'; i++)
   {
     gl_ascii(str[i], x + i * sx, y, z, sx, sy, color);
   }
 
-  gl_buffer_bind(&bitmap_buffer);
-  gl_buffer_send(&bitmap_buffer, bitmap_array, bitmap_count * sizeof (bitmap_vertex));
+  gl_buffer_bind(bitmap_buffer);
+  gl_buffer_send(bitmap_buffer, bitmap_array, bitmap_count * sizeof (bitmap_vertex));
   glDrawArrays(GL_TRIANGLES, 0, bitmap_count);
   glUseProgram(0);
 
