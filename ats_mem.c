@@ -37,6 +37,8 @@ ATS_API void* mem__alloc(struct mem__alloc_desc desc)
   header->size = desc.size;
   header->count = desc.count? desc.count : desc.size; 
 
+  arena->max = max(arena->pos, arena->max);
+
   return memset(header + 1, 0, desc.size);
 }
 
@@ -82,5 +84,10 @@ ATS_API void mem_push(mem_arena* arena)
 ATS_API void mem_pop(void)
 {
   mem_stack = mem_stack->next;
+}
+
+ATS_API usize mem_max(void)
+{
+  return mem_stack? mem_stack->max : 0;
 }
 

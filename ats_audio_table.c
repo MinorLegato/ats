@@ -29,13 +29,12 @@ typedef struct
 
 static const char* audio_path = AUDIO_PATH;
 
-typedef struct audio_entry audio_entry;
-struct audio_entry
+typedef struct
 {
   b32 in_use;
   cs_audio_source_t* source;
   char name[64];
-};
+} audio_entry;
 
 static audio_entry audio_table[AUDIO_TABLE_SIZE];
 

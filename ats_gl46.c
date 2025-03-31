@@ -69,6 +69,31 @@ static gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b
   return texture;
 }
 
+static gl_texture gl_texture_create_f32(const void *pixels, u16 width, u16 height, b8 is_smooth)
+{
+  assert(pixels);
+
+  gl_texture texture = {0};
+
+  texture.width = width;
+  texture.height = height;
+
+  glGenTextures(1, &texture.id);
+
+  glBindTexture(GL_TEXTURE_2D, texture.id);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_FLOAT, pixels);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  return texture;
+}
+
 static gl_texture gl_texture_load_from_file(const char* texture_path, b8 is_smooth)
 {
   u16 width  = 0;
@@ -307,6 +332,20 @@ static void gl_texture_update(gl_texture* texture, const void *pixels, u16 width
 
   glBindTexture(GL_TEXTURE_2D, texture->id);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
+
+  glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+static void gl_texture_update_f32(gl_texture* texture, const void *pixels, u16 width, u16 height, b8 is_smooth)
+{
+  texture->width  = width;
+  texture->height = height;
+
+  glBindTexture(GL_TEXTURE_2D, texture->id);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->width, texture->height, 0, GL_RGBA, GL_FLOAT, pixels);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth? GL_LINEAR : GL_NEAREST);

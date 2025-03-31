@@ -90,25 +90,25 @@ ATS_API ray_iter ray_iter_create(v2 pos, v2 dir)
   it.pos = pos;
   it.dir = dir;
 
-  //which box of the map we're in
+  // which box of the map we're in
   it.map_x = (i32)(pos.x);
   it.map_y = (i32)(pos.y);
 
-  //length of ray from current position to next x or y-side
+  // length of ray from current position to next x or y-side
   it.side_dist_x = 0;
   it.side_dist_y = 0;
 
-  //length of ray from one x or y-side to next x or y-side
+  // length of ray from one x or y-side to next x or y-side
   it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabs(1.0f / dir.x);
   it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabs(1.0f / dir.y);
 
-  //what direction to step in x or y-direction (either +1 or -1)
+  // what direction to step in x or y-direction (either +1 or -1)
   it.step_x = 0;
   it.step_y = 0;
 
   it.side = 0; //was a NS or a EW wall hit?
 
-  //calculate step and initial sideDist
+  // calculate step and initial side_dist
   if (dir.x < 0)
   {
     it.step_x = -1;
@@ -141,7 +141,7 @@ ATS_API b32 ray_iter_is_valid(ray_iter* it)
 
 ATS_API void ray_iter_advance(ray_iter* it)
 {
-  //jump to next map square, either in x-direction, or in y-direction
+  // jump to next map square, either in x-direction, or in y-direction
   if (it->side_dist_x < it->side_dist_y)
   {
     it->side_dist_x += it->delta_dist_x;
@@ -180,19 +180,19 @@ ATS_API ray3_iter ray3_iter_create(v3 pos, v3 dir)
   it.pos = pos;
   it.dir = dir;
 
-  //which box of the map we're in
+  // which box of the map we're in
   it.map_x = (i32)pos.x;
   it.map_y = (i32)pos.y;
   it.map_z = (i32)pos.z;
 
-  //length of ray from one x or y-side to next x or y-side
+  // length of ray from one x or y-side to next x or y-side
   it.delta_dist_x = (dir.x == 0.0f) ? 1e30 : fabs(1.0f / dir.x);
   it.delta_dist_y = (dir.y == 0.0f) ? 1e30 : fabs(1.0f / dir.y);
   it.delta_dist_z = (dir.z == 0.0f) ? 1e30 : fabs(1.0f / dir.z);
 
-  it.side = 0; //was a NS, EW or a UD wall hit?
+  it.side = 0; // was a NS, EW or a UD wall hit?
 
-  //calculate step and initial side dist
+  // calculate step and initial side dist
   if (dir.x < 0)
   {
     it.step_x = -1;
@@ -348,6 +348,12 @@ ATS_API u32 sm_index(spatial_map* map, i32 x, i32 y)
   return hash & SPATIAL_TABLE_MOD;
 }
 
+ATS_API sm_node* sm_get(spatial_map* map, i32 x, i32 y)
+{
+  u32 index = sm_index(map, x, y);
+  return map->table[index];
+}
+
 ATS_API void sm_add(spatial_map* map, void* e, r2 e_rect)
 {
   r2i rect =
@@ -408,7 +414,7 @@ ATS_API sm_node* sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore)
 
 ATS_API void* sm_get_closest(spatial_map* map, v2 pos, f32 range, void* ignore, b32 (*condition_proc)(void*))
 {
-  void* result = NULL;
+  void* result = 0;
   f32 distance = range;
   for (sm_node* it = sm_in_range(map, pos, v2(range, range), ignore); it; it = it->next)
   {

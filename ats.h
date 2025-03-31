@@ -659,6 +659,7 @@ struct mem_arena
 {
   usize pos;
   usize cap;
+  usize max;
   u8* buf;
 
   mem_index* stack;
@@ -669,6 +670,7 @@ ATS_API void mem_init(void* data, usize size);
 ATS_API mem_arena mem_create(void* data, usize size);
 ATS_API void mem_push(mem_arena* arena);
 ATS_API void mem_pop(void);
+ATS_API usize mem_max(void);
 
 #define mem_alloc(...)                  mem__alloc((struct mem__alloc_desc) { __VA_ARGS__ })
 #define mem_type(type, ...)             (type*)mem_alloc((sizeof (type)), 0, __VA_ARGS__)
@@ -838,10 +840,11 @@ typedef struct
 
 ATS_API void sm_clear(spatial_map* map);
 ATS_API u32 sm_index(spatial_map* map, i32 x, i32 y);
-ATS_API void sm_add(spatial_map* map, void* e, r2 e_rect);
-ATS_API sm_node* sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore);
+ATS_API sm_node* sm_get(spatial_map* map, i32 x, i32 y);
+ATS_API void sm_add(spatial_map* map, void* e, r2 e_rect); // NOTE: allocates memory
 ATS_API void* sm_get_closest(spatial_map* map, v2 pos, f32 range, void* ignore, b32 (*condition_proc)(void*));
 ATS_API void* sm_at_position(spatial_map* map, v2 pos);
+ATS_API sm_node* sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore); // NOTE: allocates memory
 
 // ================================================================================================== //
 // ---------------------------------------------- ROUTINE ------------------------------------------- //

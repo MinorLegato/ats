@@ -269,7 +269,7 @@ static struct
   gl_texture current_texture;
 
   u32 light_count;
-  d3__light light_array[16];
+  d3__light light_array[D3_LIGHT_MAX];
 
   struct
   {
@@ -405,7 +405,6 @@ static void d3_init(void)
 #undef set_v3
 #undef set_f32
     }
-
   }
 }
 
@@ -503,9 +502,8 @@ static void d3_end(void)
 
   // add lights
   {
-    i32 count = min(16, d3.light_count);
+    i32 count = min(D3_LIGHT_MAX, d3.light_count);
 
-    char buffer[256];
     for (i32 i = 0; i < count; ++i)
     {
       d3__light light = d3.light_array[i];
@@ -584,7 +582,6 @@ static void d3_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 consta
 {
   if (d3.light_count >= countof(d3.light_array))
     return;
-
   d3.light_array[d3.light_count++] = (d3__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
