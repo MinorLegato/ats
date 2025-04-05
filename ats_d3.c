@@ -467,9 +467,9 @@ static void d3_end_frame(void)
   d3_end_pass();
 }
 
-static void d3_begin(u32 type)
+static void d3_begin_triangles(void)
 {
-  d3.type = type;
+  d3.type = GL_TRIANGLES;
   d3.vertex_count = 0;
 }
 
