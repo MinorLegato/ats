@@ -469,7 +469,7 @@ ATS_API void tex_save(const char* name)
 
   // enum entity:
   {
-    emit("typedef enum {\n");
+    emit("typedef enum\n{\n");
     emit("  TEX_ENTITY_none,\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
     {
@@ -485,7 +485,7 @@ ATS_API void tex_save(const char* name)
     u32 used_count = 0;
     char* used_array[TEXTURE_TABLE_SIZE];
 
-    emit("typedef enum {\n");
+    emit("typedef enum\n{\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
     {
       for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
@@ -515,7 +515,7 @@ ATS_API void tex_save(const char* name)
 
   // enum frame:
   {
-    emit("typedef enum {\n");
+    emit("typedef enum\n{\n");
     emit("  TEX_FRAME_none,\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
     {
@@ -541,7 +541,7 @@ ATS_API void tex_save(const char* name)
     {
       for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
       {
-        emit("  [TEX_ENTITY_%s] = {\n", entity->name);
+        emit("  [TEX_ENTITY_%s] =\n  {\n", entity->name);
         for (struct tex_animation* animation = entity->animation; animation; animation = animation->next)
         {
           struct tex_frame* frame = animation->frame;
@@ -555,7 +555,7 @@ ATS_API void tex_save(const char* name)
 
   // frame lookup table:
   {
-    emit("typedef struct tex_info {\n");
+    emit("typedef struct tex_info\n{\n");
     emit("  tex_frame next;\n");
     emit("  tex_animation animation;\n");
     emit("  tex_rect rect;\n");
@@ -575,7 +575,7 @@ ATS_API void tex_save(const char* name)
             tex_rect fitted = frame->fitted;
             struct tex_frame* next = frame->next? frame->next : animation->frame;
 
-            emit("  [TEX_FRAME_%s] = {\n", frame->name),
+            emit("  [TEX_FRAME_%s] =\n  {\n", frame->name),
             emit("    .next       = TEX_FRAME_%s,\n", next->name);
             emit("    .animation  = TEX_ANIMATION_%s,\n", animation->name);
             emit("    .rect       = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
