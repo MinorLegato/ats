@@ -273,6 +273,11 @@ ATS_API u16 tex_get_height(void)
   return tex.height;
 }
 
+ATS_API f32 tex_get_aspect(tex_rect rect)
+{
+  return (rect.max_y - rect.min_y) / (f32)(rect.max_x - rect.min_x);
+}
+
 ATS_API tex_rect tex_get(const char* name)
 {
 #if 0
@@ -305,41 +310,6 @@ ATS_API void tex_load_dir(const char* texture_path)
     tex__new_image(path, pixels, width, height);
   }
 }
-
-#if 0
-ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator)
-{
-  assert(denominator);
-
-  dir_iter(path)
-  {
-    const char* ext = dir_extension();
-    if (strcmp(ext, "png") != 0 && strcmp(ext, "jpg") != 0) continue;
-
-    u16 width = 0;
-    u16 height = 0;
-    u32* pixels = file_load_image(dir_path(), &width, &height);
-
-    tex_image image = {0};
-
-    image.user_provided = 1;
-    image.width = width / denominator;
-    image.height = height / denominator;
-    image.pixels = mem_array(u32, image.width * image.height);
-
-    stbir_resize_uint8(
-      (unsigned char*)pixels, width, height, 0,
-      (unsigned char*)image.pixels, image.width, image.height, 0,
-      4);
-
-    tex__str_copy(image.name, countof(image.name), dir_name());
-
-    arr_push(&tex.image, image);
-
-    file_free_image(pixels);
-  }
-}
-#endif
 
 ATS_API void tex_begin(u16 width, u16 height)
 {

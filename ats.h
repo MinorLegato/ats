@@ -991,7 +991,9 @@ typedef struct
 ATS_API u32* tex_get_pixels(void);
 ATS_API u16 tex_get_width(void);
 ATS_API u16 tex_get_height(void);
+ATS_API f32 tex_get_aspect(tex_rect rect);
 ATS_API tex_rect tex_get(const char* name);
+
 ATS_API void tex_save(const char* name);
 
 ATS_API void tex_begin(u16 width, u16 height);
@@ -999,7 +1001,6 @@ ATS_API void tex_end(void);
 ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height);
 ATS_API void tex_load_dir(const char* path);
 
-//ATS_API void tex_load_and_scale_dir(const char* path, u16 denominator);
 
 // ========================================= ANIMATION TABLE ======================================== //
 // ----------------------------- implementation in ats_animation_table.c ---------------------------- //
