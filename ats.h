@@ -150,39 +150,24 @@ typedef u64 usize;
 #define castv4i(u) ((v4i) { (i32)(u).x, (i32)(u).y, (i32)(u).z, (i32)(u).w })
 
 #define v2(...) (v2) { __VA_ARGS__ }
-#ifdef __clang__
-typedef f32 v2 __attribute__((ext_vector_type(2)));
-#else
-typedef union v2 v2;
-union v2
+typedef union
 {
   struct { f32 x, y; };
   f32 e[2];
-};
-#endif
+} v2;
 
 #define v3(...) (v3) { __VA_ARGS__ }
-#ifdef __clang__
-typedef f32 v3 __attribute__((ext_vector_type(3)));
-#else
-typedef union v3 v3;
-union v3
+typedef union
 {
   struct { f32 x, y, z; };
   struct { f32 r, g, b; };
   struct { v2 xy; };
   struct { f32 _x; v2 yz; };
   f32 e[3];
-};
-#endif
+} v3;
 
 #define v4(...) (v4) { __VA_ARGS__ }
-#ifdef __clang__
-typedef f32 v4 __attribute__((ext_vector_type(4)));
-typedef f32 v4 __attribute__((ext_vector_type(4)));
-#else
-typedef union v4 v4;
-union v4
+typedef union
 {
   struct { f32 x, y, z, w; };
   struct { f32 r, g, b, a; };
@@ -190,135 +175,108 @@ union v4
   struct { v2 xy; };
   struct { v3 xyz; };
   f32 e[4];
-};
-#endif
+} v4;
 
 #define quat(...) (quat) { __VA_ARGS__ }
 typedef v4 quat;
 
 #define v2i(...) (v2i) { __VA_ARGS__ }
-#ifdef __clang__
-typedef i32 v2i __attribute__((ext_vector_type(2)));
-#else
-typedef union v2i v2i;
-union v2i
+typedef union
 {
   struct { i32 x, y; };
   i32 e[2];
-};
-#endif
+} v2i;
 
 #define v3i(...) (v3i) { __VA_ARGS__ }
-#ifdef __clang__
-typedef i32 v3i __attribute__((ext_vector_type(3)));
-#else
-typedef union v3i v3i;
-union v3i
+typedef union
 {
   struct { i32 x, y, z; };
   struct { v2i xy; };
   i32 e[3];
-};
-#endif
+} v3i;
 
 #define v4i(...) (v4i) { __VA_ARGS__ }
-#ifdef __clang__
-typedef i32 v4i __attribute__((ext_vector_type(4)));
-#else
-typedef union v4i v4i;
-union v4i
+typedef union
 {
   struct { i32 x, y, z, w; };
   i32 e[4];
-};
-#endif
+} v4i;
 
 #define m2(...) (m2) { __VA_ARGS__ }
-typedef union m2 m2;
-union m2
+typedef union
 {
   f32 e[4];
   struct { v2 x, y; };
-};
+} m2;
 
 #define m3(...) (m3) { __VA_ARGS__ }
-typedef union m3 m3;
-union m3
+typedef union
 {
   f32 e[9];
   struct { v3 x, y, z; };
-};
+} m3;
 
 #define m4(...) (m4) { __VA_ARGS__ }
-typedef union m4 m4;
-union m4
+typedef union
 {
   f32 e[16];
   struct { v4 x, y, z, w; };
-};
+} m4;
 
 #define r2(...) (r2) { __VA_ARGS__ }
-typedef struct r2 r2;
-struct r2
+typedef struct
 {
   v2 min;
   v2 max;
-};
+} r2;
 
 #define r3(...) (r3) { __VA_ARGS__ }
-typedef struct r3 r3;
-struct r3
+typedef struct
 {
   v3 min;
   v3 max;
-};
+} r3;
 
 #define r2i(...) (r2i) { __VA_ARGS__ }
-typedef struct r2i r2i;
-struct r2i
+typedef struct
 {
   v2i min;
   v2i max;
-};
+} r2i;
 
 #define r3i(...) (r3i) { __VA_ARGS__ }
-typedef struct r3i r3i;
-struct r3i
+typedef struct
 {
   v3i min;
   v3i max;
-};
+} r3i;
 
 #define circle(...) (circle) { __VA_ARGS__ }
-typedef struct circle circle;
-struct circle
+typedef struct
 {
   v2 p;
   f32 r;
-};
+} circle;
 
 #define sphere(...) (sphere) { __VA_ARGS__ }
-typedef struct sphere sphere;
-struct sphere {
+typedef struct
+{
   v3 p;
   f32 r;
-};
+} sphere;
 
-typedef struct frustum_plane frustum_plane;
-struct frustum_plane
+typedef struct 
 {
   f32 a;
   f32 b;
   f32 c;
   f32 d;
-};
+} frustum_plane;
 
-typedef struct frustum frustum;
-struct frustum
+typedef struct
 {
   frustum_plane planes[6];
-};
-
+} frustum;
 
 ATS_API f32 sqrt32(f32 n);
 ATS_API f32 rsqrt32(f32 n);
@@ -1102,7 +1060,7 @@ ATS_API void platform_update(void);
 // ------------------------------------------- IMPLEMENTATION --------------------------------------- //
 // -------------------------------------------------------------------------------------------------- //
 // ================================================================================================== //
-#ifdef ATS_IMPL //
+#ifdef ATS_IMPL
 #ifndef ATS_IMPL_ONCE
 #define ATS_IMPL_ONCE
 
