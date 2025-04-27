@@ -536,7 +536,7 @@ ATS_API void tex_save(const char* name)
 
   // entity -> animation lookup table:
   {
-    emit("static tex_frame tex_animation_table[TEX_ENTITY_count][TEX_ANIMATION_count] = {\n");
+    emit("static tex_frame tex_animation_table[TEX_ENTITY_count][TEX_ANIMATION_count] =\n{\n");
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
     {
       for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
@@ -561,7 +561,7 @@ ATS_API void tex_save(const char* name)
     emit("  tex_rect rect;\n");
     emit("  tex_rect fitted;\n");
     emit("} tex_info;\n\n");
-    emit("static tex_info tex_info_table[TEX_FRAME_count] = {\n");
+    emit("static tex_info tex_info_table[TEX_FRAME_count] =\n{\n");
 
     for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
     {

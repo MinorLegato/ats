@@ -1018,16 +1018,16 @@ ATS_API char* dir_name(void);
 ATS_API char* dir_extension(void);
 
 // =========================================== TEXTURE TABLE ======================================== //
-// ------------------------------- implementation in ats_texture_table.c ---------------------------- //
+// ------------------------------- implementation in ats_tex.c ---------------------------- //
 // ================================================================================================== //
 
 #define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
 typedef struct
 {
-  u16 min_x;
-  u16 min_y;
-  u16 max_x;
-  u16 max_y;
+  i16 min_x;
+  i16 min_y;
+  i16 max_x;
+  i16 max_y;
 } tex_rect;
 
 ATS_API u32* tex_get_pixels(void);
@@ -1113,7 +1113,7 @@ ATS_API void platform_update(void);
 #include "ats_glfw.c"
 
 #include "ats_file.c"
-#include "ats_texture_table.c"
+#include "ats_tex.c"
 #include "ats_animation_table.c"
 
 #include "ats_audio_table.c"
