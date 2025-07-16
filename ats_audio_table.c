@@ -1,9 +1,8 @@
 #pragma once
 
-struct audio_id
-{
+typedef struct {
   u16 index;
-};
+} audio_id;
 
 // ============================= INTERNAL ============================== //
 
@@ -43,11 +42,11 @@ static void audio_init(void* handle) {
   cs_mix_thread_sleep_delay(7);
 }
 
-static b32 audio_is_valid(struct audio_id id) {
+static b32 audio_is_valid(audio_id id) {
   return id.index != 0;
 }
 
-static struct audio_id audio_get(const char* name) {
+static audio_id audio_get(const char* name) {
   u32 hash = hash_str(name);
   u16 index = hash & (AUDIO_TABLE_SIZE - 1);
 
@@ -55,7 +54,7 @@ static struct audio_id audio_get(const char* name) {
 
   while (audio_table[index].in_use) {
     if (strcmp(audio_table[index].name, name) == 0) {
-      struct audio_id id = { index };
+      audio_id id = { index };
       return id;
     }
 
@@ -88,7 +87,7 @@ static struct audio_id audio_get(const char* name) {
     printf("%s ---- path: %s\n", cs_error_as_string(error), path);
   }
 
-  struct audio_id id = { index };
+  audio_id id = { index };
   return id;
 }
 
@@ -100,14 +99,14 @@ static void audio_kill_all(void) {
   cs_stop_all_playing_sounds();
 }
 
-static struct audio_entry* audio_get_entry(struct audio_id id) {
+static struct audio_entry* audio_get_entry(audio_id id) {
   if (!id.index || id.index > AUDIO_TABLE_SIZE)
     return NULL;
 
   return audio_table[id.index].in_use? &audio_table[id.index] : NULL;
 }
 
-static void audio_play(struct audio_id id, f32 volume) {
+static void audio_play(audio_id id, f32 volume) {
   struct audio_entry* entry = audio_get_entry(id);
   if (entry) {
     cs_sound_params_t params = {0};
@@ -117,7 +116,7 @@ static void audio_play(struct audio_id id, f32 volume) {
   }
 }
 
-static void audio_play_music(struct audio_id id, f32 volume) {
+static void audio_play_music(audio_id id, f32 volume) {
   struct audio_entry* entry = audio_get_entry(id);
   if (entry) {
     cs_music_stop(0);

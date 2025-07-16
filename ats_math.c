@@ -1217,29 +1217,41 @@ ATS_API b32 frustum_intersect_r3(frustum fs, r3 rect) {
 
 ATS_API r2 r2_get_overlap(r2 a, r2 b) {
   return (r2) {
-    v2_max(a.min, b.min),
-    v2_min(a.max, b.max)
+    max(a.min.x, b.min.x),
+    max(a.min.y, b.min.y),
+    min(a.max.x, b.max.x),
+    min(a.max.y, b.max.y),
   };
 }
 
 ATS_API r3 r3_get_overlap(r3 a, r3 b) {
   return (r3) {
-    v3_max(a.min, b.min),
-    v3_min(a.max, b.max)
+    max(a.min.x, b.min.x),
+    max(a.min.y, b.min.y),
+    max(a.min.z, b.min.z),
+    min(a.max.x, b.max.x),
+    min(a.max.y, b.max.y),
+    min(a.max.z, b.max.z),
   };
 }
 
 ATS_API r2i r2i_get_overlap(r2i a, r2i b) {
   return (r2i) {
-    v2i_max(a.min, b.min),
-    v2i_min(a.max, b.max)
+    max(a.min.x, b.min.x),
+    max(a.min.y, b.min.y),
+    min(a.max.x, b.max.x),
+    min(a.max.y, b.max.y),
   };
 }
 
 ATS_API r3i r3i_get_overlap(r3i a, r3i b) {
   return (r3i) {
-    v3i_max(a.min, b.min),
-    v3i_min(a.max, b.max)
+    max(a.min.x, b.min.x),
+    max(a.min.y, b.min.y),
+    max(a.min.z, b.min.z),
+    min(a.max.x, b.max.x),
+    min(a.max.y, b.max.y),
+    min(a.max.z, b.max.z),
   };
 }
 

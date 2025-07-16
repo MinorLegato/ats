@@ -200,7 +200,7 @@
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-union gamepad_buttons {
+typedef union {
   u32 data;
   struct {
     u32 x : 1;
@@ -223,9 +223,9 @@ union gamepad_buttons {
     u32 down : 1;
     u32 left : 1;
   };
-};
+} gamepad_buttons;
 
-struct gamepad {
+typedef struct {
   b32 active;
 
   v2 left_stick;
@@ -234,16 +234,16 @@ struct gamepad {
   f32 left_trigger;
   f32 right_trigger;
 
-  union gamepad_buttons down;
-  union gamepad_buttons pressed;
-  union gamepad_buttons released;
-};
+  gamepad_buttons down;
+  gamepad_buttons pressed;
+  gamepad_buttons released;
+} gamepad;
 
-enum mouse_mode {
+typedef enum {
   MOUSE_MODE_NORMAL,
   MOUSE_MODE_HIDDEN,
   MOUSE_MODE_DISABLED,
-};
+} mouse_mode;
 
 static struct {
   b32 close;
@@ -264,7 +264,7 @@ static struct {
   } time;
 
   struct {
-    enum mouse_mode mode;
+    mouse_mode mode;
 
     b32 is_down : 1;
     b32 is_pressed : 1;
@@ -295,7 +295,7 @@ static struct {
     b8 released[KEY_LAST + 1];
   } keyboard;
 
-  struct gamepad gamepad[JOYSTICK_LAST];
+  gamepad gamepad[JOYSTICK_LAST];
 } platform;
 
 // ================================ INTERNAL ============================== //
@@ -310,8 +310,7 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
   (void)a;
   (void)b;
 
-  switch (action)
-  {
+  switch (action) {
     case GLFW_PRESS: {
       platform.keyboard.key = key;
       platform.keyboard.is_down = 1;
@@ -427,7 +426,7 @@ static void platform_poll_events(void) {
     {
       if (platform.gamepad[i].active)
       {
-        union gamepad_buttons old = platform.gamepad[i].down;
+        gamepad_buttons old = platform.gamepad[i].down;
 
         platform.gamepad[i].down.data = 0;
         platform.gamepad[i].pressed.data = 0;
