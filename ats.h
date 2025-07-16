@@ -22,9 +22,13 @@
 #define to_rad(deg) ((deg) * TO_RAD_MUL)
 #define to_deg(rad) ((rad) * TO_DEG_MUL)
 
-#define swap(type, a, b) do { type tmp = (a); (a) = (b); (b) = tmp; } while(0)
+#define __block(...) do { __VA_ARGS__; } while (0)
+
+#define swap(type, a, b) __block(type tmp = (a); (a) = (b); (b) = tmp)
 
 #define countof(array) (sizeof (array) / sizeof (array)[0])
+
+#define sort(array, count, cmp_func) qsort((array), (count), sizeof ((array)[0]), (cmp_func))
 
 #define is_power_of_two(x) (((x) != 0) && ((x) & ((x) - 1)) == 0)
 
@@ -70,17 +74,6 @@
   for (i32 iy = rect.min.y; iy <= rect.max.y; ++iy) \
   for (i32 ix = rect.min.x; ix <= rect.max.x; ++ix)
 
-#define for_iter(iter_type, iter_name, ...) \
-  for (iter_type iter_name = (__VA_ARGS__); \
-       iter_type##_is_valid(&iter_name); \
-       iter_type##_advance(&iter_name))
-
-#define for_each(type, var, ...) \
-  for (type* var = (type*)0xdeadbeefull; var != NULL; var = NULL) \
-  for (type##_iter macro_var(it) = (__VA_ARGS__); \
-       (var = macro_var(it).current, type##_iter_is_valid(&macro_var(it))); \
-       type##_iter_advance(&macro_var(it)))
-
 typedef float f32;
 typedef double f64;
 
@@ -102,63 +95,22 @@ typedef u64 b64;
 typedef i64 isize;
 typedef u64 usize;
 
-#define cast(type, ...)   ((type)(__VA_ARGS__))
-
-#define castf32(...)      cast(f32, __VA_ARGS__)
-#define castf64(...)      cast(f64, __VA_ARGS__)
-
-#define casti8(...)       cast(i8,  __VA_ARGS__)
-#define casti16(...)      cast(i16, __VA_ARGS__)
-#define casti32(...)      cast(i32, __VA_ARGS__)
-#define casti64(...)      cast(i64, __VA_ARGS__)
-
-#define castu8(...)       cast(u8,  __VA_ARGS__)
-#define castu16(...)      cast(u16, __VA_ARGS__)
-#define castu32(...)      cast(u32, __VA_ARGS__)
-#define castu64(...)      cast(u64, __VA_ARGS__)
-
-// shorthand
-#define castf(...)        cast(f32, __VA_ARGS__)
-#define casti(...)        cast(i32, __VA_ARGS__)
-#define castu(...)        cast(u32, __VA_ARGS__)
-
-#define sort(array, count, cmp_func) qsort((array), (count), sizeof ((array)[0]), (cmp_func))
-
-#define __block(...)            do { __VA_ARGS__; } while (0)
-
-#define arr_push(a, ...)        ((a)->array[(a)->count++] = (__VA_ARGS__), arr_end(a) - 1)
-#define arr_pop(a)              (a)->array[(a)->count--]
-#define arr_new(a)              memset((a)->array + (a)->count++, 0, sizeof (a)->array[0])
-#define arr_remove(a, element)  __block((a)->array[(element) - arr_begin(a)] = (a)->array[--(a)->count]; --(element))
-#define arr_sort(a, cmp_func)   sort((a)->array, (a)->count, (cmp_func))
-#define arr_begin(a)            (a)->array
-#define arr_end(a)              (a)->array + (a)->count
-#define arr_get(a, index)       ((a)->array + (index))
-
-#define for_arr(type, var, array) for (type* var = arr_begin(array); var < arr_end(array); ++var)
-
 // ================================================= MATH =========================================== //
 // ------------------------------------- implementation in ats_math.c ------------------------------- //
 // ===================================================================================================//
 
-#define castv2(u)  ((v2) { (f32)(u).x, (f32)(u).y })
-#define castv3(u)  ((v3) { (f32)(u).x, (f32)(u).y, (f32)(u).z })
-#define castv4(u)  ((v4) { (f32)(u).x, (f32)(u).y, (f32)(u).z, (f32)(u).w })
-
-#define castv2i(u) ((v2i) { (i32)(u).x, (i32)(u).y })
-#define castv3i(u) ((v3i) { (i32)(u).x, (i32)(u).y, (i32)(u).z })
-#define castv4i(u) ((v4i) { (i32)(u).x, (i32)(u).y, (i32)(u).z, (i32)(u).w })
+#define u2(a) (a).x, (a).y
+#define u3(a) (a).x, (a).y, (a).z
+#define u4(a) (a).x, (a).y, (a).z, (a).w
 
 #define v2(...) (v2) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   struct { f32 x, y; };
   f32 e[2];
 } v2;
 
 #define v3(...) (v3) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   struct { f32 x, y, z; };
   struct { f32 r, g, b; };
   struct { v2 xy; };
@@ -167,8 +119,7 @@ typedef union
 } v3;
 
 #define v4(...) (v4) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   struct { f32 x, y, z, w; };
   struct { f32 r, g, b, a; };
   struct { v3 rgb; };
@@ -181,101 +132,80 @@ typedef union
 typedef v4 quat;
 
 #define v2i(...) (v2i) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   struct { i32 x, y; };
   i32 e[2];
 } v2i;
 
 #define v3i(...) (v3i) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   struct { i32 x, y, z; };
   struct { v2i xy; };
   i32 e[3];
 } v3i;
 
 #define v4i(...) (v4i) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   struct { i32 x, y, z, w; };
   i32 e[4];
 } v4i;
 
 #define m2(...) (m2) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   f32 e[4];
   struct { v2 x, y; };
 } m2;
 
 #define m3(...) (m3) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   f32 e[9];
   struct { v3 x, y, z; };
 } m3;
 
 #define m4(...) (m4) { __VA_ARGS__ }
-typedef union
-{
+typedef union {
   f32 e[16];
   struct { v4 x, y, z, w; };
 } m4;
 
 #define r2(...) (r2) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   v2 min;
   v2 max;
 } r2;
 
 #define r3(...) (r3) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   v3 min;
   v3 max;
 } r3;
 
 #define r2i(...) (r2i) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   v2i min;
   v2i max;
 } r2i;
 
 #define r3i(...) (r3i) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   v3i min;
   v3i max;
 } r3i;
 
 #define circle(...) (circle) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   v2 p;
   f32 r;
 } circle;
 
 #define sphere(...) (sphere) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   v3 p;
   f32 r;
 } sphere;
 
-typedef struct 
-{
-  f32 a;
-  f32 b;
-  f32 c;
-  f32 d;
-} frustum_plane;
-
-typedef struct
-{
-  frustum_plane planes[6];
+typedef struct {
+   v4 planes[6];
 } frustum;
 
 ATS_API f32 sqrt32(f32 n);
@@ -449,42 +379,6 @@ ATS_API v4 v4_norm(v4 u);
 ATS_API v2 v2_project(v2 a, v2 b);
 ATS_API v3 v3_project(v3 a, v3 b);
 
-ATS_API v2 v2_floor(v2 u);
-ATS_API v3 v3_floor(v3 u);
-ATS_API v4 v4_floor(v4 u);
-
-ATS_API v2 v2_ceil(v2 u);
-ATS_API v3 v3_ceil(v3 u);
-ATS_API v4 v4_ceil(v4 u);
-
-ATS_API v2 v2_clampf(v2 u, f32 min, f32 max);
-ATS_API v3 v3_clampf(v3 u, f32 min, f32 max);
-
-ATS_API v2i v2i_clampi(v2i u, f32 min, f32 max);
-ATS_API v3i v3i_clampi(v3i u, f32 min, f32 max);
-
-ATS_API v2 v2_clamp(v2 u, r2 r);
-ATS_API v3 v3_clamp(v3 u, r3 r);
-
-ATS_API v2i v2i_clamp(v2i u, r2i r);
-ATS_API v3i v3i_clamp(v3i u, r3i r);
-
-ATS_API v2 v2_min(v2 a, v2 b);
-ATS_API v3 v3_min(v3 a, v3 b);
-ATS_API v4 v4_min(v4 a, v4 b);
-
-ATS_API v2i v2i_min(v2i a, v2i b);
-ATS_API v3i v3i_min(v3i a, v3i b);
-ATS_API v4i v4i_min(v4i a, v4i b);
-
-ATS_API v2 v2_max(v2 a, v2 b);
-ATS_API v3 v3_max(v3 a, v3 b);
-ATS_API v4 v4_max(v4 a, v4 b);
-
-ATS_API v2i v2i_max(v2i a, v2i b);
-ATS_API v3i v3i_max(v3i a, v3i b);
-ATS_API v4i v4i_max(v4i a, v4i b);
-
 ATS_API v2 v2_lerp(v2 a, v2 b, f32 t);
 ATS_API v3 v3_lerp(v3 a, v3 b, f32 t);
 ATS_API v4 v4_lerp(v4 a, v4 b, f32 t);
@@ -492,14 +386,6 @@ ATS_API v4 v4_lerp(v4 a, v4 b, f32 t);
 ATS_API v2 v2_spline(f32 f, v2 a, v2 b, v2 c, v2 d);
 ATS_API v3 v3_spline(f32 f, v3 a, v3 b, v3 c, v3 d);
 ATS_API v4 v4_spline(f32 f, v4 a, v4 b, v4 c, v4 d);
-
-ATS_API v2 v2_sign(v2 u);
-ATS_API v3 v3_sign(v3 u);
-ATS_API v4 v4_sign(v4 u);
-
-ATS_API v2i v2i_sign(v2i u);
-ATS_API v3i v3i_sign(v3i u);
-ATS_API v4i v4i_sign(v4i u);
 
 ATS_API v3 v3_cross(v3 a, v3 b);
 
@@ -559,13 +445,17 @@ ATS_API v3 r3_get_intersect_vector(r3 a, r3 b);
 ATS_API v2i r2i_get_intersect_vector(r2i a, r2i b);
 ATS_API v3i r3i_get_intersect_vector(r3i a, r3i b);
 
-ATS_API u32 rand_u32(u32* state);
-ATS_API i32 rand_i32(u32* state, i32 min, i32 max);
-ATS_API f32 rand_f32(u32* state, f32 min, f32 max);
-ATS_API v2  rand_unit_v2(u32* state);
-ATS_API v3  rand_unit_v3(u32* state);
-ATS_API v2  rand_v2(u32* state, f32 min, f32 max);
-ATS_API v3  rand_v3(u32* state, f32 min, f32 max);
+#define rand_scope(state) scope_guard(rand_push(state), rand_pop())
+
+ATS_API void rand_push(u32 state);
+ATS_API void rand_pop(void);
+ATS_API u32 rand_u32(void);
+ATS_API i32 rand_i32(i32 min, i32 max);
+ATS_API f32 rand_f32(f32 min, f32 max);
+ATS_API v2 rand_unit_v2(void);
+ATS_API v3 rand_unit_v3(void);
+ATS_API v2 rand_v2(f32 min, f32 max);
+ATS_API v3 rand_v3(f32 min, f32 max);
 
 ATS_API u32 crc32(const void *data, u32 size);
 
@@ -606,15 +496,13 @@ ATS_API m4 m4_invert(m4 m); // assumes it is invertible
 #define MEM_GIB(n) (1024 * MEM_MIB(n))
 
 typedef struct mem_index mem_index;
-struct mem_index
-{
+struct mem_index {
   usize pos;
   mem_index* next;
 };
 
 typedef struct mem_arena mem_arena;
-struct mem_arena
-{
+struct mem_arena {
   usize pos;
   usize cap;
   usize max;
@@ -630,40 +518,38 @@ ATS_API void mem_push(mem_arena* arena);
 ATS_API void mem_pop(void);
 ATS_API usize mem_max(void);
 
-#define mem_alloc(...)                  mem__alloc((struct mem__alloc_desc) { __VA_ARGS__ })
+#define mem_alloc(...)                  mem__alloc((mem__alloc_desc) { __VA_ARGS__ })
 #define mem_type(type, ...)             (type*)mem_alloc((sizeof (type)), 0, __VA_ARGS__)
 #define mem_array(type, count, ...)     (type*)mem_alloc(((count) * sizeof (type)), (usize)(count), __VA_ARGS__)
 
 #define mem_context(arena)      scope_guard(mem_push(arena), mem_pop())
-#define mem_save(...)           mem__save((struct mem__arena_desc) { 0, __VA_ARGS__ })
-#define mem_restore(...)        mem__restore((struct mem__arena_desc) { 0, __VA_ARGS__ })
-#define mem_begin(...)          mem__begin((struct mem__arena_desc) { 0, __VA_ARGS__ })
-#define mem_end(size, ...)      mem__end((size), (struct mem__arena_desc) { 0, __VA_ARGS__ })
+#define mem_save(...)           mem__save((mem__arena_desc) { 0, __VA_ARGS__ })
+#define mem_restore(...)        mem__restore((mem__arena_desc) { 0, __VA_ARGS__ })
+#define mem_begin(...)          mem__begin((mem__arena_desc) { 0, __VA_ARGS__ })
+#define mem_end(size, ...)      mem__end((size), (mem__arena_desc) { 0, __VA_ARGS__ })
 #define mem_temp                mem_begin
-#define mem_scope(...)          scope_guard(mem__save((struct mem__arena_desc) { 0, __VA_ARGS__ }), mem__restore((struct mem__arena_desc) { 0, __VA_ARGS__ }))
+#define mem_scope(...)          scope_guard(mem__save((mem__arena_desc) { 0, __VA_ARGS__ }), mem__restore((mem__arena_desc) { 0, __VA_ARGS__ }))
 #define mem_size(ptr)           ((mem_header*)(ptr) - 1)->size
 #define mem_count(ptr)          ((mem_header*)(ptr) - 1)->count
 
 // -------------------- internal --------------- //
 
-struct mem__arena_desc
-{
+typedef struct {
   usize pad;
   mem_arena* arena;
-};
+} mem__arena_desc;
 
-struct mem__alloc_desc
-{
+typedef struct {
   usize size;
   usize count;
   mem_arena* arena;
-};
+} mem__alloc_desc;
 
-ATS_API void* mem__alloc(struct mem__alloc_desc desc);
-ATS_API void  mem__save(struct mem__arena_desc desc);
-ATS_API void  mem__restore(struct mem__arena_desc desc);
-ATS_API void* mem__begin(struct mem__arena_desc desc);
-ATS_API void  mem__end(usize size, struct mem__arena_desc desc);
+ATS_API void* mem__alloc(mem__alloc_desc desc);
+ATS_API void  mem__save(mem__arena_desc desc);
+ATS_API void  mem__restore(mem__arena_desc desc);
+ATS_API void* mem__begin(mem__arena_desc desc);
+ATS_API void  mem__end(usize size, mem__arena_desc desc);
 
 // ================================================= DS ============================================= //
 // ------------------------------------- implementation in ats_ds.c --------------------------------- //
@@ -674,8 +560,8 @@ ATS_API b32  bit_get(u32* array, u32 index);
 ATS_API void bit_clr(u32* array, u32 index);
 
 #define STR_ITER_TABLE (256 >> 5)
-typedef struct
-{
+
+typedef struct {
   char* current;
   char* end;
 
@@ -695,8 +581,7 @@ ATS_API void str_iter_advance(str_iter* it);
        (var = macro_var(it).current, str_iter_is_valid(&macro_var(it))); \
        str_iter_advance(&macro_var(it)))
 
-typedef struct
-{
+typedef struct {
   v2 pos;
   v2 dir;
 
@@ -725,8 +610,7 @@ ATS_API void ray_iter_advance(ray_iter* it);
 ATS_API v2 ray_iter_get_position(ray_iter* it);
 ATS_API v2 ray_iter_get_normal(ray_iter* it);
 
-typedef struct
-{
+typedef struct {
   v3 pos;
   v3 dir;
 
@@ -760,16 +644,14 @@ ATS_API v3 ray3_iter_get_position(ray3_iter* it);
 ATS_API v3 ray3_iter_get_normal(ray3_iter* it);
 
 #define path_node(...) (path_node) { __VA_ARGS__ }
-typedef struct
-{
+typedef struct {
   f32 w;
   i32 x;
   i32 y;
   i32 z;
 } path_node;
 
-typedef struct
-{
+typedef struct {
   u32 len;
   path_node* buf;
 } path_queue;
@@ -784,15 +666,13 @@ ATS_API path_node path_queue_pop(path_queue* queue);
 #define SPATIAL_TABLE_MOD 4095
 
 typedef struct sm_node sm_node;
-struct sm_node
-{
+struct sm_node {
   sm_node* next;
   void* e;
   r2 rect;
 };
 
-typedef struct
-{
+typedef struct {
   sm_node* table[SPATIAL_TABLE_MAX];
 } spatial_map;
 
@@ -846,8 +726,7 @@ ATS_API sm_node* sm_in_range(spatial_map* map, v2 pos, v2 rad, void* ignore); //
 // }
 // rt_end();
 
-typedef struct
-{
+typedef struct {
   i32 at;
   f32 timer;
 } rt;
@@ -980,8 +859,7 @@ ATS_API char* dir_extension(void);
 // ================================================================================================== //
 
 #define tex_rect(...) ((tex_rect) { __VA_ARGS__ })
-typedef struct
-{
+typedef struct {
   i16 min_x;
   i16 min_y;
   i16 max_x;
@@ -1000,54 +878,6 @@ ATS_API void tex_begin(u16 width, u16 height);
 ATS_API void tex_end(void);
 ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height);
 ATS_API void tex_load_dir(const char* path);
-
-
-// ========================================= ANIMATION TABLE ======================================== //
-// ----------------------------- implementation in ats_animation_table.c ---------------------------- //
-// ================================================================================================== //
-
-typedef struct at_frame at_frame;
-typedef struct at_animation at_animation;
-typedef struct at_entity at_entity;
-
-struct at_frame
-{
-  const char* name;
-  tex_rect rect;
-  at_frame* next;
-  at_animation* animation;
-};
-
-struct at_animation
-{
-  const char* name;
-  at_frame* frame;
-  at_animation* next;
-};
-
-struct at_entity
-{
-  const char* name;
-  at_animation* animation;
-  at_entity* next;
-};
-
-typedef struct
-{
-  at_entity* entity;
-  at_frame* frame;
-  f32 duration;
-} at_state;
-
-ATS_API void at_begin(void);
-ATS_API void at_end(void);
-ATS_API void at_add_entity(const char* name);
-ATS_API void at_add_animation(const char* name);
-ATS_API void at_add_frame(const char* name);
-
-ATS_API void at_set(at_state* state, const char* name);
-ATS_API at_state at_get(const char* name);
-ATS_API void at_update(at_state* state, f32 dt);
 
 // ============================================ PLATFORM ============================================ //
 // ------------------ implementation depended on ATS_PLATFORM_... (default glfw)  ------------------- //
@@ -1073,7 +903,6 @@ ATS_API void platform_update(void);
 
 #include "ats_file.c"
 #include "ats_tex.c"
-#include "ats_animation_table.c"
 
 #include "ats_audio_table.c"
 #include "ats_timer.c"

@@ -1,23 +1,19 @@
 #include "ats.h"
 
-typedef struct timer_entry timer_entry;
-struct timer_entry
-{
+typedef struct {
   const char* name;
 
   f64 start;
   f64 stop;
 
   u32 depth;
-};
+} timer_entry;
 
-typedef struct timer_node timer_node;
-struct timer_node
-{
+typedef struct {
   const char* name;
   f32 current;
   f32 max;
-};
+} timer_node;
 
 static u32 timer_top;
 static u32 timer_count;
@@ -27,8 +23,7 @@ static timer_node timer_table[512];
 
 #define timer_scope(name) scope_guard(timer_start(name), timer_stop())
 
-static void timer_start(const char* name)
-{
+static void timer_start(const char* name) {
   timer_entry* entry = timer_stack + timer_top++;
   entry->name = name;
   entry->start = platform_get_time();
@@ -36,18 +31,15 @@ static void timer_start(const char* name)
   entry->depth = timer_top - 1;
 }
 
-static timer_node* timer_node_next(timer_node* node) 
-{
+static timer_node* timer_node_next(timer_node* node) {
   node++;
-  if (node >= (timer_table + 512))
-  {
+  if (node >= (timer_table + 512)) {
     node = timer_table;
   }
   return node;
 }
 
-static void timer_stop(void)
-{
+static void timer_stop(void) {
   timer_entry* entry = timer_stack + (--timer_top);
 
   entry->stop = platform_get_time();
@@ -58,26 +50,23 @@ static void timer_stop(void)
     u32 index = hash & 511;
     timer_node* node = &timer_table[index];
 
-    while (node->name && (strcmp(entry->name, node->name) != 0))
-    {
+    while (node->name && (strcmp(entry->name, node->name) != 0)) {
       node = timer_node_next(node);
     }
 
-    if (!node->name)
-    {
+    if (!node->name) {
       node->name = entry->name;
     }
 
     node->current = entry->stop - entry->start;
-    if (node->max < node->current)
-    {
+
+    if (node->max < node->current) {
       node->max = node->current;
     }
   }
 }
 
-static void timer_reset_all(void)
-{
+static void timer_reset_all(void) {
   timer_top = 0;
   timer_count = 0;
 }

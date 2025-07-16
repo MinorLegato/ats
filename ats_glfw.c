@@ -200,12 +200,9 @@
 #define GAMEPAD_AXIS_RIGHT_TRIGGER 5
 #define GAMEPAD_AXIS_LAST          GAMEPAD_AXIS_RIGHT_TRIGGER
 
-typedef union gamepad_buttons gamepad_buttons;
-union gamepad_buttons
-{
+union gamepad_buttons {
   u32 data;
-  struct
-  {
+  struct {
     u32 x : 1;
     u32 a : 1;
     u32 b : 1;
@@ -228,9 +225,7 @@ union gamepad_buttons
   };
 };
 
-typedef struct gamepad gamepad;
-struct gamepad
-{
+struct gamepad {
   b32 active;
 
   v2 left_stick;
@@ -239,20 +234,18 @@ struct gamepad
   f32 left_trigger;
   f32 right_trigger;
 
-  gamepad_buttons down;
-  gamepad_buttons pressed;
-  gamepad_buttons released;
+  union gamepad_buttons down;
+  union gamepad_buttons pressed;
+  union gamepad_buttons released;
 };
 
-typedef enum mouse_mode
-{
+enum mouse_mode {
   MOUSE_MODE_NORMAL,
   MOUSE_MODE_HIDDEN,
   MOUSE_MODE_DISABLED,
-} mouse_mode;
+};
 
-static struct
-{
+static struct {
   b32 close;
 
   i32 width;
@@ -265,21 +258,13 @@ static struct
   b32 fullscreen;
   b32 _fullscreen_state_last_update;
 
-  struct
-  {
+  struct {
     f64 total;
     f64 delta;
   } time;
 
-  struct
-  {
-    f64 target;
-    f64 next;
-  } frame;
-
-  struct
-  {
-    mouse_mode mode;
+  struct {
+    enum mouse_mode mode;
 
     b32 is_down : 1;
     b32 is_pressed : 1;
@@ -294,8 +279,7 @@ static struct
     b8 released[MOUSE_BUTTON_LAST + 1];
   } mouse;
 
-  struct
-  {
+  struct {
     i32 key;
     i32 ascii;
 
@@ -311,27 +295,24 @@ static struct
     b8 released[KEY_LAST + 1];
   } keyboard;
 
-  gamepad gamepad[JOYSTICK_LAST];
+  struct gamepad gamepad[JOYSTICK_LAST];
 } platform;
 
 // ================================ INTERNAL ============================== //
 
-static struct
-{
+static struct {
   GLFWwindow* window;
   GLFWmonitor* monitor;
 } platform_internal;
 
-static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b)
-{
+static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
   (void)window;
   (void)a;
   (void)b;
 
   switch (action)
   {
-    case GLFW_PRESS:
-    {
+    case GLFW_PRESS: {
       platform.keyboard.key = key;
       platform.keyboard.is_down = 1;
       platform.keyboard.is_pressed = 1;
@@ -340,13 +321,11 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
       platform.keyboard.pressed[key] = 1;
       platform.keyboard.repeat[key] = 1;
     } break;
-    case GLFW_REPEAT:
-    {
+    case GLFW_REPEAT: {
       platform.keyboard.is_repeat = 1;
       platform.keyboard.repeat[key] = 1;
     } break;
-    case GLFW_RELEASE:
-    {
+    case GLFW_RELEASE: {
       platform.keyboard.is_down = 0;
       platform.keyboard.is_released = 1;
       platform.keyboard.down[key] = 0;
@@ -355,28 +334,23 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
   }
 }
 
-static void window_char_callback(GLFWwindow* window, unsigned int codepoint)
-{
+static void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
   platform.keyboard.is_ascii  = 1;
   platform.keyboard.ascii = codepoint;
 }
 
-static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a)
-{
+static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
   (void)window;
   (void)a;
 
-  switch (action)
-  {
-    case GLFW_PRESS: default:
-    {
+  switch (action) {
+    case GLFW_PRESS: default: {
       platform.mouse.is_down = 1;
       platform.mouse.is_pressed = 1;
       platform.mouse.down[button] = 1;
       platform.mouse.pressed[button] = 1;
     } break;
-    case GLFW_RELEASE:
-    {
+    case GLFW_RELEASE: {
       platform.mouse.is_down = 0;
       platform.mouse.is_released = 1;
       platform.mouse.down[button] = 0;
@@ -385,183 +359,142 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
   }
 }
 
-static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset)
-{
+static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
   (void)window;
   platform.mouse.scroll.x = (f32)xoffset;
   platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void window_joystick_callback(int joy, int event)
-{
-  if (event == GLFW_CONNECTED)
-  {
+static void window_joystick_callback(int joy, int event) {
+  if (event == GLFW_CONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     platform.gamepad[joy].active = 1;
   }
 
-  if (event == GLFW_DISCONNECTED)
-  {
+  if (event == GLFW_DISCONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
   }
 }
 
-static f64 platform_get_time(void)
-{
+static f64 platform_get_time(void) {
   return glfwGetTime();
 }
 
-static void platform_wait(f64 seconds)
-{
-  if (seconds < 0) return;
+static void platform_poll_events(void) {
+  platform.mouse.is_pressed       = 0;
+  platform.mouse.is_released      = 0;
+  platform.keyboard.is_pressed    = 0;
+  platform.keyboard.is_repeat     = 0;
+  platform.keyboard.is_released   = 0;
+  platform.keyboard.is_ascii      = 0;
 
-  f64 destination_time = platform_get_time() + seconds;
-
-  f64 sleep_seconds = seconds - seconds * 0.05;  // NOTE: We reserve a percentage of the time for busy waiting
-  Sleep((unsigned long)(sleep_seconds * 1000.0));
-
-  while (platform_get_time() < destination_time);
-}
-
-static void platform_set_framerate(f64 framerate)
-{
-  glfwSwapInterval(0);
-  platform.frame.target = 1.0 / framerate;
-}
-
-static void platform_poll_events(void)
-{
+  // update mouse:
   {
-    platform.mouse.is_pressed       = 0;
-    platform.mouse.is_released      = 0;
-    platform.keyboard.is_pressed    = 0;
-    platform.keyboard.is_repeat     = 0;
-    platform.keyboard.is_released   = 0;
-    platform.keyboard.is_ascii      = 0;
+    f64 x, y;
+    glfwGetCursorPos(platform_internal.window, &x, &y);
 
-    // update mouse:
+    platform.mouse.delta.x = (f32)(x - platform.mouse.pos.x);
+    platform.mouse.delta.y = (f32)(y - platform.mouse.pos.y);
+
+    platform.mouse.pos.x   = (f32)x;
+    platform.mouse.pos.y   = (f32)y;
+
+    platform.mouse.scroll.x = 0;
+    platform.mouse.scroll.y = 0;
+
+    switch (platform.mouse.mode)
     {
-      f64 x, y;
-      glfwGetCursorPos(platform_internal.window, &x, &y);
-
-      platform.mouse.delta.x = (f32)(x - platform.mouse.pos.x);
-      platform.mouse.delta.y = (f32)(y - platform.mouse.pos.y);
-
-      platform.mouse.pos.x   = (f32)x;
-      platform.mouse.pos.y   = (f32)y;
-
-      platform.mouse.scroll.x = 0;
-      platform.mouse.scroll.y = 0;
-
-      switch (platform.mouse.mode)
+      case MOUSE_MODE_NORMAL:
       {
-        case MOUSE_MODE_NORMAL:
-        {
-          glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        } break;
-        case MOUSE_MODE_HIDDEN:
-        {
-          glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-        } break;
-        case MOUSE_MODE_DISABLED:
-        {
-          glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        } break;
-      }
-    }
-
-    // update gamepads:
-    {
-      GLFWgamepadstate state;
-
-      for (int i = 0; i < JOYSTICK_LAST; ++i)
+        glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      } break;
+      case MOUSE_MODE_HIDDEN:
       {
-        if (platform.gamepad[i].active)
-        {
-          gamepad_buttons old = platform.gamepad[i].down;
-
-          platform.gamepad[i].down.data = 0;
-          platform.gamepad[i].pressed.data = 0;
-          platform.gamepad[i].released.data = 0;
-
-          glfwGetGamepadState(i, &state);
-
-          platform.gamepad[i].left_stick.x = +state.axes[GAMEPAD_AXIS_LEFT_X];
-          platform.gamepad[i].left_stick.y = -state.axes[GAMEPAD_AXIS_LEFT_Y];
-          platform.gamepad[i].right_stick.x = +state.axes[GAMEPAD_AXIS_RIGHT_X];
-          platform.gamepad[i].right_stick.y = -state.axes[GAMEPAD_AXIS_RIGHT_Y];
-
-          platform.gamepad[i].left_trigger = 0.5f * (state.axes[GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
-          platform.gamepad[i].right_trigger = 0.5f * (state.axes[GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
-
-          if (state.buttons[GAMEPAD_BUTTON_X]) platform.gamepad[i].down.x = 1;
-          if (state.buttons[GAMEPAD_BUTTON_A]) platform.gamepad[i].down.a = 1;
-          if (state.buttons[GAMEPAD_BUTTON_B]) platform.gamepad[i].down.b = 1;
-          if (state.buttons[GAMEPAD_BUTTON_Y]) platform.gamepad[i].down.y = 1;
-
-          if (state.buttons[GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepad[i].down.left_bumper = 1;
-          if (state.buttons[GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepad[i].down.right_bumper = 1;
-
-          if (platform.gamepad[i].left_trigger  > 0.0f) platform.gamepad[i].down.left_trigger = 1;
-          if (platform.gamepad[i].right_trigger > 0.0f) platform.gamepad[i].down.right_trigger = 1;
-
-          if (state.buttons[GAMEPAD_BUTTON_BACK]) platform.gamepad[i].down.select = 1;
-          if (state.buttons[GAMEPAD_BUTTON_START]) platform.gamepad[i].down.start = 1;
-          if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB]) platform.gamepad[i].down.left_stick = 1;
-          if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB]) platform.gamepad[i].down.right_stick = 1;
-
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_UP]) platform.gamepad[i].down.up = 1;
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT]) platform.gamepad[i].down.right = 1;
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN]) platform.gamepad[i].down.down = 1;
-          if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT]) platform.gamepad[i].down.left = 1;
-
-          platform.gamepad[i].pressed.data =  platform.gamepad[i].down.data & ~old.data;
-          platform.gamepad[i].released.data = ~platform.gamepad[i].down.data &  old.data;
-        }
-      }
+        glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+      } break;
+      case MOUSE_MODE_DISABLED:
+      {
+        glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+      } break;
     }
-
-    memset(platform.keyboard.pressed,  0, sizeof (platform.keyboard.pressed));
-    memset(platform.keyboard.repeat,   0, sizeof (platform.keyboard.repeat));
-    memset(platform.keyboard.released, 0, sizeof (platform.keyboard.released));
-
-    memset(platform.mouse.pressed,  0, sizeof (platform.mouse.pressed));
-    memset(platform.mouse.released, 0, sizeof (platform.mouse.released));
-
-    glfwPollEvents();
   }
+
+  // update gamepads:
+  {
+    GLFWgamepadstate state;
+
+    for (int i = 0; i < JOYSTICK_LAST; ++i)
+    {
+      if (platform.gamepad[i].active)
+      {
+        union gamepad_buttons old = platform.gamepad[i].down;
+
+        platform.gamepad[i].down.data = 0;
+        platform.gamepad[i].pressed.data = 0;
+        platform.gamepad[i].released.data = 0;
+
+        glfwGetGamepadState(i, &state);
+
+        platform.gamepad[i].left_stick.x = +state.axes[GAMEPAD_AXIS_LEFT_X];
+        platform.gamepad[i].left_stick.y = -state.axes[GAMEPAD_AXIS_LEFT_Y];
+        platform.gamepad[i].right_stick.x = +state.axes[GAMEPAD_AXIS_RIGHT_X];
+        platform.gamepad[i].right_stick.y = -state.axes[GAMEPAD_AXIS_RIGHT_Y];
+
+        platform.gamepad[i].left_trigger = 0.5f * (state.axes[GAMEPAD_AXIS_LEFT_TRIGGER] + 1.0f);
+        platform.gamepad[i].right_trigger = 0.5f * (state.axes[GAMEPAD_AXIS_RIGHT_TRIGGER] + 1.0f);
+
+        if (state.buttons[GAMEPAD_BUTTON_X]) platform.gamepad[i].down.x = 1;
+        if (state.buttons[GAMEPAD_BUTTON_A]) platform.gamepad[i].down.a = 1;
+        if (state.buttons[GAMEPAD_BUTTON_B]) platform.gamepad[i].down.b = 1;
+        if (state.buttons[GAMEPAD_BUTTON_Y]) platform.gamepad[i].down.y = 1;
+
+        if (state.buttons[GAMEPAD_BUTTON_LEFT_BUMPER])  platform.gamepad[i].down.left_bumper = 1;
+        if (state.buttons[GAMEPAD_BUTTON_RIGHT_BUMPER]) platform.gamepad[i].down.right_bumper = 1;
+
+        if (platform.gamepad[i].left_trigger  > 0.0f) platform.gamepad[i].down.left_trigger = 1;
+        if (platform.gamepad[i].right_trigger > 0.0f) platform.gamepad[i].down.right_trigger = 1;
+
+        if (state.buttons[GAMEPAD_BUTTON_BACK]) platform.gamepad[i].down.select = 1;
+        if (state.buttons[GAMEPAD_BUTTON_START]) platform.gamepad[i].down.start = 1;
+        if (state.buttons[GAMEPAD_BUTTON_LEFT_THUMB]) platform.gamepad[i].down.left_stick = 1;
+        if (state.buttons[GAMEPAD_BUTTON_RIGHT_THUMB]) platform.gamepad[i].down.right_stick = 1;
+
+        if (state.buttons[GAMEPAD_BUTTON_DPAD_UP]) platform.gamepad[i].down.up = 1;
+        if (state.buttons[GAMEPAD_BUTTON_DPAD_RIGHT]) platform.gamepad[i].down.right = 1;
+        if (state.buttons[GAMEPAD_BUTTON_DPAD_DOWN]) platform.gamepad[i].down.down = 1;
+        if (state.buttons[GAMEPAD_BUTTON_DPAD_LEFT]) platform.gamepad[i].down.left = 1;
+
+        platform.gamepad[i].pressed.data =  platform.gamepad[i].down.data & ~old.data;
+        platform.gamepad[i].released.data = ~platform.gamepad[i].down.data &  old.data;
+      }
+    }
+  }
+
+  memset(platform.keyboard.pressed,  0, sizeof (platform.keyboard.pressed));
+  memset(platform.keyboard.repeat,   0, sizeof (platform.keyboard.repeat));
+  memset(platform.keyboard.released, 0, sizeof (platform.keyboard.released));
+
+  memset(platform.mouse.pressed,  0, sizeof (platform.mouse.pressed));
+  memset(platform.mouse.released, 0, sizeof (platform.mouse.released));
+
+  glfwPollEvents();
 }
 
-static void platform_end_frame(void)
-{
-  if (glfwWindowShouldClose(platform_internal.window))
-  {
+static void platform_end_frame(void) {
+  if (glfwWindowShouldClose(platform_internal.window)) {
     platform.close = 1;
   }
 
-  if (platform.close)
-  {
+  if (platform.close) {
     glfwSetWindowShouldClose(platform_internal.window, 1);
   }
 
-  if (platform.fullscreen != platform._fullscreen_state_last_update)
-  {
+  if (platform.fullscreen != platform._fullscreen_state_last_update) {
     const GLFWvidmode* mode = glfwGetVideoMode(platform_internal.monitor);
-    if (platform.fullscreen)
-    {
+    if (platform.fullscreen) {
       glfwSetWindowMonitor(platform_internal.window, platform_internal.monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
-    }
-    else
-    {
+    } else {
       glfwSetWindowMonitor(platform_internal.window, NULL, 64, 64, mode->width - 256, mode->height - 256, mode->refreshRate);
-    }
-    if (platform.frame.target > 0)
-    {
-      glfwSwapInterval(0);
-    }
-    else
-    {
-      glfwSwapInterval(1);
     }
   }
 
@@ -576,34 +509,17 @@ static void platform_end_frame(void)
   platform.time.total += platform.time.delta;
 }
 
-static void platform_swap_buffers(void)
-{
+static void platform_swap_buffers(void) {
   glfwSwapBuffers(platform_internal.window);
 }
 
-static void platform_update(void)
-{
-  if (platform.frame.target > 0)
-  {
-    f64 current = platform_get_time();
-    platform_wait(platform.frame.next - current);
-    platform.frame.next = current + platform.frame.target;
-  }
-
-  f64 start = platform_get_time();
+static void platform_update(void) {
   platform_swap_buffers();
   platform_poll_events();
   platform_end_frame();
-  f64 end = platform_get_time();
-
-  if (platform.frame.target > 0)
-  {
-    platform.frame.next -= (end - start);
-  }
 }
 
-ATS_API void platform_init(const char* title, int width, int height, int samples)
-{
+ATS_API void platform_init(const char* title, int width, int height, int samples) {
   glfwInit();
   platform_internal.monitor = glfwGetPrimaryMonitor();
 
@@ -657,8 +573,7 @@ ATS_API void platform_init(const char* title, int width, int height, int samples
   }
 
   // init connected controllers
-  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i)
-  {
+  for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
     if (glfwJoystickPresent(i))
       platform.gamepad[i].active = 1;
   }

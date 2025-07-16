@@ -55,8 +55,7 @@ static const char* d3_vertex_shader = GLSL(
 
   uniform mat4 mvp;
 
-  void main()
-  {
+  void main() {
     frag_pos    = in_pos;
     frag_normal = in_normal;
     frag_uv     = in_uv;
@@ -65,8 +64,7 @@ static const char* d3_vertex_shader = GLSL(
   });
 
 static const char* d3_fragment_shader = GLSL(
-  struct point_light
-  {
+  struct point_light {
     vec3 pos;
 
     vec3 ambient;
@@ -78,8 +76,7 @@ static const char* d3_fragment_shader = GLSL(
     float quadratic;
   };
 
-  vec3 calculate_point_light(point_light light, vec3 view_pos, vec3 frag_pos, vec3 frag_normal, vec4 color)
-  {
+  vec3 calculate_point_light(point_light light, vec3 view_pos, vec3 frag_pos, vec3 frag_normal, vec4 color) {
     // ambient
     vec3 ambient = light.ambient * color.rgb;
     // diffuse 
@@ -123,30 +120,25 @@ static const char* d3_fragment_shader = GLSL(
   uniform int light_count;
   uniform point_light light_array[16];
 
-  void main()
-  {
+  void main() {
     vec4 color = frag_color;
 
-    if (texture_enabled)
-    {
+    if (texture_enabled) {
       vec2 tex_scale = 1.0 / textureSize(tex, 0);
       color = color * texture(tex, frag_uv * tex_scale);
     }
 
     if (color.a <= 0) discard;
 
-    if (lighting_enabled)
-    {
+    if (lighting_enabled) {
       vec3 result;
-      for (int i = 0; i < light_count; ++i)
-      {
+      for (int i = 0; i < light_count; ++i) {
         result += calculate_point_light(light_array[i], view_pos, frag_pos, frag_normal, color);
       }
       color.rgb = result;
     }
 
-    if (fog_enabled)
-    {
+    if (fog_enabled) {
       float distance = gl_FragCoord.z / gl_FragCoord.w;
       float d = 0.2 * distance;
       float f = 1.0 - clamp(exp2(-1.442695 * d * d), 0.0, 1.0);
@@ -168,8 +160,7 @@ static const char* d3_post_fx_vertex_shader = GLSL(
     vec2(0, 1), vec2(0, 0), vec2(1, 0),
     vec2(0, 1), vec2(1, 0), vec2(1, 1));
 
-  void main()
-  {
+  void main() {
     frag_uv = uvs[gl_VertexID];
     gl_Position = vec4(verts[gl_VertexID], 0, 1);
   });
@@ -180,8 +171,7 @@ static const char* d3_post_fx_none = GLSL(
 
   uniform sampler2D tex;
 
-  void main()
-  {
+  void main() {
     out_color = texture(tex, frag_uv);
   });
 
@@ -193,8 +183,7 @@ static const char* d3_post_fx_blur = GLSL(
 
   const float offset = 1.0 / 1200.0;
 
-  void main()
-  {
+  void main() {
     vec2 offsets[9] = vec2[](
       vec2(-offset,  offset),     // top-left
       vec2( 0.0f,    offset),     // top-center
@@ -212,31 +201,26 @@ static const char* d3_post_fx_blur = GLSL(
       1.0 / 16, 2.0 / 16, 1.0 / 16);
 
     vec4 sample_tex[9];
-    for (int i = 0; i < 9; i++)
-    {
+    for (int i = 0; i < 9; i++) {
       sample_tex[i] = texture(tex, frag_uv.st + offsets[i]);
     }
 
     vec4 col = vec4(0.0);
-    for (int i = 0; i < 9; i++)
-    {
+    for (int i = 0; i < 9; i++) {
       col += sample_tex[i] * kernel[i];
     }
 
     out_color = col;
   });
 
-typedef struct d3__vertex d3__vertex;
-struct d3__vertex
-{
+typedef struct {
   v3 pos;
   v3 normal;
   v2 uv;
   u32 color;
-};
+} d3__vertex;
 
-typedef struct
-{
+typedef struct {
   v3 pos;
   v3 ambient;
   v3 diffuse;
@@ -246,8 +230,7 @@ typedef struct
   f32 quadratic;
 } d3__light;
 
-typedef struct
-{
+typedef struct {
   u32 pos;
   u32 ambient;
   u32 diffuse;
@@ -257,8 +240,7 @@ typedef struct
   u32 quadratic;
 } d3__light_uniform;
 
-static struct
-{
+static struct {
   v3 view_pos;
   v3 view_dir;
 
@@ -271,8 +253,7 @@ static struct
   u32 light_count;
   d3__light light_array[D3_LIGHT_MAX];
 
-  struct
-  {
+  struct {
     gl_shader shader;
     u32 framebuffer;
     u32 texture;
@@ -284,11 +265,11 @@ static struct
 
   u32 type;
   d3__vertex current;
+
   u32 vertex_count;
   d3__vertex vertex_array[D3_VERTEX_MAX];
 
-  struct
-  {
+  struct {
     u32 mvp;
     u32 view_pos;
     u32 texture_enabled;
@@ -301,28 +282,24 @@ static struct
   } uniform;
 } d3;
 
-static void d3_set_matrix(m4 mvp)
-{
+static void d3_set_matrix(m4 mvp) {
   gl_use(d3.shader);
   gl_uniform_m4(d3.uniform.mvp, mvp);
 }
 
-static void d3_set_view(v3 pos, v3 dir)
-{
+static void d3_set_view(v3 pos, v3 dir) {
   d3.view_pos = pos;
   d3.view_dir = v3_norm(dir);
   gl_uniform_v3(d3.uniform.view_pos, d3.view_pos);
 }
 
-static void d3_set_texture(gl_texture texture)
-{
+static void d3_set_texture(gl_texture texture) {
   gl_use(d3.shader);
   gl_texture_bind(texture);
   d3.current_texture = texture;
 }
 
-static void d3_init(void)
-{
+static void d3_init(void) {
   gl_init();
   gl_buffer_desc fx_buffer_desc = {0};
   d3.post_fx_buffer = gl_buffer_create(fx_buffer_desc);
@@ -342,7 +319,6 @@ static void d3_init(void)
   buffer_desc.layout[3] = (gl_layout) { 4, GL_UNSIGNED_BYTE, sizeof (d3__vertex), offsetof(d3__vertex, color), 1 };
 
   d3.buffer = gl_buffer_create(buffer_desc);
-
   gl_buffer_send(d3.buffer, d3.vertex_array, sizeof (d3.vertex_array));
 
   glEnable(GL_DEPTH_TEST);
@@ -390,9 +366,9 @@ static void d3_init(void)
     d3.uniform.light_count      = gl_location(d3.shader, "light_count");
 
     char buffer[256];
-    for (i32 i = 0; i < D3_LIGHT_MAX; ++i)
-    {
+    for (i32 i = 0; i < D3_LIGHT_MAX; ++i) {
       d3__light_uniform* uniform = d3.uniform.light_array + i;
+
 #define set_v3(var)  sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(d3.shader, buffer);
 #define set_f32(var) sprintf(buffer, "light_array[%d]." #var, i); uniform->var = gl_location(d3.shader, buffer);
       set_v3(pos);
@@ -408,8 +384,7 @@ static void d3_init(void)
   }
 }
 
-static void d3_end_pass(void)
-{
+static void d3_end_pass(void) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   gl_use(d3.target.shader);
@@ -423,8 +398,7 @@ static void d3_end_pass(void)
   d3_set_texture(d3.current_texture);
 }
 
-static void d3_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a)
-{
+static void d3_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a) {
   d3_end_pass();
 
   d3.target.shader = shader;
@@ -442,13 +416,11 @@ static void d3_begin_pass(gl_shader shader, f32 r, f32 g, f32 b, f32 a)
   d3_set_texture(d3.current_texture);
 }
 
-static void d3_clear_color(u32 color)
-{
+static void d3_clear_color(u32 color) {
   d3.clear_color = color;
 }
 
-static void d3_begin_frame(void)
-{
+static void d3_begin_frame(void) {
   gl_use(d3.shader);
   d3_set_matrix(m4_identity());
   d3.view_pos = v3(0);
@@ -462,40 +434,33 @@ static void d3_begin_frame(void)
   d3_begin_pass(d3.target.default_shader, 0, 0, 0, 0);
 }
 
-static void d3_end_frame(void)
-{
+static void d3_end_frame(void) {
   d3_end_pass();
 }
 
-static void d3_begin_triangles(void)
-{
+static void d3_begin_triangles(void) {
   d3.type = GL_TRIANGLES;
   d3.vertex_count = 0;
 }
 
-static void d3_uv(f32 x, f32 y)
-{
+static void d3_uv(f32 x, f32 y) {
   d3.current.uv = v2(x, y);
 }
 
-static void d3_color(u32 color)
-{
+static void d3_color(u32 color) {
   d3.current.color = color;
 }
 
-static void d3_normal(f32 x, f32 y, f32 z)
-{
+static void d3_normal(f32 x, f32 y, f32 z) {
   d3.current.normal = v3(x, y, z);
 }
 
-static void d3_vertex(f32 x, f32 y, f32 z)
-{
+static void d3_vertex(f32 x, f32 y, f32 z) {
   d3.current.pos = v3(x, y, z);
   d3.vertex_array[d3.vertex_count++] = d3.current;
 }
 
-static void d3_end(void)
-{
+static void d3_end(void) {
   gl_use(d3.shader);
   gl_buffer_bind(d3.buffer);
   gl_buffer_send(d3.buffer, d3.vertex_array, d3.vertex_count * sizeof (d3__vertex));
@@ -504,8 +469,7 @@ static void d3_end(void)
   {
     i32 count = min(D3_LIGHT_MAX, d3.light_count);
 
-    for (i32 i = 0; i < count; ++i)
-    {
+    for (i32 i = 0; i < count; ++i) {
       d3__light light = d3.light_array[i];
       d3__light_uniform uniform = d3.uniform.light_array[i];
 
@@ -525,73 +489,64 @@ static void d3_end(void)
   glDrawArrays(d3.type, 0, d3.vertex_count);
 }
 
-enum
-{
+enum {
   D3_NONE,
   D3_TEXTURE,
   D3_FOG,
   D3_LIGHTING,
 };
 
-static void d3_enable(u32 tag)
-{
+static void d3_enable(u32 tag) {
   gl_use(d3.shader);
-  switch (tag)
-  {
-    case D3_TEXTURE:
-    {
+
+  switch (tag) {
+    case D3_TEXTURE: {
       gl_uniform_i32(d3.uniform.texture_enabled, 1);
     } break;
-    case D3_FOG:
-    {
+
+    case D3_FOG: {
       gl_uniform_i32(d3.uniform.fog_enabled, 1);
     } break;
-    case D3_LIGHTING:
-    {
+
+    case D3_LIGHTING: {
       gl_uniform_i32(d3.uniform.lighting_enabled, 1);
     } break;
   }
 }
 
-static void d3_disable(u32 tag)
-{
+static void d3_disable(u32 tag) {
   gl_use(d3.shader);
-  switch (tag)
-  {
-    case D3_TEXTURE:
-    {
+  switch (tag) {
+    case D3_TEXTURE: {
       gl_uniform_i32(d3.uniform.texture_enabled, 0);
     } break;
-    case D3_FOG:
-    {
+
+    case D3_FOG: {
       gl_uniform_i32(d3.uniform.fog_enabled, 0);
     } break;
-    case D3_LIGHTING:
-    {
+
+    case D3_LIGHTING: {
       gl_uniform_i32(d3.uniform.lighting_enabled, 0);
     } break;
   }
 }
 
-static void d3_fog_color(f32 r, f32 g, f32 b)
-{
+static void d3_fog_color(f32 r, f32 g, f32 b) {
   gl_uniform_v3(d3.uniform.fog_color, v3(r, g, b));
 }
 
-static void d3_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic)
-{
+static void d3_add_light(v3 pos, v3 ambient, v3 diffuse, v3 specular, f32 constant, f32 linear, f32 quadratic) {
   if (d3.light_count >= countof(d3.light_array))
     return;
+
   d3.light_array[d3.light_count++] = (d3__light) { pos, ambient, diffuse, specular, constant, linear, quadratic };
 }
 
-static void d3_add_simple_light(v3 pos, v3 color, f32 constant, f32 linear, f32 quadratic)
-{
+static void d3_add_simple_light(v3 pos, v3 color, f32 constant, f32 linear, f32 quadratic) {
   d3_add_light(pos, color, color, color, constant, linear, quadratic);
 }
 
-static void d3_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up)
-{
+static void d3_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up) {
   f32 ax = pos.x - right.x * rad.x - up.x * rad.y;
   f32 ay = pos.y - right.y * rad.x - up.y * rad.y;
   f32 az = pos.z - right.z * rad.x - up.z * rad.y;
@@ -620,8 +575,7 @@ static void d3_billboard(tex_rect tr, v3 pos, v2 rad, u32 color, v3 right, v3 up
   d3_uv(tr.min_x, tr.max_y); d3_vertex(ax, ay, az);
 }
 
-static void d3_texture_box(tex_rect tr, r3 box, u32 color)
-{
+static void d3_texture_box(tex_rect tr, r3 box, u32 color) {
   d3_color(color);
 
   d3_uv(tr.min_x, tr.max_y); d3_vertex(box.min.x, box.min.y, box.min.z);
@@ -667,8 +621,7 @@ static void d3_texture_box(tex_rect tr, r3 box, u32 color)
   d3_uv(tr.min_x, tr.min_y); d3_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void d3_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color)
-{
+static void d3_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color) {
   d3_color(color);
   d3_uv(tr.min_x, tr.max_y); d3_vertex(rect.min.x, rect.min.y, z);
   d3_uv(tr.max_x, tr.max_y); d3_vertex(rect.max.x, rect.min.y, z);
@@ -678,8 +631,7 @@ static void d3_texture_rect(tex_rect tr, r2 rect, f32 z, u32 color)
   d3_uv(tr.min_x, tr.max_y); d3_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void d3_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y)
-{
+static void d3_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y) {
   if (flip_x) swap(f32, tr.min_x, tr.max_x);
   if (flip_y) swap(f32, tr.min_y, tr.max_y);
 
@@ -692,8 +644,7 @@ static void d3_texture_rect_flip(tex_rect tr, r2 rect, f32 z, u32 color, b32 fli
   d3_uv(tr.min_x, tr.max_y); d3_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void d3_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y)
-{
+static void d3_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 color, b32 flip_y) {
   if (flip_y) swap(f32, tr.min_y, tr.max_y);
 
   m2 rot_matrix = m2_rotate(rot);
@@ -722,8 +673,7 @@ static void d3_rotated_texture(tex_rect tr, v2 pos, f32 z, v2 rad, f32 rot, u32 
   d3_uv(tr.min_x, tr.max_y); d3_vertex(ax, ay, z);
 }
 
-static void d3_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color)
-{
+static void d3_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color) {
   m2 rot_matrix = m2_rotate(rot);
 
   v2 u = m2_mulv(rot_matrix, v2(0, 1));
@@ -750,8 +700,7 @@ static void d3_rotated(v2 pos, f32 z, v2 rad, f32 rot, u32 color)
   d3_vertex(ax, ay, z);
 }
 
-static void d3_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color)
-{
+static void d3_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color) {
   v2  line         = v2_sub(p1, p0);
   f32 line_length  = v2_len(line);
   v2  line_pos     = v2_add(p0, v2_scale(line, 0.5f));
@@ -763,8 +712,7 @@ static void d3_line(v2 p0, v2 p1, f32 z, f32 rad, u32 color)
   d3_rotated(pos, z, scale, rot, color);
 }
 
-static void d3_box(r3 box, u32 color)
-{
+static void d3_box(r3 box, u32 color) {
   d3_color(color);
 
   d3_vertex(box.min.x, box.min.y, box.min.z);
@@ -810,8 +758,7 @@ static void d3_box(r3 box, u32 color)
   d3_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void d3_rect(r2 rect, f32 z, u32 color)
-{
+static void d3_rect(r2 rect, f32 z, u32 color) {
   d3_color(color);
   d3_vertex(rect.min.x, rect.min.y, z);
   d3_vertex(rect.max.x, rect.min.y, z);
@@ -821,8 +768,7 @@ static void d3_rect(r2 rect, f32 z, u32 color)
   d3_vertex(rect.min.x, rect.min.y, z);
 }
 
-static gl_shader d3_create_target(const char* fragment_shader)
-{
+static gl_shader d3_create_target(const char* fragment_shader) {
   gl_shader_desc shader_desc = {0};
 
   shader_desc.vs = d3_post_fx_vertex_shader;

@@ -1,12 +1,10 @@
 #pragma once
 
-typedef struct gl_texture gl_texture;
-struct gl_texture
-{
+typedef struct {
   u32 id;
   u16 width;
   u16 height;
-};
+} gl_texture;
 
 static gl_texture gl_bitmap_texture;
 
@@ -15,8 +13,7 @@ static v3 gl_forward = { 0, 1, 0 };
 static v3 gl_right = { 1, 0, 0 };
 static v3 gl_up = { 0, 0, 1 };
 
-static gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b32 is_smooth)
-{
+static gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b32 is_smooth) {
   assert(pixels);
 
   gl_texture texture = {0};
@@ -35,8 +32,7 @@ static gl_texture gl_texture_create(const void *pixels, u16 width, u16 height, b
   return texture;
 }
 
-static gl_texture gl_texture_load_from_file(const char* texture_path, b32 is_smooth)
-{
+static gl_texture gl_texture_load_from_file(const char* texture_path, b32 is_smooth) {
   u16 width  = 0;
   u16 height = 0;
   u32* pixels = file_load_image(texture_path, &width, &height);
@@ -47,8 +43,7 @@ static gl_texture gl_texture_load_from_file(const char* texture_path, b32 is_smo
   return texture;
 }
 
-static void gl_texture_update(gl_texture* texture, const void* pixels, u16 width, u16 height, b32 is_smooth)
-{
+static void gl_texture_update(gl_texture* texture, const void* pixels, u16 width, u16 height, b32 is_smooth) {
   texture->width  = width;
   texture->height = height;
 
@@ -59,8 +54,7 @@ static void gl_texture_update(gl_texture* texture, const void* pixels, u16 width
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, is_smooth ? GL_LINEAR : GL_NEAREST);
 }
 
-static void gl_texture_bind(const gl_texture* texture)
-{
+static void gl_texture_bind(gl_texture* texture) {
   glBindTexture(GL_TEXTURE_2D, texture->id);
 
   glMatrixMode(GL_TEXTURE);
@@ -68,14 +62,12 @@ static void gl_texture_bind(const gl_texture* texture)
   glScalef(1.0f / texture->width, 1.0f / texture->height, 1.0f);
 }
 
-static void gl_texture_destroy(gl_texture* texture)
-{
+static void gl_texture_destroy(gl_texture* texture) {
   glDeleteTextures(1, &texture->id);
   memset(texture, 0, sizeof *texture);
 }
 
-static v3 gl_get_world_position(i32 x, i32 y, m4 in_projection, m4 in_modelview)
-{
+static v3 gl_get_world_position(i32 x, i32 y, m4 in_projection, m4 in_modelview) {
   int viewport[4]    = {0};
   f64 modelview[16]  = {0};
   f64 projection[16] = {0};
@@ -98,8 +90,7 @@ static v3 gl_get_world_position(i32 x, i32 y, m4 in_projection, m4 in_modelview)
   return v3((f32)result[0], (f32)result[1], (f32)result[2]);
 }
 
-static v3 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp)
-{
+static v3 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp) {
   v4 clip_space = m4_mulv(mvp, v4(x, y, z, 1.0));
   v3 ndc = v3_scale(clip_space.xyz, (1.0 / clip_space.w));
   return v3(
@@ -112,8 +103,7 @@ static v3 gl_get_screen_position(f32 x, f32 y, f32 z, m4 mvp)
 
 #define BITMAP_COUNT (256)
 
-static const u64 bitascii[BITMAP_COUNT] =
-{
+static const u64 bitascii[BITMAP_COUNT] = {
   0x0000000000000000,
   0x7e8199bd81a5817e,
   0x7effe7c3ffdbff7e,
@@ -375,8 +365,7 @@ static const u64 bitascii[BITMAP_COUNT] =
 #include <stdio.h>
 #include <stdarg.h>
 
-static void gl_init(void)
-{
+static void gl_init(void) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
   glClearDepth(1.0f);
 
@@ -398,15 +387,11 @@ static void gl_init(void)
 
   {
     u32 pixels[8 + 16][BITMAP_COUNT * 8 + 512] = {0};
-    for (i32 i = 0; i < BITMAP_COUNT; ++i)
-    {
-      for (i32 y = 0; y < 8; ++y)
-      {
-        for (i32 x = 0; x < 8; ++x)
-        {
+    for (i32 i = 0; i < BITMAP_COUNT; ++i) {
+      for (i32 y = 0; y < 8; ++y) {
+        for (i32 x = 0; x < 8; ++x) {
           u64 bit = y * 8 + x;
-          if (bitascii[i] & (1ull << bit))
-          {
+          if (bitascii[i] & (1ull << bit)) {
             pixels[7 - y][(8 + 2) * i + x] = 0xffffffff;
           }
         }
@@ -416,15 +401,13 @@ static void gl_init(void)
   }
 }
 
-static void gl_set_axis(v3 forward, v3 right, v3 up)
-{
+static void gl_set_axis(v3 forward, v3 right, v3 up) {
   gl_forward = v3_norm(forward);
   gl_right = v3_norm(right);
   gl_up = v3_norm(up);
 }
 
-static void gl_set_simple_light_emitter(i32 index, f32 bright, f32 x, f32 y, f32 z)
-{
+static void gl_set_simple_light_emitter(i32 index, f32 bright, f32 x, f32 y, f32 z) {
   f32 pos[4] = { x, y, z, 1.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
   f32 c[4] = { bright, bright, bright, 0.0f };
@@ -440,8 +423,7 @@ static void gl_set_simple_light_emitter(i32 index, f32 bright, f32 x, f32 y, f32
   glEnable(GL_COLOR_MATERIAL);
 }
 
-static void gl_set_simple_light_directed(i32 index, f32 bright, f32 x, f32 y, f32 z)
-{
+static void gl_set_simple_light_directed(i32 index, f32 bright, f32 x, f32 y, f32 z) {
   f32 d       = (f32)(1.0f / sqrt32(x * x + y * y + z * z));
   f32 dir[4]  = { x * d, y * d, z * d, 0.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -458,8 +440,7 @@ static void gl_set_simple_light_directed(i32 index, f32 bright, f32 x, f32 y, f3
   glEnable(GL_COLOR_MATERIAL);
 }
 
-static void gl_set_light_emitter(i32 index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic)
-{
+static void gl_set_light_emitter(i32 index, v3 p, v3 color, f32 constant, f32 linear, f32 quadratic) {
   f32 pos[4]  = { p.x, p.y, p.z, 1.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
   f32 c[4]    = { color.r, color.g, color.b, 0.0f };
@@ -479,8 +460,7 @@ static void gl_set_light_emitter(i32 index, v3 p, v3 color, f32 constant, f32 li
   glEnable(GL_COLOR_MATERIAL);
 }
 
-static void gl_set_light_directed(i32 index, v3 pos, v3 color)
-{
+static void gl_set_light_directed(i32 index, v3 pos, v3 color) {
   f32 d       = (f32)(1.0f / sqrt32(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z));
   f32 dir[4]  = { pos.x * d, pos.y * d, pos.z * d, 0.0f };
   f32 zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -497,52 +477,43 @@ static void gl_set_light_directed(i32 index, v3 pos, v3 color)
   glEnable(GL_COLOR_MATERIAL);
 }
 
-static void gl_set_light_global_ambient(f32 r, f32 g, f32 b)
-{
+static void gl_set_light_global_ambient(f32 r, f32 g, f32 b) {
   f32 v[4] = { r, g, b, 0 };
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, v);
 }
 
-static void gl_begin(u32 type)
-{
+static void gl_begin(u32 type) {
   glBegin(type);
 }
 
-static void gl_end(void)
-{
+static void gl_end(void) {
   glEnd();
 }
 
-static void gl_color(u32 color)
-{
+static void gl_color(u32 color) {
   glColor4ubv((const u8*)&color);
 }
 
-static void gl_normal(f32 x, f32 y, f32 z)
-{
+static void gl_normal(f32 x, f32 y, f32 z) {
   glNormal3f(x, y, z);
 }
 
-static void gl_uv(f32 x, f32 y)
-{
+static void gl_uv(f32 x, f32 y) {
   glTexCoord2f(x, y);
 }
 
-static void gl_vertex(f32 x, f32 y, f32 z)
-{
+static void gl_vertex(f32 x, f32 y, f32 z) {
   glVertex3f(x, y, z);
 }
 
-static void gl_set_matrix(m4 projection, m4 view)
-{
+static void gl_set_matrix(m4 projection, m4 view) {
   glMatrixMode(GL_PROJECTION);
   glLoadMatrixf(projection.e);
   glMatrixMode(GL_MODELVIEW);
   glLoadMatrixf(view.e);
 }
 
-static void gl_billboard(tex_rect tex, v3 pos, v2 rad, u32 color)
-{
+static void gl_billboard(tex_rect tex, v3 pos, v2 rad, u32 color) {
   f32 ax = pos.x - gl_right.x * rad.x - gl_up.x * rad.y;
   f32 ay = pos.y - gl_right.y * rad.x - gl_up.y * rad.y;
   f32 az = pos.z - gl_right.z * rad.x - gl_up.z * rad.y;
@@ -571,8 +542,7 @@ static void gl_billboard(tex_rect tex, v3 pos, v2 rad, u32 color)
   gl_uv(tex.min_x, tex.max_y); gl_vertex(ax, ay, az);
 }
 
-static void gl_texture_box(tex_rect tex, r3 box, u32 color)
-{
+static void gl_texture_box(tex_rect tex, r3 box, u32 color) {
   gl_color(color);
 
   gl_normal(0, 0, -1);
@@ -624,8 +594,7 @@ static void gl_texture_box(tex_rect tex, r3 box, u32 color)
   gl_uv(tex.min_x, tex.min_y); gl_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color)
-{
+static void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color) {
   gl_color(color);
   gl_normal(0, 0, +1);
   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
@@ -636,8 +605,7 @@ static void gl_texture_rect(tex_rect tex, r2 rect, f32 z, u32 color)
   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y)
-{
+static void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, b32 flip_x, b32 flip_y) {
   if (flip_x) { swap(u16, tex.min_x, tex.max_x); }
   if (flip_y) { swap(u16, tex.min_y, tex.max_y); }
 
@@ -651,8 +619,7 @@ static void gl_texture_rect_flip(tex_rect tex, r2 rect, f32 z, u32 color, b32 fl
   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void gl_box(r3 box, u32 color)
-{
+static void gl_box(r3 box, u32 color) {
   gl_color(color);
 
   gl_normal(0, 0, -1);
@@ -704,8 +671,7 @@ static void gl_box(r3 box, u32 color)
   gl_vertex(box.min.x, box.max.y, box.max.z);
 }
 
-static void gl_rect(r2 rect, f32 z, u32 color)
-{
+static void gl_rect(r2 rect, f32 z, u32 color) {
   gl_color(color);
   gl_normal(0, 0, +1);
   gl_vertex(rect.min.x, rect.min.y, z);
@@ -718,10 +684,8 @@ static void gl_rect(r2 rect, f32 z, u32 color)
 
 // ======================================= FONT ====================================== //
 
-static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
-{
-  tex_rect tex =
-  {
+static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy) {
+  tex_rect tex = {
     .min_x = (u16)(c * (8 + 2)),
     .min_y = 0,
     .max_x = (u16)(c * (8 + 2) + 8),
@@ -738,8 +702,7 @@ static void gl_ascii(int c, f32 x, f32 y, f32 z, f32 sx, f32 sy)
   gl_uv(tex.min_x, tex.max_y); gl_vertex(rect.min.x, rect.min.y, z);
 }
 
-static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color)
-{
+static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color) {
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, gl_bitmap_texture.id);
   glMatrixMode(GL_TEXTURE);
@@ -749,8 +712,7 @@ static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
   gl_begin(GL_TRIANGLES);
   gl_color(color);
   gl_normal(0, 0, 1);
-  for (i32 i = 0; str[i] != '\0'; i++)
-  {
+  for (i32 i = 0; str[i] != '\0'; i++) {
     gl_ascii(str[i], x + i * sx, y, z, sx, sy);
   }
   gl_end();
@@ -759,23 +721,21 @@ static void gl_string(const char *str, f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 
   glMatrixMode(GL_MODELVIEW);
 }
 
-static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...)
-{
+static void gl_string_format(f32 x, f32 y, f32 z, f32 sx, f32 sy, u32 color, const char* fmt, ...) {
+  static char buffer[512] = {0};
+
   va_list list;
-  char buffer[256];
 
   va_start(list, fmt);
-  vsnprintf(buffer, 256, fmt, list);
+  vsnprintf(buffer, 511, fmt, list);
   va_end(list);
   gl_string(buffer, x, y, z, sx, sy, color);
 }
 
-static void gl_timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color)
-{
+static void gl_timer_print_result(f32 px, f32 py, f32 sx, f32 sy, u32 color) {
   int y = 0;
   // @TODO: fix render order within scopes!
-  for (int i = timer_count - 1; i >= 0; --i)
-  {
+  for (int i = timer_count - 1; i >= 0; --i) {
     timer_entry e = timer_array[i];
     gl_string_format(px + 2 * sx * e.depth, py + y * (sy + 1), 0, sx, sy, color, "%s : %.2f", e.name, 1000.0 * (e.stop - e.start));
     y++;

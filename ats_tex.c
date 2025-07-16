@@ -14,8 +14,7 @@
 #define TEXTURE_TABLE_SIZE  (1 << TEXTURE_TABLE_LOG2)
 #define TEXTURE_TABLE_MOD   (TEXTURE_TABLE_SIZE - 1)
 
-struct tex_frame
-{
+struct tex_frame {
   struct tex_frame* next;
 
   tex_rect rect;
@@ -24,24 +23,21 @@ struct tex_frame
   char name[64];
 };
 
-struct tex_animation
-{
+struct tex_animation {
   struct tex_animation* next;
   struct tex_frame* frame;
 
   char name[64];
 };
 
-struct tex_entity
-{
+struct tex_entity {
   struct tex_entity* next;
   struct tex_animation* animation;
 
   char name[64];
 };
 
-typedef struct
-{
+struct tex_image {
   b32 user_provided;
 
   u16 width;
@@ -52,46 +48,42 @@ typedef struct
   char entity[64];
   char animation[64];
   char frame[64];
-} tex_image;
+};
 
-static struct
-{
+static struct {
   u16 width;
   u16 height;
   u32* pixels;
 
   struct tex_entity* entity[TEXTURE_TABLE_SIZE];
 
-  struct
-  {
+  struct {
     u32 count;
-    tex_image array[2048];
+    struct tex_image array[2048];
   } image;
 
-  struct
-  {
+  struct {
     u32 count; 
     tex_rect array[4096];
   } stack;
 } tex;
 
-static int tex_cmp_image(const void* va, const void* vb)
-{
-  const tex_image* a = (const tex_image*)va;
-  const tex_image* b = (const tex_image*)vb;
+static int tex_cmp_image(const void* va, const void* vb) {
+  const struct tex_image* a = va;
+  const struct tex_image* b = vb;
   return b->width - a->width;
 }
 
-static void tex__str_copy(char* d, usize count, const char* s)
-{
+static void tex__str_copy(char* d, usize count, const char* s) {
   while (count-- && *s)
     *(d++) = *(s++);
   *d = '\0';
 }
 
-static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 height)
-{
-  tex_image* image = arr_new(&tex.image);
+static struct tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 height) {
+  struct tex_image* image = tex.image.array + tex.image.count++;
+
+  memset(image, 0, sizeof *image);
 
   image->width  = width;
   image->height = height;
@@ -101,11 +93,9 @@ static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 
   u32 index = 0;
   char array[8][64] = {0};
 
-  while (*name && (*name != '.'))
-  {
+  while (*name && (*name != '.')) {
     array[count][index++] = *(name++);
-    if (*name == '/' || *name == '\\')
-    {
+    if (*name == '/' || *name == '\\') {
       name++;
       count++;
       index = 0;
@@ -114,20 +104,16 @@ static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 
 
   tex__str_copy(image->frame, countof(image->frame), array[count]);
 
-  switch (count)
-  {
-    case 0:
-    {
+  switch (count) {
+    case 0: {
       tex__str_copy(image->entity, countof(image->frame), array[count]);
       tex__str_copy(image->animation, countof(image->frame), "idle");
     } break;
-    case 1:
-    {
+    case 1: {
       tex__str_copy(image->entity, countof(image->frame), array[0]);
       tex__str_copy(image->animation, countof(image->frame), "idle");
     } break;
-    case 2:
-    {
+    case 2: {
       tex__str_copy(image->entity, countof(image->frame), array[0]);
       tex__str_copy(image->animation, countof(image->frame), array[1]);
     } break;
@@ -137,19 +123,16 @@ static tex_image* tex__new_image(const char* name, void* pixels, u16 width, u16 
   return image;
 }
 
-static b32 _rect_contains_image(tex_rect rect, u16 width, u16 height)
-{
+static b32 _rect_contains_image(tex_rect rect, u16 width, u16 height) {
   u16 rect_width  = rect.max_x - rect.min_x;
   u16 rect_height = rect.max_y - rect.min_y;
 
   return width <= rect_width && height <= rect_height;
 }
 
-static tex_rect tex__get_fit(u16 width, u16 height)
-{
+static tex_rect tex__get_fit(u16 width, u16 height) {
   u32 j = 0;
-  for (j = 0; j < tex.stack.count; ++j)
-  {
+  for (j = 0; j < tex.stack.count; ++j) {
     if (_rect_contains_image(tex.stack.array[j], width, height))
       break;
   }
@@ -158,14 +141,11 @@ static tex_rect tex__get_fit(u16 width, u16 height)
   return rect;
 }
 
-static struct tex_entity* tex__get_entity(const char* name)
-{
+static struct tex_entity* tex__get_entity(const char* name) {
   u32 hash = hash_str(name);
   u32 index = hash & TEXTURE_TABLE_MOD;
-  for (struct tex_entity* e = tex.entity[index]; e; e = e->next)
-  {
-    if (strcmp(e->name, name) == 0)
-    {
+  for (struct tex_entity* e = tex.entity[index]; e; e = e->next) {
+    if (strcmp(e->name, name) == 0) {
       return e;
     }
   }
@@ -176,12 +156,10 @@ static struct tex_entity* tex__get_entity(const char* name)
   return e;
 }
 
-static struct tex_animation* tex__get_animation(struct tex_entity* e, const char* name)
-{
+static struct tex_animation* tex__get_animation(struct tex_entity* e, const char* name) {
   struct tex_animation* prev = 0;
   struct tex_animation* node = 0;
-  for (node = e->animation; node; node = node->next)
-  {
+  for (node = e->animation; node; node = node->next) {
     int cmp = strcmp(node->name, name);
     if (cmp == 0) return node;
     if (cmp > 0)
@@ -191,23 +169,18 @@ static struct tex_animation* tex__get_animation(struct tex_entity* e, const char
   struct tex_animation* anim = mem_type(struct tex_animation);
   anim->next = node;
   tex__str_copy(anim->name, countof(anim->name), name);
-  if (prev)
-  {
+  if (prev) {
     prev->next = anim;
-  }
-  else
-  {
+  } else {
     e->animation = anim;
   }
   return anim;
 }
 
-static struct tex_frame* tex__get_frame(struct tex_animation* a, const char* name)
-{
+static struct tex_frame* tex__get_frame(struct tex_animation* a, const char* name) {
   struct tex_frame* prev = 0;
   struct tex_frame* node = 0;
-  for (node = a->frame; node; node = node->next)
-  {
+  for (node = a->frame; node; node = node->next) {
     int cmp = strcmp(node->name, name);
     if (cmp == 0) return node;
     if (cmp > 0) {
@@ -218,19 +191,15 @@ static struct tex_frame* tex__get_frame(struct tex_animation* a, const char* nam
   struct tex_frame* frame = mem_type(struct tex_frame);
   frame->next = node;
   tex__str_copy(frame->name, countof(frame->name), name);
-  if (prev)
-  {
+  if (prev) {
     prev->next = frame;
-  }
-  else
-  {
+  } else {
     a->frame = frame;
   }
   return frame;
 }
 
-static void tex__add_frame(tex_image* image, tex_rect rect, tex_rect fitted)
-{
+static void tex__add_frame(struct tex_image* image, tex_rect rect, tex_rect fitted) {
   u32 hash = hash_str(image->frame);
   u16 index = hash & TEXTURE_TABLE_MOD;
 
@@ -243,43 +212,35 @@ static void tex__add_frame(tex_image* image, tex_rect rect, tex_rect fitted)
   tex__str_copy(frame->name, 64, image->frame);
 }
 
-static u32 tex__get_image_pixel(const tex_image* image, u16 x, u16 y)
-{
+static u32 tex__get_image_pixel(struct tex_image* image, u16 x, u16 y) {
   return image->pixels[y * image->width + x];
 }
 
-static void tex__set_pixel(u16 x, u16 y, u32 color)
-{
+static void tex__set_pixel(u16 x, u16 y, u32 color) {
   tex.pixels[y * tex.width + x] = color;
 }
 
-static u32 tex__get_pixel(u16 x, u16 y)
-{
+static u32 tex__get_pixel(u16 x, u16 y) {
   return tex.pixels[y * tex.width + x];
 }
 
-ATS_API u32* tex_get_pixels(void)
-{
+ATS_API u32* tex_get_pixels(void) {
   return tex.pixels;
 }
 
-ATS_API u16 tex_get_width(void)
-{
+ATS_API u16 tex_get_width(void) {
   return tex.width;
 }
 
-ATS_API u16 tex_get_height(void)
-{
+ATS_API u16 tex_get_height(void) {
   return tex.height;
 }
 
-ATS_API f32 tex_get_aspect(tex_rect rect)
-{
+ATS_API f32 tex_get_aspect(tex_rect rect) {
   return (rect.max_y - rect.min_y) / (f32)(rect.max_x - rect.min_x);
 }
 
-ATS_API tex_rect tex_get(const char* name)
-{
+ATS_API tex_rect tex_get(const char* name) {
 #if 0
   tex_frame* frame = tex__get_frame(name);
   return frame->rect;
@@ -287,14 +248,12 @@ ATS_API tex_rect tex_get(const char* name)
   return tex_rect(0);
 }
 
-ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height)
-{
-  tex_image* image = tex__new_image(name, pixels, width, height);
+ATS_API void tex_add_image(const char* name, void* pixels, u16 width, u16 height) {
+  struct tex_image* image = tex__new_image(name, pixels, width, height);
   image->user_provided = 1;
 }
 
-ATS_API void tex_load_dir(const char* texture_path)
-{
+ATS_API void tex_load_dir(const char* texture_path) {
   dir_iter(texture_path) {
     const char* ext = dir_extension();
 
@@ -311,8 +270,7 @@ ATS_API void tex_load_dir(const char* texture_path)
   }
 }
 
-ATS_API void tex_begin(u16 width, u16 height)
-{
+ATS_API void tex_begin(u16 width, u16 height) {
   memset(&tex, 0, sizeof (tex));
 
   tex.width  = width;
@@ -320,8 +278,7 @@ ATS_API void tex_begin(u16 width, u16 height)
   tex.pixels = mem_array(u32, (usize)(width * height));
 }
 
-ATS_API void tex_end(void)
-{
+ATS_API void tex_end(void) {
   tex.stack.count = 0;
   tex.stack.array[tex.stack.count++] = (tex_rect) {
     .min_x = 0,
@@ -330,9 +287,11 @@ ATS_API void tex_end(void)
     .max_y = tex.height,
   };
 
-  arr_sort(&tex.image, tex_cmp_image);
+  sort(tex.image.array, tex.image.count, tex_cmp_image);
 
-  for_arr(tex_image, image, &tex.image) {
+  for (u32 i = 0; i < tex.image.count; ++i) {
+    struct tex_image* image = tex.image.array + i;
+
     tex_rect rect = tex__get_fit(image->width + 2, image->height + 2);
 
     u16 offset_x = rect.min_x + TEXTURE_BORDER_SIZE;
@@ -340,32 +299,29 @@ ATS_API void tex_end(void)
     u16 size_x   = image->width + 2 * TEXTURE_BORDER_SIZE;
     u16 size_y   = image->height + 2 * TEXTURE_BORDER_SIZE;
 
-    tex_rect full =
-    {
+    tex_rect full = {
       .min_x = offset_x,
       .min_y = offset_y,
       .max_x = (u16)(offset_x + image->width),
       .max_y = (u16)(offset_y + image->height),
     };
 
-    tex_rect fitted =
-    {
+    tex_rect fitted = {
       .min_x = 0xffff,
       .min_y = 0xffff,
       .max_x = 0,
       .max_y = 0,
     };
 
-    for (u16 y = 0; y < image->height; ++y)
-    {
-      for (u16 x = 0; x < image->width; ++x)
-      {
+    for (u16 y = 0; y < image->height; ++y) {
+      for (u16 x = 0; x < image->width; ++x) {
         u16 tx = offset_x + x;
         u16 ty = offset_y + y;
         u32 pixel = tex__get_image_pixel(image, x, y);
+
         tex__set_pixel(tx, ty, pixel);
-        if (pixel)
-        {
+
+        if (pixel) {
           fitted.min_x = min(fitted.min_x, x);
           fitted.min_y = min(fitted.min_y, y);
           fitted.max_x = max(fitted.max_x, x);
@@ -381,25 +337,21 @@ ATS_API void tex_end(void)
 
     tex__add_frame(image, full, fitted);
 
-    for (u16 y = (full.min_y - TEXTURE_BORDER_SIZE); y < (full.max_y + TEXTURE_BORDER_SIZE); ++y)
-    {
-      for (u16 x = (full.min_x - TEXTURE_BORDER_SIZE); x < (full.max_x + TEXTURE_BORDER_SIZE); ++x)
-      {
+    for (u16 y = (full.min_y - TEXTURE_BORDER_SIZE); y < (full.max_y + TEXTURE_BORDER_SIZE); ++y) {
+      for (u16 x = (full.min_x - TEXTURE_BORDER_SIZE); x < (full.max_x + TEXTURE_BORDER_SIZE); ++x) {
         u32 pixel = tex__get_pixel(clamp(x, full.min_x, full.max_x - 1), clamp(y, full.min_y, full.max_y - 1));
         tex__set_pixel(x, y, pixel);
       }
     }
 
-    tex_rect a =
-    {
+    tex_rect a = {
       (u16)(rect.min_x + size_x),
       rect.min_y,
       rect.max_x,
       rect.max_y,
     };
 
-    tex_rect b =
-    {
+    tex_rect b = {
       rect.min_x,
       (u16)(rect.min_y + size_y),
       (u16)(rect.min_x + size_x),
@@ -420,8 +372,7 @@ ATS_API void tex_end(void)
   tex.stack.count = 0;
 }
 
-ATS_API void tex_save(const char* name)
-{
+ATS_API void tex_save(const char* name) {
   char image_filename[256] = {0};
   char header_filename[256] = {0};
 
@@ -439,15 +390,14 @@ ATS_API void tex_save(const char* name)
 
   // enum entity:
   {
-    emit("typedef enum\n{\n");
-    emit("  TEX_ENTITY_none,\n");
-    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
-    {
+    emit("enum {\n");
+    emit("  TE_none,\n");
+    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
       for (struct tex_entity* node = tex.entity[i]; node; node = node->next)
-        emit("  TEX_ENTITY_%s,\n", node->name);
+        emit("  TE_%s,\n", node->name);
     }
-    emit("  TEX_ENTITY_count,\n");
-    emit("} tex_entity;\n\n");
+    emit("  TE_count,\n");
+    emit("};\n\n");
   }
   
   // enum animation:
@@ -455,67 +405,54 @@ ATS_API void tex_save(const char* name)
     u32 used_count = 0;
     char* used_array[TEXTURE_TABLE_SIZE];
 
-    emit("typedef enum\n{\n");
-    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
-    {
-      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
-      {
-        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next)
-        {
+    emit("enum {\n");
+    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
           u32 emit_enum = 1;
-          for (u32 j = 0; j < used_count; ++j)
-          {
-            if (strcmp(used_array[j], animation->name) == 0)
-            {
+          for (u32 j = 0; j < used_count; ++j) {
+            if (strcmp(used_array[j], animation->name) == 0) {
               emit_enum = 0;
               break;
             }
           }
-          if (emit_enum)
-          {
-            emit("  TEX_ANIMATION_%s,\n", animation->name);
+          if (emit_enum) {
+            emit("  TA_%s,\n", animation->name);
             used_array[used_count++] = animation->name;
           }
         }
       }
     }
-    emit("  TEX_ANIMATION_count,\n");
-    emit("} tex_animation;\n\n");
+    emit("  TA_count,\n");
+    emit("};\n\n");
   }
 
   // enum frame:
   {
-    emit("typedef enum\n{\n");
-    emit("  TEX_FRAME_none,\n");
-    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
-    {
-      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
-      {
-        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next)
-        {
-          for (struct tex_frame* frame = animation->frame; frame; frame = frame->next)
-          {
-            emit("  TEX_FRAME_%s,\n", frame->name);
+    emit("enum {\n");
+    emit("  TF_none,\n");
+    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          for (struct tex_frame* frame = animation->frame; frame; frame = frame->next) {
+            emit("  TF_%s,\n", frame->name);
           }
         }
       }
     }
-    emit("  TEX_FRAME_count,\n");
-    emit("} tex_frame;\n\n");
+    emit("  TF_count,\n");
+    emit("};\n\n");
   }
 
   // entity -> animation lookup table:
   {
-    emit("static tex_frame tex_animation_table[TEX_ENTITY_count][TEX_ANIMATION_count] =\n{\n");
-    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
-    {
-      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
-      {
-        emit("  [TEX_ENTITY_%s] =\n  {\n", entity->name);
-        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next)
-        {
+    emit("static u16 tex_animation_table[TE_count][TA_count] = {\n");
+    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        emit("  [TE_%s] = {\n", entity->name);
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
           struct tex_frame* frame = animation->frame;
-          emit("    [TEX_ANIMATION_%s] = TEX_FRAME_%s,\n", animation->name, frame->name);
+          emit("    [TA_%s] = TF_%s,\n", animation->name, frame->name);
         }
         emit("  },\n");
       }
@@ -525,29 +462,25 @@ ATS_API void tex_save(const char* name)
 
   // frame lookup table:
   {
-    emit("typedef struct tex_info\n{\n");
-    emit("  tex_frame next;\n");
-    emit("  tex_animation animation;\n");
+    emit("typedef struct\n{\n");
+    emit("  u16 next_frame;\n");
+    emit("  u16 animation;\n");
     emit("  tex_rect rect;\n");
     emit("  tex_rect fitted;\n");
     emit("} tex_info;\n\n");
-    emit("static tex_info tex_info_table[TEX_FRAME_count] =\n{\n");
+    emit("static tex_info tex_info_table[TF_count] = {\n");
 
-    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i)
-    {
-      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next)
-      {
-        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next)
-        {
-          for (struct tex_frame* frame = animation->frame; frame; frame = frame->next)
-          {
+    for (u32 i = 0; i < TEXTURE_TABLE_SIZE; ++i) {
+      for (struct tex_entity* entity = tex.entity[i]; entity; entity = entity->next) {
+        for (struct tex_animation* animation = entity->animation; animation; animation = animation->next) {
+          for (struct tex_frame* frame = animation->frame; frame; frame = frame->next) {
             tex_rect rect = frame->rect;
             tex_rect fitted = frame->fitted;
             struct tex_frame* next = frame->next? frame->next : animation->frame;
 
-            emit("  [TEX_FRAME_%s] =\n  {\n", frame->name),
-            emit("    .next       = TEX_FRAME_%s,\n", next->name);
-            emit("    .animation  = TEX_ANIMATION_%s,\n", animation->name);
+            emit("  [TF_%s] = {\n", frame->name),
+            emit("    .next_frame = TF_%s,\n", next->name);
+            emit("    .animation  = TA_%s,\n", animation->name);
             emit("    .rect       = { %d, %d, %d, %d },\n", rect.min_x, rect.min_y, rect.max_x, rect.max_y);
             emit("    .fitted     = { %d, %d, %d, %d },\n", fitted.min_x, fitted.min_y, fitted.max_x, fitted.max_y);
             emit("  },\n");

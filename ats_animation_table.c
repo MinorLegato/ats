@@ -1,16 +1,16 @@
 #pragma once
 
-static at_frame* at_current_frame = 0;
-static at_animation* at_current_animation = 0;
-static at_entity* at_current_entity = 0;
-static at_entity* at_entity_list = 0;
+static at_frame_t* at_current_frame = 0;
+static at_animation_t* at_current_animation = 0;
+static at_entity_t* at_current_entity = 0;
+static at_entity_t* at_entity_list = 0;
 
 ATS_API void at_add_entity(const char* name)
 {
   assert(name);
   at_current_animation = 0;
   at_current_frame = 0;
-  at_entity* entity = mem_type(at_entity);
+  at_entity_t* entity = mem_type(at_entity_t);
   entity->name = name;
   if (!at_entity_list)
   {
@@ -27,7 +27,7 @@ ATS_API void at_add_animation(const char* name)
 {
   assert(name);
   at_current_frame = 0;
-  at_animation* animation = mem_type(at_animation);
+  at_animation_t* animation = mem_type(at_animation_t);
   animation->name = name;
   if (!at_current_entity->animation)
   {
@@ -43,7 +43,7 @@ ATS_API void at_add_animation(const char* name)
 ATS_API void at_add_frame(const char* name)
 {
   assert(name);
-  at_frame* frame = mem_type(at_frame);
+  at_frame_t* frame = mem_type(at_frame_t);
   frame->name = name;
   frame->rect = tex_get(name);
   frame->animation = at_current_animation;
@@ -72,11 +72,11 @@ ATS_API void at_end(void)
   // @NOTE: do some cool shit here!
 }
 
-ATS_API void at_set(at_state* state, const char* name)
+ATS_API void at_set(at_state_t* state, const char* name)
 {
   assert(state && name);
   if (strcmp(state->frame->animation->name, name) == 0) return;
-  at_animation* animation = state->entity->animation;
+  at_animation_t* animation = state->entity->animation;
 
   while (animation && (strcmp(animation->name, name) != 0))
     animation = animation->next;
@@ -88,7 +88,7 @@ ATS_API void at_set(at_state* state, const char* name)
   }
 }
 
-ATS_API void at_update(at_state* state, f32 dt)
+ATS_API void at_update(at_state_t* state, f32 dt)
 {
   assert(state);
   state->duration += dt;
@@ -100,10 +100,10 @@ ATS_API void at_update(at_state* state, f32 dt)
   }
 }
 
-static at_entity* _at_get_entity(const char* name)
+static at_entity_t* _at_get_entity(const char* name)
 {
   assert(name);
-  at_entity* entity = at_entity_list;
+  at_entity_t* entity = at_entity_list;
 
   while (entity && (strcmp(entity->name, name) != 0))
     entity = entity->next;
@@ -111,10 +111,10 @@ static at_entity* _at_get_entity(const char* name)
   return entity? entity : 0;
 }
 
-ATS_API at_state at_get(const char* name)
+ATS_API at_state_t at_get(const char* name)
 {
   assert(name);
-  at_state state = {0};
+  at_state_t state = {0};
   state.entity = _at_get_entity(name);
   state.frame = state.entity->animation->frame;
   return state;
