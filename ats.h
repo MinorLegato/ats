@@ -604,6 +604,11 @@ typedef struct {
   i32 side; // was a NS or a EW wall hit?
 } ray_iter;
 
+#define ray_iter(var, ...) \
+  for (ray_iter var = ray_iter_create(__VA_ARGS__); \
+       ray_iter_is_valid(&var); \
+       ray_iter_advance(&var))
+
 ATS_API ray_iter ray_iter_create(v2 pos, v2 dir);
 ATS_API b32 ray_iter_is_valid(ray_iter* it);
 ATS_API void ray_iter_advance(ray_iter* it);
@@ -636,6 +641,11 @@ typedef struct {
 
   i32 side; // was a NS or a EW wall hit?
 } ray3_iter;
+
+#define ray3_iter(var, ...) \
+  for (ray3_iter var = ray3_iter_create(__VA_ARGS__); \
+       ray3_iter_is_valid(&var); \
+       ray3_iter_advance(&var))
 
 ATS_API ray3_iter ray3_iter_create(v3 pos, v3 dir);
 ATS_API b32 ray3_iter_is_valid(ray3_iter* it);
