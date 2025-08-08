@@ -4,6 +4,7 @@
 #include "ext/glad/glad.h"
 #define GLSL(...) "#version 460 core\n" #__VA_ARGS__
 #endif // ATS_OGL46
+#undef APIENTRY
 
 #include "ext/GLFW/ats_glfw.h"
 
