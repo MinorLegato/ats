@@ -491,7 +491,6 @@ ATS_API void tex_save(const char* name) {
     emit("};\n\n");
   }
 #undef emit
-
   file_write_bin(header_filename, file_content, it - file_content);
 }
 

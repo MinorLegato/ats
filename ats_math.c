@@ -686,8 +686,7 @@ ATS_API i32 v2i_manhattan(v2i a, v2i b) {
   return (0x7fffffff & diff.x) + (0x7fffffff & diff.y);
 }
 
-ATS_API i32 v3i_manhattan(v3i a, v3i b) {
-  v3i diff = v3i_sub(a, b);
+ATS_API i32 v3i_manhattan(v3i a, v3i b) { v3i diff = v3i_sub(a, b);
   return (0x7fffffff & diff.x) + (0x7fffffff & diff.y) + (0x7fffffff & diff.z);
 }
 

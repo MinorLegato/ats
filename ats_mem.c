@@ -10,10 +10,8 @@ ATS_API void mem_init(void* data, usize size) {
 
 ATS_API mem_arena mem_create(void* data, usize size) {
   mem_arena arena = {0};
-
   arena.cap = size;
   arena.buf = (u8*)data;
-
   return arena;
 }
 

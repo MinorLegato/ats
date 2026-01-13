@@ -5,8 +5,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "ext/stb_image.h" 
 
-static usize _file_get_size(FILE* fp)
-{
+static usize _file_get_size(FILE* fp) {
   fseek(fp, 0L, SEEK_END);
   usize size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
@@ -14,9 +13,9 @@ static usize _file_get_size(FILE* fp)
 }
 
 #define _file_open stbi__fopen
+
 #if 0
-static FILE* _file_open(const char* path, const char* mode)
-{
+static FILE* _file_open(const char* path, const char* mode) {
   FILE* file = 0;
   errno_t error = fopen_s(&file, path, mode);
   return error? 0 : file;
@@ -115,9 +114,7 @@ static void _file_cstr_concat(char* out, const char* a, const char* b) {
 struct file__iter {
   char current[MAX_PATH];
   char path[MAX_PATH];
-
   b32 done;
-
   HANDLE handle;
   WIN32_FIND_DATAA data;
 };
@@ -172,7 +169,8 @@ ATS_API i32 dir_depth(void) {
   return dir__iter.idx;
 }
 
-static void dir__update_file_info(void) {
+static void
+dir__update_file_info(void) {
   char* s = dir__iter.stack[dir__iter.idx].current;
 
   i32 i = 0;
@@ -184,11 +182,9 @@ static void dir__update_file_info(void) {
   dir__iter.name[0] = '\0';
   dir__iter.extension[0] = '\0';
 
-  for (i = 0; s && s[i]; ++i)
-  {
+  for (i = 0; s && s[i]; ++i) {
     dir__iter.path[i] = s[i];
-    switch (s[i])
-    {
+    switch (s[i]) {
       case '\\': case '/': n = i; break;
       case '.':            e = i; break;
     }

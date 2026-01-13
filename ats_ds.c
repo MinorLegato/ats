@@ -199,8 +199,7 @@ ATS_API ray3_iter ray3_iter_create(v3 pos, v3 dir) {
   return it;
 }
 
-ATS_API b32 ray3_iter_is_valid(ray3_iter* it)
-{
+ATS_API b32 ray3_iter_is_valid(ray3_iter* it) {
   return 1;
 }
 

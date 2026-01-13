@@ -306,7 +306,8 @@ static struct {
   GLFWmonitor* monitor;
 } platform_internal;
 
-static void window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
+static void
+window_key_callback(GLFWwindow* window, int key, int a, int action, int b) {
   (void)window;
   (void)a;
   (void)b;
@@ -334,12 +335,14 @@ static void window_key_callback(GLFWwindow* window, int key, int a, int action, 
   }
 }
 
-static void window_char_callback(GLFWwindow* window, unsigned int codepoint) {
+static void
+window_char_callback(GLFWwindow* window, unsigned int codepoint) {
   platform.keyboard.is_ascii  = 1;
   platform.keyboard.ascii = codepoint;
 }
 
-static void window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
+static void
+window_mouse_button_callback(GLFWwindow* window, int button, int action, int a) {
   (void)window;
   (void)a;
 
@@ -359,13 +362,15 @@ static void window_mouse_button_callback(GLFWwindow* window, int button, int act
   }
 }
 
-static void window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
+static void
+window_scroll_callback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
   (void)window;
   platform.mouse.scroll.x = (f32)xoffset;
   platform.mouse.scroll.y = (f32)yoffset;
 }
 
-static void window_joystick_callback(int joy, int event) {
+static void
+window_joystick_callback(int joy, int event) {
   if (event == GLFW_CONNECTED) {
     memset(&platform.gamepad[joy], 0, sizeof platform.gamepad[joy]);
     platform.gamepad[joy].active = 1;
@@ -376,17 +381,19 @@ static void window_joystick_callback(int joy, int event) {
   }
 }
 
-static f64 platform_get_time(void) {
+static f64
+platform_get_time(void) {
   return glfwGetTime();
 }
 
-static void platform_poll_events(void) {
-  platform.mouse.is_pressed       = 0;
-  platform.mouse.is_released      = 0;
-  platform.keyboard.is_pressed    = 0;
-  platform.keyboard.is_repeat     = 0;
-  platform.keyboard.is_released   = 0;
-  platform.keyboard.is_ascii      = 0;
+static void
+platform_poll_events(void) {
+  platform.mouse.is_pressed = 0;
+  platform.mouse.is_released = 0;
+  platform.keyboard.is_pressed = 0;
+  platform.keyboard.is_repeat = 0;
+  platform.keyboard.is_released = 0;
+  platform.keyboard.is_ascii = 0;
 
   // update mouse:
   {
@@ -402,18 +409,14 @@ static void platform_poll_events(void) {
     platform.mouse.scroll.x = 0;
     platform.mouse.scroll.y = 0;
 
-    switch (platform.mouse.mode)
-    {
-      case MOUSE_MODE_NORMAL:
-      {
+    switch (platform.mouse.mode) {
+      case MOUSE_MODE_NORMAL: {
         glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
       } break;
-      case MOUSE_MODE_HIDDEN:
-      {
+      case MOUSE_MODE_HIDDEN: {
         glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
       } break;
-      case MOUSE_MODE_DISABLED:
-      {
+      case MOUSE_MODE_DISABLED: {
         glfwSetInputMode(platform_internal.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
       } break;
     }
@@ -423,10 +426,8 @@ static void platform_poll_events(void) {
   {
     GLFWgamepadstate state;
 
-    for (int i = 0; i < JOYSTICK_LAST; ++i)
-    {
-      if (platform.gamepad[i].active)
-      {
+    for (int i = 0; i < JOYSTICK_LAST; ++i) {
+      if (platform.gamepad[i].active) {
         gamepad_buttons old = platform.gamepad[i].down;
 
         platform.gamepad[i].down.data = 0;
@@ -574,8 +575,9 @@ ATS_API void platform_init(const char* title, int width, int height, int samples
 
   // init connected controllers
   for (int i = 0; i < GLFW_JOYSTICK_LAST; ++i) {
-    if (glfwJoystickPresent(i))
+    if (glfwJoystickPresent(i)) {
       platform.gamepad[i].active = 1;
+    }
   }
 
   glfwSetTime(0.0);
